@@ -1,0 +1,9 @@
+node_modules
+deploy
+dist
+**/__tests__/*
+**/__mocks__/*
+**/__e2e__/*
+**/*.test.*
+config
+scripts
