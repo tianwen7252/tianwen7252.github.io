@@ -16,8 +16,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.3.7",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
+    "antd": "^5.17.3",
+    "lodash": "^4.17.21",
+    "mathjs": "^12.4.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

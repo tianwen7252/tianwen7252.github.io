@@ -1,13 +1,19 @@
 import { useState } from 'react'
+
 import reactLogo from '/react.svg'
 import viteLogo from '/vite.svg'
+import { process } from 'src/libs/arithmetic'
+import Home from 'src/components/Home'
+
 import './App.css'
 
 function App() {
   const [count, setCount] = useState(0)
-
+  // @ts-ignore
+  window.process = process
   return (
     <>
+      <Home />
       <div>
         <a href="https://vitejs.dev" target="_blank">
           <img src={viteLogo} className="logo" alt="Vite logo" />
@@ -18,7 +24,7 @@ function App() {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
+        <button onClick={() => setCount(count => count + 1)}>
           count is {count}
         </button>
         <p>
