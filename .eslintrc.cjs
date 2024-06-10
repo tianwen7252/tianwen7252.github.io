@@ -1,3 +1,4 @@
+/* eslint-env node */
 module.exports = {
   root: true,
   settings: {
@@ -8,15 +9,22 @@ module.exports = {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
   },
-  env: { browser: true, es2020: true },
+  env: { browser: true, es2020: true, node: true },
+  globals: {
+    vi: true,
+  },
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended',
+    'plugin:react/recommended',
     'plugin:react-hooks/recommended',
+    'plugin:import/recommended',
+    'plugin:import/typescript',
+    'prettier',
   ],
   ignorePatterns: ['dist', '.eslintrc.cjs'],
   parser: '@typescript-eslint/parser',
-  plugins: ['react-refresh', '@typescript-eslint', "@emotion"],
+  plugins: ['react-refresh', '@typescript-eslint', '@emotion'],
   rules: {
     'quote-props': ['error', 'as-needed'],
     'no-empty': 'off',
