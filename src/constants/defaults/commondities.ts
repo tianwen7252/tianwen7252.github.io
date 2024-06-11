@@ -1,3 +1,4 @@
+/* THIS DATA HAS BEEN TIDIED BY $npm run tidyCommondities */
 export const COMMODITIES = [
   {
     type: 'main-dish',
@@ -5,7 +6,7 @@ export const COMMODITIES = [
     color: 'green',
     items: [
       {
-        name: '+120',
+        name: '120',
         price: 120,
         menu: [
           { name: '炸雞腿飯', textIcon: '🍗', price: 120, priority: 0 },
@@ -15,17 +16,19 @@ export const COMMODITIES = [
         priority: 0,
       },
       {
-        name: '+95',
-        price: 95,
+        name: '110',
+        price: 110,
         menu: [
-          { name: '雞肉絲飯', textIcon: '🐔', price: 95, priority: 0 },
-          { name: '無骨雞排飯', textIcon: '🥩 ', price: 95, priority: 1 },
+          { name: '蒜泥白肉飯', textIcon: '🥓', price: 110, priority: 0 },
+          { name: '排骨飯', textIcon: '🥩', price: 110, priority: 1 },
+          { name: '魚排飯', textIcon: '🐟', price: 110, priority: 2 },
+          { name: '焢肉飯', textIcon: '🥩', price: 110, priority: 3 },
         ],
         showRelevancy: true,
         priority: 1,
       },
       {
-        name: '+105',
+        name: '105',
         price: 105,
         menu: [
           { name: '京醬肉絲飯', textIcon: '🥓', price: 105, priority: 0 },
@@ -35,37 +38,27 @@ export const COMMODITIES = [
         priority: 2,
       },
       {
-        name: '+110',
-        price: 110,
+        name: '95',
+        price: 95,
         menu: [
-          { name: '蒜泥白肉飯', textIcon: '🥓', price: 110, priority: 0 },
-          { name: '排骨飯', textIcon: '🥩', price: 110, priority: 1 },
-          { name: '魚排飯', textIcon: '🐟', price: 110, priority: 2 },
-          { name: '焢肉飯', textIcon: '🥩', price: 110, priority: 3 },
+          { name: '雞肉絲飯', textIcon: '🐔', price: 95, priority: 0 },
+          { name: '無骨雞排飯', textIcon: '🥩 ', price: 95, priority: 1 },
         ],
         showRelevancy: true,
         priority: 3,
       },
-      {
-        name: '炸雞腿飯',
-        price: 120,
-        priority: 4,
-      },
-      {
-        name: '滷雞腿飯',
-        price: 120,
-        priority: 4,
-      },
-      { name: '雞肉絲飯', price: 95, priority: 5 },
-      { name: '京醬肉絲飯', price: 105, priority: 6 },
-      { name: '蒜泥白肉飯', price: 110, priority: 7 },
-      { name: '排骨飯', price: 110, priority: 8 },
-      { name: '糖醋雞丁飯', price: 105, priority: 9 },
-      { name: '無骨雞排飯', price: 95, priority: 10 },
-      { name: '魚排飯', price: 110, priority: 11 },
-      { name: '焢肉飯', price: 110, priority: 12 },
-      { name: '油淋雞腿飯', price: 130, priority: 13 },
-      { name: '蔬菜飯', price: 80, priority: 14 },
+      { name: '炸雞腿飯', price: 120, priority: 4 },
+      { name: '滷雞腿飯', price: 120, priority: 5 },
+      { name: '雞肉絲飯', price: 95, priority: 6 },
+      { name: '京醬肉絲飯', price: 105, priority: 7 },
+      { name: '蒜泥白肉飯', price: 110, priority: 8 },
+      { name: '排骨飯', price: 110, priority: 9 },
+      { name: '糖醋雞丁飯', price: 105, priority: 10 },
+      { name: '無骨雞排飯', price: 95, priority: 11 },
+      { name: '魚排飯', price: 110, priority: 12 },
+      { name: '焢肉飯', price: 110, priority: 13 },
+      { name: '油淋雞腿飯', price: 130, priority: 14 },
+      { name: '蔬菜飯', price: 80, priority: 15 },
     ],
   },
   {
@@ -77,8 +70,8 @@ export const COMMODITIES = [
         name: '雞腿',
         price: 80,
         menu: [
-          { name: '炸雞腿', textIcon: '🍗', price: 80, priority: 0 },
-          { name: '滷雞腿', textIcon: '🍗', price: 80, priority: 1 },
+          { name: '炸雞腿', textIcon: '🍗', price: 80, priority: 1 },
+          { name: '滷雞腿', textIcon: '🍗', price: 80, priority: 2 },
         ],
         showRelevancy: true,
         priority: 0,
@@ -92,6 +85,8 @@ export const COMMODITIES = [
       { name: '魚排', price: 65, priority: 7 },
       { name: '焢肉', price: 70, priority: 8 },
       { name: '油淋雞腿', price: 90, priority: 9 },
+      { name: '加蛋', price: 15, visible: false, priority: 10 },
+      { name: '加菜', price: 15, visible: false, priority: 11 },
     ],
   },
   {

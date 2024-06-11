@@ -51,6 +51,7 @@ export const totalCss = css`
 
 export const numberBtnsCss = css`
   position: relative;
+  padding-top: 8px;
 `
 
 export const btnCss = css`
@@ -92,6 +93,7 @@ export const tabCss = css`
 
   .ant-tabs-nav {
     margin-left: 10px;
+    margin-bottom: 1.5rem;
   }
 
   .ant-tabs-tab + .ant-tabs-tab {
@@ -120,7 +122,22 @@ export const btnDropdownCssName = cssPlugin.css`
   }
 `
 
+export const drawerCssName = cssPlugin.css`
+  .ant-drawer-body {
+    padding: 1rem;
+  }
+
+  .ant-drawer-header-title {
+    flex-direction: row-reverse;
+  }
+`
+
+export const drawerSymmaryCss = css`
+  text-align: center;
+`
+
 export const submitCss = css`
+  height: 3.5rem;
   background-image: radial-gradient(
     circle at 10% 20%,
     rgb(130, 205, 221) 0%,

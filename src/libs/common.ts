@@ -1,0 +1,56 @@
+import { COMMODITIES } from 'src/constants/defaults/commondities'
+
+export function toCurrency(amount: number) {
+  return amount.toLocaleString('zh-TW', {
+    style: 'currency',
+    currency: 'TWD',
+    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
+  })
+}
+
+export function getCommoditiesInfo(data = COMMODITIES, revise = false) {
+  const relevancies: Resta.Commodity.Item[] = []
+  const priceMap = {} as Resta.Commodity.PriceMap
+  const commodityMap = {} as Resta.Commodity.CommodityMap
+  const tidy = (items: Resta.Commodity.Items, parentPrice?) => {
+    items.forEach((item: Resta.Commodity.Item, index) => {
+      const { name, menu, price = parentPrice, showRelevancy, textIcon } = item
+      if (revise) {
+        item.priority = index
+        showRelevancy && relevancies.push(item)
+      }
+      commodityMap[name] = price
+      if (Array.isArray(menu)) {
+        tidy(menu, price)
+      } else {
+        const list: Resta.Commodity.RelevancyList = (priceMap[price] =
+          priceMap[price] ?? [])
+        if (!list.some(each => each.name === name)) {
+          list.push({
+            name,
+            textIcon,
+          })
+        }
+      }
+    })
+  }
+  data.forEach(tab => {
+    tidy(tab.items)
+  })
+  if (revise) {
+    relevancies.forEach(item => {
+      const { price } = item
+      item.menu =
+        priceMap[price]?.map?.((data, index) => {
+          return {
+            ...data,
+            price,
+            priority: index,
+          } as any
+        }) ?? []
+    })
+  }
+  // console.log('priceMap', priceMap)
+  return { data, priceMap, commodityMap }
+}

@@ -1,5 +1,5 @@
 import { evaluate } from 'mathjs'
-import { trim, last } from 'lodash'
+import { trim } from 'lodash'
 
 const OPERATORS = ['+', '*']
 const OPERATORS_STRING = OPERATORS.join('')

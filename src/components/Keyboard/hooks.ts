@@ -1,6 +1,9 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 
 import { process } from 'src/libs/arithmetic'
+import { getCommoditiesInfo } from 'src/libs/common'
+
+const { priceMap, commodityMap } = getCommoditiesInfo()
 
 export function useNumberInput() {
   const displayedText = useRef('')
@@ -33,21 +36,23 @@ export function useNumberInput() {
     },
     [],
   )
-
-  const updateItemType = useCallback((meta: string) => {
-    const data = dataRef.current
-    const last = data[data.length - 1]
-    if (last) {
-      const [, type] = meta.split('|')
-      last.type = type
-    }
-    setData([...data])
-  }, [])
-
+  const updateItemType = useCallback(
+    (meta: string, target?: Resta.Keyboard.InputItem) => {
+      const data = dataRef.current
+      target = target ?? data[data.length - 1]
+      if (target) {
+        const [, type] = meta.split('|')
+        target.type = type
+      }
+      setData([...data])
+    },
+    [],
+  )
   const input = useCallback(
     (key: string, type?: string) => {
-      const data = dataRef.current
+      let data = dataRef.current
       let lastData = data[data.length - 1]
+      let newData: typeof data
       switch (key) {
         case '+':
         case '*': {
@@ -88,7 +93,7 @@ export function useNumberInput() {
             const target = data[data.length - 2]
             target && (target.amount = lastData.value)
           }
-          setData([...data])
+          newData = [...data]
           break
         }
         case 'Backspace': {
@@ -112,7 +117,7 @@ export function useNumberInput() {
               }
             }
           }
-          setData([...data])
+          newData = [...data]
           break
         }
         case 'Escape': {
@@ -136,24 +141,40 @@ export function useNumberInput() {
               value: key.slice(1),
               type,
             })
-            setData([...data])
+            newData = [...data]
             break
           }
         }
       }
-      console.log('data', dataRef.current)
-
+      // guess the data type
+      if (!lastData?.operator && lastData?.value) {
+        const reference = priceMap[lastData.value]?.[0]?.name
+        const currentTypePrice = commodityMap[lastData.type]
+        if (+lastData.value !== currentTypePrice) {
+          const newType = reference ?? ''
+          if (lastData.type !== newType) {
+            lastData.type = newType
+            newData = [...data]
+          }
+        }
+      }
+      if (newData) {
+        dataRef.current = data = newData
+        setData(newData)
+      }
       return { data }
     },
     [handleOperator],
   )
-
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {
       input(event.key)
     },
     [input],
   )
+  const clear = useCallback(() => {
+    input('Escape')
+  }, [input])
 
   useEffect(() => {
     document.addEventListener('keyup', onKeyUp, false)
@@ -162,5 +183,5 @@ export function useNumberInput() {
     }
   }, [onKeyUp])
 
-  return { data, text, total, input, updateItemType }
+  return { data, text, total, priceMap, input, updateItemType, clear }
 }
