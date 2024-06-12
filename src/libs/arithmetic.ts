@@ -4,10 +4,14 @@ import { trim } from 'lodash'
 const OPERATORS = ['+', '*']
 const OPERATORS_STRING = OPERATORS.join('')
 
+export function calculate(input: string) {
+  return evaluate(input)
+}
+
 export function process(input: string) {
   const { length } = input
   const cleanInput = trim(input, OPERATORS_STRING)
-  const total = length === 0 ? 0 : evaluate(cleanInput)
+  const total = length === 0 ? 0 : calculate(cleanInput)
 
   let transformedInput = input === '.' ? '0.' : input
   // remove the first operator from the beginning

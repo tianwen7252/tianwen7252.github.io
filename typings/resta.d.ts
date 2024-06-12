@@ -10,24 +10,34 @@ declare namespace Resta {
   type JsonObject = GuiFW.JsonObject
 
   namespace Keyboard {
-    interface Input {
-      data: InputItem[]
-      total: number
-    }
     interface InputItem {
       value?: string
       type?: string
       amount?: string
       operator?: '+' | '*'
     }
+    type Data = InputItem[]
+    interface Input {
+      data: Data
+      total: number
+    }
+    type Mode = 'both' | 'calculator' | 'commondity'
   }
 
   namespace Commodity {
     type Items =
       (typeof import('../src/constants/defaults/commondities').COMMODITIES)[0]['items']
-    type Item = Items[0] & {
+    type Item = ItemMenu & {
       showRelevancy?: boolean
+      menu?: ItemMenu[]
+      hideOnMode?: Mode | string
+    }
+    interface ItemMenu {
+      name: string
+      price: number
+      priority: number
       textIcon?: string
+      visible?: boolean
     }
     type RelevancyList = { name: string; textIcon?: string }[]
     type PriceMap = { [name: string]: RelevancyList }

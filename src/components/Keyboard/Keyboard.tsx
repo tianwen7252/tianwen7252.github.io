@@ -16,6 +16,7 @@ import {
   Drawer,
   FloatButton,
   Statistic,
+  Segmented,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -24,11 +25,14 @@ import {
   DeleteOutlined,
   CloseOutlined,
   OrderedListOutlined,
+  CalculatorOutlined,
+  AppstoreAddOutlined,
+  AppstoreOutlined,
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
 import { Order } from 'src/components/Order'
-import { NUMBER_BUTTONS } from 'src/constants/defaults/buttons'
+import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 import { AppContext } from 'src/components/App/context'
 import { toCurrency } from 'src/libs/common'
@@ -42,9 +46,12 @@ const ICON_MAP = {
   CloseOutlined: <CloseOutlined />,
 }
 
-export const Keyboard: React.FC<{}> = () => {
+export const Keyboard: React.FC<{
+  mode?: Resta.Keyboard.Mode
+}> = props => {
   const { data, total, priceMap, input, updateItemType, clear } =
     useNumberInput()
+  const [mode, setMode] = useState(props.mode || 'both')
   const [orderRecord, setOrderRecord] = useState<Resta.OrderList>([])
   const [openOrder, setOpenOrder] = useState(false)
   const { isTablet } = useContext(AppContext)
@@ -55,6 +62,12 @@ export const Keyboard: React.FC<{}> = () => {
       return input(key, type).data
     },
     [input],
+  )
+  const onChangeKeyboardMode = useCallback(
+    (value: Resta.Keyboard.Mode) => {
+      setMode(value)
+    },
+    [setMode],
   )
   const onButtonClick = useCallback(
     (event: React.SyntheticEvent<HTMLElement>) => {
@@ -75,9 +88,13 @@ export const Keyboard: React.FC<{}> = () => {
     [isTablet, handleInput, updateItemType],
   )
   const onChangeType = useCallback(
-    (item: Resta.Keyboard.InputItem, event: React.KeyboardEvent) => {
+    (
+      item: Resta.Keyboard.InputItem,
+      remove = false,
+      event: React.KeyboardEvent,
+    ) => {
       const { key } = event
-      updateItemType(key, item)
+      updateItemType(key, item, remove)
     },
     [updateItemType],
   )
@@ -88,16 +105,18 @@ export const Keyboard: React.FC<{}> = () => {
     setOpenOrder(false)
   }, [setOpenOrder])
   const onSubmit = useCallback(() => {
-    setOrderRecord([
-      {
-        data,
-        total,
-        timestamp: dayjs().valueOf(),
-      },
-      ...orderRecord,
-    ])
-    onOpenOrderList()
-    clear()
+    if (total > 0) {
+      setOrderRecord([
+        {
+          data,
+          total,
+          timestamp: dayjs().valueOf(),
+        },
+        ...orderRecord,
+      ])
+      onOpenOrderList()
+      clear()
+    }
   }, [data, total, orderRecord, setOrderRecord, onOpenOrderList, clear])
 
   const numberButtons = useMemo(() => {
@@ -124,9 +143,9 @@ export const Keyboard: React.FC<{}> = () => {
   const commondities = useMemo(() => {
     return COMMODITIES.map(tab => {
       const { type, label, items, color } = tab
-      const buttons = items.map((each, index) => {
-        const { name, price, menu, visible, showRelevancy } = each
-        if (visible === false) return null
+      const buttons = items.map((each: Resta.Commodity.Item, index) => {
+        const { name, price, menu, visible, showRelevancy, hideOnMode } = each
+        if (visible === false || hideOnMode === mode) return null
         const meta =
           showRelevancy && menu
             ? `+${price}|${menu[0].name}`
@@ -186,7 +205,7 @@ export const Keyboard: React.FC<{}> = () => {
         ),
       }
     })
-  }, [onButtonClick, onMenuClick])
+  }, [mode, onButtonClick, onMenuClick])
 
   const meals = useMemo(
     () =>
@@ -213,10 +232,15 @@ export const Keyboard: React.FC<{}> = () => {
                     key: `+${value}|${name}`,
                     label: name,
                   })),
-                  onClick: onChangeType.bind(null, item),
+                  onClick: onChangeType.bind(null, item, false),
                 }}
               >
-                <Tag bordered={false} color="#222" closeIcon>
+                <Tag
+                  bordered={false}
+                  color="#222"
+                  closeIcon
+                  onClose={onChangeType.bind(null, item, true)}
+                >
                   {type}
                 </Tag>
               </Dropdown>
@@ -247,6 +271,7 @@ export const Keyboard: React.FC<{}> = () => {
   })
 
   useEffect(() => {
+    // scroll the drawer content to top
     const target = drawerContentRef.current?.parentNode as HTMLDivElement
     target?.scroll?.(0, 0)
   }, [openOrder])
@@ -254,14 +279,29 @@ export const Keyboard: React.FC<{}> = () => {
   console.log('data', data, orderRecord)
 
   return (
-    <div style={{ position: 'relative' }}>
-      <Flex css={styles.keyboardCss} vertical>
+    <>
+      <Flex
+        css={[
+          styles.keyboardCss,
+          mode === 'commondity' && styles.modeCommondityCss,
+        ]}
+        vertical
+      >
         <Flex css={styles.textAreaCss} flex="2" vertical>
           <div css={styles.mealsCss}>{meals}</div>
           {total && <div css={styles.totalCss}> = {toCurrency(total)}</div>}
         </Flex>
-        <Flex css={styles.btnCss} flex="1" gap="large">
-          <div css={styles.numberBtnsCss}>
+        <Flex flex="1" gap="middle" vertical>
+          <Space size="large">
+            <Segmented
+              css={styles.keyBoardModeCss}
+              options={[
+                { value: 'both', icon: <AppstoreAddOutlined /> },
+                { value: 'commondity', icon: <AppstoreOutlined /> },
+                { value: 'calculator', icon: <CalculatorOutlined /> },
+              ]}
+              onChange={onChangeKeyboardMode}
+            />
             <Button
               danger
               type="primary"
@@ -270,16 +310,25 @@ export const Keyboard: React.FC<{}> = () => {
               css={styles.deleteBtnCss}
               icon={<DeleteOutlined />}
               onClick={onButtonClick}
-            />
-            {numberButtons}
-          </div>
-          <Tabs
-            css={styles.tabCss}
-            defaultActiveKey="main dish"
-            items={commondities}
-          />
+            >
+              清除
+            </Button>
+          </Space>
+          <Flex css={styles.btnCss} gap="large">
+            {mode !== 'commondity' && (
+              <div css={styles.numberBtnsCss}>{numberButtons}</div>
+            )}
+            {mode !== 'calculator' && (
+              <Tabs
+                css={styles.tabCss}
+                tabPosition={mode === 'commondity' ? 'left' : 'top'}
+                defaultActiveKey={COMMODITIES[0].type}
+                items={commondities}
+              />
+            )}
+          </Flex>
         </Flex>
-        <Flex flex="1" vertical>
+        <Flex vertical>
           <Button css={styles.submitCss} size="large" onClick={onSubmit}>
             送單
           </Button>
@@ -309,7 +358,7 @@ export const Keyboard: React.FC<{}> = () => {
           onClick={onOpenOrderList}
         />
       )}
-    </div>
+    </>
   )
 }
 

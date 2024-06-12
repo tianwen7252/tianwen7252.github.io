@@ -1,15 +1,27 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 
-import { process } from 'src/libs/arithmetic'
+import { process, calculate } from 'src/libs/arithmetic'
 import { getCommoditiesInfo } from 'src/libs/common'
 
 const { priceMap, commodityMap } = getCommoditiesInfo()
+
+export function converData(data: Resta.Keyboard.Data) {
+  let text = ''
+  data.forEach(({ value, operator = '' }) => {
+    text += operator + value
+  })
+  console.log('text', text)
+  return {
+    text,
+    total: calculate(text) || 0,
+  }
+}
 
 export function useNumberInput() {
   const displayedText = useRef('')
   const readyToMultiply = useRef(false)
   const [text, setText] = useState('')
-  const [data, setData] = useState<Resta.Keyboard.Input['data']>([])
+  const [data, setData] = useState<Resta.Keyboard.Data>([])
   const [total, setTotal] = useState(0)
   const dataRef = useRef(data)
   displayedText.current = text
@@ -37,12 +49,24 @@ export function useNumberInput() {
     [],
   )
   const updateItemType = useCallback(
-    (meta: string, target?: Resta.Keyboard.InputItem) => {
+    (meta: string, target?: Resta.Keyboard.InputItem, remove = false) => {
       const data = dataRef.current
-      target = target ?? data[data.length - 1]
-      if (target) {
-        const [, type] = meta.split('|')
-        target.type = type
+      if (remove && target) {
+        const index = data.indexOf(target)
+        if (index !== -1) {
+          const start = index - 1
+          data.splice(start > 0 ? start : 0, target.amount ? 3 : 2)
+          // update text and total => data to text and total
+          const { text, total } = converData(data)
+          setText(text)
+          setTotal(total)
+        }
+      } else {
+        target = target ?? data[data.length - 1]
+        if (target) {
+          const [, type] = meta.split('|')
+          target.type = type
+        }
       }
       setData([...data])
     },

@@ -11,13 +11,19 @@ import {
 const BTN_GAP = '10px'
 
 export const keyboardCss = css`
-  /* width: 40vw; */
   width: min-content;
-  /* max-width: 40vw; */
-  min-height: calc(100vh - ${HEADER_HEIGHT});
+  /* width: 40vw; */
+  min-width: 60vw;
+  min-height: calc(100vh - ${HEADER_HEIGHT} - 40px);
   padding: 20px;
   font-size: ${KEYBOARD_FONT_SIZE};
   letter-spacing: ${KEYBOARD_FONT_LETTER_SPACINGZE};
+`
+
+export const modeCommondityCss = css`
+  .ant-tabs {
+    margin-top: 0;
+  }
 `
 
 export const textAreaCss = css`
@@ -40,7 +46,8 @@ export const mealsCss = css`
   }
 
   .ant-tag-close-icon {
-    vertical-align: middle;
+    /* vertical-align: middle; */
+    font-size: 1rem;
   }
 `
 
@@ -52,6 +59,11 @@ export const totalCss = css`
 export const numberBtnsCss = css`
   position: relative;
   padding-top: 8px;
+`
+
+export const keyBoardModeCss = css`
+  font-size: 1.5rem;
+  width: min-content;
 `
 
 export const btnCss = css`
@@ -67,7 +79,7 @@ export const btnCss = css`
     white-space: normal;
     word-break: break-word;
 
-    > span {
+    > span:not(.ant-btn-icon) {
       padding: 5px;
     }
   }
@@ -80,11 +92,14 @@ export const btnCss = css`
 
 export const deleteBtnCss = css`
   &.ant-btn {
-    position: absolute;
-    right: 0;
-    top: -55px;
-    height: 2.6rem;
-    padding: 0;
+    width: 5rem;
+    height: 30px;
+    padding: 0px;
+    display: block;
+    line-height: inherit;
+    font-size: 1rem;
+    margin-top: 5px;
+    border-radius: 4px;
   }
 `
 
