@@ -1,6 +1,6 @@
 import React from 'react'
 
-import {} from './styles'
+import * as styles from './styles'
 
 export const OrderList: React.FC<{}> = props => {
   return <></>

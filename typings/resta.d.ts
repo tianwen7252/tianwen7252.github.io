@@ -12,6 +12,7 @@ declare namespace Resta {
   namespace Keyboard {
     interface InputItem {
       value?: string
+      res?: string
       type?: string
       amount?: string
       operator?: '+' | '*'
@@ -39,17 +40,23 @@ declare namespace Resta {
       textIcon?: string
       visible?: boolean
     }
-    type RelevancyList = { name: string; textIcon?: string }[]
+    type RelevancyList = {
+      name: string
+      type: string
+      textIcon?: string
+    }[]
     type PriceMap = { [name: string]: RelevancyList }
-    type CommodityMap = { [name: string]: number }
+    type CommodityMap = { [name: string]: [price: number, type: string] }
   }
 
   interface Order {
     data: Keyboard.InputItem[]
     total: number
     timestamp: number
+    soups: number
     memo?: string[]
   }
 
   type OrderList = Order[]
+  type OrderRecord = OrderList
 }

@@ -1,5 +1,8 @@
 import { css } from '@emotion/react'
 
+import { KEYBOARD_TAG_FONT_SIZE, KEYBOARD_DATE_FONT_SIZE } from 'src/styles'
+import { COLORS } from 'src/constants/defaults/memos'
+
 export const orderCss = css`
   font-size: 1rem;
   padding: 10px;
@@ -9,6 +12,15 @@ export const orderCss = css`
   border-radius: 4px;
   position: relative;
   overflow: hidden;
+
+  .ant-divider {
+    margin: 10px 0;
+  }
+
+  .ant-tag {
+    font-size: ${KEYBOARD_TAG_FONT_SIZE};
+    margin-inline-end: 0;
+  }
 `
 
 export const numberCss = css`
@@ -22,10 +34,11 @@ export const numberCss = css`
   color: #fff;
   text-align: center;
   border-radius: 0 0 8px 0;
+  label: __order-number; // @emotion only
 `
 
 export const mealsCss = css`
-  margin-bottom: 6px;
+  margin-bottom: 10px;
 
   .ant-tag {
     font-size: 1rem;
@@ -48,7 +61,30 @@ export const totalCss = css`
   text-align: right;
 `
 export const dateCss = css`
-  font-size: 0.8rem;
+  font-size: ${KEYBOARD_DATE_FONT_SIZE};
   width: 100%;
   justify-content: flex-end;
 `
+
+const setBgColor = color => {
+  return css`
+    border: 1px solid ${color};
+    background: color-mix(in srgb, ${color} 5%, transparent);
+
+    // this works as well
+    /* [class$='__order-number'] {
+      background: ${color};
+    } */
+
+    .css-${numberCss.name} {
+      background: ${color};
+    }
+  `
+}
+
+export const BG_COLOR_MAP = {
+  gold: setBgColor(COLORS.gold),
+  blue: setBgColor(COLORS.blue),
+  purple: setBgColor(COLORS.purple),
+  red: setBgColor(COLORS.red),
+}

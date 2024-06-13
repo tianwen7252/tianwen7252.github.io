@@ -1,5 +1,10 @@
 import { css } from '@emotion/react'
 
+import {
+  ANTD_SWITCH_CHECKED_BG,
+  ANTD_SWITCH_CHECKED_HOVER_BG,
+} from './variables'
+
 export const rootCss = css`
   * {
     margin: 0;
@@ -41,6 +46,15 @@ export const rootCss = css`
   h1 {
     font-size: 3.2em;
     line-height: 1.1;
+  }
+
+  .ant-switch {
+    &.ant-switch-checked {
+      background: ${ANTD_SWITCH_CHECKED_BG};
+    }
+    &:hover:not(.ant-switch-disabled) {
+      background: ${ANTD_SWITCH_CHECKED_HOVER_BG};
+    }
   }
 
   @media (prefers-color-scheme: light) {

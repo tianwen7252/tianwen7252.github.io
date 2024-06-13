@@ -13,16 +13,20 @@ export function getCommoditiesInfo(data = COMMODITIES, revise = false) {
   const relevancies: Resta.Commodity.Item[] = []
   const priceMap = {} as Resta.Commodity.PriceMap
   const commodityMap = {} as Resta.Commodity.CommodityMap
-  const tidy = (items: Resta.Commodity.Items, parentPrice?) => {
+  const tidy = (
+    type: string,
+    items: Resta.Commodity.Items,
+    parentPrice?: number,
+  ) => {
     items.forEach((item: Resta.Commodity.Item, index) => {
       const { name, menu, price = parentPrice, showRelevancy, textIcon } = item
       if (revise) {
         item.priority = index
         showRelevancy && relevancies.push(item)
       }
-      commodityMap[name] = price
+      commodityMap[name] = [price, type]
       if (Array.isArray(menu)) {
-        tidy(menu, price)
+        tidy(type, menu, price)
       } else {
         const list: Resta.Commodity.RelevancyList = (priceMap[price] =
           priceMap[price] ?? [])
@@ -30,13 +34,14 @@ export function getCommoditiesInfo(data = COMMODITIES, revise = false) {
           list.push({
             name,
             textIcon,
+            type,
           })
         }
       }
     })
   }
-  data.forEach(tab => {
-    tidy(tab.items)
+  data.forEach(({ type, items }) => {
+    tidy(type, items)
   })
   if (revise) {
     relevancies.forEach(item => {

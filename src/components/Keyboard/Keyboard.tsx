@@ -15,8 +15,9 @@ import {
   Tag,
   Drawer,
   FloatButton,
-  Statistic,
   Segmented,
+  Switch,
+  Divider,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -31,9 +32,11 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 
-import { Order } from 'src/components/Order'
+import { useOrderList } from 'src/components/OrderList/hooks'
+import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
+import { MEMOS } from 'src/constants/defaults/memos'
 import { AppContext } from 'src/components/App/context'
 import { toCurrency } from 'src/libs/common'
 import { useNumberInput } from './hooks'
@@ -49,17 +52,34 @@ const ICON_MAP = {
 export const Keyboard: React.FC<{
   mode?: Resta.Keyboard.Mode
 }> = props => {
-  const { data, total, priceMap, input, updateItemType, clear } =
+  const { data, total, priceMap, input, updateItemRes, clear } =
     useNumberInput()
   const [mode, setMode] = useState(props.mode || 'both')
-  const [orderRecord, setOrderRecord] = useState<Resta.OrderList>([])
+  const [orderRecord, setOrderRecord] = useState<Resta.OrderRecord>([])
+  const [selectedMemos, setSelectedMemos] = useState<string[]>([])
   const [openOrder, setOpenOrder] = useState(false)
   const { isTablet } = useContext(AppContext)
+  const autoOpenOrder = useRef(CONFIG.AUTO_SHOW_ORDER_LIST)
   const drawerContentRef = useRef<HTMLDivElement>()
+  const soups = useMemo(() => {
+    let count = 0
+    data.forEach(({ res, type, amount }) => {
+      if (type === CONFIG.MAIN_DISH_TYPE || res === '湯') {
+        count += amount ? +amount : 1
+      }
+    })
+    return count
+  }, [data])
+  const noNeedSoups = useMemo(() => {
+    return selectedMemos.includes('不要湯')
+  }, [selectedMemos])
+  const isFree = useMemo(() => {
+    return selectedMemos.includes('免費')
+  }, [selectedMemos])
   const handleInput = useCallback(
     (meta: string) => {
-      const [key, type] = meta.split('|')
-      return input(key, type).data
+      const [key, res] = meta.split('|')
+      return input(key, res).data
     },
     [input],
   )
@@ -80,12 +100,12 @@ export const Keyboard: React.FC<{
     event => {
       const { key } = event
       if (isTablet) {
-        updateItemType(key)
+        updateItemRes(key)
       } else {
         handleInput(key)
       }
     },
-    [isTablet, handleInput, updateItemType],
+    [isTablet, handleInput, updateItemRes],
   )
   const onChangeType = useCallback(
     (
@@ -94,9 +114,9 @@ export const Keyboard: React.FC<{
       event: React.KeyboardEvent,
     ) => {
       const { key } = event
-      updateItemType(key, item, remove)
+      updateItemRes(key, item, remove)
     },
-    [updateItemType],
+    [updateItemRes],
   )
   const onOpenOrderList = useCallback(() => {
     setOpenOrder(true)
@@ -104,24 +124,57 @@ export const Keyboard: React.FC<{
   const onCloseOrderList = useCallback(() => {
     setOpenOrder(false)
   }, [setOpenOrder])
+  const onToggleShowList = useCallback(() => {
+    autoOpenOrder.current = !autoOpenOrder.current
+  }, [])
+  const onHandleMemo = useCallback(
+    (name: string, checked: boolean) => {
+      const index = selectedMemos.indexOf(name)
+
+      if (checked) {
+        index === -1 && selectedMemos.push(name)
+      } else {
+        selectedMemos.splice(index, 1)
+      }
+      setSelectedMemos([...selectedMemos])
+    },
+    [selectedMemos],
+  )
   const onSubmit = useCallback(() => {
-    if (total > 0) {
+    if (total > 0 || isFree) {
       setOrderRecord([
         {
           data,
-          total,
+          total: isFree ? 0 : total,
+          soups,
+          memo:
+            !soups || noNeedSoups
+              ? selectedMemos
+              : [`${soups}杯湯`, ...selectedMemos],
           timestamp: dayjs().valueOf(),
         },
         ...orderRecord,
       ])
-      onOpenOrderList()
+      autoOpenOrder.current && onOpenOrderList()
+      setSelectedMemos([])
       clear()
     }
-  }, [data, total, orderRecord, setOrderRecord, onOpenOrderList, clear])
+  }, [
+    data,
+    total,
+    orderRecord,
+    soups,
+    isFree,
+    noNeedSoups,
+    selectedMemos,
+    setOrderRecord,
+    onOpenOrderList,
+    clear,
+  ])
 
   const numberButtons = useMemo(() => {
     return NUMBER_BUTTONS.map((buttons, index) => (
-      <Flex key={index} gap="large">
+      <Flex key={index} gap="middle">
         {buttons.map((config, key) => {
           const { label, meta, icon } = config
           return (
@@ -140,6 +193,7 @@ export const Keyboard: React.FC<{
       </Flex>
     ))
   }, [onButtonClick])
+
   const commondities = useMemo(() => {
     return COMMODITIES.map(tab => {
       const { type, label, items, color } = tab
@@ -156,7 +210,7 @@ export const Keyboard: React.FC<{
             shape="circle"
             size="large"
             data-meta={meta}
-            css={styles.COLOR_MAP[color]}
+            css={styles.BTN_COLOR_MAP[color]}
             onClick={onButtonClick}
           >
             {name}
@@ -199,7 +253,7 @@ export const Keyboard: React.FC<{
         label,
         key: type,
         children: (
-          <Flex css={styles.tabPanelCss} gap="large" vertical wrap>
+          <Flex css={styles.tabPanelCss} gap="middle" vertical wrap>
             {buttons}
           </Flex>
         ),
@@ -210,7 +264,7 @@ export const Keyboard: React.FC<{
   const meals = useMemo(
     () =>
       data.map((item, index) => {
-        const { value, operator, type } = item
+        const { value, operator, res } = item
         let content
         if (operator) {
           content = (
@@ -220,7 +274,7 @@ export const Keyboard: React.FC<{
             </span>
           )
         } else {
-          content = type ? (
+          content = res ? (
             <span>
               {value}(
               <Dropdown
@@ -228,7 +282,7 @@ export const Keyboard: React.FC<{
                 arrow={{ pointAtCenter: true }}
                 placement="bottom"
                 menu={{
-                  items: priceMap[value].map(({ name }) => ({
+                  items: priceMap[value]?.map?.(({ name }) => ({
                     key: `+${value}|${name}`,
                     label: name,
                   })),
@@ -241,7 +295,7 @@ export const Keyboard: React.FC<{
                   closeIcon
                   onClose={onChangeType.bind(null, item, true)}
                 >
-                  {type}
+                  {res}
                 </Tag>
               </Dropdown>
               )
@@ -255,20 +309,7 @@ export const Keyboard: React.FC<{
     [data, priceMap, onChangeType],
   )
 
-  let totalCount = 0
-  let soldItemsCount = 0
-  const orderListElement = orderRecord.map((record, index) => {
-    const { data, total, timestamp } = record
-    totalCount += total
-    soldItemsCount += data.filter(({ type }) => !!type).length
-    return (
-      <Order
-        key={timestamp}
-        record={record}
-        number={orderRecord.length - index}
-      />
-    )
-  })
+  const { orderListElement, summaryElement } = useOrderList(orderRecord, true)
 
   useEffect(() => {
     // scroll the drawer content to top
@@ -289,10 +330,19 @@ export const Keyboard: React.FC<{
       >
         <Flex css={styles.textAreaCss} flex="2" vertical>
           <div css={styles.mealsCss}>{meals}</div>
-          {total && <div css={styles.totalCss}> = {toCurrency(total)}</div>}
+          <div css={styles.totalCss}>
+            <Space size="large">
+              <span>
+                {total ? `= ${toCurrency(isFree ? 0 : total)}` : total}
+              </span>
+              <span css={styles.soupsCss}>
+                {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
+              </span>
+            </Space>
+          </div>
         </Flex>
         <Flex flex="1" gap="middle" vertical>
-          <Space size="large">
+          <Space size="middle">
             <Segmented
               css={styles.keyBoardModeCss}
               options={[
@@ -301,6 +351,13 @@ export const Keyboard: React.FC<{
                 { value: 'calculator', icon: <CalculatorOutlined /> },
               ]}
               onChange={onChangeKeyboardMode}
+            />
+            <Switch
+              css={styles.switchCss}
+              checkedChildren="自動顯示列表"
+              unCheckedChildren="手動顯示列表"
+              defaultChecked
+              onChange={onToggleShowList}
             />
             <Button
               danger
@@ -328,6 +385,21 @@ export const Keyboard: React.FC<{
             )}
           </Flex>
         </Flex>
+        <Divider />
+        <Flex css={styles.memoCss} gap="small" wrap align="center">
+          <span css={styles.memoTextCss}>備註</span>
+          {MEMOS.map(({ name, color }) => (
+            <Tag.CheckableTag
+              css={styles.MEMO_COLOR_MAP[color]}
+              key={name}
+              checked={selectedMemos.includes(name)}
+              onChange={checked => onHandleMemo(name, checked)}
+            >
+              {name}
+            </Tag.CheckableTag>
+          ))}
+        </Flex>
+        <Divider />
         <Flex vertical>
           <Button css={styles.submitCss} size="large" onClick={onSubmit}>
             送單
@@ -340,13 +412,7 @@ export const Keyboard: React.FC<{
         open={openOrder}
         className={styles.drawerCssName}
         onClose={onCloseOrderList}
-        footer={
-          <Flex css={styles.drawerSymmaryCss} justify="space-between">
-            <Statistic title="訂單數量" value={orderRecord.length} />
-            <Statistic title="銷售商品數量" value={soldItemsCount} />
-            <Statistic title="營業額" prefix="$" value={totalCount} />
-          </Flex>
-        }
+        footer={summaryElement}
       >
         <div ref={drawerContentRef}>{orderListElement}</div>
       </Drawer>

@@ -10,7 +10,6 @@ export function converData(data: Resta.Keyboard.Data) {
   data.forEach(({ value, operator = '' }) => {
     text += operator + value
   })
-  console.log('text', text)
   return {
     text,
     total: calculate(text) || 0,
@@ -30,8 +29,7 @@ export function useNumberInput() {
   const handleOperator = useCallback(
     (key: Resta.Keyboard.InputItem['operator']) => {
       const data = dataRef.current
-      const { length } = data
-      const last = data[length - 1]
+      const last = data.at(-1)
       if (!last) {
         return data
       }
@@ -48,7 +46,22 @@ export function useNumberInput() {
     },
     [],
   )
-  const updateItemType = useCallback(
+  const updateRes = useCallback(
+    (item: Resta.Keyboard.InputItem, res: string) => {
+      const info = commodityMap[res]
+      if (info) {
+        const [, type] = info
+        item.res = res
+        item.type = type
+      } else {
+        item.res = ''
+        item.type = ''
+      }
+      return item
+    },
+    [],
+  )
+  const updateItemRes = useCallback(
     (meta: string, target?: Resta.Keyboard.InputItem, remove = false) => {
       const data = dataRef.current
       if (remove && target) {
@@ -62,20 +75,20 @@ export function useNumberInput() {
           setTotal(total)
         }
       } else {
-        target = target ?? data[data.length - 1]
+        target = target ?? data.at(-1)
         if (target) {
-          const [, type] = meta.split('|')
-          target.type = type
+          const [, res] = meta.split('|')
+          updateRes(target, res)
         }
       }
       setData([...data])
     },
-    [],
+    [updateRes],
   )
   const input = useCallback(
-    (key: string, type?: string) => {
+    (key: string, res?: string) => {
       let data = dataRef.current
-      let lastData = data[data.length - 1]
+      let lastData = data.at(-1)
       let newData: typeof data
       switch (key) {
         case '+':
@@ -114,7 +127,7 @@ export function useNumberInput() {
           }
           lastData.value += key
           if (readyToMultiply.current) {
-            const target = data[data.length - 2]
+            const target = data.at(-2)
             target && (target.amount = lastData.value)
           }
           newData = [...data]
@@ -133,7 +146,7 @@ export function useNumberInput() {
             } else {
               lastData.value = lastData.value.slice(0, -1)
               if (lastData.operator === '*') {
-                const target = data[data.length - 2]
+                const target = data.at(-2)
                 target.amount = lastData.value
                 // if non-operators
               } else if (lastData.value === '') {
@@ -161,23 +174,24 @@ export function useNumberInput() {
             setText(transformedInput)
             setTotal(total)
             const data = handleOperator('+')
-            data.push({
+            const newItem = {
               value: key.slice(1),
-              type,
-            })
+              res,
+            }
+            data.push(updateRes(newItem, res))
             newData = [...data]
             break
           }
         }
       }
-      // guess the data type
+      // guess the data res
       if (!lastData?.operator && lastData?.value) {
         const reference = priceMap[lastData.value]?.[0]?.name
-        const currentTypePrice = commodityMap[lastData.type]
-        if (+lastData.value !== currentTypePrice) {
-          const newType = reference ?? ''
-          if (lastData.type !== newType) {
-            lastData.type = newType
+        const [currentResPrice] = commodityMap?.[lastData.res] ?? []
+        if (+lastData.value !== currentResPrice) {
+          const newRes = reference ?? ''
+          if (lastData.res !== newRes) {
+            updateRes(lastData, newRes)
             newData = [...data]
           }
         }
@@ -188,7 +202,7 @@ export function useNumberInput() {
       }
       return { data }
     },
-    [handleOperator],
+    [handleOperator, updateRes],
   )
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {
@@ -207,5 +221,5 @@ export function useNumberInput() {
     }
   }, [onKeyUp])
 
-  return { data, text, total, priceMap, input, updateItemType, clear }
+  return { data, text, total, priceMap, input, updateItemRes, clear }
 }

@@ -36,7 +36,7 @@ export function process(input: string) {
               return match[0]
             case '+*':
             case '*+':
-              return match[match.length - 1]
+              return match.at(-1)
             default:
               return match
           }

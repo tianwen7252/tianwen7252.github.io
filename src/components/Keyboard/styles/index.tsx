@@ -2,11 +2,18 @@ import { css } from '@emotion/react'
 import * as cssPlugin from '@emotion/css'
 
 import {
+  TABLET,
   HEADER_HEIGHT,
   KEYBOARD_FONT_SIZE,
   KEYBOARD_FONT_LETTER_SPACINGZE,
   KEYBOARD_TAB_FONT_SIZE,
+  KEYBOARD_BTN_FONT_SIZE,
+  KEYBOARD_TOTAL_FONT_SIZE,
+  KEYBOARD_TEXT_MIN_HEIGHT,
+  KEYBOARD_TEXT_MEALS_HEIGHT,
+  KEYBOARD_TAG_FONT_SIZE,
 } from 'src/styles'
+import { COLORS } from 'src/constants/defaults/memos'
 
 const BTN_GAP = '10px'
 
@@ -15,9 +22,13 @@ export const keyboardCss = css`
   /* width: 40vw; */
   min-width: 60vw;
   min-height: calc(100vh - ${HEADER_HEIGHT} - 40px);
-  padding: 20px;
+  padding: 10px 20px;
   font-size: ${KEYBOARD_FONT_SIZE};
   letter-spacing: ${KEYBOARD_FONT_LETTER_SPACINGZE};
+
+  .ant-divider {
+    margin: 10px 0;
+  }
 `
 
 export const modeCommondityCss = css`
@@ -27,15 +38,22 @@ export const modeCommondityCss = css`
 `
 
 export const textAreaCss = css`
-  min-height: 150px;
-  /* max-height: 300px; */
-  word-wrap: break-word;
-  /* max-width: 400px; */
   margin-bottom: 20px;
+  word-wrap: break-word;
+  min-height: ${KEYBOARD_TEXT_MIN_HEIGHT};
+  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+    min-height: ${TABLET.KEYBOARD_TEXT_MIN_HEIGHT};
+  }
 `
 
 export const mealsCss = css`
-  /* display: inline-block; */
+  max-height: ${KEYBOARD_TEXT_MEALS_HEIGHT};
+
+  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+    max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+  }
+
+  overflow-y: auto;
 
   .ant-tag {
     font-size: 1rem;
@@ -52,18 +70,48 @@ export const mealsCss = css`
 `
 
 export const totalCss = css`
-  margin-top: 20px;
+  margin-top: 1rem;
   font-weight: 500;
+  font-size: ${KEYBOARD_TOTAL_FONT_SIZE};
+`
+
+export const soupsCss = css`
+  font-size: 1rem;
+  vertical-align: middle;
 `
 
 export const numberBtnsCss = css`
   position: relative;
   padding-top: 8px;
+
+  .ant-btn {
+    font-size: 1.2rem;
+  }
 `
 
 export const keyBoardModeCss = css`
   font-size: 1.5rem;
   width: min-content;
+`
+
+export const switchCss = css`
+  font-size: 1rem;
+  height: 30px;
+  line-height: 30px;
+  vertical-align: text-top;
+
+  .ant-switch-handle {
+    top: 5px;
+  }
+
+  .ant-switch-inner {
+    > span {
+      font-size: 1rem !important;
+    }
+    .ant-switch-inner-unchecked {
+      margin-top: -30px;
+    }
+  }
 `
 
 export const btnCss = css`
@@ -86,7 +134,7 @@ export const btnCss = css`
 
   .ant-btn,
   .anticon {
-    font-size: 18px;
+    font-size: ${KEYBOARD_BTN_FONT_SIZE};
   }
 `
 
@@ -98,7 +146,6 @@ export const deleteBtnCss = css`
     display: block;
     line-height: inherit;
     font-size: 1rem;
-    margin-top: 5px;
     border-radius: 4px;
   }
 `
@@ -147,8 +194,44 @@ export const drawerCssName = cssPlugin.css`
   }
 `
 
-export const drawerSymmaryCss = css`
-  text-align: center;
+export const memoCss = css`
+  font-size: 1rem;
+  margin: 10px 0;
+
+  .ant-tag {
+    font-size: ${KEYBOARD_TAG_FONT_SIZE};
+    vertical-align: middle;
+    border: 1px solid #ddd;
+    margin-left: 4px;
+    margin-right: 0;
+    padding: 2px 6px;
+
+    &.ant-tag-checkable:not(.ant-tag-checkable-checked):hover {
+      color: #333;
+    }
+
+    &.ant-tag-checkable-checked {
+      background-color: #333;
+
+      &::after {
+        position: absolute;
+        content: '✔️';
+        /* content: '';
+        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIGZpbGw9IiNjYWNhY2EiIHZpZXdCb3g9IjY0IDY0IDg5NiA4OTYiIGZvY3VzYWJsZT0iZmFsc2UiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkxMiAxOTBoLTY5LjljLTkuOCAwLTE5LjEgNC41LTI1LjEgMTIuMkw0MDQuNyA3MjQuNSAyMDcgNDc0YTMyIDMyIDAgMDAtMjUuMS0xMi4ySDExMmMtNi43IDAtMTAuNCA3LjctNi4zIDEyLjlsMjczLjkgMzQ3YzEyLjggMTYuMiAzNy40IDE2LjIgNTAuMyAwbDQ4OC40LTYxOC45YzQuMS01LjEuNC0xMi44LTYuMy0xMi44eiIgLz48L3N2Zz4=');
+        background-size: 14px 14px;
+        height: 14px;
+        width: 14px; */
+        top: -18px;
+        left: 40%;
+        /* right: 50%; */
+      }
+    }
+  }
+`
+
+export const memoTextCss = css`
+  border-right: 1px solid rgba(5, 5, 5, 0.06);
+  padding-right: 6px;
 `
 
 export const submitCss = css`
@@ -175,9 +258,37 @@ export const purpleBtnCss = setBtnColor('#673e7678', '#673e76')
 
 export const indigoBtnCss = setBtnColor('#3e667675', '#3e6676')
 
-export const COLOR_MAP = {
+export const BTN_COLOR_MAP = {
   green: greenBtnCss,
   brown: brownBtnCss,
   purple: purpleBtnCss,
   indigo: indigoBtnCss,
+}
+
+const setMemoTagColor = (bgColor, color = '#fff') => {
+  return css`
+    &.ant-tag.ant-tag-checkable-checked {
+      background-color: ${bgColor};
+      color: ${color};
+    }
+  `
+}
+
+export const brownTagCss = setMemoTagColor(COLORS.brown)
+
+export const purpleTagCss = setMemoTagColor(COLORS.purple)
+
+export const blueTagCss = setMemoTagColor(COLORS.blue)
+// color-mix(in srgb, #546ca3 5%, transparent)
+
+export const goldTagCss = setMemoTagColor(COLORS.gold)
+
+export const redTagCss = setMemoTagColor(COLORS.red)
+
+export const MEMO_COLOR_MAP = {
+  brown: brownTagCss,
+  purple: purpleTagCss,
+  blue: blueTagCss,
+  gold: goldTagCss,
+  red: redTagCss,
 }
