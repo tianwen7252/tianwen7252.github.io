@@ -213,6 +213,12 @@ export function useNumberInput() {
   const clear = useCallback(() => {
     input('Escape')
   }, [input])
+  const update = useCallback((data: Resta.Keyboard.Data, total: number) => {
+    const { text } = converData(data)
+    setText(text)
+    setTotal(total)
+    setData(data)
+  }, [])
 
   useEffect(() => {
     document.addEventListener('keyup', onKeyUp, false)
@@ -221,5 +227,5 @@ export function useNumberInput() {
     }
   }, [onKeyUp])
 
-  return { data, text, total, priceMap, input, updateItemRes, clear }
+  return { data, text, total, priceMap, input, updateItemRes, update, clear }
 }

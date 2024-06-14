@@ -1,7 +1,15 @@
-import React, { useEffect, useRef } from 'react'
+import React, {
+  useEffect,
+  useRef,
+  useContext,
+  useMemo,
+  useCallback,
+} from 'react'
 import { Flex, Statistic, Anchor } from 'antd'
+import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 
+import { AppContext } from 'src/components/App/context'
 import { Order } from 'src/components/Order'
 import { WORK_SHIFT } from 'src/constants/defaults/workshift'
 import * as styles from './styles'
@@ -9,29 +17,66 @@ import * as styles from './styles'
 const workShift = [...WORK_SHIFT].reverse()
 
 export function useOrderList(
-  orderRecord: Resta.OrderRecord,
+  datetime: [string, string] | 'today',
+  onAction?: Resta.Order.Props['onAction'],
   setAnchor = false,
 ) {
   let totalCount = 0
   let soldItemsCount = 0
-  let orderListElement = null
-  let periods = []
-  if (orderRecord.length) {
-    const dateToday = dayjs(orderRecord[0].timestamp)
-      .hour(0)
-      .minute(0)
-      .second(0)
-    const dateTodayString = dateToday.format('YYYY-MM-DD')
+  let orderListElement: JSX.Element = null
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  let periods = [] // needs always update-to-date
+  const { db } = useContext(AppContext)
+  const [startTime, endTime] = useMemo(() => {
+    const today = dayjs()
+    return datetime === 'today'
+      ? [today.startOf('day').valueOf(), today.endOf('day').valueOf()]
+      : datetime
+  }, [datetime])
+  const records = useLiveQuery(
+    () => {
+      return db.orders
+        .where('timestamp')
+        .between(startTime, endTime)
+        .reverse()
+        .sortBy('timestamp')
+    },
+    [datetime],
+    [] as RestaDB.Table.Order[],
+  )
+  const handleAction = useCallback(
+    async (
+      record: RestaDB.OrderRecord,
+      action: Resta.Order.ActionType,
+      timestamp: RestaDB.OrderRecord['timestamp'],
+    ) => {
+      switch (action) {
+        case 'edit': {
+          if (!timestamp) {
+            record.timestamp = dayjs().valueOf()
+          }
+          return db.orders.update(record.id, record as RestaDB.NewOrderRecord)
+        }
+        case 'delete': {
+          return db.orders.delete(record.id)
+        }
+      }
+    },
+    [db],
+  )
+  if (records.length) {
+    const theDate = dayjs(startTime)
+    const dateTodayString = theDate.format('YYYY-MM-DD')
     periods = workShift.map(({ title, startTime, key }) => {
       const [hours, minutes] = startTime.split(':')
       return {
         title,
         id: `resta-anchor-${dateTodayString}-${key}`,
-        timestamp: dateToday.hour(+hours).minute(+minutes).valueOf(),
+        timestamp: theDate.hour(+hours).minute(+minutes).valueOf(),
         elements: [],
       }
     })
-    orderRecord.forEach((record, index) => {
+    records.forEach((record, index) => {
       const { data, total, timestamp } = record
       totalCount += total
       soldItemsCount += data.filter(({ res }) => !!res).length
@@ -39,7 +84,8 @@ export function useOrderList(
         <Order
           key={timestamp}
           record={record}
-          number={orderRecord.length - index}
+          number={records.length - index}
+          onAction={onAction}
         />
       )
       const result = periods.some(({ elements, timestamp: time }) => {
@@ -79,7 +125,7 @@ export function useOrderList(
   }
   const summaryElement = (
     <Flex css={styles.symmaryCss} justify="space-between">
-      <Statistic title="訂單數量" value={orderRecord.length} />
+      <Statistic title="訂單數量" value={records.length} />
       <Statistic title="銷售商品數量" value={soldItemsCount} />
       <Statistic title="營業額" prefix="$" value={totalCount} />
     </Flex>
@@ -88,7 +134,7 @@ export function useOrderList(
   // do we need this exact?
   const anchorRef = useRef(false)
   useEffect(() => {
-    if (setAnchor && orderRecord.length && !anchorRef.current) {
+    if (setAnchor && records.length && !anchorRef.current) {
       const now = dayjs().valueOf()
       periods.some(({ timestamp, id }) => {
         if (now >= timestamp) {
@@ -99,12 +145,14 @@ export function useOrderList(
       })
       anchorRef.current = true
     }
-  }, [anchorRef, setAnchor, periods, orderRecord])
+  }, [anchorRef, setAnchor, periods, records])
 
   return {
     totalCount,
+    lastRecordNumber: records?.at?.(0)?.number || 0,
     soldItemsCount,
     orderListElement,
     summaryElement,
+    handleAction,
   }
 }

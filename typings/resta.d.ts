@@ -6,23 +6,28 @@ export = Resta
 export as namespace Resta
 
 declare namespace Resta {
-  type IObject = GuiFW.JsonObject
-  type JsonObject = GuiFW.JsonObject
-
+  type IObject = {
+    [key: string]: any
+  }
+  type JsonObject = IObject
   namespace Keyboard {
-    interface InputItem {
-      value?: string
-      res?: string
-      type?: string
-      amount?: string
-      operator?: '+' | '*'
-    }
-    type Data = InputItem[]
+    type InputItem = RestaDB.OrderData
+    type Data = RestaDB.OrderData[]
     interface Input {
       data: Data
       total: number
     }
     type Mode = 'both' | 'calculator' | 'commondity'
+  }
+
+  namespace Order {
+    interface Props {
+      record: Resta.OrderRecord
+      number: number
+      editable?: boolean
+      onAction?(record: Resta.OrderRecord, action: ActionType): void
+    }
+    type ActionType = 'edit' | 'delete'
   }
 
   namespace Commodity {
@@ -49,14 +54,46 @@ declare namespace Resta {
     type CommodityMap = { [name: string]: [price: number, type: string] }
   }
 
-  interface Order {
-    data: Keyboard.InputItem[]
-    total: number
-    timestamp: number
-    soups: number
-    memo?: string[]
-  }
-
+  type OrderRecord = RestaDB.OrderRecord
   type OrderList = Order[]
-  type OrderRecord = OrderList
+  type OrderRecords = OrderList
+}
+
+declare global {
+  type IObject = Resta.JsonObject
+  type JsonObject = IObject
+
+  namespace RestaDB {
+    namespace Table {
+      interface Commondity {
+        id: number
+        name: string
+      }
+
+      interface CommondityType {
+        id: number
+        type: string
+      }
+      interface Order {
+        id: number
+        number: number
+        data: OrderData[]
+        memo: string[]
+        soups: number
+        timestamp: number
+        total: number
+      }
+    }
+
+    type OrderRecord = Table.Order
+    type NewOrderRecord = Omit<OrderRecord, 'id'>
+
+    interface OrderData {
+      value?: string
+      res?: Commondity['name']
+      type?: CommondityType['type']
+      operator?: '+' | '*'
+      amount?: string
+    }
+  }
 }

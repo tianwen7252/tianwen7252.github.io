@@ -1,5 +1,8 @@
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 
+export const DATE_FORMAT = 'YYYY/MM/DD dddd'
+export const DATE_FORMAT_TIME = 'YYYY/MM/DD h:m:s A'
+
 export function toCurrency(amount: number) {
   return amount.toLocaleString('zh-TW', {
     style: 'currency',

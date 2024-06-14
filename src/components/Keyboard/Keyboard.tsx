@@ -18,6 +18,7 @@ import {
   Segmented,
   Switch,
   Divider,
+  Empty,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -52,13 +53,15 @@ const ICON_MAP = {
 export const Keyboard: React.FC<{
   mode?: Resta.Keyboard.Mode
 }> = props => {
-  const { data, total, priceMap, input, updateItemRes, clear } =
+  const { db, isTablet, DATE_FORMAT } = useContext(AppContext)
+  const { data, total, priceMap, input, updateItemRes, update, clear } =
     useNumberInput()
   const [mode, setMode] = useState(props.mode || 'both')
-  const [orderRecord, setOrderRecord] = useState<Resta.OrderRecord>([])
   const [selectedMemos, setSelectedMemos] = useState<string[]>([])
   const [openOrder, setOpenOrder] = useState(false)
-  const { isTablet } = useContext(AppContext)
+  const [submitBtnText, setSubmitBtnText] = useState(
+    CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
+  )
   const autoOpenOrder = useRef(CONFIG.AUTO_SHOW_ORDER_LIST)
   const drawerContentRef = useRef<HTMLDivElement>()
   const soups = useMemo(() => {
@@ -96,6 +99,11 @@ export const Keyboard: React.FC<{
     },
     [handleInput],
   )
+  const resetKeyBoard = useCallback(() => {
+    handleInput('Escape')
+    setSelectedMemos([])
+    setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
+  }, [handleInput])
   const onMenuClick: MenuProps['onClick'] = useCallback(
     event => {
       const { key } = event
@@ -140,34 +148,52 @@ export const Keyboard: React.FC<{
     },
     [selectedMemos],
   )
+  const onAction: Resta.Order.Props['onAction'] = useCallback(
+    (record, action) => {
+      switch (action) {
+        case 'edit': {
+          const { data, total, memo, number } = record
+          update(data, total)
+          setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
+          setSubmitBtnText(`更新訂單 - 編號${number}`)
+          break
+        }
+        case 'delete': {
+          break
+        }
+      }
+    },
+    [update],
+  )
+  const { orderListElement, summaryElement, lastRecordNumber, handleAction } =
+    useOrderList('today', onAction, true)
   const onSubmit = useCallback(() => {
     if (total > 0 || isFree) {
-      setOrderRecord([
-        {
-          data,
-          total: isFree ? 0 : total,
-          soups,
-          memo:
-            !soups || noNeedSoups
-              ? selectedMemos
-              : [`${soups}杯湯`, ...selectedMemos],
-          timestamp: dayjs().valueOf(),
-        },
-        ...orderRecord,
-      ])
+      const record = {
+        data,
+        number: lastRecordNumber + 1,
+        total: isFree ? 0 : total,
+        soups,
+        memo:
+          !soups || noNeedSoups
+            ? selectedMemos
+            : [...selectedMemos, `${soups}杯湯`],
+        timestamp: dayjs().valueOf(),
+      }
+      db.orders.add(record)
       autoOpenOrder.current && onOpenOrderList()
       setSelectedMemos([])
       clear()
     }
   }, [
+    db,
     data,
+    lastRecordNumber,
     total,
-    orderRecord,
     soups,
     isFree,
     noNeedSoups,
     selectedMemos,
-    setOrderRecord,
     onOpenOrderList,
     clear,
   ])
@@ -309,15 +335,13 @@ export const Keyboard: React.FC<{
     [data, priceMap, onChangeType],
   )
 
-  const { orderListElement, summaryElement } = useOrderList(orderRecord, true)
-
   useEffect(() => {
     // scroll the drawer content to top
     const target = drawerContentRef.current?.parentNode as HTMLDivElement
     target?.scroll?.(0, 0)
   }, [openOrder])
 
-  console.log('data', data, orderRecord)
+  console.log('data', data)
 
   return (
     <>
@@ -363,10 +387,9 @@ export const Keyboard: React.FC<{
               danger
               type="primary"
               size="large"
-              data-meta="Escape"
               css={styles.deleteBtnCss}
               icon={<DeleteOutlined />}
-              onClick={onButtonClick}
+              onClick={resetKeyBoard}
             >
               清除
             </Button>
@@ -402,19 +425,30 @@ export const Keyboard: React.FC<{
         <Divider />
         <Flex vertical>
           <Button css={styles.submitCss} size="large" onClick={onSubmit}>
-            送單
+            {submitBtnText}
           </Button>
         </Flex>
       </Flex>
       <Drawer
-        title={`訂單記錄 - ${dayjs().format('YYYY/MM/DD dddd')}`}
+        title={`訂單記錄 - ${dayjs().format(DATE_FORMAT)}`}
         placement="right"
         open={openOrder}
         className={styles.drawerCssName}
         onClose={onCloseOrderList}
         footer={summaryElement}
       >
-        <div ref={drawerContentRef}>{orderListElement}</div>
+        <div ref={drawerContentRef}>
+          {orderListElement || (
+            <Empty
+              description={
+                <>
+                  <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
+                  <p>加油好嗎</p>
+                </>
+              }
+            />
+          )}
+        </div>
       </Drawer>
       {!openOrder && (
         <FloatButton

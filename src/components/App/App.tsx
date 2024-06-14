@@ -11,7 +11,8 @@ import { AppContext, DefaultContextData } from './context'
 dayjs.locale('zh-tw')
 dayjs.extend(relativeTime)
 
-export const App: React.FC<{}> = props => {
+export const App: React.FC<{}> = () => {
+  // todo QuotaExceededError with react-error-boundary
   return (
     <AppContext.Provider value={DefaultContextData}>
       <Global styles={[rootCss]} />
