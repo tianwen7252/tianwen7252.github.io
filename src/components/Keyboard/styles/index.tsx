@@ -12,7 +12,8 @@ import {
   KEYBOARD_TEXT_MIN_HEIGHT,
   KEYBOARD_TEXT_MEALS_HEIGHT,
   KEYBOARD_TAG_FONT_SIZE,
-} from 'src/styles'
+  getTransition,
+} from 'src/styles/variables'
 import { COLORS } from 'src/constants/defaults/memos'
 
 const BTN_GAP = '10px'
@@ -216,11 +217,6 @@ export const memoCss = css`
       &::after {
         position: absolute;
         content: '✔️';
-        /* content: '';
-        background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTAiIGhlaWdodD0iNTAiIGZpbGw9IiNjYWNhY2EiIHZpZXdCb3g9IjY0IDY0IDg5NiA4OTYiIGZvY3VzYWJsZT0iZmFsc2UiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTkxMiAxOTBoLTY5LjljLTkuOCAwLTE5LjEgNC41LTI1LjEgMTIuMkw0MDQuNyA3MjQuNSAyMDcgNDc0YTMyIDMyIDAgMDAtMjUuMS0xMi4ySDExMmMtNi43IDAtMTAuNCA3LjctNi4zIDEyLjlsMjczLjkgMzQ3YzEyLjggMTYuMiAzNy40IDE2LjIgNTAuMyAwbDQ4OC40LTYxOC45YzQuMS01LjEuNC0xMi44LTYuMy0xMi44eiIgLz48L3N2Zz4=');
-        background-size: 14px 14px;
-        height: 14px;
-        width: 14px; */
         top: -18px;
         left: 40%;
         /* right: 50%; */
@@ -234,13 +230,17 @@ export const memoTextCss = css`
   padding-right: 6px;
 `
 
-export const submitCss = css`
+export const submitBtnCss = css`
   height: 3.5rem;
-  background-image: radial-gradient(
-    circle at 10% 20%,
-    rgb(130, 205, 221) 0%,
-    rgb(255, 247, 153) 120%
-  );
+  font-size: 1.2rem;
+  text-align: center;
+  font-weight: bold;
+  transition: ${getTransition()};
+  background-size: 200% auto;
+  border-radius: 10px;
+`
+export const updateBtnCss = css`
+  background: linear-gradient(to right, rgb(201, 255, 191), rgb(255, 175, 189));
 `
 
 const setBtnColor = (border, color = border) => {
@@ -279,7 +279,6 @@ export const brownTagCss = setMemoTagColor(COLORS.brown)
 export const purpleTagCss = setMemoTagColor(COLORS.purple)
 
 export const blueTagCss = setMemoTagColor(COLORS.blue)
-// color-mix(in srgb, #546ca3 5%, transparent)
 
 export const goldTagCss = setMemoTagColor(COLORS.gold)
 

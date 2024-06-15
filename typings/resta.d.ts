@@ -27,7 +27,7 @@ declare namespace Resta {
       editable?: boolean
       onAction?(record: Resta.OrderRecord, action: ActionType): void
     }
-    type ActionType = 'edit' | 'delete'
+    type ActionType = 'add' | 'edit' | 'delete'
   }
 
   namespace Commodity {
@@ -64,18 +64,19 @@ declare global {
   type JsonObject = IObject
 
   namespace RestaDB {
+    type ID = number
     namespace Table {
       interface Commondity {
-        id: number
+        id: ID
         name: string
       }
 
       interface CommondityType {
-        id: number
+        id: ID
         type: string
       }
       interface Order {
-        id: number
+        id: ID
         number: number
         data: OrderData[]
         memo: string[]
@@ -86,7 +87,7 @@ declare global {
     }
 
     type OrderRecord = Table.Order
-    type NewOrderRecord = Omit<OrderRecord, 'id'>
+    type NewOrderRecord = Partical<OrderRecord, 'id'>
 
     interface OrderData {
       value?: string

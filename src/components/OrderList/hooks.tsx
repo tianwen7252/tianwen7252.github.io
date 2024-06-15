@@ -17,7 +17,7 @@ import * as styles from './styles'
 const workShift = [...WORK_SHIFT].reverse()
 
 export function useOrderList(
-  datetime: [string, string] | 'today',
+  datetime: [number, number] | 'today',
   onAction?: Resta.Order.Props['onAction'],
   setAnchor = false,
 ) {
@@ -26,7 +26,7 @@ export function useOrderList(
   let orderListElement: JSX.Element = null
   // eslint-disable-next-line react-hooks/exhaustive-deps
   let periods = [] // needs always update-to-date
-  const { db } = useContext(AppContext)
+  const { API } = useContext(AppContext)
   const [startTime, endTime] = useMemo(() => {
     const today = dayjs()
     return datetime === 'today'
@@ -35,34 +35,33 @@ export function useOrderList(
   }, [datetime])
   const records = useLiveQuery(
     () => {
-      return db.orders
-        .where('timestamp')
-        .between(startTime, endTime)
-        .reverse()
-        .sortBy('timestamp')
+      return API.orders.get(startTime, endTime)
     },
     [datetime],
     [] as RestaDB.Table.Order[],
   )
   const handleAction = useCallback(
     async (
-      record: RestaDB.OrderRecord,
+      record: RestaDB.OrderRecord | RestaDB.NewOrderRecord,
       action: Resta.Order.ActionType,
-      timestamp: RestaDB.OrderRecord['timestamp'],
+      timestamp?: RestaDB.OrderRecord['timestamp'],
     ) => {
       switch (action) {
+        case 'add': {
+          return API.orders.add(record)
+        }
         case 'edit': {
           if (!timestamp) {
             record.timestamp = dayjs().valueOf()
           }
-          return db.orders.update(record.id, record as RestaDB.NewOrderRecord)
+          return API.orders.set(record.id, record as RestaDB.NewOrderRecord)
         }
         case 'delete': {
-          return db.orders.delete(record.id)
+          return API.orders.delete(record.id)
         }
       }
     },
-    [db],
+    [API],
   )
   if (records.length) {
     const theDate = dayjs(startTime)

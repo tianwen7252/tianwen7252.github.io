@@ -4,6 +4,8 @@ import { KEYBOARD_TAG_FONT_SIZE, KEYBOARD_DATE_FONT_SIZE } from 'src/styles'
 import { COLORS } from 'src/constants/defaults/memos'
 
 const actionUIWidth = 42 * 2 - 1 // - 1 border
+const editBgColor = 'linear-gradient(to top, #dbd5a7, #b0dab9)'
+const deleteBgColor = 'linear-gradient(to bottom, #fb578e, #f7bb97)'
 
 export const orderCss = css`
   font-size: 1rem;
@@ -50,7 +52,7 @@ export const numberCss = css`
 
 export const onEditCss = css`
   .css-${frameCss.name}, [class$='__order-frame'] {
-    background: #8cc33b;
+    background: ${editBgColor};
     transform: translateX(-${actionUIWidth}px);
   }
 
@@ -137,18 +139,22 @@ export const actionStyle = `
 
 export const actionEditCss = css`
   ${actionStyle}
-  background: #8cc33b;
+  background: ${editBgColor};
 `
 
 export const actionDeleteCss = css`
   ${actionStyle}
-  background: #ea5353;
+  background: ${deleteBgColor};
 `
 
 const setBgColor = color => {
   return css`
-    /* border-color: ${color}; */
-    background: color-mix(in srgb, ${color} 8%, #fff);
+    background: ${color};
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, ${color} 10%, #fff),
+      #fff
+    );
 
     .css-${numberCss.name}, [class$='__order-number'] {
       background: ${color};

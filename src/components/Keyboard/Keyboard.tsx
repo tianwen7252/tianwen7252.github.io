@@ -53,7 +53,7 @@ const ICON_MAP = {
 export const Keyboard: React.FC<{
   mode?: Resta.Keyboard.Mode
 }> = props => {
-  const { db, isTablet, DATE_FORMAT } = useContext(AppContext)
+  const { isTablet, DATE_FORMAT } = useContext(AppContext)
   const { data, total, priceMap, input, updateItemRes, update, clear } =
     useNumberInput()
   const [mode, setMode] = useState(props.mode || 'both')
@@ -62,6 +62,8 @@ export const Keyboard: React.FC<{
   const [submitBtnText, setSubmitBtnText] = useState(
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
+  const [isUpdate, setUpdateMode] = useState(false)
+  const recordRef = useRef<RestaDB.OrderRecord>()
   const autoOpenOrder = useRef(CONFIG.AUTO_SHOW_ORDER_LIST)
   const drawerContentRef = useRef<HTMLDivElement>()
   const soups = useMemo(() => {
@@ -103,6 +105,7 @@ export const Keyboard: React.FC<{
     handleInput('Escape')
     setSelectedMemos([])
     setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
+    setUpdateMode(false)
   }, [handleInput])
   const onMenuClick: MenuProps['onClick'] = useCallback(
     event => {
@@ -153,9 +156,12 @@ export const Keyboard: React.FC<{
       switch (action) {
         case 'edit': {
           const { data, total, memo, number } = record
+          recordRef.current = record
           update(data, total)
           setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
           setSubmitBtnText(`更新訂單 - 編號${number}`)
+          setUpdateMode(true)
+          onCloseOrderList()
           break
         }
         case 'delete': {
@@ -163,13 +169,13 @@ export const Keyboard: React.FC<{
         }
       }
     },
-    [update],
+    [update, onCloseOrderList],
   )
   const { orderListElement, summaryElement, lastRecordNumber, handleAction } =
     useOrderList('today', onAction, true)
   const onSubmit = useCallback(() => {
     if (total > 0 || isFree) {
-      const record = {
+      const newRecord = {
         data,
         number: lastRecordNumber + 1,
         total: isFree ? 0 : total,
@@ -180,20 +186,36 @@ export const Keyboard: React.FC<{
             : [...selectedMemos, `${soups}杯湯`],
         timestamp: dayjs().valueOf(),
       }
-      db.orders.add(record)
+      if (isUpdate) {
+        const record = recordRef.current
+        if (record) {
+          handleAction(
+            {
+              ...record,
+              ...newRecord,
+            },
+            'edit',
+          )
+        }
+      } else {
+        handleAction(newRecord, 'add')
+      }
       autoOpenOrder.current && onOpenOrderList()
       setSelectedMemos([])
+      setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
+      setUpdateMode(false)
       clear()
     }
   }, [
-    db,
     data,
     lastRecordNumber,
     total,
     soups,
     isFree,
+    isUpdate,
     noNeedSoups,
     selectedMemos,
+    handleAction,
     onOpenOrderList,
     clear,
   ])
@@ -424,7 +446,12 @@ export const Keyboard: React.FC<{
         </Flex>
         <Divider />
         <Flex vertical>
-          <Button css={styles.submitCss} size="large" onClick={onSubmit}>
+          <Button
+            css={[styles.submitBtnCss, isUpdate && styles.updateBtnCss]}
+            size="large"
+            type="primary"
+            onClick={onSubmit}
+          >
             {submitBtnText}
           </Button>
         </Flex>

@@ -50,10 +50,12 @@ export const rootCss = css`
 
   .ant-switch {
     &.ant-switch-checked {
+      transition: 0.5s;
       background: ${ANTD_SWITCH_CHECKED_BG};
+      background-size: 200% auto;
     }
     &:hover:not(.ant-switch-disabled) {
-      background: ${ANTD_SWITCH_CHECKED_HOVER_BG};
+      background-position: right center;
     }
   }
 
@@ -70,3 +72,19 @@ export const rootCss = css`
     }
   }
 `
+
+export const primaryBtnBg =
+  'linear-gradient(to right, #2bc0e4 0%, #eaecc6 51%, #2bc0e4 100%)'
+
+export const primaryBtnStyles = {
+  primaryColor: '#fff',
+  colorPrimary: primaryBtnBg,
+  colorPrimaryHover: `'?';
+    background-position: center;
+    box-shadow: 0 0 20px #eee;
+  `,
+  colorPrimaryActive: `'?';
+    background-position: center;
+    box-shadow: 0 0 20px #eee;
+  `,
+}
