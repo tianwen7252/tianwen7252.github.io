@@ -109,7 +109,10 @@ export function useNumberInput() {
         case '7':
         case '8':
         case '9': {
-          if (key === '.' && displayedText.current === '') {
+          if (
+            key === '.' &&
+            (displayedText.current === '' || lastData.value === '')
+          ) {
             key = '0.'
           }
           const { total, transformedInput } = process(

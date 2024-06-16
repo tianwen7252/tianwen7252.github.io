@@ -10,6 +10,7 @@ declare namespace Resta {
     [key: string]: any
   }
   type JsonObject = IObject
+  type NotificationType = 'success' | 'info' | 'warning' | 'error'
   namespace Keyboard {
     type InputItem = RestaDB.OrderData
     type Data = RestaDB.OrderData[]
@@ -25,7 +26,16 @@ declare namespace Resta {
       record: Resta.OrderRecord
       number: number
       editable?: boolean
-      onAction?(record: Resta.OrderRecord, action: ActionType): void
+      onAction?(
+        record: Resta.OrderRecord,
+        action: ActionType,
+        handleAction: Props['handleAction'],
+      ): void
+      handleAction?(
+        record: RestaDB.OrderRecord | RestaDB.NewOrderRecord,
+        action: Resta.Order.ActionType,
+        timestamp?: RestaDB.OrderRecord['timestamp'],
+      )
     }
     type ActionType = 'add' | 'edit' | 'delete'
   }

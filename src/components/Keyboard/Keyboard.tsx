@@ -14,7 +14,6 @@ import {
   Space,
   Tag,
   Drawer,
-  FloatButton,
   Segmented,
   Switch,
   Divider,
@@ -26,7 +25,6 @@ import {
   PlusOutlined,
   DeleteOutlined,
   CloseOutlined,
-  OrderedListOutlined,
   CalculatorOutlined,
   AppstoreAddOutlined,
   AppstoreOutlined,
@@ -58,19 +56,18 @@ export const Keyboard: React.FC<{
     useNumberInput()
   const [mode, setMode] = useState(props.mode || 'both')
   const [selectedMemos, setSelectedMemos] = useState<string[]>([])
-  const [openOrder, setOpenOrder] = useState(false)
   const [submitBtnText, setSubmitBtnText] = useState(
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
   const [isUpdate, setUpdateMode] = useState(false)
   const recordRef = useRef<RestaDB.OrderRecord>()
-  const autoOpenOrder = useRef(CONFIG.AUTO_SHOW_ORDER_LIST)
   const drawerContentRef = useRef<HTMLDivElement>()
   const soups = useMemo(() => {
     let count = 0
-    data.forEach(({ res, type, amount }) => {
+    data.forEach(({ res, type, amount = '' }) => {
       if (type === CONFIG.MAIN_DISH_TYPE || res === '湯') {
-        count += amount ? +amount : 1
+        const quailty = amount ? +amount : 1
+        count += quailty < 1 && quailty > 0 ? 1 : quailty
       }
     })
     return count
@@ -129,15 +126,7 @@ export const Keyboard: React.FC<{
     },
     [updateItemRes],
   )
-  const onOpenOrderList = useCallback(() => {
-    setOpenOrder(true)
-  }, [setOpenOrder])
-  const onCloseOrderList = useCallback(() => {
-    setOpenOrder(false)
-  }, [setOpenOrder])
-  const onToggleShowList = useCallback(() => {
-    autoOpenOrder.current = !autoOpenOrder.current
-  }, [])
+  const onToggleShowList = useCallback(() => {}, [])
   const onHandleMemo = useCallback(
     (name: string, checked: boolean) => {
       const index = selectedMemos.indexOf(name)
@@ -152,24 +141,24 @@ export const Keyboard: React.FC<{
     [selectedMemos],
   )
   const onAction: Resta.Order.Props['onAction'] = useCallback(
-    (record, action) => {
+    (record, action, handleAction) => {
       switch (action) {
         case 'edit': {
           const { data, total, memo, number } = record
           recordRef.current = record
           update(data, total)
           setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
-          setSubmitBtnText(`更新訂單 - 編號${number}`)
+          setSubmitBtnText(`更新訂單 - 編號[${number}]`)
           setUpdateMode(true)
-          onCloseOrderList()
           break
         }
         case 'delete': {
+          handleAction(record, 'delete')
           break
         }
       }
     },
-    [update, onCloseOrderList],
+    [update],
   )
   const { orderListElement, summaryElement, lastRecordNumber, handleAction } =
     useOrderList('today', onAction, true)
@@ -200,7 +189,6 @@ export const Keyboard: React.FC<{
       } else {
         handleAction(newRecord, 'add')
       }
-      autoOpenOrder.current && onOpenOrderList()
       setSelectedMemos([])
       setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
       setUpdateMode(false)
@@ -216,7 +204,6 @@ export const Keyboard: React.FC<{
     noNeedSoups,
     selectedMemos,
     handleAction,
-    onOpenOrderList,
     clear,
   ])
 
@@ -361,15 +348,15 @@ export const Keyboard: React.FC<{
     // scroll the drawer content to top
     const target = drawerContentRef.current?.parentNode as HTMLDivElement
     target?.scroll?.(0, 0)
-  }, [openOrder])
+  }, [])
 
-  console.log('data', data)
+  console.log('data', soups, data)
 
   return (
-    <>
+    <div css={styles.keyboardCss}>
       <Flex
         css={[
-          styles.keyboardCss,
+          styles.keyboardLeftCss,
           mode === 'commondity' && styles.modeCommondityCss,
         ]}
         vertical
@@ -416,7 +403,7 @@ export const Keyboard: React.FC<{
               清除
             </Button>
           </Space>
-          <Flex css={styles.btnCss} gap="large">
+          <Flex css={styles.btnCss} gap="middle">
             {mode !== 'commondity' && (
               <div css={styles.numberBtnsCss}>{numberButtons}</div>
             )}
@@ -457,11 +444,14 @@ export const Keyboard: React.FC<{
         </Flex>
       </Flex>
       <Drawer
+        css={styles.drawerCss}
         title={`訂單記錄 - ${dayjs().format(DATE_FORMAT)}`}
+        getContainer={false}
         placement="right"
-        open={openOrder}
-        className={styles.drawerCssName}
-        onClose={onCloseOrderList}
+        open={true}
+        mask={false}
+        closeIcon={null}
+        // onClose={onCloseOrderList}
         footer={summaryElement}
       >
         <div ref={drawerContentRef}>
@@ -477,15 +467,7 @@ export const Keyboard: React.FC<{
           )}
         </div>
       </Drawer>
-      {!openOrder && (
-        <FloatButton
-          shape="square"
-          style={{ right: 24 }}
-          icon={<OrderedListOutlined />}
-          onClick={onOpenOrderList}
-        />
-      )}
-    </>
+    </div>
   )
 }
 

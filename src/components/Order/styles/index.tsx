@@ -29,10 +29,6 @@ export const mainCss = css`
   min-width: 284px;
   label: __order-main; // @emotion only
 
-  .ant-divider {
-    margin: 10px 0;
-  }
-
   .ant-tag {
     font-size: ${KEYBOARD_TAG_FONT_SIZE};
     margin-inline-end: 0;

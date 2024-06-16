@@ -5,7 +5,8 @@ export const TABLET = {
 
 export const ANTD_SWITCH_CHECKED_BG =
   'linear-gradient(to right, #33ceea 0%, #ffd194  51%, #33ceea  100%)'
-export const ANTD_SWITCH_CHECKED_HOVER_BG = '#33ceea'
+export const ANTD_SWITCH_CHECKED_HOVER_BG =
+  'radial-gradient(circle, #ffd194 0%, #33ceea 100%);'
 
 export const HEADER_HEIGHT = '64px'
 

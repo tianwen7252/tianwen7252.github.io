@@ -19,10 +19,15 @@ import { COLORS } from 'src/constants/defaults/memos'
 const BTN_GAP = '10px'
 
 export const keyboardCss = css`
+  position: relative;
+`
+
+export const keyboardLeftCss = css`
   width: min-content;
   /* width: 40vw; */
   min-width: 60vw;
-  min-height: calc(100vh - ${HEADER_HEIGHT} - 40px);
+  /* min-height: calc(100vh - ${HEADER_HEIGHT} - 40px); */
+  min-height: calc(100vh - ${HEADER_HEIGHT} - 22px);
   padding: 10px 20px;
   font-size: ${KEYBOARD_FONT_SIZE};
   letter-spacing: ${KEYBOARD_FONT_LETTER_SPACINGZE};
@@ -185,7 +190,12 @@ export const btnDropdownCssName = cssPlugin.css`
   }
 `
 
-export const drawerCssName = cssPlugin.css`
+export const drawerCss = css`
+  position: relative;
+
+  .ant-drawer-content-wrapper {
+  }
+
   .ant-drawer-body {
     padding: 1rem;
   }
@@ -227,13 +237,13 @@ export const memoCss = css`
 
 export const memoTextCss = css`
   border-right: 1px solid rgba(5, 5, 5, 0.06);
+  border-image: linear-gradient(to bottom, #fff, #999, #fff) 1 100%;
   padding-right: 6px;
 `
 
 export const submitBtnCss = css`
   height: 3.5rem;
   font-size: 1.2rem;
-  text-align: center;
   font-weight: bold;
   transition: ${getTransition()};
   background-size: 200% auto;

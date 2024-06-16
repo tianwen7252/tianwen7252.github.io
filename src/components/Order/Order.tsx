@@ -24,8 +24,16 @@ import {
 } from 'src/constants/defaults/memos'
 import * as styles from './styles'
 
+const emptyFn = () => {}
+
 export const Order: React.FC<Resta.Order.Props> = props => {
-  const { record, number, editable = true, onAction } = props
+  const {
+    record,
+    number,
+    editable = true,
+    onAction,
+    handleAction = emptyFn,
+  } = props
   const [showAction, setShowAction] = useState(false)
   const { isTablet } = useContext(AppContext)
   const ref = useRef<HTMLDivElement>()
@@ -64,9 +72,9 @@ export const Order: React.FC<Resta.Order.Props> = props => {
 
   const onClickAction = useCallback(
     (action: Resta.Order.ActionType) => {
-      onAction?.(record, action)
+      onAction?.(record, action, handleAction)
     },
-    [record, onAction],
+    [record, onAction, handleAction],
   )
 
   useEffect(() => {
@@ -118,7 +126,7 @@ export const Order: React.FC<Resta.Order.Props> = props => {
                 }
                 return <Space key={`${index}-${value}`}>{content}</Space>
               })}
-              {memo && (
+              {memo?.length > 0 && (
                 <>
                   <Divider />
                   <Space wrap>

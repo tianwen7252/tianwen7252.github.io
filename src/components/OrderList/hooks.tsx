@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useCallback,
 } from 'react'
-import { Flex, Statistic, Anchor } from 'antd'
+import { Flex, Statistic, Anchor, notification, Modal, Divider } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 
@@ -15,6 +15,11 @@ import { WORK_SHIFT } from 'src/constants/defaults/workshift'
 import * as styles from './styles'
 
 const workShift = [...WORK_SHIFT].reverse()
+const errMsgMap = {
+  add: '新增訂單失敗',
+  edit: '編輯訂單失敗',
+  delete: '刪除訂單失敗',
+}
 
 export function useOrderList(
   datetime: [number, number] | 'today',
@@ -40,28 +45,107 @@ export function useOrderList(
     [datetime],
     [] as RestaDB.Table.Order[],
   )
-  const handleAction = useCallback(
-    async (
-      record: RestaDB.OrderRecord | RestaDB.NewOrderRecord,
-      action: Resta.Order.ActionType,
-      timestamp?: RestaDB.OrderRecord['timestamp'],
-    ) => {
-      switch (action) {
-        case 'add': {
-          return API.orders.add(record)
-        }
-        case 'edit': {
-          if (!timestamp) {
-            record.timestamp = dayjs().valueOf()
+  const [noti, contextHolder] = notification.useNotification()
+  const openNotification = useCallback(
+    ({
+      type,
+      message = '系統通知',
+      description,
+      errorDescription,
+      errorMsg,
+    }: {
+      type: Resta.NotificationType
+      message?: React.ReactNode
+      description?: React.ReactNode
+      errorDescription?: React.ReactNode
+      errorMsg?: string
+    }) => {
+      noti[type]({
+        message,
+        description: errorDescription ? (
+          <>
+            <p>{errorDescription}</p>
+            <p>
+              <small>錯誤代碼 - {errorMsg ?? 'Unknown'}</small>
+            </p>
+          </>
+        ) : (
+          description
+        ),
+        showProgress: true,
+        pauseOnHover: type !== 'success',
+        duration: type === 'success' ? 3 : 20,
+      })
+    },
+    [noti],
+  )
+  const handleAction: Resta.Order.Props['handleAction'] = useCallback(
+    async (record, action, timestamp?) => {
+      try {
+        switch (action) {
+          case 'add': {
+            API.orders.add(record)
+            openNotification({
+              type: 'success',
+              description: '新增訂單成功!',
+            })
+            break
           }
-          return API.orders.set(record.id, record as RestaDB.NewOrderRecord)
+          case 'edit': {
+            if (!timestamp) {
+              record.timestamp = dayjs().valueOf()
+            }
+            API.orders.set(record.id, record as RestaDB.NewOrderRecord)
+            openNotification({
+              type: 'success',
+              description: `編輯訂單[${record.number}]成功!`,
+            })
+            break
+          }
+          case 'delete': {
+            Modal.confirm({
+              title: '你知道你正在做什麼嗎',
+              content: (
+                <>
+                  <p>確定要刪除訂單[{record.number}]?</p>
+                  <Divider />
+                </>
+              ),
+              okType: 'danger',
+              okText: '不要吵給我刪掉',
+              cancelText: '取消，我不小心按到',
+              onOk: close => {
+                API.orders.delete(record.id)
+                openNotification({
+                  type: 'success',
+                  description: `刪除訂單[${record.number}]成功!`,
+                })
+                close()
+              },
+              footer: (_, { OkBtn, CancelBtn }) => (
+                <>
+                  <OkBtn />
+                  <CancelBtn />
+                </>
+              ),
+            })
+
+            break
+          }
         }
-        case 'delete': {
-          return API.orders.delete(record.id)
-        }
+      } catch (err) {
+        openNotification({
+          type: 'error',
+          message: '系統發生錯誤',
+          errorDescription:
+            action === 'add'
+              ? errMsgMap[action]
+              : `${errMsgMap[action]} - 訂單編號[${record.number}]`,
+          errorMsg: err?.message,
+        })
       }
     },
-    [API],
+    [API, openNotification],
   )
   if (records.length) {
     const theDate = dayjs(startTime)
@@ -76,15 +160,16 @@ export function useOrderList(
       }
     })
     records.forEach((record, index) => {
-      const { data, total, timestamp } = record
+      const { data, total, timestamp, number } = record
       totalCount += total
       soldItemsCount += data.filter(({ res }) => !!res).length
       const element = (
         <Order
           key={timestamp}
           record={record}
-          number={records.length - index}
+          number={number}
           onAction={onAction}
+          handleAction={handleAction}
         />
       )
       const result = periods.some(({ elements, timestamp: time }) => {
@@ -150,7 +235,12 @@ export function useOrderList(
     totalCount,
     lastRecordNumber: records?.at?.(0)?.number || 0,
     soldItemsCount,
-    orderListElement,
+    orderListElement: (
+      <>
+        {contextHolder}
+        {orderListElement}
+      </>
+    ),
     summaryElement,
     handleAction,
   }
