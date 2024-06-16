@@ -11,6 +11,13 @@ declare namespace Resta {
   }
   type JsonObject = IObject
   type NotificationType = 'success' | 'info' | 'warning' | 'error'
+  type AppEventObject<T extends JsonObject> = Event & {
+    detail?: T
+  }
+  interface AppEventListener {
+    (evt: AppEventObject): void
+  }
+
   namespace Keyboard {
     type InputItem = RestaDB.OrderData
     type Data = RestaDB.OrderData[]
@@ -29,13 +36,14 @@ declare namespace Resta {
       onAction?(
         record: Resta.OrderRecord,
         action: ActionType,
-        handleAction: Props['handleAction'],
+        callOrderAPI: Props['callOrderAPI'],
       ): void
-      handleAction?(
+      callOrderAPI?(
         record: RestaDB.OrderRecord | RestaDB.NewOrderRecord,
         action: Resta.Order.ActionType,
-        timestamp?: RestaDB.OrderRecord['timestamp'],
+        createdAt?: RestaDB.OrderRecord['createdAt'],
       )
+      onCancelEdit?(): void
     }
     type ActionType = 'add' | 'edit' | 'delete'
   }
@@ -75,6 +83,7 @@ declare global {
 
   namespace RestaDB {
     type ID = number
+    type UUID = string
     namespace Table {
       interface Commondity {
         id: ID
@@ -87,11 +96,13 @@ declare global {
       }
       interface Order {
         id: ID
+        uuid: uuid
         number: number
         data: OrderData[]
         memo: string[]
         soups: number
-        timestamp: number
+        createdAt: number
+        updatedAt: number
         total: number
       }
     }

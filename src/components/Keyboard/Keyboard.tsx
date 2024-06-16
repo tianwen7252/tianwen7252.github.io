@@ -4,7 +4,6 @@ import React, {
   useContext,
   useState,
   useRef,
-  useEffect,
 } from 'react'
 import {
   Flex,
@@ -51,7 +50,7 @@ const ICON_MAP = {
 export const Keyboard: React.FC<{
   mode?: Resta.Keyboard.Mode
 }> = props => {
-  const { isTablet, DATE_FORMAT } = useContext(AppContext)
+  const { appEvent, isTablet, DATE_FORMAT } = useContext(AppContext)
   const { data, total, priceMap, input, updateItemRes, update, clear } =
     useNumberInput()
   const [mode, setMode] = useState(props.mode || 'both')
@@ -98,12 +97,6 @@ export const Keyboard: React.FC<{
     },
     [handleInput],
   )
-  const resetKeyBoard = useCallback(() => {
-    handleInput('Escape')
-    setSelectedMemos([])
-    setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
-    setUpdateMode(false)
-  }, [handleInput])
   const onMenuClick: MenuProps['onClick'] = useCallback(
     event => {
       const { key } = event
@@ -140,8 +133,16 @@ export const Keyboard: React.FC<{
     },
     [selectedMemos],
   )
+  const getDrawerContentElement = useCallback(
+    () => drawerContentRef.current?.parentElement,
+    [],
+  )
+  const scrollOrderListToTop = useCallback(() => {
+    // scroll the drawer content to top
+    getDrawerContentElement()?.scroll?.(0, 0)
+  }, [getDrawerContentElement])
   const onAction: Resta.Order.Props['onAction'] = useCallback(
-    (record, action, handleAction) => {
+    (record, action, callOrderAPI) => {
       switch (action) {
         case 'edit': {
           const { data, total, memo, number } = record
@@ -153,16 +154,27 @@ export const Keyboard: React.FC<{
           break
         }
         case 'delete': {
-          handleAction(record, 'delete')
+          callOrderAPI(record, 'delete')
           break
         }
       }
     },
     [update],
   )
-  const { orderListElement, summaryElement, lastRecordNumber, handleAction } =
-    useOrderList('today', onAction, true)
-  const onSubmit = useCallback(() => {
+  const reset = useCallback(() => {
+    handleInput('Escape')
+    setSelectedMemos([])
+    setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
+    setUpdateMode(false)
+    appEvent.fire(appEvent.ORDER_CANCEL_EDIT)
+    recordRef.current = null
+    clear()
+  }, [appEvent, handleInput, clear])
+
+  const { orderListElement, summaryElement, lastRecordNumber, callOrderAPI } =
+    useOrderList('today', onAction, reset, getDrawerContentElement)
+
+  const onSubmit = useCallback(async () => {
     if (total > 0 || isFree) {
       const newRecord = {
         data,
@@ -173,12 +185,12 @@ export const Keyboard: React.FC<{
           !soups || noNeedSoups
             ? selectedMemos
             : [...selectedMemos, `${soups}杯湯`],
-        timestamp: dayjs().valueOf(),
+        createdAt: dayjs().valueOf(),
       }
       if (isUpdate) {
         const record = recordRef.current
         if (record) {
-          handleAction(
+          callOrderAPI(
             {
               ...record,
               ...newRecord,
@@ -187,12 +199,10 @@ export const Keyboard: React.FC<{
           )
         }
       } else {
-        handleAction(newRecord, 'add')
+        await callOrderAPI(newRecord, 'add')
+        scrollOrderListToTop()
       }
-      setSelectedMemos([])
-      setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
-      setUpdateMode(false)
-      clear()
+      reset()
     }
   }, [
     data,
@@ -203,8 +213,9 @@ export const Keyboard: React.FC<{
     isUpdate,
     noNeedSoups,
     selectedMemos,
-    handleAction,
-    clear,
+    callOrderAPI,
+    scrollOrderListToTop,
+    reset,
   ])
 
   const numberButtons = useMemo(() => {
@@ -344,13 +355,7 @@ export const Keyboard: React.FC<{
     [data, priceMap, onChangeType],
   )
 
-  useEffect(() => {
-    // scroll the drawer content to top
-    const target = drawerContentRef.current?.parentNode as HTMLDivElement
-    target?.scroll?.(0, 0)
-  }, [])
-
-  console.log('data', soups, data)
+  console.log('data', data)
 
   return (
     <div css={styles.keyboardCss}>
@@ -398,7 +403,7 @@ export const Keyboard: React.FC<{
               size="large"
               css={styles.deleteBtnCss}
               icon={<DeleteOutlined />}
-              onClick={resetKeyBoard}
+              onClick={reset}
             >
               清除
             </Button>
@@ -451,8 +456,8 @@ export const Keyboard: React.FC<{
         open={true}
         mask={false}
         closeIcon={null}
-        // onClose={onCloseOrderList}
         footer={summaryElement}
+        // onClose={onCloseOrderList}
       >
         <div ref={drawerContentRef}>
           {orderListElement || (

@@ -12,10 +12,18 @@ export const db = new Dexie(DB_NAME) as Dexie & {
 }
 
 // Schema declaration:
-const dbSchema = db.version(1)
+const dbSchema = db.version(3)
 dbSchema.stores({
-  orders: '++id, timestamp', // primary key "id" (for the runtime!)
+  orders: '++id, createdAt', // primary key "id" (for the runtime!),
 })
+// .upgrade(trans => {
+//   return trans
+//     .table('orders')
+//     .toCollection()
+//     .modify(record => {
+//       // do something
+//     })
+// })
 
 export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
   let percentageUsed = '0'

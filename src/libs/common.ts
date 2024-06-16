@@ -1,7 +1,7 @@
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 
 export const DATE_FORMAT = 'YYYY/MM/DD dddd'
-export const DATE_FORMAT_TIME = 'YYYY/MM/DD h:m:s A'
+export const DATE_FORMAT_TIME = 'YYYY/MM/DD HH:m:s A'
 
 export function toCurrency(amount: number) {
   return amount.toLocaleString('zh-TW', {
@@ -11,6 +11,12 @@ export function toCurrency(amount: number) {
     minimumFractionDigits: 0,
   })
 }
+
+const userAgent = navigator.userAgent.toLowerCase()
+export const isTablet =
+  /(ipad|tablet|(android(?!.*mobile))|(windows(?!.*phone)(.*touch))|kindle|playbook|silk|(puffin(?!.*(IP|AP|WP))))/.test(
+    userAgent,
+  )
 
 export function getCommoditiesInfo(data = COMMODITIES, revise = false) {
   const relevancies: Resta.Commodity.Item[] = []

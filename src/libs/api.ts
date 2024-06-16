@@ -5,7 +5,7 @@ export const orders = {
   get(
     startTime: number,
     endTime: number,
-    index = 'timestamp',
+    index = 'createdAt',
     sortKey = index,
   ) {
     return db.orders
@@ -20,10 +20,10 @@ export const orders = {
   set(
     id: RestaDB.ID,
     record: RestaDB.NewOrderRecord,
-    timestamp?: RestaDB.OrderRecord['timestamp'],
+    createdAt?: RestaDB.OrderRecord['createdAt'],
   ) {
-    if (!timestamp) {
-      record.timestamp = dayjs().valueOf()
+    if (!createdAt) {
+      record.createdAt = dayjs().valueOf()
     }
     return db.orders.update(id, record as RestaDB.NewOrderRecord)
   },

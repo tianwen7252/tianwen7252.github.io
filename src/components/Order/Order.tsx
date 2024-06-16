@@ -12,6 +12,7 @@ import {
   DeleteOutlined,
   MoreOutlined,
   ArrowRightOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 import SwipeListener from 'swipe-listener'
 import dayjs from 'dayjs'
@@ -32,12 +33,14 @@ export const Order: React.FC<Resta.Order.Props> = props => {
     number,
     editable = true,
     onAction,
-    handleAction = emptyFn,
+    onCancelEdit = emptyFn,
+    callOrderAPI = emptyFn,
   } = props
   const [showAction, setShowAction] = useState(false)
-  const { isTablet } = useContext(AppContext)
+  const [isEditing, setEditState] = useState(false)
+  const { appEvent, isTablet } = useContext(AppContext)
   const ref = useRef<HTMLDivElement>()
-  const { data, total, memo, timestamp } = record
+  const { data, total, memo, createdAt } = record
   const bgColor = useMemo(() => {
     let bgColor = ''
     if (Array.isArray(memo)) {
@@ -72,20 +75,30 @@ export const Order: React.FC<Resta.Order.Props> = props => {
 
   const onClickAction = useCallback(
     (action: Resta.Order.ActionType) => {
-      onAction?.(record, action, handleAction)
+      action === 'edit' && setEditState(true)
+      onAction?.(record, action, callOrderAPI)
     },
-    [record, onAction, handleAction],
+    [record, onAction, callOrderAPI],
   )
+
+  const cancelEdit = useCallback(() => {
+    onCancelEdit?.()
+    setEditState(false)
+  }, [onCancelEdit])
 
   useEffect(() => {
     const container = ref.current
     const listener = SwipeListener(container)
     container.addEventListener('swipe', onSwipe)
+    const eventOff = appEvent.on(appEvent.ORDER_CANCEL_EDIT, () => {
+      setEditState(false)
+    })
     return () => {
       container.removeEventListener('swipe', onSwipe)
       listener.off()
+      eventOff()
     }
-  }, [onSwipe])
+  }, [appEvent, onSwipe])
 
   return (
     <div css={[styles.orderCss, showAction && styles.onEditCss]} ref={ref}>
@@ -141,20 +154,26 @@ export const Order: React.FC<Resta.Order.Props> = props => {
                 <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
               )}
               <Space css={styles.dateCss}>
-                {dayjs(timestamp).format(DATE_FORMAT_TIME)}
-                <span>({dayjs(timestamp).fromNow()})</span>
+                {dayjs(createdAt).format(DATE_FORMAT_TIME)}
+                <span>({dayjs(createdAt).fromNow()})</span>
               </Space>
             </div>
           </div>
         </div>
         {editable && (
           <Flex css={styles.actionCss}>
-            <div
-              css={styles.actionEditCss}
-              onClick={onClickAction.bind(null, 'edit')}
-            >
-              <EditOutlined />
-            </div>
+            {isEditing ? (
+              <div css={styles.actionEditCss} onClick={cancelEdit}>
+                <ReloadOutlined />
+              </div>
+            ) : (
+              <div
+                css={styles.actionEditCss}
+                onClick={onClickAction.bind(null, 'edit')}
+              >
+                <EditOutlined />
+              </div>
+            )}
             <div
               css={styles.actionDeleteCss}
               onClick={onClickAction.bind(null, 'delete')}

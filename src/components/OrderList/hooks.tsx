@@ -24,7 +24,8 @@ const errMsgMap = {
 export function useOrderList(
   datetime: [number, number] | 'today',
   onAction?: Resta.Order.Props['onAction'],
-  setAnchor = false,
+  onCancelEdit?: Resta.Order.Props['onCancelEdit'],
+  getAnchorContainer?: () => HTMLElement,
 ) {
   let totalCount = 0
   let soldItemsCount = 0
@@ -32,12 +33,15 @@ export function useOrderList(
   // eslint-disable-next-line react-hooks/exhaustive-deps
   let periods = [] // needs always update-to-date
   const { API } = useContext(AppContext)
+  const [noti, contextHolder] = notification.useNotification()
+  const [modal, modelContextHolder] = Modal.useModal()
   const [startTime, endTime] = useMemo(() => {
     const today = dayjs()
     return datetime === 'today'
       ? [today.startOf('day').valueOf(), today.endOf('day').valueOf()]
       : datetime
   }, [datetime])
+
   const records = useLiveQuery(
     () => {
       return API.orders.get(startTime, endTime)
@@ -45,7 +49,7 @@ export function useOrderList(
     [datetime],
     [] as RestaDB.Table.Order[],
   )
-  const [noti, contextHolder] = notification.useNotification()
+
   const openNotification = useCallback(
     ({
       type,
@@ -79,58 +83,65 @@ export function useOrderList(
     },
     [noti],
   )
-  const handleAction: Resta.Order.Props['handleAction'] = useCallback(
-    async (record, action, timestamp?) => {
+  const callOrderAPI: Resta.Order.Props['callOrderAPI'] = useCallback(
+    async (record, action, createdAt?) => {
       try {
         switch (action) {
           case 'add': {
-            API.orders.add(record)
+            const result = await API.orders.add(record)
             openNotification({
               type: 'success',
               description: '新增訂單成功!',
             })
-            break
+            return result
           }
           case 'edit': {
-            if (!timestamp) {
-              record.timestamp = dayjs().valueOf()
+            if (!createdAt) {
+              record.createdAt = dayjs().valueOf()
             }
-            API.orders.set(record.id, record as RestaDB.NewOrderRecord)
+            const result = await API.orders.set(
+              record.id,
+              record as RestaDB.NewOrderRecord,
+            )
             openNotification({
               type: 'success',
               description: `編輯訂單[${record.number}]成功!`,
             })
-            break
+            return result
           }
           case 'delete': {
-            Modal.confirm({
-              title: '你知道你正在做什麼嗎',
-              content: (
-                <>
-                  <p>確定要刪除訂單[{record.number}]?</p>
-                  <Divider />
-                </>
-              ),
-              okType: 'danger',
-              okText: '不要吵給我刪掉',
-              cancelText: '取消，我不小心按到',
-              onOk: close => {
-                API.orders.delete(record.id)
-                openNotification({
-                  type: 'success',
-                  description: `刪除訂單[${record.number}]成功!`,
-                })
-                close()
-              },
-              footer: (_, { OkBtn, CancelBtn }) => (
-                <>
-                  <OkBtn />
-                  <CancelBtn />
-                </>
-              ),
+            return new Promise(resolve => {
+              modal.confirm({
+                title: '你知道你正在做什麼嗎',
+                content: (
+                  <>
+                    <p>確定要刪除訂單[{record.number}]?</p>
+                    <Divider />
+                  </>
+                ),
+                okType: 'danger',
+                okText: '不要吵給我刪掉',
+                cancelText: '取消，我不小心按到',
+                onOk: close => {
+                  API.orders.delete(record.id)
+                  openNotification({
+                    type: 'success',
+                    description: `刪除訂單[${record.number}]成功!`,
+                  })
+                  close()
+                  resolve(record.id)
+                },
+                onCancel: () => {
+                  resolve(null)
+                },
+                footer: (_, { OkBtn, CancelBtn }) => (
+                  <>
+                    <OkBtn />
+                    <CancelBtn />
+                  </>
+                ),
+              })
             })
-
-            break
           }
         }
       } catch (err) {
@@ -144,8 +155,9 @@ export function useOrderList(
           errorMsg: err?.message,
         })
       }
+      return null
     },
-    [API, openNotification],
+    [API, modal, openNotification],
   )
   if (records.length) {
     const theDate = dayjs(startTime)
@@ -155,25 +167,26 @@ export function useOrderList(
       return {
         title,
         id: `resta-anchor-${dateTodayString}-${key}`,
-        timestamp: theDate.hour(+hours).minute(+minutes).valueOf(),
+        createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
         elements: [],
       }
     })
-    records.forEach((record, index) => {
-      const { data, total, timestamp, number } = record
+    records.forEach(record => {
+      const { data, total, createdAt, number } = record
       totalCount += total
       soldItemsCount += data.filter(({ res }) => !!res).length
       const element = (
         <Order
-          key={timestamp}
+          key={createdAt}
           record={record}
           number={number}
           onAction={onAction}
-          handleAction={handleAction}
+          callOrderAPI={callOrderAPI}
+          onCancelEdit={onCancelEdit}
         />
       )
-      const result = periods.some(({ elements, timestamp: time }) => {
-        if (timestamp >= time) {
+      const result = periods.some(({ elements, createdAt: time }) => {
+        if (createdAt >= time) {
           elements.push(element)
           return true
         }
@@ -197,7 +210,8 @@ export function useOrderList(
         </div>
         <Anchor
           css={styles.anchorCss}
-          bounds={1}
+          getContainer={getAnchorContainer}
+          bounds={20}
           items={periods.map(({ id, title }) => ({
             key: id,
             href: `#${id}`,
@@ -215,21 +229,7 @@ export function useOrderList(
     </Flex>
   )
 
-  // do we need this exact?
-  const anchorRef = useRef(false)
-  useEffect(() => {
-    if (setAnchor && records.length && !anchorRef.current) {
-      const now = dayjs().valueOf()
-      periods.some(({ timestamp, id }) => {
-        if (now >= timestamp) {
-          location.hash = `#${id}`
-          return true
-        }
-        return false
-      })
-      anchorRef.current = true
-    }
-  }, [anchorRef, setAnchor, periods, records])
+  console.log('records', records)
 
   return {
     totalCount,
@@ -238,10 +238,11 @@ export function useOrderList(
     orderListElement: (
       <>
         {contextHolder}
+        {modelContextHolder}
         {orderListElement}
       </>
     ),
     summaryElement,
-    handleAction,
+    callOrderAPI,
   }
 }
