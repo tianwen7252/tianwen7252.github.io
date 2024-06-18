@@ -1,16 +1,23 @@
 import React from 'react'
 import { ConfigProvider } from 'antd'
 import { Global } from '@emotion/react'
-import * as dayjs from 'dayjs'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import 'dayjs/locale/zh-tw'
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
+import 'src/libs/date'
 import { rootCss, primaryBtnStyles } from 'src/styles/global'
-import Home from '../Home'
+import Root from '../Root'
+
 import { AppContext, DefaultContextData } from './context'
 
-dayjs.locale('zh-tw')
-dayjs.extend(relativeTime)
+// import { main } from 'src/scripts/generator'
+// main('show-orders')
+
+const router = createBrowserRouter([
+  {
+    path: '*',
+    element: <Root />,
+  },
+])
 
 export const App: React.FC<{}> = () => {
   // todo QuotaExceededError with react-error-boundary
@@ -24,7 +31,7 @@ export const App: React.FC<{}> = () => {
           },
         }}
       >
-        <Home />
+        <RouterProvider router={router} />
       </ConfigProvider>
     </AppContext.Provider>
   )

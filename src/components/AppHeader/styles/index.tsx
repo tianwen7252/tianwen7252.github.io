@@ -12,6 +12,7 @@ export const headerCss = css`
   height: ${HEADER_HEIGHT};
 `
 export const logoCss = css`
+  margin-right: 10px;
   &:hover {
     cursor: pointer;
     filter: drop-shadow(0 0 1em #646cffaa);

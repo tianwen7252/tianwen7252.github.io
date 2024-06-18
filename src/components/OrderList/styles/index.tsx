@@ -1,5 +1,15 @@
 import { css } from '@emotion/react'
 
+export const orderListCss = css`
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  .ant-select,
+  .ant-input-affix-wrapper {
+    margin-bottom: 1rem;
+  }
+`
+
 export const listCss = css`
   position: relative;
   margin-right: 60px;

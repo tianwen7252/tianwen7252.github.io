@@ -224,7 +224,7 @@ export function useNumberInput() {
   }, [])
 
   useEffect(() => {
-    document.addEventListener('keyup', onKeyUp, false)
+    document.addEventListener('keyup', onKeyUp)
     return () => {
       document.removeEventListener('keyup', onKeyUp)
     }

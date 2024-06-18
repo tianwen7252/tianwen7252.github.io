@@ -48,6 +48,15 @@ declare namespace Resta {
     type ActionType = 'add' | 'edit' | 'delete'
   }
 
+  namespace OrderList {
+    type Period = {
+      title: string
+      id: string
+      createdAt: number
+      elements: JSX.Element[]
+    }[]
+  }
+
   namespace Commodity {
     type Items =
       (typeof import('../src/constants/defaults/commondities').COMMODITIES)[0]['items']
@@ -108,7 +117,8 @@ declare global {
     }
 
     type OrderRecord = Table.Order
-    type NewOrderRecord = Partical<OrderRecord, 'id'>
+    //  type NewOrderRecord = Omit<OrderRecord, 'id' | 'createdAt' | 'updatedAt'>
+    type NewOrderRecord = Partial<OrderRecord>
 
     interface OrderData {
       value?: string

@@ -1,6 +1,12 @@
 export const appEvent = {
   // event names
-  ORDER_CANCEL_EDIT: 'order.cancelEdit',
+  ORDER_AFTER_ACTION: 'order.afterAction',
+  // ORDER_AFTER_ACTION_ACT: {
+  //   ADDED: 'added',
+  //   EDITED: 'edited',
+  //   CANCELED_EDIT: 'canceledEdit',
+  //   DELETED: 'deleted',
+  // },
 
   on(name: string, listener: Resta.AppEventListener) {
     document.addEventListener(appEvent._getName(name), listener)

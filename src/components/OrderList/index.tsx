@@ -1,1 +1,5 @@
-export { default, default as OrderList } from './OrderList'
+export {
+  default,
+  default as OrderList,
+  OrderList as Component,
+} from './OrderList'

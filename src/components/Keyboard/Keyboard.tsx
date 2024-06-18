@@ -16,7 +16,6 @@ import {
   Segmented,
   Switch,
   Divider,
-  Empty,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -36,7 +35,7 @@ import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 import { MEMOS } from 'src/constants/defaults/memos'
 import { AppContext } from 'src/components/App/context'
-import { toCurrency } from 'src/libs/common'
+import { toCurrency, getCorrectAmount } from 'src/libs/common'
 import { useNumberInput } from './hooks'
 import * as styles from './styles'
 
@@ -60,13 +59,11 @@ export const Keyboard: React.FC<{
   )
   const [isUpdate, setUpdateMode] = useState(false)
   const recordRef = useRef<RestaDB.OrderRecord>()
-  const drawerContentRef = useRef<HTMLDivElement>()
   const soups = useMemo(() => {
     let count = 0
     data.forEach(({ res, type, amount = '' }) => {
       if (type === CONFIG.MAIN_DISH_TYPE || res === '湯') {
-        const quailty = amount ? +amount : 1
-        count += quailty < 1 && quailty > 0 ? 1 : quailty
+        count += getCorrectAmount(amount)
       }
     })
     return count
@@ -119,7 +116,7 @@ export const Keyboard: React.FC<{
     },
     [updateItemRes],
   )
-  const onToggleShowList = useCallback(() => {}, [])
+  // const onToggleShowList = useCallback(() => {}, [])
   const onHandleMemo = useCallback(
     (name: string, checked: boolean) => {
       const index = selectedMemos.indexOf(name)
@@ -133,14 +130,6 @@ export const Keyboard: React.FC<{
     },
     [selectedMemos],
   )
-  const getDrawerContentElement = useCallback(
-    () => drawerContentRef.current?.parentElement,
-    [],
-  )
-  const scrollOrderListToTop = useCallback(() => {
-    // scroll the drawer content to top
-    getDrawerContentElement()?.scroll?.(0, 0)
-  }, [getDrawerContentElement])
   const onAction: Resta.Order.Props['onAction'] = useCallback(
     (record, action, callOrderAPI) => {
       switch (action) {
@@ -166,14 +155,23 @@ export const Keyboard: React.FC<{
     setSelectedMemos([])
     setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
     setUpdateMode(false)
-    appEvent.fire(appEvent.ORDER_CANCEL_EDIT)
+    appEvent.fire(appEvent.ORDER_AFTER_ACTION)
     recordRef.current = null
     clear()
   }, [appEvent, handleInput, clear])
 
-  const { orderListElement, summaryElement, lastRecordNumber, callOrderAPI } =
-    useOrderList('today', onAction, reset, getDrawerContentElement)
+  const {
+    orderListElement,
+    summaryElement,
+    lastRecordNumber,
+    contentRef,
+    callOrderAPI,
+  } = useOrderList('today', onAction, reset)
 
+  const scrollOrderListToTop = useCallback(() => {
+    // scroll the drawer content to top
+    contentRef.current?.parentElement?.scroll?.(0, 0)
+  }, [contentRef])
   const onSubmit = useCallback(async () => {
     if (total > 0 || isFree) {
       const newRecord = {
@@ -185,7 +183,6 @@ export const Keyboard: React.FC<{
           !soups || noNeedSoups
             ? selectedMemos
             : [...selectedMemos, `${soups}杯湯`],
-        createdAt: dayjs().valueOf(),
       }
       if (isUpdate) {
         const record = recordRef.current
@@ -355,8 +352,6 @@ export const Keyboard: React.FC<{
     [data, priceMap, onChangeType],
   )
 
-  console.log('data', data)
-
   return (
     <div css={styles.keyboardCss}>
       <Flex
@@ -390,13 +385,13 @@ export const Keyboard: React.FC<{
               ]}
               onChange={onChangeKeyboardMode}
             />
-            <Switch
+            {/* <Switch
               css={styles.switchCss}
               checkedChildren="自動顯示列表"
               unCheckedChildren="手動顯示列表"
               defaultChecked
               onChange={onToggleShowList}
-            />
+            /> */}
             <Button
               danger
               type="primary"
@@ -450,27 +445,19 @@ export const Keyboard: React.FC<{
       </Flex>
       <Drawer
         css={styles.drawerCss}
-        title={`訂單記錄 - ${dayjs().format(DATE_FORMAT)}`}
+        title={
+          <>
+            <span>訂單記錄 - {dayjs.tz().format(DATE_FORMAT)}</span>
+          </>
+        }
         getContainer={false}
         placement="right"
         open={true}
         mask={false}
         closeIcon={null}
         footer={summaryElement}
-        // onClose={onCloseOrderList}
       >
-        <div ref={drawerContentRef}>
-          {orderListElement || (
-            <Empty
-              description={
-                <>
-                  <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
-                  <p>加油好嗎</p>
-                </>
-              }
-            />
-          )}
-        </div>
+        {orderListElement}
       </Drawer>
     </div>
   )

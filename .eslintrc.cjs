@@ -65,5 +65,6 @@ module.exports = {
     'react/no-children-prop': 'off',
     'react/no-unknown-property': ['error', { ignore: ['css'] }],
     'react-hooks/exhaustive-deps': 'warn',
+    'import/no-named-as-default-member': 'off',
   },
 }

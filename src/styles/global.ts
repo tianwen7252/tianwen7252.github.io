@@ -91,6 +91,15 @@ export const rootCss = css`
     margin: 10px 0;
   }
 
+  .ant-input-affix-wrapper .ant-input-clear-icon {
+    font-size: 1rem;
+  }
+
+  .ant-select .ant-select-clear {
+    font-size: 1rem;
+    margin-top: -8px;
+  }
+
   .ant-notification {
     .ant-notification-notice-wrapper {
       .ant-notification-notice {

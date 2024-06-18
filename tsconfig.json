@@ -32,7 +32,7 @@
   "include": ["src", "src/**/*", "typings/*"],
   "exclude": [
     "build",
-    "src/scripts",
+    "scripts",
     "acceptance-tests",
     "webpack",
     "config/**/*",

@@ -40,6 +40,21 @@ export const MEMOS_NAME_COLOR_MAP = MEMOS.reduce(
   {} as { [name: string]: string },
 )
 
+export const MEMO_OPTIONS = [
+  ...MEMOS.map(({ name }) => ({
+    label: name,
+    value: name,
+  })),
+  {
+    label: '水餃',
+    value: '水餃',
+  },
+  {
+    label: '湯',
+    value: '湯',
+  },
+]
+
 export const HIGHLIGHT_MEMOS = ['電話自取', '外送訂單', '優惠價', '免費']
 
 export const COLORS = {

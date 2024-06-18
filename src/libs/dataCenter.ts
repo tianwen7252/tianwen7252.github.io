@@ -4,6 +4,7 @@ const DB_NAME = 'TianWenDB'
 const GB_UNIT = 1000 * 1000 * 1000
 export const WARNING_DEVICE_SIZE = GB_UNIT
 
+const DB_VERSION = 4
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -12,7 +13,7 @@ export const db = new Dexie(DB_NAME) as Dexie & {
 }
 
 // Schema declaration:
-const dbSchema = db.version(3)
+const dbSchema = db.version(DB_VERSION)
 dbSchema.stores({
   orders: '++id, createdAt', // primary key "id" (for the runtime!),
 })

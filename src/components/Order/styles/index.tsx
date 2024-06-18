@@ -115,6 +115,10 @@ export const dateCss = css`
   justify-content: flex-end;
 `
 
+export const dateUpdatedCss = css`
+  color: #619b6d;
+`
+
 export const actionCss = css`
   color: white;
   cursor: pointer;

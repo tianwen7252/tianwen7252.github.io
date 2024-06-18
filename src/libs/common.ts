@@ -18,6 +18,11 @@ export const isTablet =
     userAgent,
   )
 
+export function getCorrectAmount(amount: string) {
+  const quailty = amount ? +amount : 1
+  return quailty < 1 && quailty > 0 ? 1 : quailty
+}
+
 export function getCommoditiesInfo(data = COMMODITIES, revise = false) {
   const relevancies: Resta.Commodity.Item[] = []
   const priceMap = {} as Resta.Commodity.PriceMap

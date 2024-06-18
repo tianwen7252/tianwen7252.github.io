@@ -1,20 +1,34 @@
 import React, {
-  useEffect,
-  useRef,
   useContext,
   useMemo,
   useCallback,
+  useRef,
+  useState,
 } from 'react'
-import { Flex, Statistic, Anchor, notification, Modal, Divider } from 'antd'
+import {
+  Flex,
+  Statistic,
+  Anchor,
+  notification,
+  Modal,
+  Divider,
+  Select,
+  Skeleton,
+  Empty,
+} from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
+import { debounce, trim } from 'lodash'
 
 import { AppContext } from 'src/components/App/context'
 import { Order } from 'src/components/Order'
 import { WORK_SHIFT } from 'src/constants/defaults/workshift'
+import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
+import { getCorrectAmount } from 'src/libs/common'
 import * as styles from './styles'
 
 const workShift = [...WORK_SHIFT].reverse()
+
 const errMsgMap = {
   add: '新增訂單失敗',
   edit: '編輯訂單失敗',
@@ -25,31 +39,58 @@ export function useOrderList(
   datetime: [number, number] | 'today',
   onAction?: Resta.Order.Props['onAction'],
   onCancelEdit?: Resta.Order.Props['onCancelEdit'],
-  getAnchorContainer?: () => HTMLElement,
 ) {
   let totalCount = 0
   let soldItemsCount = 0
   let orderListElement: JSX.Element = null
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  let periods = [] // needs always update-to-date
+  let periods: Resta.OrderList.Period = [] // needs always update-to-date
   const { API } = useContext(AppContext)
   const [noti, contextHolder] = notification.useNotification()
   const [modal, modelContextHolder] = Modal.useModal()
   const [startTime, endTime] = useMemo(() => {
-    const today = dayjs()
+    const today = dayjs.tz()
     return datetime === 'today'
       ? [today.startOf('day').valueOf(), today.endOf('day').valueOf()]
       : datetime
   }, [datetime])
-
-  const records = useLiveQuery(
-    () => {
-      return API.orders.get(startTime, endTime)
-    },
-    [datetime],
-    [] as RestaDB.Table.Order[],
+  const contentRef = useRef<HTMLDivElement>()
+  const [searchText, setSearchText] = useState<string[]>([])
+  const onSearch = useCallback(
+    debounce((value: typeof searchText) => {
+      setSearchText(value)
+    }, 500),
+    [],
   )
 
+  const records = useLiveQuery(() => {
+    return API.orders.get({
+      startTime,
+      endTime,
+      search: collection => {
+        if (searchText.length) {
+          return collection.filter(({ data, total, memo }) =>
+            searchText.some(text => {
+              text = trim(text)
+              return (
+                total === +text ||
+                memo.some(tag => tag.includes(text)) ||
+                data.some(item => {
+                  const { res, value } = item
+                  return res?.includes(text) || value === text
+                })
+              )
+            }),
+          )
+        }
+        return collection
+      },
+    })
+  }, [datetime, searchText])
+  const anchorKeyToUpdate = useRef(1)
+  const getAnchorContainer = useCallback(() => {
+    return contentRef.current?.parentElement
+  }, [])
   const openNotification = useCallback(
     ({
       type,
@@ -84,7 +125,7 @@ export function useOrderList(
     [noti],
   )
   const callOrderAPI: Resta.Order.Props['callOrderAPI'] = useCallback(
-    async (record, action, createdAt?) => {
+    async (record, action) => {
       try {
         switch (action) {
           case 'add': {
@@ -96,9 +137,6 @@ export function useOrderList(
             return result
           }
           case 'edit': {
-            if (!createdAt) {
-              record.createdAt = dayjs().valueOf()
-            }
             const result = await API.orders.set(
               record.id,
               record as RestaDB.NewOrderRecord,
@@ -154,13 +192,19 @@ export function useOrderList(
               : `${errMsgMap[action]} - 訂單編號[${record.number}]`,
           errorMsg: err?.message,
         })
+      } finally {
+        setTimeout(() => {
+          ++anchorKeyToUpdate.current
+        }, 5)
       }
       return null
     },
     [API, modal, openNotification],
   )
-  if (records.length) {
-    const theDate = dayjs(startTime)
+
+  const recordLength = records?.length
+  if (recordLength || searchText.length) {
+    const theDate = dayjs.tz(startTime)
     const dateTodayString = theDate.format('YYYY-MM-DD')
     periods = workShift.map(({ title, startTime, key }) => {
       const [hours, minutes] = startTime.split(':')
@@ -171,10 +215,15 @@ export function useOrderList(
         elements: [],
       }
     })
-    records.forEach(record => {
+    const searchResultNotFound = recordLength === 0 && searchText.length
+    records?.forEach(record => {
       const { data, total, createdAt, number } = record
       totalCount += total
-      soldItemsCount += data.filter(({ res }) => !!res).length
+      data.forEach(({ res, amount }) => {
+        if (res) {
+          soldItemsCount += getCorrectAmount(amount)
+        }
+      })
       const element = (
         <Order
           key={createdAt}
@@ -198,32 +247,78 @@ export function useOrderList(
       }
     })
     orderListElement = (
-      <Flex gap={8}>
+      <Flex css={styles.orderListCss} ref={contentRef} gap={8}>
         <div css={styles.listCss}>
-          {periods.map(({ elements, id }) => {
-            return (
-              <div key={id} id={id}>
-                {elements}
+          <Select
+            placeholder="找什麼呢?"
+            mode="tags"
+            style={{ width: '100%' }}
+            allowClear
+            onChange={onSearch}
+            onKeyUp={event => {
+              event.preventDefault()
+              event.stopPropagation()
+            }}
+            options={MEMO_OPTIONS}
+          />
+          {searchResultNotFound ? (
+            <Empty description="查無你要的資料" />
+          ) : (
+            <>
+              <div>
+                {periods.map(({ elements, id }) => {
+                  return (
+                    <div key={id} id={id}>
+                      {elements}
+                    </div>
+                  )
+                })}
               </div>
-            )
-          })}
+            </>
+          )}
         </div>
-        <Anchor
-          css={styles.anchorCss}
-          getContainer={getAnchorContainer}
-          bounds={20}
-          items={periods.map(({ id, title }) => ({
-            key: id,
-            href: `#${id}`,
-            title,
-          }))}
-        />
+        {!searchResultNotFound && (
+          <Anchor
+            css={styles.anchorCss}
+            key={anchorKeyToUpdate.current}
+            getContainer={getAnchorContainer}
+            // offset + searchbox height + searchbox margin-bottom
+            bounds={20 + 32 + 16}
+            getCurrentAnchor={activeLink => {
+              // if afternoon is empty
+              if (periods?.[0]?.elements?.length) {
+                return activeLink
+              }
+              return `#${periods.at(-1)?.id}`
+            }}
+            items={periods.map(({ id, title }) => ({
+              key: id,
+              href: `#${id}`,
+              title,
+            }))}
+          />
+        )}
       </Flex>
     )
+  } else if (recordLength === 0) {
+    orderListElement = (
+      <Empty
+        description={
+          <>
+            <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
+            <p>加油好嗎</p>
+          </>
+        }
+      />
+    )
+  } else {
+    // loading
+    orderListElement = <Skeleton active />
   }
+  totalCount = Math.round(totalCount)
   const summaryElement = (
     <Flex css={styles.symmaryCss} justify="space-between">
-      <Statistic title="訂單數量" value={records.length} />
+      <Statistic title="訂單數量" value={recordLength ?? 0} />
       <Statistic title="銷售商品數量" value={soldItemsCount} />
       <Statistic title="營業額" prefix="$" value={totalCount} />
     </Flex>
@@ -232,6 +327,7 @@ export function useOrderList(
   console.log('records', records)
 
   return {
+    recordLength,
     totalCount,
     lastRecordNumber: records?.at?.(0)?.number || 0,
     soldItemsCount,
@@ -243,6 +339,7 @@ export function useOrderList(
       </>
     ),
     summaryElement,
+    contentRef,
     callOrderAPI,
   }
 }

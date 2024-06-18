@@ -203,6 +203,12 @@ export const drawerCss = css`
   .ant-drawer-header-title {
     flex-direction: row-reverse;
   }
+
+  .ant-drawer-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 `
 
 export const memoCss = css`

@@ -1,4 +1,5 @@
 import React, {
+  memo,
   useCallback,
   useEffect,
   useMemo,
@@ -27,7 +28,7 @@ import * as styles from './styles'
 
 const emptyFn = () => {}
 
-export const Order: React.FC<Resta.Order.Props> = props => {
+export const Order: React.FC<Resta.Order.Props> = memo(props => {
   const {
     record,
     number,
@@ -40,7 +41,9 @@ export const Order: React.FC<Resta.Order.Props> = props => {
   const [isEditing, setEditState] = useState(false)
   const { appEvent, isTablet } = useContext(AppContext)
   const ref = useRef<HTMLDivElement>()
-  const { data, total, memo, createdAt } = record
+  const { data, total, memo, createdAt, updatedAt } = record
+  const createdDate = dayjs.tz(createdAt)
+  const updatedDate = updatedAt && dayjs.tz(updatedAt)
   const bgColor = useMemo(() => {
     let bgColor = ''
     if (Array.isArray(memo)) {
@@ -58,7 +61,6 @@ export const Order: React.FC<Resta.Order.Props> = props => {
   const toggleActionUI = useCallback(() => {
     setShowAction(toShow => !toShow)
   }, [])
-
   const onSwipe = useCallback(
     (event: IObject) => {
       if (editable) {
@@ -72,7 +74,6 @@ export const Order: React.FC<Resta.Order.Props> = props => {
     },
     [editable],
   )
-
   const onClickAction = useCallback(
     (action: Resta.Order.ActionType) => {
       action === 'edit' && setEditState(true)
@@ -80,7 +81,6 @@ export const Order: React.FC<Resta.Order.Props> = props => {
     },
     [record, onAction, callOrderAPI],
   )
-
   const cancelEdit = useCallback(() => {
     onCancelEdit?.()
     setEditState(false)
@@ -90,8 +90,9 @@ export const Order: React.FC<Resta.Order.Props> = props => {
     const container = ref.current
     const listener = SwipeListener(container)
     container.addEventListener('swipe', onSwipe)
-    const eventOff = appEvent.on(appEvent.ORDER_CANCEL_EDIT, () => {
+    const eventOff = appEvent.on(appEvent.ORDER_AFTER_ACTION, () => {
       setEditState(false)
+      setShowAction(false)
     })
     return () => {
       container.removeEventListener('swipe', onSwipe)
@@ -154,9 +155,15 @@ export const Order: React.FC<Resta.Order.Props> = props => {
                 <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
               )}
               <Space css={styles.dateCss}>
-                {dayjs(createdAt).format(DATE_FORMAT_TIME)}
-                <span>({dayjs(createdAt).fromNow()})</span>
+                {createdDate.format(DATE_FORMAT_TIME)}
+                <span>({createdDate.fromNow()})</span>
               </Space>
+              {updatedDate && (
+                <Space css={[styles.dateCss, styles.dateUpdatedCss]}>
+                  更新於: {updatedDate.format(DATE_FORMAT_TIME)}
+                  <span>({updatedDate.fromNow()})</span>
+                </Space>
+              )}
             </div>
           </div>
         </div>
@@ -185,6 +192,6 @@ export const Order: React.FC<Resta.Order.Props> = props => {
       </Flex>
     </div>
   )
-}
+})
 
 export default Order
