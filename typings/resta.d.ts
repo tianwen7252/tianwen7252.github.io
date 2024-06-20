@@ -50,12 +50,23 @@ declare namespace Resta {
   }
 
   namespace OrderList {
+    type PeriodMap = {
+      [date: string]: {
+        periods: Period[]
+        soldCount: number
+        total: number
+        datetime: number
+      }
+    }
+
     type Period = {
       title: string
       id: string
       createdAt: number
       elements: JSX.Element[]
-    }[]
+      date: string
+      color: string
+    }
 
     type HandleRecords = (
       records: RestaDB.Table.Order[],

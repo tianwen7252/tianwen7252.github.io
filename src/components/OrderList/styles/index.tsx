@@ -5,13 +5,14 @@ import { getCalcWidth, getCalcHeight } from 'src/styles/variables'
 export const mainCss = css`
   position: relative;
   padding: 20px;
-  width: ${getCalcWidth(40)};
+  /* width: ${getCalcWidth(40)}; */
   min-height: ${getCalcHeight(40)};
 `
 
 export const orderListCss = css`
   overflow-x: hidden;
   overflow-y: auto;
+  width: 100%;
 
   .ant-select,
   .ant-input-affix-wrapper {
@@ -27,6 +28,12 @@ export const contentCss = css`
   /* justify-content: center; */
 `
 
+export const panelCss = css`
+  border-radius: 20px;
+  padding: 20px;
+  margin: 20px 0;
+`
+
 export const emptyCss = css`
   width: 100%;
   justify-content: center;
@@ -40,6 +47,7 @@ export const listCss = css`
 
 export const verticalListCss = css`
   margin-right: 0px;
+  width: 100%;
 `
 
 export const anchorCss = css`

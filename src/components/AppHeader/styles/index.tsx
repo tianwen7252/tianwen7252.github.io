@@ -10,6 +10,19 @@ export const headerCss = css`
   );
   padding: 0 20px;
   height: ${HEADER_HEIGHT};
+  position: sticky;
+  top: 0;
+  z-index: 870;
+
+  &.resta-header--active {
+    box-shadow:
+      0 0 #000,
+      0 0 #0000,
+      0 0 #000,
+      0 0 #0000,
+      0 16px 32px -16px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(0, 0, 0, 0.1);
+  }
 `
 export const logoCss = css`
   margin-right: 10px;

@@ -1,4 +1,4 @@
-import React, { memo } from 'react'
+import React, { memo, useEffect, useRef } from 'react'
 import { Menu, Layout, Flex } from 'antd'
 import { useLocation, Link } from 'react-router-dom'
 import {
@@ -31,9 +31,27 @@ const MENU_ITEMS = [
 
 export const AppHeader: React.FC<{}> = memo(() => {
   const { pathname = '/' } = useLocation()
+  const observerRef = useRef<HTMLDivElement>()
+  const headerRef = useRef<HTMLDivElement>()
+
+  // set app header shadow by IntersectionObserver
+  useEffect(() => {
+    const observerDom = observerRef.current
+    const observer = new IntersectionObserver(([entry]) => {
+      headerRef.current.classList.toggle(
+        'resta-header--active',
+        !entry.isIntersecting,
+      )
+    })
+    observer.observe(observerDom)
+    return () => {
+      observer.unobserve(observerDom)
+    }
+  }, [])
   return (
     <>
-      <Header css={headerCss}>
+      <div id="resta-header-observer" ref={observerRef}></div>
+      <Header ref={headerRef} css={headerCss}>
         <Flex>
           <img css={logoCss} src={viteLogo} />
           <label>天文</label>

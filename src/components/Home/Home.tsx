@@ -9,9 +9,9 @@ export const Home: React.FC<{}> = () => {
   return (
     <>
       <AppHeader />
-      <div css={styles.pageCss}>
+      <main css={styles.mainCss}>
         <Outlet />
-      </div>
+      </main>
     </>
   )
 }

@@ -35,12 +35,43 @@ const errMsgMap = {
   delete: '刪除訂單失敗',
 }
 
+function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
+  const theDate = dayjs.tz(createAt)
+  const dateString = theDate.format('YYYY-MM-DD')
+  periodMap[dateString] = periodMap[dateString] ?? {
+    periods: workShift.map(
+      ({ title, startTime: workStartTime, key, color }) => {
+        const [hours, minutes] = workStartTime.split(':')
+        return {
+          title,
+          id: `resta-anchor-${dateString}-${key}`,
+          createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
+          elements: [],
+          date: dateString,
+          color,
+        }
+      },
+    ),
+    total: 0,
+    soldCount: 0,
+    datetime: createAt, // usinng the first one is enough
+  }
+  return periodMap[dateString].periods
+}
+
+function getPeriodsOrder(periodMap: Resta.OrderList.PeriodMap) {
+  return Object.keys(periodMap).sort((a, b) => {
+    return b.localeCompare(a)
+  })
+}
+
 export function useOrderList({
   datetime,
   searchData,
   searchUI = true,
   reverse = true,
   vertical = false,
+  keyboardMode = false,
   emptyDescription,
   handleRecords,
   search,
@@ -52,6 +83,7 @@ export function useOrderList({
   searchUI?: boolean
   reverse?: boolean
   vertical?: boolean
+  keyboardMode?: boolean
   emptyDescription?: React.ReactNode
   handleRecords?: Resta.OrderList.HandleRecords
   search?: Resta.API.Orders.SearchCallback
@@ -63,7 +95,7 @@ export function useOrderList({
   let orderListElement: JSX.Element = null
   datetime = datetime ?? 'today'
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  let periods: Resta.OrderList.Period = [] // needs always update-to-date
+  const periodMap = {} as Resta.OrderList.PeriodMap // needs always update-to-date
   const { API } = useContext(AppContext)
   const [noti, contextHolder] = notification.useNotification()
   const [modal, modelContextHolder] = Modal.useModal()
@@ -81,7 +113,7 @@ export function useOrderList({
     }, 500),
     [],
   )
-
+  // get db dtata
   const records = useLiveQuery(async () => {
     const list = await API.orders.get({
       startTime,
@@ -209,20 +241,10 @@ export function useOrderList({
 
   const recordLength = records?.length
   if (recordLength || searchText.length) {
-    const theDate = dayjs.tz(startTime)
-    const dateTodayString = theDate.format('YYYY-MM-DD')
-    periods = workShift.map(({ title, startTime, key }) => {
-      const [hours, minutes] = startTime.split(':')
-      return {
-        title,
-        id: `resta-anchor-${dateTodayString}-${key}`,
-        createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
-        elements: [],
-      }
-    })
     const searchResultNotFound = recordLength === 0 && searchText.length
     records?.forEach(record => {
       const { data, total, createdAt, number } = record
+      const periods = setPeriodMap(periodMap, createdAt)
       totalCount += total
       data.forEach(({ res, amount }) => {
         if (res) {
@@ -251,6 +273,41 @@ export function useOrderList({
         periods.at(-1).elements.push(element)
       }
     })
+    const periodsOrder = getPeriodsOrder(periodMap)
+    const periodElements = periodsOrder.map(date => {
+      const { periods } = periodMap[date]
+      const orderElements = periods.map(({ elements, id, color }) => {
+        const style = keyboardMode
+          ? null
+          : {
+              backgroundColor: color,
+            }
+        return (
+          <Flex
+            css={styles.panelCss}
+            key={id}
+            id={id}
+            vertical={vertical}
+            gap={10}
+            wrap
+            style={style}
+          >
+            {elements}
+          </Flex>
+        )
+      })
+      if (keyboardMode) {
+        return orderElements
+      }
+
+      return (
+        <div key={date}>
+          <h1>{date}</h1>
+          {orderElements}
+        </div>
+      )
+    })
+
     orderListElement = (
       <Flex css={styles.orderListCss} ref={contentRef} gap={8}>
         <div css={[styles.listCss, !vertical && styles.verticalListCss]}>
@@ -269,22 +326,14 @@ export function useOrderList({
             />
           )}
           {searchResultNotFound ? (
-            <Empty description="查無你要的資料" />
+            <Empty description="查無資料" />
           ) : (
             <>
-              <div className="resta-orders-content">
-                {periods.map(({ elements, id }) => {
-                  return (
-                    <Flex key={id} id={id} vertical={vertical} gap={10} wrap>
-                      {elements}
-                    </Flex>
-                  )
-                })}
-              </div>
+              <div className="resta-orders-content">{periodElements}</div>
             </>
           )}
         </div>
-        {!searchResultNotFound && (
+        {/* {!searchResultNotFound && (
           <Anchor
             css={styles.anchorCss}
             key={anchorKeyToUpdate.current}
@@ -304,21 +353,13 @@ export function useOrderList({
               title,
             }))}
           />
-        )}
+        )} */}
       </Flex>
     )
   } else if (recordLength === 0) {
     orderListElement = (
       <Flex css={styles.emptyCss}>
-        <Empty
-          description={
-            emptyDescription || (
-              <>
-                <p>查無資料</p>
-              </>
-            )
-          }
-        />
+        <Empty description={emptyDescription || '查無資料'} />
       </Flex>
     )
   } else {
