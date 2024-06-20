@@ -70,8 +70,8 @@ export function useOrderList({
   searchData,
   searchUI = true,
   reverse = true,
-  vertical = false,
   keyboardMode = false,
+  vertical = keyboardMode,
   emptyDescription,
   handleRecords,
   search,
@@ -276,7 +276,7 @@ export function useOrderList({
     const periodsOrder = getPeriodsOrder(periodMap)
     const periodElements = periodsOrder.map(date => {
       const { periods } = periodMap[date]
-      const orderElements = periods.map(({ elements, id, color }) => {
+      const orderElements = periods.map(({ elements, id, color, title }) => {
         const style = keyboardMode
           ? null
           : {
@@ -284,9 +284,10 @@ export function useOrderList({
             }
         return (
           <Flex
-            css={styles.panelCss}
+            css={!keyboardMode && styles.panelCss}
             key={id}
             id={id}
+            data-title={title}
             vertical={vertical}
             gap={10}
             wrap
@@ -301,10 +302,10 @@ export function useOrderList({
       }
 
       return (
-        <div key={date}>
+        <section key={date}>
           <h1>{date}</h1>
-          {orderElements}
-        </div>
+          {orderElements.reverse()}
+        </section>
       )
     })
 

@@ -1,4 +1,4 @@
-import React, { memo, useEffect, useRef } from 'react'
+import React, { memo, useCallback, useEffect, useRef } from 'react'
 import { Menu, Layout, Flex } from 'antd'
 import { useLocation, Link } from 'react-router-dom'
 import {
@@ -9,6 +9,7 @@ import {
   SettingOutlined,
 } from '@ant-design/icons'
 
+import { useObserverDom } from 'src/hooks'
 import viteLogo from '/vite.svg'
 import { headerCss, menuCss, logoCss } from './styles'
 
@@ -35,19 +36,10 @@ export const AppHeader: React.FC<{}> = memo(() => {
   const headerRef = useRef<HTMLDivElement>()
 
   // set app header shadow by IntersectionObserver
-  useEffect(() => {
-    const observerDom = observerRef.current
-    const observer = new IntersectionObserver(([entry]) => {
-      headerRef.current.classList.toggle(
-        'resta-header--active',
-        !entry.isIntersecting,
-      )
-    })
-    observer.observe(observerDom)
-    return () => {
-      observer.unobserve(observerDom)
-    }
+  const onObserve = useCallback((isIntersecting: boolean) => {
+    headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
   }, [])
+  useObserverDom(observerRef, onObserve)
   return (
     <>
       <div id="resta-header-observer" ref={observerRef}></div>

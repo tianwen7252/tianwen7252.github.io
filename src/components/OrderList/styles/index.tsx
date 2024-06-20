@@ -32,6 +32,19 @@ export const panelCss = css`
   border-radius: 20px;
   padding: 20px;
   margin: 20px 0;
+  position: relative;
+
+  &::after {
+    content: attr(data-title);
+    position: absolute;
+    top: 0;
+    right: 0;
+    font-size: 1rem;
+    padding: 1rem;
+    background: #ffffff70;
+    border-radius: 0 20px 0 20px;
+    color: #666;
+  }
 `
 
 export const emptyCss = css`
@@ -43,6 +56,10 @@ export const listCss = css`
   position: relative;
   margin-right: 60px;
   min-width: 286px;
+
+  h1 {
+    font-size: 2.2rem;
+  }
 `
 
 export const verticalListCss = css`
