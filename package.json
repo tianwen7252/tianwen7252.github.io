@@ -20,6 +20,7 @@
     "@ant-design/icons": "^5.3.7",
     "@emotion/css": "^11.11.2",
     "@emotion/react": "^11.11.4",
+    "@types/lodash": "^4.17.5",
     "@vitejs/plugin-react-swc": "^3.5.0",
     "antd": "^5.18.1",
     "dayjs": "^1.11.11",

@@ -105,7 +105,7 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
     <div css={[styles.orderCss, showAction && styles.onEditCss]} ref={ref}>
       <Flex css={styles.frameCss}>
         <div css={[styles.mainCss, styles.BG_COLOR_MAP[bgColor]]}>
-          <div css={styles.cardCss}>
+          <Flex css={styles.cardCss} vertical>
             <Flex css={styles.headerCss}>
               <div css={styles.numberCss}>{number}</div>
               {!isTablet && (
@@ -151,6 +151,8 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
                 </>
               )}
               <Divider />
+            </div>
+            <div css={styles.footerCss}>
               {total && (
                 <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
               )}
@@ -165,7 +167,7 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
                 </Space>
               )}
             </div>
-          </div>
+          </Flex>
         </div>
         {editable && (
           <Flex css={styles.actionCss}>

@@ -1,4 +1,4 @@
-import React, { lazy, Suspense } from 'react'
+import React, { lazy, memo, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 import Home from '../Home'
@@ -14,7 +14,7 @@ const lazyLoad = (
   return <Suspense>{<Component />}</Suspense>
 }
 
-export const Root: React.FC<{}> = () => {
+export const Root: React.FC<{}> = memo(() => {
   const keyboardElement = <Keyboard />
   return (
     <Routes>
@@ -35,6 +35,6 @@ export const Root: React.FC<{}> = () => {
       </Route>
     </Routes>
   )
-}
+})
 
 export default Root

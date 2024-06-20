@@ -53,8 +53,27 @@ export const rootCss = css`
     font-size: 0.8rem;
   }
 
-  .ant-btn-primary {
-    text-shadow: 0 0 5px #beb7b7;
+  .ant-btn {
+    &.ant-btn-primary {
+      text-shadow: 0 0 5px #beb7b7;
+    }
+
+    &.ant-btn-default {
+    }
+
+    &.ant-btn-text {
+      padding: 1.1rem;
+      border-radius: 9999px;
+
+      &:not(:disabled):not(.ant-btn-disabled) {
+        color: #404756;
+        &:active,
+        &:focus {
+          color: #0a7ea4;
+          background: #e6f7ff;
+        }
+      }
+    }
   }
 
   .ant-switch {
@@ -78,6 +97,24 @@ export const rootCss = css`
         -6px 0 16px 0 transparent,
         -3px 0 6px -4px transparent,
         -9px 0 28px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .ant-drawer-mask {
+      background: #ffffff50;
+    }
+
+    .ant-drawer-body {
+      padding: 1rem;
+    }
+
+    .ant-drawer-header-title {
+      flex-direction: row-reverse;
+    }
+
+    .ant-drawer-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   }
 
@@ -165,7 +202,7 @@ export const primaryBtnBg = `linear-gradient(to right, #2bc0e4 0%, #eaecc6 51%, 
     border-radius: 10px;
   `
 
-export const primaryBtnStyles = {
+export const btnStyles = {
   primaryColor: '#fff',
   colorPrimary: primaryBtnBg,
   colorPrimaryHover: `'?';
@@ -176,4 +213,16 @@ export const primaryBtnStyles = {
     background-position: center;
     box-shadow: 0 0 20px #eee;
   `,
+  // defaultBg: '#23272f0d',
+  // defaultColor: '#404756',
+  // defaultActiveColor: '#087ea4',
+  // defaultHoverColor: '#087ea4',
+  // defaultHoverBg: '#23272f0d',
+  // defaultActiveBg: '#e6f7ff',
+  // defaultBorderColor: 'transparent',
+  textHoverBg: '#23272f0d',
+}
+
+export const antStyles = {
+  Button: btnStyles,
 }

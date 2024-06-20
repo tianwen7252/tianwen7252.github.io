@@ -23,3 +23,11 @@ export const KEYBOARD_TEXT_MEALS_HEIGHT = '190px'
 export function getTransition(target = 'all', second = 1) {
   return `${target} ${second}s cubic-bezier(0.075, 0.82, 0.165, 1)`
 }
+
+export function getCalcWidth(offset = 0) {
+  return `calc(100vw - ${offset}px);`
+}
+
+export function getCalcHeight(offset = 0) {
+  return `calc(100vh - ${HEADER_HEIGHT} - ${offset}px);`
+}

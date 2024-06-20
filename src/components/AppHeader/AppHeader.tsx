@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { Menu, Layout, Flex } from 'antd'
-import { Link } from 'react-router-dom'
+import { useLocation, Link } from 'react-router-dom'
 import {
   FormOutlined,
   OrderedListOutlined,
@@ -15,21 +15,22 @@ import { headerCss, menuCss, logoCss } from './styles'
 const { Header } = Layout
 const MENU_ITEMS = [
   {
-    key: 'order',
+    key: '/',
     label: <Link to="/">點餐</Link>,
     icon: <FormOutlined />,
   },
   {
-    key: 'list',
+    key: '/order-list',
     label: <Link to="/order-list">訂單</Link>,
     icon: <OrderedListOutlined />,
   },
-  { key: 'statistics', label: '統計', icon: <BarChartOutlined /> },
-  { key: 'staff', label: '員工', icon: <UserSwitchOutlined /> },
-  { key: 'system', label: '系統', icon: <SettingOutlined /> },
+  { key: '/statistics', label: '統計', icon: <BarChartOutlined /> },
+  { key: '/staff', label: '員工', icon: <UserSwitchOutlined /> },
+  { key: '/system', label: '系統', icon: <SettingOutlined /> },
 ]
 
-export const AppHeader: React.FC<{}> = () => {
+export const AppHeader: React.FC<{}> = memo(() => {
+  const { pathname = '/' } = useLocation()
   return (
     <>
       <Header css={headerCss}>
@@ -39,13 +40,13 @@ export const AppHeader: React.FC<{}> = () => {
           <Menu
             css={menuCss}
             mode="horizontal"
-            defaultSelectedKeys={['order']}
+            selectedKeys={[pathname]}
             items={MENU_ITEMS}
           />
         </Flex>
       </Header>
     </>
   )
-}
+})
 
 export default AppHeader

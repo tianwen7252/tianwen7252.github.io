@@ -3,13 +3,15 @@ import React from 'react'
 import AppHeader from '../AppHeader'
 import { Outlet } from 'react-router-dom'
 
-import './styles'
+import * as styles from './styles'
 
-export const Home: React.FC<{}> = props => {
+export const Home: React.FC<{}> = () => {
   return (
     <>
       <AppHeader />
-      <Outlet />
+      <div css={styles.pageCss}>
+        <Outlet />
+      </div>
     </>
   )
 }

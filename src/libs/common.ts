@@ -1,15 +1,22 @@
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 
 export const DATE_FORMAT = 'YYYY/MM/DD dddd'
+export const DATE_FORMAT_DATE = 'YYYY/MM/DD'
 export const DATE_FORMAT_TIME = 'YYYY/MM/DD HH:m:s A'
+export const DATE_FORMAT_DATETIME_UI = 'YYYY/MM/DD HH:mm'
 
 export function toCurrency(amount: number) {
-  return amount.toLocaleString('zh-TW', {
+  return (+amount).toLocaleString('zh-TW', {
     style: 'currency',
     currency: 'TWD',
     maximumFractionDigits: 0,
     minimumFractionDigits: 0,
   })
+}
+
+// without $
+export function toCurrencyNumber(amount: number) {
+  return toCurrency(amount).substring(1)
 }
 
 const userAgent = navigator.userAgent.toLowerCase()

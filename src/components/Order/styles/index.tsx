@@ -6,17 +6,20 @@ import { COLORS } from 'src/constants/defaults/memos'
 const actionUIWidth = 42 * 2 - 1 // - 1 border
 const editBgColor = 'linear-gradient(to top, #dbd5a7, #b0dab9)'
 const deleteBgColor = 'linear-gradient(to bottom, #fb578e, #f7bb97)'
+const cardWidth = '284px'
 
 export const orderCss = css`
   font-size: 1rem;
-  margin-bottom: 10px;
   position: relative;
   overflow: hidden;
   border-radius: 4px;
   border: 1px solid #555;
+  width: ${cardWidth};
+  min-width: ${cardWidth};
 `
 
 export const frameCss = css`
+  height: 100%;
   &,
   .anticon {
     transition: transform 1s cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -26,7 +29,7 @@ export const frameCss = css`
 
 export const mainCss = css`
   background: #fff;
-  min-width: 284px;
+  min-width: ${cardWidth};
   label: __order-main; // @emotion only
 
   .ant-tag {
@@ -89,6 +92,7 @@ export const actionMoreBtnCss = css`
 `
 
 export const cardCss = css`
+  height: 100%;
   &:hover {
     .css-${actionBtnCss.name}, [class$='__order-action-btn'] {
       visibility: visible;
@@ -98,6 +102,12 @@ export const cardCss = css`
 
 export const contentCss = css`
   padding: 10px;
+  flex: 1;
+`
+
+export const footerCss = css`
+  padding: 10px;
+  align-self: flex-end;
 `
 
 export const operatorCss = css`

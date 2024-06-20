@@ -1,5 +1,14 @@
 import { css } from '@emotion/react'
 
+import { getCalcWidth, getCalcHeight } from 'src/styles/variables'
+
+export const mainCss = css`
+  position: relative;
+  padding: 20px;
+  width: ${getCalcWidth(40)};
+  min-height: ${getCalcHeight(40)};
+`
+
 export const orderListCss = css`
   overflow-x: hidden;
   overflow-y: auto;
@@ -10,10 +19,27 @@ export const orderListCss = css`
   }
 `
 
+export const drawerCss = css`
+  position: relative;
+`
+
+export const contentCss = css`
+  /* justify-content: center; */
+`
+
+export const emptyCss = css`
+  width: 100%;
+  justify-content: center;
+`
+
 export const listCss = css`
   position: relative;
   margin-right: 60px;
   min-width: 286px;
+`
+
+export const verticalListCss = css`
+  margin-right: 0px;
 `
 
 export const anchorCss = css`
@@ -24,4 +50,13 @@ export const anchorCss = css`
 
 export const symmaryCss = css`
   text-align: center;
+`
+
+export const searchBtnCss = css`
+  font-size: 1.2rem;
+  padding: 1.2rem;
+`
+
+export const drawerAcitve = css`
+  filter: blur(0.3rem);
 `

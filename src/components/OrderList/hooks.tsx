@@ -18,7 +18,7 @@ import {
 } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
-import { debounce, trim } from 'lodash'
+import { debounce } from 'lodash'
 
 import { AppContext } from 'src/components/App/context'
 import { Order } from 'src/components/Order'
@@ -35,14 +35,33 @@ const errMsgMap = {
   delete: '刪除訂單失敗',
 }
 
-export function useOrderList(
-  datetime: [number, number] | 'today',
-  onAction?: Resta.Order.Props['onAction'],
-  onCancelEdit?: Resta.Order.Props['onCancelEdit'],
-) {
+export function useOrderList({
+  datetime,
+  searchData,
+  searchUI = true,
+  reverse = true,
+  vertical = false,
+  emptyDescription,
+  handleRecords,
+  search,
+  onAction,
+  onCancelEdit,
+}: {
+  datetime: number[] | 'today'
+  searchData?: string[]
+  searchUI?: boolean
+  reverse?: boolean
+  vertical?: boolean
+  emptyDescription?: React.ReactNode
+  handleRecords?: Resta.OrderList.HandleRecords
+  search?: Resta.API.Orders.SearchCallback
+  onAction?: Resta.Order.Props['onAction']
+  onCancelEdit?: Resta.Order.Props['onCancelEdit']
+}) {
   let totalCount = 0
   let soldItemsCount = 0
   let orderListElement: JSX.Element = null
+  datetime = datetime ?? 'today'
   // eslint-disable-next-line react-hooks/exhaustive-deps
   let periods: Resta.OrderList.Period = [] // needs always update-to-date
   const { API } = useContext(AppContext)
@@ -63,30 +82,16 @@ export function useOrderList(
     [],
   )
 
-  const records = useLiveQuery(() => {
-    return API.orders.get({
+  const records = useLiveQuery(async () => {
+    const list = await API.orders.get({
       startTime,
       endTime,
-      search: collection => {
-        if (searchText.length) {
-          return collection.filter(({ data, total, memo }) =>
-            searchText.some(text => {
-              text = trim(text)
-              return (
-                total === +text ||
-                memo.some(tag => tag.includes(text)) ||
-                data.some(item => {
-                  const { res, value } = item
-                  return res?.includes(text) || value === text
-                })
-              )
-            }),
-          )
-        }
-        return collection
-      },
+      reverse,
+      searchText: searchData ?? searchText,
+      search,
     })
-  }, [datetime, searchText])
+    return handleRecords?.(list) ?? list
+  }, [startTime, endTime, searchData, searchText, handleRecords, search])
   const anchorKeyToUpdate = useRef(1)
   const getAnchorContainer = useCallback(() => {
     return contentRef.current?.parentElement
@@ -248,29 +253,31 @@ export function useOrderList(
     })
     orderListElement = (
       <Flex css={styles.orderListCss} ref={contentRef} gap={8}>
-        <div css={styles.listCss}>
-          <Select
-            placeholder="找什麼呢?"
-            mode="tags"
-            style={{ width: '100%' }}
-            allowClear
-            onChange={onSearch}
-            onKeyUp={event => {
-              event.preventDefault()
-              event.stopPropagation()
-            }}
-            options={MEMO_OPTIONS}
-          />
+        <div css={[styles.listCss, !vertical && styles.verticalListCss]}>
+          {searchUI && (
+            <Select
+              placeholder="找什麼呢?"
+              mode="tags"
+              style={{ width: '100%' }}
+              allowClear
+              onChange={onSearch}
+              onKeyUp={event => {
+                event.preventDefault()
+                event.stopPropagation()
+              }}
+              options={MEMO_OPTIONS}
+            />
+          )}
           {searchResultNotFound ? (
             <Empty description="查無你要的資料" />
           ) : (
             <>
-              <div>
+              <div className="resta-orders-content">
                 {periods.map(({ elements, id }) => {
                   return (
-                    <div key={id} id={id}>
+                    <Flex key={id} id={id} vertical={vertical} gap={10} wrap>
                       {elements}
-                    </div>
+                    </Flex>
                   )
                 })}
               </div>
@@ -302,14 +309,17 @@ export function useOrderList(
     )
   } else if (recordLength === 0) {
     orderListElement = (
-      <Empty
-        description={
-          <>
-            <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
-            <p>加油好嗎</p>
-          </>
-        }
-      />
+      <Flex css={styles.emptyCss}>
+        <Empty
+          description={
+            emptyDescription || (
+              <>
+                <p>查無資料</p>
+              </>
+            )
+          }
+        />
+      </Flex>
     )
   } else {
     // loading

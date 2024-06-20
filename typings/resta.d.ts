@@ -1,6 +1,7 @@
 /// <reference types="react" />
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-svgr/client" />
+import type { Collection } from 'dexie'
 
 export = Resta
 export as namespace Resta
@@ -55,6 +56,10 @@ declare namespace Resta {
       createdAt: number
       elements: JSX.Element[]
     }[]
+
+    type HandleRecords = (
+      records: RestaDB.Table.Order[],
+    ) => RestaDB.Table.Order[]
   }
 
   namespace Commodity {
@@ -84,6 +89,14 @@ declare namespace Resta {
   type OrderRecord = RestaDB.OrderRecord
   type OrderList = Order[]
   type OrderRecords = OrderList
+
+  namespace API {
+    namespace Orders {
+      type SearchCallback = (
+        collection: Collection<RestaDB.Table.Order>,
+      ) => Collection<RestaDB.Table.Order>
+    }
+  }
 }
 
 declare global {

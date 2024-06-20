@@ -4,7 +4,7 @@ import { Global } from '@emotion/react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
 import 'src/libs/date'
-import { rootCss, primaryBtnStyles } from 'src/styles/global'
+import { rootCss, antStyles } from 'src/styles/global'
 import Root from '../Root'
 
 import { AppContext, DefaultContextData } from './context'
@@ -26,9 +26,7 @@ export const App: React.FC<{}> = () => {
       <Global styles={[rootCss]} />
       <ConfigProvider
         theme={{
-          components: {
-            Button: primaryBtnStyles,
-          },
+          components: antStyles,
         }}
       >
         <RouterProvider router={router} />

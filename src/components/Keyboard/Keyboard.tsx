@@ -166,7 +166,18 @@ export const Keyboard: React.FC<{
     lastRecordNumber,
     contentRef,
     callOrderAPI,
-  } = useOrderList('today', onAction, reset)
+  } = useOrderList({
+    datetime: 'today',
+    vertical: true,
+    emptyDescription: (
+      <>
+        <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
+        <p>加油好嗎</p>
+      </>
+    ),
+    onAction,
+    onCancelEdit: reset,
+  })
 
   const scrollOrderListToTop = useCallback(() => {
     // scroll the drawer content to top

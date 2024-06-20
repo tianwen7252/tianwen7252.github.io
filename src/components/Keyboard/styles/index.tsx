@@ -3,7 +3,6 @@ import * as cssPlugin from '@emotion/css'
 
 import {
   TABLET,
-  HEADER_HEIGHT,
   KEYBOARD_FONT_SIZE,
   KEYBOARD_FONT_LETTER_SPACINGZE,
   KEYBOARD_TAB_FONT_SIZE,
@@ -13,6 +12,7 @@ import {
   KEYBOARD_TEXT_MEALS_HEIGHT,
   KEYBOARD_TAG_FONT_SIZE,
   getTransition,
+  getCalcHeight,
 } from 'src/styles/variables'
 import { COLORS } from 'src/constants/defaults/memos'
 
@@ -20,14 +20,14 @@ const BTN_GAP = '10px'
 
 export const keyboardCss = css`
   position: relative;
+  overflow: hidden;
 `
 
 export const keyboardLeftCss = css`
   width: min-content;
   /* width: 40vw; */
   min-width: 60vw;
-  /* min-height: calc(100vh - ${HEADER_HEIGHT} - 40px); */
-  min-height: calc(100vh - ${HEADER_HEIGHT} - 22px);
+  min-height: ${getCalcHeight(22)};
   padding: 10px 20px;
   font-size: ${KEYBOARD_FONT_SIZE};
   letter-spacing: ${KEYBOARD_FONT_LETTER_SPACINGZE};
@@ -192,23 +192,6 @@ export const btnDropdownCssName = cssPlugin.css`
 
 export const drawerCss = css`
   position: relative;
-
-  .ant-drawer-content-wrapper {
-  }
-
-  .ant-drawer-body {
-    padding: 1rem;
-  }
-
-  .ant-drawer-header-title {
-    flex-direction: row-reverse;
-  }
-
-  .ant-drawer-title {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
 `
 
 export const memoCss = css`
