@@ -134,17 +134,6 @@ export const OrderList: React.FC<{}> = () => {
             const dayStart = dayjs.tz(createdAt).format(DATE_FORMAT_DATE)
             const group = dateGroup.current[dayStart]
             if (group) {
-              console.log(
-                '2',
-                dateGroup.current,
-                group.total,
-                turnoverSum,
-                group.total < turnoverSum,
-                'ordersum',
-                group.ordersSum,
-                ordersSum,
-                group.ordersSum < ordersSum,
-              )
               if (turnoverSum && group.total < turnoverSum) {
                 return false
               }
@@ -157,19 +146,6 @@ export const OrderList: React.FC<{}> = () => {
         })
     },
     [orderTotal, turnoverSum, ordersSum],
-  )
-  const onAction: Resta.Order.Props['onAction'] = useCallback(
-    (record, action, callOrderAPI) => {
-      switch (action) {
-        case 'edit': {
-          break
-        }
-        case 'delete': {
-          break
-        }
-      }
-    },
-    [],
   )
 
   const {
@@ -187,7 +163,6 @@ export const OrderList: React.FC<{}> = () => {
     searchUI: false,
     reverse: false,
     handleRecords,
-    onAction,
   })
 
   const periodsLength = periodsOrder.length
@@ -323,31 +298,31 @@ export const OrderList: React.FC<{}> = () => {
           </Flex>
         </Flex>
       </Drawer>
-      {anchorElement}
-      <div css={styles.headerCss}>
-        <Space size={60}>
-          <Button
-            css={styles.searchBtnCss}
-            type="text"
-            icon={<FileSearchOutlined />}
-            onClick={openDrawer}
-          >
-            訂單搜尋
-          </Button>
-          {periodsLength && (
-            <h2>
-              {periodsLength === 1
-                ? periodsOrder[0]
-                : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
-            </h2>
-          )}
-        </Space>
-        {summaryElement}
+      <div css={[styles.contentCss, isOpen && styles.drawerAcitve]}>
+        {anchorElement}
+        <div css={styles.headerCss}>
+          <Space size={60}>
+            <Button
+              css={styles.searchBtnCss}
+              type="text"
+              icon={<FileSearchOutlined />}
+              onClick={openDrawer}
+            >
+              訂單搜尋
+            </Button>
+            {!!periodsLength && (
+              <h2>
+                {periodsLength === 1
+                  ? periodsOrder[0]
+                  : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
+              </h2>
+            )}
+          </Space>
+          {summaryElement}
+        </div>
+        <Flex wrap>{orderListElement}</Flex>
       </div>
-      <Flex css={[styles.contentCss, isOpen && styles.drawerAcitve]} wrap>
-        {orderListElement}
-      </Flex>
-      <FloatButton.BackTop />
+      <FloatButton.BackTop visibilityHeight={100} />
     </Flex>
   )
 }

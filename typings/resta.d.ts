@@ -15,8 +15,17 @@ declare namespace Resta {
   type AppEventObject<T extends JsonObject> = Event & {
     detail?: T
   }
-  interface AppEventListener {
-    (evt: AppEventObject): void
+  interface AppEventListener<T = AppEventObject> {
+    (event: T): void
+  }
+  namespace AppEvent {
+    namespace KEYBOARD_ON_ACTION {
+      interface Detail {
+        record: Resta.OrderRecord
+        action: Resta.Order.ActionType
+        callOrderAPI: Order.Props['callOrderAPI']
+      }
+    }
   }
 
   namespace Keyboard {
@@ -27,6 +36,15 @@ declare namespace Resta {
       total: number
     }
     type Mode = 'both' | 'calculator' | 'commondity'
+
+    interface Props {
+      callOrderAPI: Order.Props['callOrderAPI']
+      mode?: Mode // keyboard mode
+      editMode?: boolean
+      record?: Resta.OrderRecord // for edit
+      lastRecordNumber?: number // for add mode
+      submitCallback?: () => void
+    }
   }
 
   namespace Order {
@@ -34,17 +52,11 @@ declare namespace Resta {
       record: Resta.OrderRecord
       number: number
       editable?: boolean
-      onAction?(
-        record: Resta.OrderRecord,
-        action: ActionType,
-        callOrderAPI: Props['callOrderAPI'],
-      ): void
       callOrderAPI?(
         record: RestaDB.OrderRecord | RestaDB.NewOrderRecord,
         action: Resta.Order.ActionType,
         createdAt?: RestaDB.OrderRecord['createdAt'],
       )
-      onCancelEdit?(): void
     }
     type ActionType = 'add' | 'edit' | 'delete'
   }
@@ -54,7 +66,6 @@ declare namespace Resta {
       [date: string]: {
         periods: Period[]
         soldCount: number
-        total: number
         datetime: number
         dateWithWeek: string
         recordCount: number
@@ -67,6 +78,7 @@ declare namespace Resta {
       createdAt: number
       elements: JSX.Element[]
       color: string
+      total: number
     }
 
     type HandleRecords = (

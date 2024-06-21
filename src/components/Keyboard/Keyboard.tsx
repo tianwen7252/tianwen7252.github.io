@@ -1,9 +1,11 @@
 import React, {
+  memo,
   useCallback,
   useMemo,
   useContext,
   useState,
   useRef,
+  useEffect,
 } from 'react'
 import {
   Flex,
@@ -12,7 +14,6 @@ import {
   Dropdown,
   Space,
   Tag,
-  Drawer,
   Segmented,
   Divider,
 } from 'antd'
@@ -26,9 +27,7 @@ import {
   AppstoreAddOutlined,
   AppstoreOutlined,
 } from '@ant-design/icons'
-import dayjs from 'dayjs'
 
-import { useOrderList } from 'src/components/OrderList/hooks'
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
@@ -45,18 +44,23 @@ const ICON_MAP = {
   CloseOutlined: <CloseOutlined />,
 }
 
-export const Keyboard: React.FC<{
-  mode?: Resta.Keyboard.Mode
-}> = props => {
-  const { appEvent, isTablet, DATE_FORMAT } = useContext(AppContext)
+export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
+  const { appEvent, isTablet } = useContext(AppContext)
   const { data, total, priceMap, input, updateItemRes, update, clear } =
     useNumberInput()
+  const {
+    editMode = false,
+    record,
+    lastRecordNumber,
+    callOrderAPI,
+    submitCallback,
+  } = props
   const [mode, setMode] = useState(props.mode || 'both')
   const [selectedMemos, setSelectedMemos] = useState<string[]>([])
   const [submitBtnText, setSubmitBtnText] = useState(
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
-  const [isUpdate, setUpdateMode] = useState(false)
+  const [isEditMode, setEditMode] = useState(editMode)
   const recordRef = useRef<RestaDB.OrderRecord>()
   const soups = useMemo(() => {
     let count = 0
@@ -115,7 +119,6 @@ export const Keyboard: React.FC<{
     },
     [updateItemRes],
   )
-  // const onToggleShowList = useCallback(() => {}, [])
   const onHandleMemo = useCallback(
     (name: string, checked: boolean) => {
       const index = selectedMemos.indexOf(name)
@@ -129,60 +132,15 @@ export const Keyboard: React.FC<{
     },
     [selectedMemos],
   )
-  const onAction: Resta.Order.Props['onAction'] = useCallback(
-    (record, action, callOrderAPI) => {
-      switch (action) {
-        case 'edit': {
-          const { data, total, memo, number } = record
-          recordRef.current = record
-          update(data, total)
-          setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
-          setSubmitBtnText(`更新訂單 - 編號[${number}]`)
-          setUpdateMode(true)
-          break
-        }
-        case 'delete': {
-          callOrderAPI(record, 'delete')
-          break
-        }
-      }
-    },
-    [update],
-  )
   const reset = useCallback(() => {
     handleInput('Escape')
     setSelectedMemos([])
     setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
-    setUpdateMode(false)
+    setEditMode(false)
     appEvent.fire(appEvent.ORDER_AFTER_ACTION)
     recordRef.current = null
     clear()
   }, [appEvent, handleInput, clear])
-
-  const {
-    orderListElement,
-    anchorElement,
-    summaryElement,
-    lastRecordNumber,
-    contentRef,
-    callOrderAPI,
-  } = useOrderList({
-    datetime: 'today',
-    keyboardMode: true,
-    emptyDescription: (
-      <>
-        <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
-        <p>加油好嗎</p>
-      </>
-    ),
-    onAction,
-    onCancelEdit: reset,
-  })
-
-  const scrollOrderListToTop = useCallback(() => {
-    // scroll the drawer content to top
-    contentRef.current?.parentElement?.scroll?.(0, 0)
-  }, [contentRef])
   const onSubmit = useCallback(async () => {
     if (total > 0 || isFree) {
       const newRecord = {
@@ -195,7 +153,7 @@ export const Keyboard: React.FC<{
             ? selectedMemos
             : [...selectedMemos, `${soups}杯湯`],
       }
-      if (isUpdate) {
+      if (isEditMode) {
         const record = recordRef.current
         if (record) {
           callOrderAPI(
@@ -208,7 +166,7 @@ export const Keyboard: React.FC<{
         }
       } else {
         await callOrderAPI(newRecord, 'add')
-        scrollOrderListToTop()
+        submitCallback?.()
       }
       reset()
     }
@@ -218,13 +176,44 @@ export const Keyboard: React.FC<{
     total,
     soups,
     isFree,
-    isUpdate,
+    isEditMode,
     noNeedSoups,
     selectedMemos,
     callOrderAPI,
-    scrollOrderListToTop,
+    submitCallback,
     reset,
   ])
+
+  useEffect(() => {
+    const off = appEvent.on(
+      appEvent.KEYBOARD_ON_ACTION,
+      (
+        event: Resta.AppEventObject<Resta.AppEvent.KEYBOARD_ON_ACTION.Detail>,
+      ) => {
+        const { record, action } = event.detail
+        switch (action) {
+          case 'edit': {
+            const { data, total, memo, number } = record
+            recordRef.current = record
+            update(data, total)
+            setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
+            setSubmitBtnText(`更新訂單 - 編號[${number}]`)
+            setEditMode(true)
+            break
+          }
+          case 'delete': {
+            callOrderAPI(record, 'delete')
+            break
+          }
+        }
+      },
+    )
+    const off2 = appEvent.on(appEvent.KEYBOARD_ON_CANCEL_EDIT, reset)
+    return () => {
+      off()
+      off2()
+    }
+  }, [appEvent, update, callOrderAPI, reset])
 
   const numberButtons = useMemo(() => {
     return NUMBER_BUTTONS.map((buttons, index) => (
@@ -438,7 +427,7 @@ export const Keyboard: React.FC<{
         <Divider />
         <Flex vertical>
           <Button
-            css={[styles.submitBtnCss, isUpdate && styles.updateBtnCss]}
+            css={[styles.submitBtnCss, isEditMode && styles.updateBtnCss]}
             size="large"
             type="primary"
             onClick={onSubmit}
@@ -447,24 +436,8 @@ export const Keyboard: React.FC<{
           </Button>
         </Flex>
       </Flex>
-      <Drawer
-        css={styles.drawerCss}
-        title={
-          <>
-            <span>訂單記錄 - {dayjs.tz().format(DATE_FORMAT)}</span>
-          </>
-        }
-        getContainer={false}
-        placement="right"
-        open={true}
-        mask={false}
-        closeIcon={null}
-        footer={summaryElement}
-      >
-        {orderListElement}
-      </Drawer>
     </div>
   )
-}
+})
 
 export default Keyboard

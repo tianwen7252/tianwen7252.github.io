@@ -2,7 +2,7 @@ import React, { lazy, memo, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
 import Home from '../Home'
-import Keyboard from '../Keyboard'
+import OrderPage from '../OrderPage'
 
 // dynamic components
 const lazyLoad = (
@@ -15,12 +15,12 @@ const lazyLoad = (
 }
 
 export const Root: React.FC<{}> = memo(() => {
-  const keyboardElement = <Keyboard />
+  const orderPageElement = <OrderPage />
   return (
     <Routes>
       <Route element={<Home />}>
-        <Route path="/" element={keyboardElement} />
-        <Route path="order" element={keyboardElement} />
+        <Route path="/" element={orderPageElement} />
+        <Route path="order" element={orderPageElement} />
         <Route
           path="order-list"
           // this is a bug not working in react-router 6

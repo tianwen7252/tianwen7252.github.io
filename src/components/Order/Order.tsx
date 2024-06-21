@@ -29,14 +29,7 @@ import * as styles from './styles'
 const emptyFn = () => {}
 
 export const Order: React.FC<Resta.Order.Props> = memo(props => {
-  const {
-    record,
-    number,
-    editable = true,
-    onAction,
-    onCancelEdit = emptyFn,
-    callOrderAPI = emptyFn,
-  } = props
+  const { record, number, editable = true, callOrderAPI = emptyFn } = props
   const [showAction, setShowAction] = useState(false)
   const [isEditing, setEditState] = useState(false)
   const { appEvent, isTablet } = useContext(AppContext)
@@ -77,14 +70,18 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
   const onClickAction = useCallback(
     (action: Resta.Order.ActionType) => {
       action === 'edit' && setEditState(true)
-      onAction?.(record, action, callOrderAPI)
+      appEvent.fire(appEvent.KEYBOARD_ON_ACTION, {
+        record,
+        action,
+        callOrderAPI,
+      })
     },
-    [record, onAction, callOrderAPI],
+    [record, callOrderAPI, appEvent],
   )
   const cancelEdit = useCallback(() => {
-    onCancelEdit?.()
+    appEvent.fire(appEvent.KEYBOARD_ON_CANCEL_EDIT)
     setEditState(false)
-  }, [onCancelEdit])
+  }, [appEvent])
 
   useEffect(() => {
     const container = ref.current

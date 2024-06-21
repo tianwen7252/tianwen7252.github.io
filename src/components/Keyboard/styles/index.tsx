@@ -170,10 +170,6 @@ export const btnDropdownCssName = cssPlugin.css`
   }
 `
 
-export const drawerCss = css`
-  position: relative;
-`
-
 export const memoCss = css`
   font-size: 1rem;
   margin: 10px 0;

@@ -1,1 +1,5 @@
-export { default, default as Keyboard } from './Keyboard'
+export {
+  default,
+  default as Keyboard,
+  Keyboard as Component
+} from './Keyboard'

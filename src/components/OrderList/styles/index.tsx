@@ -30,22 +30,9 @@ export const headerCss = css`
     padding-bottom: 0;
     width: 70%;
     margin: 0 auto;
-    /* background: #ccc;
-    &::after {
-      content: '';
-      position: absolute;
-      left: 0;
-      bottom: 0;
-      right: 0;
-      background-repeat: repeat;
-      height: 10px;
-      background-size: 20px 20px;
-      background-image: radial-gradient(
-        circle at 10px -5px,
-        transparent 12px,
-        #fff 13px
-      );
-    } */
+    .ant-statistic-title {
+      border-bottom: 1px solid #999898;
+    }
   }
 `
 
@@ -73,7 +60,19 @@ export const drawerCss = css`
 `
 
 export const contentCss = css`
-  /* justify-content: center; */
+  padding-bottom: 350px; // for anchor last item and scroll-top buttn
+
+  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+    padding-bottom: 280px;
+  }
+`
+
+export const drawerAcitve = css`
+  filter: blur(0.3rem);
+
+  .ant-anchor-wrapper {
+    display: none;
+  }
 `
 
 export const sectionCss = css`
@@ -117,6 +116,12 @@ export const listCss = css`
     font-size: 2.2rem;
     margin: 40px 0;
   }
+
+  .resta-orders-content {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
 `
 
 export const symmaryCss = css`
@@ -124,25 +129,21 @@ export const symmaryCss = css`
   label: __orderlist_summary; // @emotion only
 `
 
-export const verticalListCss = css`
+export const horizontalListCss = css`
   width: 100%;
   margin-right: 120px;
-  margin-bottom: 140px; // for anchor last item
 `
 
 export const anchorCss = css`
   position: fixed;
   inset-inline-end: 0;
   margin-inline-end: calc(20px - 100vw + 100%);
+  margin-top: 10px;
 `
 
 export const searchBtnCss = css`
   font-size: 1.2rem;
   padding: 1.2rem;
-`
-
-export const drawerAcitve = css`
-  filter: blur(0.3rem);
 `
 
 export const toggleTimeBtnCss = css`

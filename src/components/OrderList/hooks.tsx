@@ -36,7 +36,13 @@ const errMsgMap = {
 
 const allSummaryText = ['期間總訂單數量', '期間總銷售商品數量', '期間總營業額']
 
-const summaryText = ['訂單數量', '銷售商品數量', '營業額']
+const summaryText = [
+  '訂單數量',
+  '銷售商品數量',
+  '總營業額',
+  '上午營業額',
+  '下午營業額',
+]
 
 function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
   const theDate = dayjs.tz(createAt)
@@ -51,10 +57,10 @@ function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
           createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
           elements: [],
           color,
+          total: 0,
         }
       },
     ),
-    total: 0,
     soldCount: 0,
     recordCount: 0,
     datetime: createAt, // usinng the first one is enough
@@ -84,8 +90,6 @@ export function useOrderList({
   emptyDescription,
   handleRecords,
   search,
-  onAction,
-  onCancelEdit,
 }: {
   datetime: number[] | 'today'
   searchData?: string[]
@@ -97,13 +101,12 @@ export function useOrderList({
   emptyDescription?: React.ReactNode
   handleRecords?: Resta.OrderList.HandleRecords
   search?: Resta.API.Orders.SearchCallback
-  onAction?: Resta.Order.Props['onAction']
-  onCancelEdit?: Resta.Order.Props['onCancelEdit']
 }) {
   let totalCount = 0
   let soldItemsCount = 0
   let orderListElement: JSX.Element = null
   let anchorElement: JSX.Element = null
+  let summaryElement: JSX.Element = null
   datetime = datetime ?? 'today'
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const periodMap = {} as Resta.OrderList.PeriodMap // needs always update-to-date
@@ -138,7 +141,8 @@ export function useOrderList({
   }, [startTime, endTime, searchData, searchText, handleRecords, search])
   const anchorKeyToUpdate = useRef(1)
   const getAnchorContainer = useCallback(() => {
-    return contentRef.current?.parentElement
+    // not working well...
+    return contentRef.current
   }, [])
   const openNotification = useCallback(
     ({
@@ -258,7 +262,6 @@ export function useOrderList({
       const { data, total, createdAt, number } = record
       const { periodData, periods } = setPeriodMap(periodMap, createdAt)
       totalCount += total
-      periodData.total += total
       ++periodData.recordCount
       data.forEach(({ res, amount }) => {
         if (res) {
@@ -272,13 +275,13 @@ export function useOrderList({
           key={createdAt}
           record={record}
           number={number}
-          onAction={onAction}
           callOrderAPI={callOrderAPI}
-          onCancelEdit={onCancelEdit}
         />
       )
-      const result = periods.some(({ elements, createdAt: time }) => {
+      const result = periods.some(period => {
+        const { elements, createdAt: time } = period
         if (createdAt >= time) {
+          period.total += total
           elements.push(element)
           return true
         }
@@ -334,19 +337,20 @@ export function useOrderList({
         return orderElements
       }
 
-      const { recordCount, total, soldCount } = periodMap[date]
-
+      const { recordCount, soldCount } = periodMap[date]
+      console.log('periodMap', periodMap)
+      const morningSum = Math.round(periods[0].total)
+      const afternoonSum = Math.round(periods[1].total)
+      const daysSum = morningSum + afternoonSum
       return (
         <section css={styles.sectionCss} key={date}>
           <h1 id={dateId}>{dateWithWeek}</h1>
           <Flex css={styles.symmaryCss} justify="space-between">
             <Statistic title={summaryText[0]} value={recordCount} />
             <Statistic title={summaryText[1]} value={soldCount} />
-            <Statistic
-              title={summaryText[2]}
-              prefix="$"
-              value={Math.round(total)}
-            />
+            <Statistic title={summaryText[3]} prefix="$" value={morningSum} />
+            <Statistic title={summaryText[4]} prefix="$" value={afternoonSum} />
+            <Statistic title={summaryText[2]} prefix="$" value={daysSum} />
           </Flex>
           {orderElements}
         </section>
@@ -355,12 +359,20 @@ export function useOrderList({
     if (!searchResultNotFound) {
       const anchorProps = keyboardMode
         ? {
-            getAnchorContainer,
+            getContainer: getAnchorContainer,
             // offset + searchbox height + searchbox margin-bottom
-            bounds: 20 + 32 + 16,
+            // bounds: 20 + 32 + 16,
+            bounds: 200,
             getCurrentAnchor: activeLink => {
               // if afternoon is empty
+              console.log(
+                'activeLink',
+                activeLink,
+                periodMap[periodsOrder[0]].periods[0].elements.length,
+                anchorItems.at(-1)?.href,
+              )
               if (!periodMap[periodsOrder[0]].periods[0].elements.length) {
+                console.log('activeLink123', activeLink)
                 return anchorItems.at(-1)?.href
               }
               return activeLink
@@ -374,7 +386,7 @@ export function useOrderList({
       anchorElement = (
         <Anchor
           css={styles.anchorCss}
-          // key={anchorKeyToUpdate.current}
+          key={anchorKeyToUpdate.current}
           items={anchorItems}
           {...anchorProps}
         />
@@ -382,8 +394,8 @@ export function useOrderList({
     }
 
     orderListElement = (
-      <Flex css={styles.orderListCss} ref={contentRef} gap={8}>
-        <div css={[styles.listCss, !vertical && styles.verticalListCss]}>
+      <Flex css={styles.orderListCss} gap={8} ref={contentRef}>
+        <div css={[styles.listCss, !vertical && styles.horizontalListCss]}>
           {searchUI && (
             <Select
               placeholder="找什麼呢?"
@@ -409,6 +421,18 @@ export function useOrderList({
         {keyboardMode && anchorElement}
       </Flex>
     )
+
+    totalCount = Math.round(totalCount)
+    const onePeriod = periodsOrder.length === 1
+    const summaryDesc = onePeriod ? summaryText : allSummaryText
+    summaryElement =
+      !keyboardMode && onePeriod ? null : (
+        <Flex css={styles.symmaryCss} justify="space-between">
+          <Statistic title={summaryDesc[0]} value={recordLength ?? 0} />
+          <Statistic title={summaryDesc[1]} value={soldItemsCount} />
+          <Statistic title={summaryDesc[2]} prefix="$" value={totalCount} />
+        </Flex>
+      )
   } else if (recordLength === 0) {
     orderListElement = (
       <Flex css={styles.emptyCss}>
@@ -419,17 +443,6 @@ export function useOrderList({
     // loading
     orderListElement = <Skeleton active />
   }
-  totalCount = Math.round(totalCount)
-  const onePeriod = periodsOrder.length === 1
-  const summaryDesc = onePeriod ? summaryText : allSummaryText
-  const summaryElement =
-    !keyboardMode && onePeriod ? null : (
-      <Flex css={styles.symmaryCss} justify="space-between">
-        <Statistic title={summaryDesc[0]} value={recordLength ?? 0} />
-        <Statistic title={summaryDesc[0]} value={soldItemsCount} />
-        <Statistic title={summaryDesc[0]} prefix="$" value={totalCount} />
-      </Flex>
-    )
 
   return {
     recordLength,

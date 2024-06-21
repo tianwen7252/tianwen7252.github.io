@@ -1,5 +1,7 @@
 export const appEvent = {
   // event names
+  KEYBOARD_ON_ACTION: 'keyboard.onAction',
+  KEYBOARD_ON_CANCEL_EDIT: 'keyboard.onCancelEdit',
   ORDER_AFTER_ACTION: 'order.afterAction',
   // ORDER_AFTER_ACTION_ACT: {
   //   ADDED: 'added',

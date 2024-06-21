@@ -3,11 +3,12 @@ import { css } from '@emotion/react'
 import { HEADER_HEIGHT } from 'src/styles'
 
 export const headerCss = css`
-  background: radial-gradient(
+  background: radial-gradient(circle at 10% 20%, #b0e5d0 42%, #c0e9f9 93.6%);
+  /* background: radial-gradient(
     circle at 10% 20%,
     rgb(176, 229, 208) 42%,
     rgba(92, 202, 238, 0.41) 93.6%
-  );
+  ); */
   padding: 0 20px;
   height: ${HEADER_HEIGHT};
   position: sticky;
