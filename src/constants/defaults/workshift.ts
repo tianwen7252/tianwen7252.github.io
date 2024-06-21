@@ -17,3 +17,5 @@ export const WORK_SHIFT = [
     color: '#EBF3F7',
   },
 ]
+
+export const WORK_SHIFT_REVERSED = [...WORK_SHIFT].reverse()

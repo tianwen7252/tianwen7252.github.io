@@ -64,6 +64,7 @@ export const rootCss = css`
     &.ant-btn-text {
       padding: 1.1rem;
       border-radius: 9999px;
+      vertical-align: middle;
 
       &:not(:disabled):not(.ant-btn-disabled) {
         color: #404756;
@@ -76,8 +77,68 @@ export const rootCss = css`
     }
   }
 
+  .ant-picker-dropdown {
+    .ant-picker-footer-extra:not(:last-child) {
+      border-bottom: none;
+    }
+  }
+
+  .ant-picker-ok,
+  .ant-picker-now {
+    .ant-btn-primary,
+    .ant-picker-now-btn {
+      padding: 1.1rem;
+      border-radius: 9999px;
+      vertical-align: middle;
+      background: #ffffff;
+      box-shadow: none;
+      border: none;
+      text-shadow: none;
+
+      &:not(:disabled):not(.ant-btn-disabled) {
+        color: #404756;
+        &:hover {
+          background: #23272f0d;
+          box-shadow: none;
+        }
+        &:active,
+        &:focus {
+          color: #0a7ea4;
+          background: #e6f7ff;
+        }
+      }
+    }
+  }
+
+  .ant-picker-now {
+    padding-block: 2px;
+    .ant-picker-now-btn {
+      padding: 0.7rem 1rem;
+      vertical-align: middle;
+    }
+  }
+
   .ant-switch {
     transition: ${getTransition()};
+
+    width: 80px;
+    font-size: 1rem;
+    height: 30px;
+    line-height: 30px;
+    vertical-align: text-top;
+
+    .ant-switch-handle {
+      top: 5px;
+    }
+
+    .ant-switch-inner {
+      > span {
+        font-size: 1rem !important;
+      }
+      .ant-switch-inner-unchecked {
+        margin-top: -30px;
+      }
+    }
 
     &.ant-switch-checked {
       background: ${ANTD_SWITCH_CHECKED_BG};

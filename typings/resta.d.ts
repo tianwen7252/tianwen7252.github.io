@@ -56,6 +56,8 @@ declare namespace Resta {
         soldCount: number
         total: number
         datetime: number
+        dateWithWeek: string
+        recordCount: number
       }
     }
 
@@ -64,7 +66,6 @@ declare namespace Resta {
       id: string
       createdAt: number
       elements: JSX.Element[]
-      date: string
       color: string
     }
 

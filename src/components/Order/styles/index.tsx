@@ -12,7 +12,7 @@ export const orderCss = css`
   font-size: 1rem;
   position: relative;
   overflow: hidden;
-  border-radius: 4px;
+  border-radius: 8px;
   border: 1px solid #55555587;
   width: ${cardWidth};
   min-width: ${cardWidth};

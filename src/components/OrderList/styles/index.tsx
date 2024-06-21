@@ -7,6 +7,46 @@ export const mainCss = css`
   padding: 20px;
   /* width: ${getCalcWidth(40)}; */
   min-height: ${getCalcHeight(40)};
+  label: _____main;
+
+  [class*='__orderlist_summary'] {
+    padding: 20px;
+    border-radius: 20px;
+    margin-right: 140px; // for anchor last item
+    position: relative;
+
+    .ant-statistic-title {
+      font-size: 1rem;
+    }
+  }
+`
+
+export const headerCss = css`
+  h2 {
+    color: #bbb;
+  }
+
+  [class*='__orderlist_summary'] {
+    padding-bottom: 0;
+    width: 70%;
+    margin: 0 auto;
+    /* background: #ccc;
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      background-repeat: repeat;
+      height: 10px;
+      background-size: 20px 20px;
+      background-image: radial-gradient(
+        circle at 10px -5px,
+        transparent 12px,
+        #fff 13px
+      );
+    } */
+  }
 `
 
 export const orderListCss = css`
@@ -18,6 +58,14 @@ export const orderListCss = css`
   .ant-input-affix-wrapper {
     margin-bottom: 1rem;
   }
+
+  // for anchor
+  /* .ant-flex:empty {
+    height: 1px;
+    padding: 0;
+    margin: 0;
+    visibility: hidden;
+  } */
 `
 
 export const drawerCss = css`
@@ -26,6 +74,14 @@ export const drawerCss = css`
 
 export const contentCss = css`
   /* justify-content: center; */
+`
+
+export const sectionCss = css`
+  > [class*='__orderlist_summary'] {
+    width: 50%;
+    background: #00000007;
+    margin: 0;
+  }
 `
 
 export const panelCss = css`
@@ -59,22 +115,25 @@ export const listCss = css`
 
   h1 {
     font-size: 2.2rem;
+    margin: 40px 0;
   }
 `
 
+export const symmaryCss = css`
+  text-align: center;
+  label: __orderlist_summary; // @emotion only
+`
+
 export const verticalListCss = css`
-  margin-right: 0px;
   width: 100%;
+  margin-right: 120px;
+  margin-bottom: 140px; // for anchor last item
 `
 
 export const anchorCss = css`
   position: fixed;
   inset-inline-end: 0;
   margin-inline-end: calc(20px - 100vw + 100%);
-`
-
-export const symmaryCss = css`
-  text-align: center;
 `
 
 export const searchBtnCss = css`
@@ -84,4 +143,9 @@ export const searchBtnCss = css`
 
 export const drawerAcitve = css`
   filter: blur(0.3rem);
+`
+
+export const toggleTimeBtnCss = css`
+  float: left;
+  margin: 3px 0;
 `

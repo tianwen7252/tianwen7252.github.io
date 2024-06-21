@@ -16,18 +16,17 @@ import {
   Skeleton,
   Empty,
 } from 'antd'
+import type { AnchorProps } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 import { debounce } from 'lodash'
 
 import { AppContext } from 'src/components/App/context'
 import { Order } from 'src/components/Order'
-import { WORK_SHIFT } from 'src/constants/defaults/workshift'
+import { WORK_SHIFT_REVERSED } from 'src/constants/defaults/workshift'
 import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
-import { getCorrectAmount } from 'src/libs/common'
+import { getCorrectAmount, DATE_FORMAT } from 'src/libs/common'
 import * as styles from './styles'
-
-const workShift = [...WORK_SHIFT].reverse()
 
 const errMsgMap = {
   add: '新增訂單失敗',
@@ -35,11 +34,15 @@ const errMsgMap = {
   delete: '刪除訂單失敗',
 }
 
+const allSummaryText = ['期間總訂單數量', '期間總銷售商品數量', '期間總營業額']
+
+const summaryText = ['訂單數量', '銷售商品數量', '營業額']
+
 function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
   const theDate = dayjs.tz(createAt)
   const dateString = theDate.format('YYYY-MM-DD')
   periodMap[dateString] = periodMap[dateString] ?? {
-    periods: workShift.map(
+    periods: WORK_SHIFT_REVERSED.map(
       ({ title, startTime: workStartTime, key, color }) => {
         const [hours, minutes] = workStartTime.split(':')
         return {
@@ -47,27 +50,33 @@ function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
           id: `resta-anchor-${dateString}-${key}`,
           createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
           elements: [],
-          date: dateString,
           color,
         }
       },
     ),
     total: 0,
     soldCount: 0,
+    recordCount: 0,
     datetime: createAt, // usinng the first one is enough
+    dateWithWeek: theDate.format(DATE_FORMAT),
   }
-  return periodMap[dateString].periods
+  const periodData = periodMap[dateString]
+  return {
+    periodData,
+    periods: periodData.periods,
+  }
 }
 
-function getPeriodsOrder(periodMap: Resta.OrderList.PeriodMap) {
+function getPeriodsOrder(periodMap: Resta.OrderList.PeriodMap, desc = true) {
   return Object.keys(periodMap).sort((a, b) => {
-    return b.localeCompare(a)
+    return desc ? b.localeCompare(a) : a.localeCompare(b)
   })
 }
 
 export function useOrderList({
   datetime,
   searchData,
+  dateOrder = true, // true is desc date order
   searchUI = true,
   reverse = true,
   keyboardMode = false,
@@ -80,6 +89,7 @@ export function useOrderList({
 }: {
   datetime: number[] | 'today'
   searchData?: string[]
+  dateOrder?: boolean
   searchUI?: boolean
   reverse?: boolean
   vertical?: boolean
@@ -93,9 +103,11 @@ export function useOrderList({
   let totalCount = 0
   let soldItemsCount = 0
   let orderListElement: JSX.Element = null
+  let anchorElement: JSX.Element = null
   datetime = datetime ?? 'today'
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const periodMap = {} as Resta.OrderList.PeriodMap // needs always update-to-date
+  let periodsOrder = [] as string[]
   const { API } = useContext(AppContext)
   const [noti, contextHolder] = notification.useNotification()
   const [modal, modelContextHolder] = Modal.useModal()
@@ -244,11 +256,15 @@ export function useOrderList({
     const searchResultNotFound = recordLength === 0 && searchText.length
     records?.forEach(record => {
       const { data, total, createdAt, number } = record
-      const periods = setPeriodMap(periodMap, createdAt)
+      const { periodData, periods } = setPeriodMap(periodMap, createdAt)
       totalCount += total
+      periodData.total += total
+      ++periodData.recordCount
       data.forEach(({ res, amount }) => {
         if (res) {
-          soldItemsCount += getCorrectAmount(amount)
+          const soldCount = getCorrectAmount(amount)
+          soldItemsCount += soldCount
+          periodData.soldCount += soldCount
         }
       })
       const element = (
@@ -273,41 +289,97 @@ export function useOrderList({
         periods.at(-1).elements.push(element)
       }
     })
-    const periodsOrder = getPeriodsOrder(periodMap)
+    let anchorItems = [] as AnchorProps['items']
+    periodsOrder = getPeriodsOrder(periodMap, dateOrder)
     const periodElements = periodsOrder.map(date => {
-      const { periods } = periodMap[date]
-      const orderElements = periods.map(({ elements, id, color, title }) => {
-        const style = keyboardMode
-          ? null
-          : {
-              backgroundColor: color,
-            }
-        return (
-          <Flex
-            css={!keyboardMode && styles.panelCss}
-            key={id}
-            id={id}
-            data-title={title}
-            vertical={vertical}
-            gap={10}
-            wrap
-            style={style}
-          >
-            {elements}
-          </Flex>
-        )
+      const dateId = `resta-anchor-${date}`
+      anchorItems.push({
+        key: date,
+        href: `#${dateId}`,
+        title: date,
+        children: [],
       })
+      const { periods, dateWithWeek } = periodMap[date]
+      !keyboardMode && periods.reverse()
+      const orderElements = periods
+        .filter(({ elements }) => (keyboardMode ? true : elements.length))
+        .map(({ elements, id, color, title }) => {
+          const style = keyboardMode
+            ? null
+            : {
+                backgroundColor: color,
+              }
+          anchorItems.at(-1).children.push({
+            key: id,
+            href: `#${id}`,
+            title,
+          })
+          return (
+            <Flex
+              css={!keyboardMode && styles.panelCss}
+              key={id}
+              id={id}
+              data-title={title}
+              vertical={vertical}
+              gap={10}
+              wrap
+              style={style}
+            >
+              {elements}
+            </Flex>
+          )
+        })
       if (keyboardMode) {
+        anchorItems = anchorItems[0].children
         return orderElements
       }
 
+      const { recordCount, total, soldCount } = periodMap[date]
+
       return (
-        <section key={date}>
-          <h1>{date}</h1>
-          {orderElements.reverse()}
+        <section css={styles.sectionCss} key={date}>
+          <h1 id={dateId}>{dateWithWeek}</h1>
+          <Flex css={styles.symmaryCss} justify="space-between">
+            <Statistic title={summaryText[0]} value={recordCount} />
+            <Statistic title={summaryText[1]} value={soldCount} />
+            <Statistic
+              title={summaryText[2]}
+              prefix="$"
+              value={Math.round(total)}
+            />
+          </Flex>
+          {orderElements}
         </section>
       )
     })
+    if (!searchResultNotFound) {
+      const anchorProps = keyboardMode
+        ? {
+            getAnchorContainer,
+            // offset + searchbox height + searchbox margin-bottom
+            bounds: 20 + 32 + 16,
+            getCurrentAnchor: activeLink => {
+              // if afternoon is empty
+              if (!periodMap[periodsOrder[0]].periods[0].elements.length) {
+                return anchorItems.at(-1)?.href
+              }
+              return activeLink
+            },
+          }
+        : {
+            offsetTop: 64,
+            targetOffset: 100,
+            bounds: 220, // 100
+          }
+      anchorElement = (
+        <Anchor
+          css={styles.anchorCss}
+          // key={anchorKeyToUpdate.current}
+          items={anchorItems}
+          {...anchorProps}
+        />
+      )
+    }
 
     orderListElement = (
       <Flex css={styles.orderListCss} ref={contentRef} gap={8}>
@@ -334,27 +406,7 @@ export function useOrderList({
             </>
           )}
         </div>
-        {/* {!searchResultNotFound && (
-          <Anchor
-            css={styles.anchorCss}
-            key={anchorKeyToUpdate.current}
-            getContainer={getAnchorContainer}
-            // offset + searchbox height + searchbox margin-bottom
-            bounds={20 + 32 + 16}
-            getCurrentAnchor={activeLink => {
-              // if afternoon is empty
-              if (periods?.[0]?.elements?.length) {
-                return activeLink
-              }
-              return `#${periods.at(-1)?.id}`
-            }}
-            items={periods.map(({ id, title }) => ({
-              key: id,
-              href: `#${id}`,
-              title,
-            }))}
-          />
-        )} */}
+        {keyboardMode && anchorElement}
       </Flex>
     )
   } else if (recordLength === 0) {
@@ -368,21 +420,23 @@ export function useOrderList({
     orderListElement = <Skeleton active />
   }
   totalCount = Math.round(totalCount)
-  const summaryElement = (
-    <Flex css={styles.symmaryCss} justify="space-between">
-      <Statistic title="訂單數量" value={recordLength ?? 0} />
-      <Statistic title="銷售商品數量" value={soldItemsCount} />
-      <Statistic title="營業額" prefix="$" value={totalCount} />
-    </Flex>
-  )
-
-  console.log('records', records)
+  const onePeriod = periodsOrder.length === 1
+  const summaryDesc = onePeriod ? summaryText : allSummaryText
+  const summaryElement =
+    !keyboardMode && onePeriod ? null : (
+      <Flex css={styles.symmaryCss} justify="space-between">
+        <Statistic title={summaryDesc[0]} value={recordLength ?? 0} />
+        <Statistic title={summaryDesc[0]} value={soldItemsCount} />
+        <Statistic title={summaryDesc[0]} prefix="$" value={totalCount} />
+      </Flex>
+    )
 
   return {
     recordLength,
     totalCount,
     lastRecordNumber: records?.at?.(0)?.number || 0,
     soldItemsCount,
+    periodsOrder,
     orderListElement: (
       <>
         {contextHolder}
@@ -390,6 +444,7 @@ export function useOrderList({
         {orderListElement}
       </>
     ),
+    anchorElement,
     summaryElement,
     contentRef,
     callOrderAPI,

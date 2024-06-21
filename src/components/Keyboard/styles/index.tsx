@@ -100,26 +100,6 @@ export const keyBoardModeCss = css`
   width: min-content;
 `
 
-export const switchCss = css`
-  font-size: 1rem;
-  height: 30px;
-  line-height: 30px;
-  vertical-align: text-top;
-
-  .ant-switch-handle {
-    top: 5px;
-  }
-
-  .ant-switch-inner {
-    > span {
-      font-size: 1rem !important;
-    }
-    .ant-switch-inner-unchecked {
-      margin-top: -30px;
-    }
-  }
-`
-
 export const btnCss = css`
   width: min-content;
   .ant-flex {

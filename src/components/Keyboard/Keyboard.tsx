@@ -14,7 +14,6 @@ import {
   Tag,
   Drawer,
   Segmented,
-  Switch,
   Divider,
 } from 'antd'
 import type { MenuProps } from 'antd'
@@ -162,6 +161,7 @@ export const Keyboard: React.FC<{
 
   const {
     orderListElement,
+    anchorElement,
     summaryElement,
     lastRecordNumber,
     contentRef,
@@ -396,13 +396,6 @@ export const Keyboard: React.FC<{
               ]}
               onChange={onChangeKeyboardMode}
             />
-            {/* <Switch
-              css={styles.switchCss}
-              checkedChildren="自動顯示列表"
-              unCheckedChildren="手動顯示列表"
-              defaultChecked
-              onChange={onToggleShowList}
-            /> */}
             <Button
               danger
               type="primary"
