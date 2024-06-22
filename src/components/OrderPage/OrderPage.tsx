@@ -18,7 +18,7 @@ export const OrderPage: React.FC = memo(() => {
     callOrderAPI,
   } = useOrderList({
     datetime: 'today',
-    keyboardMode: true,
+    orderPageMode: true,
     emptyDescription: (
       <>
         <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
@@ -27,10 +27,13 @@ export const OrderPage: React.FC = memo(() => {
     ),
   })
 
-  const submitCallback = useCallback(() => {
-    // scroll the drawer content to top
-    contentRef.current?.parentElement?.scroll?.(0, 0)
-  }, [contentRef])
+  const submitCallback = useCallback(
+    (type: Resta.Order.ActionType) => {
+      // scroll the drawer content to top
+      type === 'add' && contentRef.current?.parentElement?.scroll?.(0, 0)
+    },
+    [contentRef],
+  )
 
   return (
     <div css={styles.orderPageCss}>

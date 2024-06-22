@@ -52,6 +52,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     editMode = false,
     record,
     lastRecordNumber,
+    drawerMode = false,
     callOrderAPI,
     submitCallback,
   } = props
@@ -61,7 +62,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
   const [isEditMode, setEditMode] = useState(editMode)
-  const recordRef = useRef<RestaDB.OrderRecord>()
+  const recordRef = useRef<RestaDB.OrderRecord>(record)
   const soups = useMemo(() => {
     let count = 0
     data.forEach(({ res, type, amount = '' }) => {
@@ -84,7 +85,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     },
     [input],
   )
-  const onChangeKeyboardMode = useCallback(
+  const onChangeorderPageMode = useCallback(
     (value: Resta.Keyboard.Mode) => {
       setMode(value)
     },
@@ -143,6 +144,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   }, [appEvent, handleInput, clear])
   const onSubmit = useCallback(async () => {
     if (total > 0 || isFree) {
+      let type = 'add' as Resta.Order.ActionType
       const newRecord = {
         data,
         number: lastRecordNumber + 1,
@@ -155,19 +157,21 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
       }
       if (isEditMode) {
         const record = recordRef.current
+        delete newRecord.number
+        type = 'edit'
         if (record) {
           callOrderAPI(
             {
               ...record,
               ...newRecord,
             },
-            'edit',
+            type,
           )
         }
       } else {
-        await callOrderAPI(newRecord, 'add')
-        submitCallback?.()
+        await callOrderAPI(newRecord, type)
       }
+      submitCallback?.(type)
       reset()
     }
   }, [
@@ -197,7 +201,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             recordRef.current = record
             update(data, total)
             setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
-            setSubmitBtnText(`更新訂單 - 編號[${number}]`)
+            setSubmitBtnText(`編輯訂單 - 編號[${number}]`)
             setEditMode(true)
             break
           }
@@ -353,7 +357,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   )
 
   return (
-    <div css={styles.keyboardCss}>
+    <div css={[styles.keyboardCss, drawerMode && styles.drawerModeCss]}>
       <Flex
         css={[
           styles.keyboardLeftCss,
@@ -361,7 +365,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         ]}
         vertical
       >
-        <Flex css={styles.textAreaCss} flex="2" vertical>
+        <Flex css={styles.textAreaCss} vertical>
           <div css={styles.mealsCss}>{meals}</div>
           <div css={styles.totalCss}>
             <Space size="large">
@@ -374,16 +378,16 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             </Space>
           </div>
         </Flex>
-        <Flex flex="1" gap="middle" vertical>
+        <Flex gap="middle" vertical>
           <Space size="middle">
             <Segmented
-              css={styles.keyBoardModeCss}
+              css={styles.orderPageModeCss}
               options={[
                 { value: 'both', icon: <AppstoreAddOutlined /> },
                 { value: 'commondity', icon: <AppstoreOutlined /> },
                 { value: 'calculator', icon: <CalculatorOutlined /> },
               ]}
-              onChange={onChangeKeyboardMode}
+              onChange={onChangeorderPageMode}
             />
             <Button
               danger

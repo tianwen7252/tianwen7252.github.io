@@ -11,6 +11,7 @@ import {
   KEYBOARD_TEXT_MIN_HEIGHT,
   KEYBOARD_TEXT_MEALS_HEIGHT,
   KEYBOARD_TAG_FONT_SIZE,
+  // KEYBOARD_DRAWER_TEXT_MIN_HEIGHT,
   getTransition,
   getCalcHeight,
 } from 'src/styles/variables'
@@ -49,6 +50,18 @@ export const textAreaCss = css`
   min-height: ${KEYBOARD_TEXT_MIN_HEIGHT};
   @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
     min-height: ${TABLET.KEYBOARD_TEXT_MIN_HEIGHT};
+  }
+`
+
+export const drawerModeCss = css`
+  transform: scale(0.95);
+  margin-left: -30px;
+  margin-top: -40px;
+
+  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+    transform: scale(0.93);
+    margin-left: -40px;
+    margin-top: -45px;
   }
 `
 
@@ -95,7 +108,7 @@ export const numberBtnsCss = css`
   }
 `
 
-export const keyBoardModeCss = css`
+export const orderPageModeCss = css`
   font-size: 1.5rem;
   width: min-content;
 `

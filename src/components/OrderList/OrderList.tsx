@@ -1,4 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react'
+import React, {
+  useCallback,
+  useRef,
+  useState,
+  useContext,
+  useEffect,
+} from 'react'
 import {
   Drawer,
   Flex,
@@ -11,7 +17,11 @@ import {
   Switch,
 } from 'antd'
 import type { DatePickerProps } from 'antd'
-import { ReloadOutlined, FileSearchOutlined } from '@ant-design/icons'
+import {
+  ReloadOutlined,
+  FileSearchOutlined,
+  EditOutlined,
+} from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { debounce } from 'lodash'
@@ -23,6 +33,8 @@ import {
 } from 'src/libs/common'
 import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
 import { useOrderList } from './hooks'
+import { AppContext } from 'src/components/App/context'
+import { Keyboard } from 'src/components/Keyboard'
 import * as styles from './styles'
 
 const { RangePicker } = DatePicker
@@ -33,9 +45,11 @@ export const OrderList: React.FC<{}> = () => {
   const [orderTotal, setOrderTotal] = useState<number>(0)
   const [turnoverSum, setTurnoverSum] = useState<number>(0)
   const [ordersSum, setOrdersSum] = useState<number>(0)
-  const [isOpen, setDrawerStatus] = useState(false)
+  const [isSearchOpen, setSearchDrawer] = useState(false)
+  const [isKeyboardOpen, setKeyboardDrawer] = useState(false)
   const [showTime, setShowTime] = useState(false)
   const [dateOrder, setDateOrder] = useState(true) // true is desc date order
+  const { appEvent } = useContext(AppContext)
 
   const todayDate = dayjs.tz()
   const todayStartDate = todayDate.startOf('day')
@@ -43,12 +57,21 @@ export const OrderList: React.FC<{}> = () => {
   const yesterStartDate = todayStartDate.add(-1, 'd')
   const isDisabled = !dates?.length
 
-  const openDrawer = useCallback(() => {
-    setDrawerStatus(true)
+  const openSearchDrawer = useCallback(() => {
+    setSearchDrawer(true)
   }, [])
-  const closeDrawer = useCallback(() => {
-    setDrawerStatus(false)
+  const closeSearchDrawer = useCallback(() => {
+    setSearchDrawer(false)
   }, [])
+  const openKeyboardDrawer = useCallback(() => {
+    document.body.classList.add('resta--hidden-scroll')
+    setKeyboardDrawer(true)
+  }, [])
+  const closeKeyboardDrawer = useCallback(() => {
+    document.body.classList.remove('resta--hidden-scroll')
+    setKeyboardDrawer(false)
+    appEvent.fire(appEvent.ORDER_AFTER_ACTION)
+  }, [appEvent])
   const onRangeChange = useCallback((dates: null | (Dayjs | null)[]) => {
     if (dates) {
       const [start, end] = dates
@@ -153,8 +176,6 @@ export const OrderList: React.FC<{}> = () => {
     orderListElement,
     anchorElement,
     summaryElement,
-    lastRecordNumber,
-    contentRef,
     callOrderAPI,
   } = useOrderList({
     datetime: dates?.length ? dates.map(date => date.valueOf()) : 'today',
@@ -165,8 +186,20 @@ export const OrderList: React.FC<{}> = () => {
     handleRecords,
   })
 
-  const periodsLength = periodsOrder.length
+  useEffect(() => {
+    const off = appEvent.on(
+      appEvent.KEYBOARD_ON_ACTION,
+      (
+        event: Resta.AppEventObject<Resta.AppEvent.KEYBOARD_ON_ACTION.Detail>,
+      ) => {
+        const { action } = event.detail
+        action === 'edit' && openKeyboardDrawer()
+      },
+    )
+    return () => off()
+  }, [appEvent, openKeyboardDrawer])
 
+  const periodsLength = periodsOrder.length
   return (
     <Flex css={styles.mainCss} gap="middle" vertical>
       <Drawer
@@ -180,9 +213,9 @@ export const OrderList: React.FC<{}> = () => {
         }
         getContainer={false}
         placement="left"
-        open={isOpen}
+        open={isSearchOpen}
         mask={true}
-        onClose={closeDrawer}
+        onClose={closeSearchDrawer}
       >
         <Flex vertical gap="large">
           <Flex vertical gap="large">
@@ -195,12 +228,12 @@ export const OrderList: React.FC<{}> = () => {
                   value: [todayStartDate, todayEndDate],
                 },
                 {
-                  label: '現在 - 今天',
-                  value: () => [todayDate, todayEndDate],
-                },
-                {
                   label: '昨天',
                   value: [yesterStartDate, yesterStartDate.endOf('day')],
+                },
+                {
+                  label: '今天 - 昨天',
+                  value: [yesterStartDate, todayEndDate],
                 },
                 {
                   label: '7天前',
@@ -298,7 +331,34 @@ export const OrderList: React.FC<{}> = () => {
           </Flex>
         </Flex>
       </Drawer>
-      <div css={[styles.contentCss, isOpen && styles.drawerAcitve]}>
+      <Drawer
+        css={[styles.drawerCss, styles.keyboardDrawerCss]}
+        title={
+          <Space>
+            <EditOutlined />
+            <label>編輯訂單</label>
+          </Space>
+        }
+        getContainer={false}
+        placement="right"
+        open={isKeyboardOpen}
+        mask={true}
+        onClose={closeKeyboardDrawer}
+        width={820}
+        forceRender={true}
+      >
+        <Keyboard
+          drawerMode
+          callOrderAPI={callOrderAPI}
+          submitCallback={closeKeyboardDrawer}
+        />
+      </Drawer>
+      <div
+        css={[
+          styles.contentCss,
+          (isSearchOpen || isKeyboardOpen) && styles.drawerAcitve,
+        ]}
+      >
         {anchorElement}
         <div css={styles.headerCss}>
           <Space size={60}>
@@ -306,7 +366,7 @@ export const OrderList: React.FC<{}> = () => {
               css={styles.searchBtnCss}
               type="text"
               icon={<FileSearchOutlined />}
-              onClick={openDrawer}
+              onClick={openSearchDrawer}
             >
               訂單搜尋
             </Button>

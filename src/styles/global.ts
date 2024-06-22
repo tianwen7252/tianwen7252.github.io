@@ -28,6 +28,10 @@ export const rootCss = css`
     -moz-osx-font-smoothing: grayscale;
   }
 
+  .resta--hidden-scroll {
+    overflow: hidden;
+  }
+
   a {
     font-weight: 500;
     color: #646cff;
@@ -161,7 +165,7 @@ export const rootCss = css`
     }
 
     .ant-drawer-mask {
-      background: #ffffff50;
+      background: #ffffffca;
     }
 
     .ant-drawer-body {
@@ -182,6 +186,12 @@ export const rootCss = css`
   .ant-modal {
     .ant-modal-confirm-content {
       font-size: 1rem;
+    }
+  }
+
+  .ant-modal-root {
+    .ant-modal-mask {
+      background: #ffffffca;
     }
   }
 

@@ -43,7 +43,8 @@ declare namespace Resta {
       editMode?: boolean
       record?: Resta.OrderRecord // for edit
       lastRecordNumber?: number // for add mode
-      submitCallback?: () => void
+      drawerMode?: boolean
+      submitCallback?: (type?: Resta.Order.ActionType) => void
     }
   }
 

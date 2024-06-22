@@ -1,6 +1,6 @@
 import { css } from '@emotion/react'
 
-import { getCalcWidth, getCalcHeight } from 'src/styles/variables'
+import { getCalcWidth, getCalcHeight, getStatCss } from 'src/styles/variables'
 
 export const mainCss = css`
   position: relative;
@@ -12,7 +12,7 @@ export const mainCss = css`
   [class*='__orderlist_summary'] {
     padding: 20px;
     border-radius: 20px;
-    margin-right: 140px; // for anchor last item
+    margin-right: 200px; // for anchor last item
     position: relative;
 
     .ant-statistic-title {
@@ -29,11 +29,22 @@ export const headerCss = css`
   [class*='__orderlist_summary'] {
     padding-bottom: 0;
     width: 70%;
-    margin: 0 auto;
+    margin-left: auto;
+
     .ant-statistic-title {
-      border-bottom: 1px solid #999898;
+      border-bottom: 1px solid #d3cdcd;
+      padding-bottom: 4px;
     }
   }
+`
+
+export const statWrapperCss = css`
+  ${getStatCss({
+    rtColor: '#b6cad8',
+    rbColor: '#ebdcc0',
+    lbColor: '#e7e2d5',
+    ltColor: '#c0cfb9',
+  })}
 `
 
 export const orderListCss = css`
@@ -57,6 +68,13 @@ export const orderListCss = css`
 
 export const drawerCss = css`
   position: relative;
+`
+
+export const keyboardDrawerCss = css`
+  .ant-drawer-content {
+    overflow: hidden;
+    height: auto;
+  }
 `
 
 export const contentCss = css`
@@ -131,7 +149,7 @@ export const symmaryCss = css`
 
 export const horizontalListCss = css`
   width: 100%;
-  margin-right: 120px;
+  margin-right: 140px;
 `
 
 export const anchorCss = css`
@@ -144,6 +162,7 @@ export const anchorCss = css`
 export const searchBtnCss = css`
   font-size: 1.2rem;
   padding: 1.2rem;
+  border: 1px solid #eee;
 `
 
 export const toggleTimeBtnCss = css`
