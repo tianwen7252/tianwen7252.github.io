@@ -109,6 +109,7 @@ export function useOrderList({
   let totalCount = 0
   let soldItemsCount = 0
   let orderListElement: JSX.Element = null
+  let contentElement: JSX.Element[] = null
   let anchorElement: JSX.Element = null
   let summaryElement: JSX.Element = null
   datetime = datetime ?? 'today'
@@ -258,7 +259,6 @@ export function useOrderList({
     },
     [API, modal, openNotification],
   )
-
   const recordLength = records?.length
   if (recordLength || searchText.length) {
     const searchResultNotFound = recordLength === 0 && searchText.length
@@ -298,20 +298,35 @@ export function useOrderList({
         last.elements.push(element)
       }
     })
-    let anchorItems = [] as AnchorProps['items']
+    let singleAnchorItems: AnchorProps['items'] // for order page only
+    const yearMap = {} as {
+      [year: string]: {
+        yearId: string
+        dateElements: (JSX.Element | JSX.Element[])[]
+        anchorItems: AnchorProps['items']
+      }
+    }
     periodsOrder = getPeriodsOrder(periodMap, dateOrder)
-    const periodElements = periodsOrder.map(date => {
+    periodsOrder.every(date => {
       const dateId = `resta-anchor-${date}`
       const { periods, dateWithWeek, datetime } = periodMap[date]
+      const year = date.split('-')[0]
+      const yearId = `resta-anchor-${year}`
+      const map = (yearMap[year] = yearMap[year] ?? {
+        yearId,
+        dateElements: [],
+        anchorItems: [],
+      })
+      const { dateElements, anchorItems } = map
       const anchorDate = dayjs.tz(datetime).format(DATE_FORMAT_FOR_ANCHOR)
       anchorItems.push({
-        key: anchorDate,
+        key: `${year}-${anchorDate}`,
         href: `#${dateId}`,
         title: anchorDate,
         children: [],
       })
       !orderPageMode && periods.reverse()
-      const orderElements = periods
+      const periodElements = periods
         .filter(({ elements }) => (orderPageMode ? true : elements.length))
         .map(({ elements, id, color, title }) => {
           const style = orderPageMode
@@ -340,56 +355,88 @@ export function useOrderList({
           )
         })
       if (orderPageMode) {
-        anchorItems = anchorItems[0].children
-        return orderElements
+        singleAnchorItems = anchorItems[0].children
+        contentElement = periodElements
+        return false // stop this loop
+      } else {
+        const { recordCount, soldCount } = periodMap[date]
+        const morningSum = Math.round(periods[0].total)
+        const afternoonSum = Math.round(periods[1].total)
+        const daysSum = morningSum + afternoonSum
+        const dayElement = (
+          <section css={styles.sectionCss} key={date}>
+            <h1 id={dateId}>{dateWithWeek}</h1>
+            <Flex css={styles.symmaryCss} justify="space-between">
+              <Statistic title={summaryText[0]} value={recordCount} />
+              <Statistic title={summaryText[1]} value={soldCount} />
+              <Statistic title={summaryText[3]} prefix="$" value={morningSum} />
+              <Statistic
+                title={summaryText[4]}
+                prefix="$"
+                value={afternoonSum}
+              />
+              <Statistic title={summaryText[2]} prefix="$" value={daysSum} />
+            </Flex>
+            {periodElements}
+          </section>
+        )
+        dateElements.push(dayElement)
       }
-
-      const { recordCount, soldCount } = periodMap[date]
-      const morningSum = Math.round(periods[0].total)
-      const afternoonSum = Math.round(periods[1].total)
-      const daysSum = morningSum + afternoonSum
-      return (
-        <section css={styles.sectionCss} key={date}>
-          <h1 id={dateId}>{dateWithWeek}</h1>
-          <Flex css={styles.symmaryCss} justify="space-between">
-            <Statistic title={summaryText[0]} value={recordCount} />
-            <Statistic title={summaryText[1]} value={soldCount} />
-            <Statistic title={summaryText[3]} prefix="$" value={morningSum} />
-            <Statistic title={summaryText[4]} prefix="$" value={afternoonSum} />
-            <Statistic title={summaryText[2]} prefix="$" value={daysSum} />
-          </Flex>
-          {orderElements}
-        </section>
-      )
+      return true
     })
     if (!searchResultNotFound) {
-      const anchorProps = orderPageMode
-        ? {
-            getContainer: getAnchorContainer,
+      const anchorProps = {
+        css: styles.anchorCss,
+      }
+      if (orderPageMode) {
+        anchorElement = (
+          <Anchor
+            {...anchorProps}
+            key={anchorKeyToUpdate.current}
+            items={singleAnchorItems}
+            getContainer={getAnchorContainer}
             // offset + searchbox height + searchbox margin-bottom
-            // bounds: 20 + 32 + 16,
-            bounds: 200,
-            getCurrentAnchor: activeLink => {
+            // bounds={20 + 32 + 16}
+            bounds={200}
+            getCurrentAnchor={activeLink => {
               // if afternoon is empty
               if (!periodMap[periodsOrder[0]].periods[0].elements.length) {
-                return anchorItems.at(-1)?.href
+                return singleAnchorItems.at(-1)?.href
               }
               return activeLink
-            },
-          }
-        : {
-            offsetTop: 64,
-            targetOffset: 100,
-            bounds: 220, // 100
-          }
-      anchorElement = (
-        <Anchor
-          css={styles.anchorCss}
-          key={anchorKeyToUpdate.current}
-          items={anchorItems}
-          {...anchorProps}
-        />
-      )
+            }}
+          />
+        )
+      } else {
+        const yearAnchorItems = [] as AnchorProps['items']
+        const years = Object.keys(yearMap)
+        if (dateOrder) {
+          years.sort().reverse() // effect than using sort(fn)
+        }
+        contentElement = years.map(year => {
+          const { yearId, dateElements, anchorItems } = yearMap[year]
+          yearAnchorItems.push({
+            key: year,
+            href: `#${yearId}`,
+            title: year,
+            children: anchorItems,
+          })
+          return (
+            <article id={yearId} key={yearId}>
+              {dateElements}
+            </article>
+          )
+        })
+        anchorElement = (
+          <Anchor
+            {...anchorProps}
+            items={yearAnchorItems}
+            offsetTop={64}
+            targetOffset={100}
+            bounds={220} // 100
+          />
+        )
+      }
     }
 
     orderListElement = (
@@ -413,7 +460,7 @@ export function useOrderList({
             <Empty description="查無資料" />
           ) : (
             <>
-              <div className="resta-orders-content">{periodElements}</div>
+              <div className="resta-orders-content">{contentElement}</div>
             </>
           )}
         </div>

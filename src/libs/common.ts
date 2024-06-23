@@ -4,7 +4,7 @@ export const DATE_FORMAT = 'YYYY/MM/DD dddd'
 export const DATE_FORMAT_DATE = 'YYYY/MM/DD'
 export const DATE_FORMAT_TIME = 'MM/DD HH:m:s A'
 export const DATE_FORMAT_DATETIME_UI = 'YYYY/MM/DD HH:mm'
-export const DATE_FORMAT_FOR_ANCHOR = 'YYYY-MM-DD (dd)'
+export const DATE_FORMAT_FOR_ANCHOR = 'MM-DD (dd)'
 
 export function toCurrency(amount: number) {
   return (+amount).toLocaleString('zh-TW', {
