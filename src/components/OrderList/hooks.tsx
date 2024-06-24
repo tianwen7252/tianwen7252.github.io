@@ -149,6 +149,16 @@ export function useOrderList({
     // not working well...
     return contentRef.current
   }, [])
+  const getEmptyUI = useCallback(() => {
+    return (
+      <Flex css={styles.emptyCss}>
+        <Empty
+          description={emptyDescription || '查無資料'}
+          style={{ marginTop: 100 }}
+        />
+      </Flex>
+    )
+  }, [emptyDescription])
   const openNotification = useCallback(
     ({
       type,
@@ -219,7 +229,7 @@ export function useOrderList({
                 okText: '不要吵給我刪掉',
                 cancelText: '取消，我不小心按到',
                 onOk: close => {
-                  API.orders.delete(record.id)
+                  API.orders.delete(record.id, record)
                   openNotification({
                     type: 'success',
                     description: `刪除訂單[${record.number}]成功!`,
@@ -457,7 +467,7 @@ export function useOrderList({
             />
           )}
           {searchResultNotFound ? (
-            <Empty description="查無資料" />
+            getEmptyUI()
           ) : (
             <>
               <div className="resta-orders-content">{contentElement}</div>
@@ -486,11 +496,7 @@ export function useOrderList({
         </Flex>
       )
   } else if (recordLength === 0) {
-    orderListElement = (
-      <Flex css={styles.emptyCss}>
-        <Empty description={emptyDescription || '查無資料'} />
-      </Flex>
-    )
+    orderListElement = getEmptyUI()
   } else {
     // loading
     setTimeout(() => {

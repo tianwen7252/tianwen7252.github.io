@@ -152,6 +152,15 @@ declare global {
         updatedAt: number
         total: number
       }
+      interface DailyData {
+        id: ID
+        date: string
+        total: number
+        originalTotal: number
+        createdAt: number
+        updatedAt: number
+        editor: string
+      }
     }
 
     type OrderRecord = Table.Order
@@ -160,8 +169,8 @@ declare global {
 
     interface OrderData {
       value?: string
-      res?: Commondity['name']
-      type?: CommondityType['type']
+      res?: Table.Commondity['name']
+      type?: Table.CommondityType['type']
       operator?: '+' | '*'
       amount?: string
     }

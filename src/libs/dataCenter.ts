@@ -10,12 +10,14 @@ export const db = new Dexie(DB_NAME) as Dexie & {
     RestaDB.Table.Order,
     'id' // primary key "id" (for the typings only)
   >
+  dailyData: EntityTable<RestaDB.Table.DailyData, 'id'>
 }
 
 // Schema declaration:
 const dbSchema = db.version(DB_VERSION)
 dbSchema.stores({
   orders: '++id, createdAt', // primary key "id" (for the runtime!),
+  dailyData: '++id, date, createdAt, total',
 })
 // .upgrade(trans => {
 //   return trans
