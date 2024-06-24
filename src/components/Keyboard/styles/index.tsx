@@ -54,15 +54,19 @@ export const textAreaCss = css`
 `
 
 export const drawerModeCss = css`
-  transform: scale(0.95);
+  /* transform: scale(0.95);
   margin-left: -30px;
-  margin-top: -40px;
+  margin-top: -40px; */
+  margin-bottom: -20px;
+  margin-top: -10px;
 
-  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-    transform: scale(0.93);
-    margin-left: -40px;
-    margin-top: -45px;
-  }
+  /* @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+    // transform: scale(0.93);
+    // margin-left: -40px;
+    // margin-top: -45px;
+    margin-bottom: -20px;
+    margin-top: -10px;
+  } */
 `
 
 export const mealsCss = css`

@@ -339,7 +339,6 @@ export const OrderList: React.FC<{}> = () => {
             <label>編輯訂單</label>
           </Space>
         }
-        getContainer={false}
         placement="right"
         open={isKeyboardOpen}
         mask={true}

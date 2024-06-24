@@ -493,7 +493,11 @@ export function useOrderList({
     )
   } else {
     // loading
-    orderListElement = <Skeleton active />
+    setTimeout(() => {
+      if (!records) {
+        orderListElement = <Skeleton active round />
+      }
+    }, 150) // delay to show loading
   }
 
   // console.log('records', records)
