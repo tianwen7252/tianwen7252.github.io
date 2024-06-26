@@ -109,6 +109,9 @@ declare namespace Resta {
     }[]
     type PriceMap = { [name: string]: RelevancyList }
     type CommodityMap = { [name: string]: [price: number, type: string] }
+    type PriceMapGroup = {
+      [name: 'main-dish' | 'à-la-carte' | 'others']: PriceMap
+    }
   }
 
   type OrderRecord = RestaDB.OrderRecord
@@ -157,6 +160,9 @@ declare global {
         date: string
         total: number
         originalTotal: number
+        // morningTotal: number
+        // afternoonTotal: number
+        // ordersCount: number
         createdAt: number
         updatedAt: number
         editor: string

@@ -150,9 +150,7 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
               <Divider />
             </div>
             <div css={styles.footerCss}>
-              {total && (
-                <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
-              )}
+              <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
               <Space css={styles.dateCss}>
                 {createdDate.format(DATE_FORMAT_TIME)}
                 <span>({createdDate.fromNow()})</span>

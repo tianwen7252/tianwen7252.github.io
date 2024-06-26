@@ -1,5 +1,7 @@
 import Dexie, { type EntityTable } from 'dexie'
 
+import { generate } from 'src/scripts/generator'
+
 const DB_NAME = 'TianWenDB'
 const GB_UNIT = 1000 * 1000 * 1000
 export const WARNING_DEVICE_SIZE = GB_UNIT
@@ -46,3 +48,5 @@ export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
     remaining,
   }
 }
+
+// generate('orders', '1Q', true)

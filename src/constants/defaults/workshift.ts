@@ -1,8 +1,8 @@
 export const WORK_SHIFT = [
   {
-    title: '早上',
+    title: '上午',
     key: 'morning',
-    startTime: '8:00', // HH:MM
+    startTime: '10:00', // HH:MM
     color: '#fdf4d5',
   },
   // {

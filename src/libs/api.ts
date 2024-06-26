@@ -8,7 +8,7 @@ export const orders = {
     endTime,
     reverse = true,
     index = 'createdAt',
-    sortKey = index,
+    sortKey = 'number',
     searchText = null,
     search,
   }: {
