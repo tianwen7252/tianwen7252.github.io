@@ -39,8 +39,8 @@ const randomMemoProb = [30, 70] // 30% will have memo, 70% no memo
 // '外送訂單' is another condition depending on randomOrderType
 const randomMemoTypes = [20, 10, 10, 10, 10, 3, 25, 1, 1] // 10%..... 5%
 const randomOneDayOrders = [
-  [100, 150],
-  [150, 350],
+  [90, 125],
+  [180, 250],
 ] // [[morning min, max], [afternoon min, max]]
 
 // copied from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math/random

@@ -4,6 +4,7 @@ import React, {
   useState,
   useContext,
   useEffect,
+  useMemo,
 } from 'react'
 import {
   Drawer,
@@ -15,6 +16,7 @@ import {
   FloatButton,
   Space,
   Switch,
+  Pagination,
 } from 'antd'
 import type { DatePickerProps } from 'antd'
 import {
@@ -29,6 +31,7 @@ import { debounce } from 'lodash'
 import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,
+  ORDER_LIST_PAGE_SIZE,
   toCurrencyNumber,
 } from 'src/libs/common'
 import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
@@ -49,6 +52,7 @@ export const OrderList: React.FC<{}> = () => {
   const [isKeyboardOpen, setKeyboardDrawer] = useState(false)
   const [showTime, setShowTime] = useState(false)
   const [dateOrder, setDateOrder] = useState(true) // true is desc date order
+  const [offset, setOffset] = useState(0)
   const { appEvent } = useContext(AppContext)
 
   const todayDate = dayjs.tz()
@@ -107,6 +111,9 @@ export const OrderList: React.FC<{}> = () => {
   }, [])
   const onToggleDateOrder = useCallback(() => {
     setDateOrder(dateOrder => !dateOrder)
+  }, [])
+  const onPageChange = useCallback((page: number) => {
+    setOffset((page - 1) * ORDER_LIST_PAGE_SIZE)
   }, [])
   const disabled1MonthDate: DatePickerProps['disabledDate'] = (
     current,
@@ -171,18 +178,21 @@ export const OrderList: React.FC<{}> = () => {
     [orderTotal, turnoverSum, ordersSum],
   )
 
+  const dateRange = useMemo(() => dates?.map?.(date => date.valueOf()), [dates])
   const {
     periodsOrder,
     orderListElement,
     anchorElement,
     summaryElement,
+    totalDays,
     callOrderAPI,
   } = useOrderList({
-    datetime: dates?.length ? dates.map(date => date.valueOf()) : 'today',
+    datetime: dates?.length ? dateRange : 'today',
     searchData,
     dateOrder,
     searchUI: false,
     reverse: false,
+    offset,
     handleRecords,
   })
 
@@ -198,6 +208,16 @@ export const OrderList: React.FC<{}> = () => {
     )
     return () => off()
   }, [appEvent, openKeyboardDrawer])
+
+  useEffect(() => {
+    setTimeout(() => {
+      window.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
+    }, 200)
+  }, [offset])
 
   const periodsLength = periodsOrder.length
   return (
@@ -380,6 +400,12 @@ export const OrderList: React.FC<{}> = () => {
           {summaryElement}
         </div>
         <Flex wrap>{orderListElement}</Flex>
+        <Pagination
+          hideOnSinglePage
+          total={totalDays}
+          defaultPageSize={ORDER_LIST_PAGE_SIZE}
+          onChange={onPageChange}
+        />
       </div>
       <FloatButton.BackTop visibilityHeight={100} />
     </Flex>

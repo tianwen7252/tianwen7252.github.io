@@ -10,6 +10,8 @@ export const orders = {
     index = 'createdAt',
     sortKey = 'number',
     searchText = null,
+    offset = 0,
+    limit = 0,
     search,
   }: {
     startTime: number
@@ -18,6 +20,8 @@ export const orders = {
     index?: string
     sortKey?: string
     searchText?: string[]
+    offset?: number
+    limit?: number
     search?: Resta.API.Orders.SearchCallback
   }) {
     let collection = db.orders.where(index).between(startTime, endTime)
@@ -42,6 +46,12 @@ export const orders = {
     }
     if (search) {
       collection = search(collection as any) as Coll
+    }
+    if (offset) {
+      collection = collection.offset(offset)
+    }
+    if (limit) {
+      collection = collection.limit(limit)
     }
     return collection.sortBy(sortKey)
   },
