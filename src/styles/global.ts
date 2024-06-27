@@ -254,6 +254,10 @@ export const rootCss = css`
     }
   }
 
+  .ant-float-btn {
+    z-index: 888;
+  }
+
   @media (prefers-color-scheme: light) {
     :root {
       color: #213547;

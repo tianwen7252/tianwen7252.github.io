@@ -51,6 +51,10 @@ export const textAreaCss = css`
   @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
     min-height: ${TABLET.KEYBOARD_TEXT_MIN_HEIGHT};
   }
+  // for ipad chrome
+  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+    min-height: calc(${TABLET.KEYBOARD_TEXT_MIN_HEIGHT} - 50px);
+  }
 `
 
 export const drawerModeCss = css`
@@ -74,6 +78,10 @@ export const mealsCss = css`
 
   @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
     max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+  }
+  // for ipad chrome
+  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+    max-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} - 100px);
   }
 
   overflow-y: auto;
@@ -117,18 +125,35 @@ export const orderPageModeCss = css`
   width: min-content;
 `
 
+export const btnAreaCss = css`
+  flex: auto;
+  justify-content: end;
+  // for ipad chrome mode
+  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+    flex: unset !important;
+  }
+`
+
 export const btnCss = css`
   width: min-content;
   .ant-flex {
     margin-bottom: ${BTN_GAP};
     align-content: flex-start;
+
+    // for ipad chrome mode
+    @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+      gap: 10px;
+      margin-bottom: 10px;
+      max-height: 290px;
+    }
   }
 
   .ant-btn {
-    width: 5rem;
-    height: 5rem;
+    width: 4.2rem;
+    height: 4.2rem;
     white-space: normal;
     word-break: break-word;
+    /* transform: scale(0.9); */
 
     > span:not(.ant-btn-icon) {
       padding: 5px;
@@ -174,7 +199,8 @@ export const tabPanelCss = css`
   font-size: 12px;
   flex-wrap: wrap;
   flex-direction: column;
-  height: 350px;
+  min-height: 300px;
+  max-height: 350px;
   align-content: space-between;
   row-gap: ${BTN_GAP};
 `
@@ -189,15 +215,21 @@ export const btnDropdownCssName = cssPlugin.css`
 
 export const memoCss = css`
   font-size: 1rem;
-  margin: 10px 0;
+  margin: 5px 0;
 
   .ant-tag {
     font-size: ${KEYBOARD_TAG_FONT_SIZE};
     vertical-align: middle;
     border: 1px solid #ddd;
-    margin-left: 4px;
     margin-right: 0;
     padding: 2px 6px;
+    margin-left: 4px;
+
+    // for ipad
+    @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+      letter-spacing: 2px;
+      margin-left: 2px;
+    }
 
     &.ant-tag-checkable:not(.ant-tag-checkable-checked):hover {
       color: #333;

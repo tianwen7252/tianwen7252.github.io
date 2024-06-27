@@ -1,6 +1,6 @@
 export const TABLET = {
-  KEYBOARD_TEXT_MEALS_HEIGHT: '88px',
-  KEYBOARD_TEXT_MIN_HEIGHT: '140px',
+  KEYBOARD_TEXT_MEALS_HEIGHT: '190px',
+  KEYBOARD_TEXT_MIN_HEIGHT: '200px',
   // KEYBOARD_DRAWER_TEXT_MIN_HEIGHT: '80px',
 }
 
@@ -9,7 +9,8 @@ export const ANTD_SWITCH_CHECKED_BG =
 export const ANTD_SWITCH_CHECKED_HOVER_BG =
   'radial-gradient(circle, #ffd194 0%, #33ceea 100%);'
 
-export const HEADER_HEIGHT = '64px'
+// export const HEADER_HEIGHT = '64px'
+export const HEADER_HEIGHT = '0px'
 
 export const KEYBOARD_FONT_SIZE = '1.5rem'
 export const KEYBOARD_TOTAL_FONT_SIZE = '2rem'
@@ -19,7 +20,7 @@ export const KEYBOARD_DATE_FONT_SIZE = '.8rem'
 export const KEYBOARD_TAB_FONT_SIZE = '1rem'
 export const KEYBOARD_BTN_FONT_SIZE = '1rem'
 export const KEYBOARD_TEXT_MIN_HEIGHT = '250px'
-export const KEYBOARD_TEXT_MEALS_HEIGHT = '190px'
+export const KEYBOARD_TEXT_MEALS_HEIGHT = '188px'
 // export const KEYBOARD_DRAWER_TEXT_MIN_HEIGHT = '190px'
 
 export function getTransition(target = 'all', second = 1) {
@@ -31,7 +32,7 @@ export function getCalcWidth(offset = 0) {
 }
 
 export function getCalcHeight(offset = 0) {
-  return `calc(100vh - ${HEADER_HEIGHT} - ${offset}px);`
+  return `calc(100vh - ${offset}px - ${HEADER_HEIGHT});`
 }
 
 export function getStatCss(

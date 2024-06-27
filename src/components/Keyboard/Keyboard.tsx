@@ -378,7 +378,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             </Space>
           </div>
         </Flex>
-        <Flex gap="middle" vertical>
+        <Flex css={styles.btnAreaCss} gap="middle" vertical>
           <Space size="middle">
             <Segmented
               css={styles.orderPageModeCss}

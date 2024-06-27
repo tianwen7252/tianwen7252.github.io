@@ -1,12 +1,13 @@
-import React, { memo, useCallback, useEffect, useRef } from 'react'
-import { Menu, Layout, Flex } from 'antd'
-import { useLocation, Link } from 'react-router-dom'
+import React, { memo, useCallback, useRef } from 'react'
+import { Menu, Layout, Flex, FloatButton } from 'antd'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
 import {
   FormOutlined,
   OrderedListOutlined,
   BarChartOutlined,
   UserSwitchOutlined,
   SettingOutlined,
+  MenuOutlined,
 } from '@ant-design/icons'
 
 import { useObserverDom } from 'src/hooks'
@@ -32,6 +33,7 @@ const MENU_ITEMS = [
 
 export const AppHeader: React.FC<{}> = memo(() => {
   const { pathname = '/' } = useLocation()
+  const navigate = useNavigate()
   const observerRef = useRef<HTMLDivElement>()
   const headerRef = useRef<HTMLDivElement>()
 
@@ -40,10 +42,20 @@ export const AppHeader: React.FC<{}> = memo(() => {
     headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
   }, [])
   useObserverDom(observerRef, onObserve)
+
+  const onClickMenu = useCallback(
+    (event: React.MouseEvent<HTMLButtonElement>) => {
+      event.preventDefault()
+      const { url } = event.currentTarget.dataset
+      navigate(url)
+    },
+    [navigate],
+  )
+
   return (
     <>
       <div id="resta-header-observer" ref={observerRef}></div>
-      <Header ref={headerRef} css={headerCss}>
+      {/* <Header ref={headerRef} css={headerCss}>
         <Flex>
           <img css={logoCss} src={viteLogo} />
           <label>天文</label>
@@ -54,7 +66,23 @@ export const AppHeader: React.FC<{}> = memo(() => {
             items={MENU_ITEMS}
           />
         </Flex>
-      </Header>
+      </Header> */}
+      <FloatButton.Group
+        trigger="hover"
+        style={{ right: 10, top: 10, zIndex: 1001 }}
+        icon={<MenuOutlined />}
+      >
+        <FloatButton
+          data-url="/"
+          icon={<FormOutlined />}
+          onClick={onClickMenu}
+        />
+        <FloatButton
+          data-url="/order-list"
+          icon={<OrderedListOutlined />}
+          onClick={onClickMenu}
+        />
+      </FloatButton.Group>
     </>
   )
 })

@@ -6,16 +6,21 @@ import { COLORS } from 'src/constants/defaults/memos'
 const actionUIWidth = 42 * 2 - 1 // - 1 border
 const editBgColor = 'linear-gradient(to top, #dbd5a7, #b0dab9)'
 const deleteBgColor = 'linear-gradient(to bottom, #fb578e, #f7bb97)'
-const cardWidth = '284px'
 
 export const orderCss = css`
+  --resta-order-card-width: 284px;
   font-size: 1rem;
   position: relative;
   overflow: hidden;
   border-radius: 8px;
   border: 1px solid #55555587;
-  width: ${cardWidth};
-  min-width: ${cardWidth};
+  width: var(--resta-order-card-width);
+  min-width: var(--resta-order-card-width);
+
+  // for iPad 10
+  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+    --resta-order-card-width: 260px;
+  }
 `
 
 export const frameCss = css`
@@ -29,7 +34,7 @@ export const frameCss = css`
 
 export const mainCss = css`
   background: #fff;
-  min-width: ${cardWidth};
+  min-width: var(--resta-order-card-width);
   label: __order-main; // @emotion only
 
   .ant-tag {

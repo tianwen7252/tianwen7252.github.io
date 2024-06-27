@@ -75,6 +75,10 @@ export const keyboardDrawerCss = css`
     overflow: hidden;
     height: auto;
   }
+
+  .ant-drawer-close {
+    margin-right: 50px;
+  }
 `
 
 export const contentCss = css`
