@@ -53,13 +53,42 @@ export const OrderList: React.FC<{}> = () => {
   const [showTime, setShowTime] = useState(false)
   const [dateOrder, setDateOrder] = useState(true) // true is desc date order
   const [offset, setOffset] = useState(0)
+  const [dateDescription, setDateDescription] = useState('')
   const { appEvent } = useContext(AppContext)
-
-  const todayDate = dayjs.tz()
-  const todayStartDate = todayDate.startOf('day')
-  const todayEndDate = todayDate.endOf('day')
-  const yesterStartDate = todayStartDate.add(-1, 'd')
   const isDisabled = !dates?.length
+
+  const presets: any[] = useMemo(() => {
+    const todayDate = dayjs.tz()
+    const todayStartDate = todayDate.startOf('day')
+    const todayEndDate = todayDate.endOf('day')
+    const yesterStartDate = todayStartDate.add(-1, 'd')
+    return [
+      {
+        label: '今天',
+        value: [todayStartDate, todayEndDate],
+      },
+      {
+        label: '昨天',
+        value: [yesterStartDate, yesterStartDate.endOf('day')],
+      },
+      {
+        label: '2天內',
+        value: [yesterStartDate, todayEndDate],
+      },
+      {
+        label: '7天前',
+        value: [todayStartDate.add(-7, 'd'), todayEndDate],
+      },
+      {
+        label: '14天內',
+        value: [todayStartDate.add(-14, 'd'), todayEndDate],
+      },
+      {
+        label: '1個月內',
+        value: [todayStartDate.add(-30, 'd'), todayEndDate],
+      },
+    ]
+  }, [])
 
   const openSearchDrawer = useCallback(() => {
     setSearchDrawer(true)
@@ -76,12 +105,27 @@ export const OrderList: React.FC<{}> = () => {
     setKeyboardDrawer(false)
     appEvent.fire(appEvent.ORDER_AFTER_ACTION)
   }, [appEvent])
-  const onRangeChange = useCallback((dates: null | (Dayjs | null)[]) => {
-    if (dates) {
-      const [start, end] = dates
-      setDates([start, end.endOf('day')])
-    }
-  }, [])
+  const onRangeChange = useCallback(
+    (dates: null | (Dayjs | null)[]) => {
+      if (dates) {
+        const [start, end] = dates
+        const result = presets.some(({ label, value }) => {
+          const result =
+            value[0].valueOf() === start.valueOf() &&
+            value[1].valueOf() === end.valueOf()
+          if (result) {
+            setDateDescription(label)
+          }
+          return result
+        })
+        if (!result) {
+          setDateDescription('')
+        }
+        setDates(dates)
+      }
+    },
+    [presets],
+  )
   const onChangesearchData = useCallback(
     debounce((value: typeof searchData) => {
       setSearchData(value)
@@ -115,16 +159,16 @@ export const OrderList: React.FC<{}> = () => {
   const onPageChange = useCallback((page: number) => {
     setOffset((page - 1) * ORDER_LIST_PAGE_SIZE)
   }, [])
-  const disabled1MonthDate: DatePickerProps['disabledDate'] = (
-    current,
-    { from },
-  ) => {
-    if (from) {
-      return Math.abs(current.diff(from, 'month')) >= 1
-    }
-
-    return false
-  }
+  const disabled1MonthDate: DatePickerProps['disabledDate'] = useCallback(
+    (current, { from }) => {
+      if (from) {
+        // allow maximum 32 days
+        return Math.abs(current.diff(from, 'day')) > 31
+      }
+      return false
+    },
+    [],
+  )
   const reset = useCallback(() => {
     setDates([])
     setSearchData([])
@@ -242,32 +286,7 @@ export const OrderList: React.FC<{}> = () => {
             <h2>日期</h2>
             <RangePicker
               showNow
-              presets={[
-                {
-                  label: '今天',
-                  value: [todayStartDate, todayEndDate],
-                },
-                {
-                  label: '昨天',
-                  value: [yesterStartDate, yesterStartDate.endOf('day')],
-                },
-                {
-                  label: '今天 - 昨天',
-                  value: [yesterStartDate, todayEndDate],
-                },
-                {
-                  label: '7天前',
-                  value: [todayStartDate.add(-7, 'd'), todayEndDate],
-                },
-                {
-                  label: '14天前',
-                  value: [todayStartDate.add(-14, 'd'), todayEndDate],
-                },
-                {
-                  label: '1個月前',
-                  value: [todayStartDate.add(-30, 'd'), todayEndDate],
-                },
-              ]}
+              presets={presets}
               showTime={showTime}
               format={DATE_FORMAT_DATETIME_UI}
               placeholder={['開始日期', '結束日期']}
@@ -394,6 +413,7 @@ export const OrderList: React.FC<{}> = () => {
                 {periodsLength === 1
                   ? periodsOrder[0]
                   : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
+                {dateDescription && ` (${dateDescription})`}
               </h2>
             )}
           </Space>

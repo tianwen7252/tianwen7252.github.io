@@ -99,7 +99,7 @@ export const drawerAcitve = css`
 
 export const sectionCss = css`
   > [class*='__orderlist_summary'] {
-    width: 50%;
+    width: 70%;
     background: #00000007;
     margin: 0;
   }

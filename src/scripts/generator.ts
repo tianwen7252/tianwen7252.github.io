@@ -112,6 +112,7 @@ async function genOrders(range = '1Q', clear = false) {
   )
   if (clear) {
     await db.orders.clear()
+    await db.dailyData.clear()
   }
   const { priceMapGroup } = getCommoditiesInfo(undefined, false, true)
   const dateMap = {} as Resta.IObject

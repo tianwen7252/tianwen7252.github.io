@@ -31,6 +31,10 @@ export const Root: React.FC<{}> = memo(() => {
           // }}
           element={lazyLoad(() => import('../OrderList'))}
         />
+        <Route
+          path="statistics"
+          element={lazyLoad(() => import('../Statistics'))}
+        />
         <Route path="login" element={<>Login</>} />
       </Route>
     </Routes>

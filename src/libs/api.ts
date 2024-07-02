@@ -63,8 +63,16 @@ export const orders = {
       createdAt = dayjs().utc().valueOf()
     }
     record.createdAt = createdAt
-    const result = await db.orders.add(record as RestaDB.OrderRecord)
-    await orders.updateDailyData('add', record)
+    // using transaction to avoid creating multiple daily data
+    const result = await db.transaction(
+      'rw',
+      [db.orders, db.dailyData],
+      async () => {
+        const result = await db.orders.add(record as RestaDB.OrderRecord)
+        await orders.updateDailyData('add', record)
+        return result
+      },
+    )
     return result
   },
   async set(
@@ -131,7 +139,7 @@ export const dailyData = {
     index = 'createdAt',
     sortKey = index,
   }: {
-    date: string
+    date?: string
     startTime?: number
     endTime?: number
     reverse?: boolean
@@ -167,7 +175,14 @@ export const dailyData = {
       editor,
     })
   },
-  set(
+  set(id: RestaDB.ID, total: number, editor = 'admin') {
+    return db.dailyData.update(id, {
+      total,
+      originalTotal: total,
+      editor,
+    })
+  },
+  revise(
     id: RestaDB.ID,
     total: number,
     updatedAt?: RestaDB.OrderRecord['createdAt'],
@@ -181,5 +196,21 @@ export const dailyData = {
       updatedAt,
       editor,
     })
+  },
+}
+
+export const statistics = {
+  async get(startTime: number, endTime: number) {
+    const records = await orders.get({
+      startTime,
+      endTime,
+      reverse: false,
+    })
+    const dailyDataInfo = await dailyData.get({
+      startTime,
+      endTime,
+      reverse: false,
+    })
+    return { records, dailyDataInfo }
   },
 }

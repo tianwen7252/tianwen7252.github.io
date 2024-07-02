@@ -18,4 +18,11 @@ export const WORK_SHIFT = [
   },
 ]
 
+export function isAMPM(hour) {
+  if (hour >= 15) {
+    return 'PM'
+  }
+  return 'AM'
+}
+
 export const WORK_SHIFT_REVERSED = [...WORK_SHIFT].reverse()

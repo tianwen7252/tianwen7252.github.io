@@ -255,7 +255,11 @@ export const rootCss = css`
   }
 
   .ant-float-btn {
-    z-index: 888;
+    z-index: 1001;
+  }
+
+  .ant-float-btn-group {
+    height: min-content;
   }
 
   @media (prefers-color-scheme: light) {

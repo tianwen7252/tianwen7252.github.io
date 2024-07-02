@@ -2,6 +2,7 @@
 /// <reference types="vite/client" />
 /// <reference types="vite-plugin-svgr/client" />
 import type { Collection } from 'dexie'
+import type { ChartConfiguration } from 'chart.js'
 
 export = Resta
 export as namespace Resta
@@ -87,6 +88,35 @@ declare namespace Resta {
     ) => RestaDB.Table.Order[]
   }
 
+  namespace Statistics {
+    type DataMap = {
+      [date: string]: {
+        records: RestaDB.Table.OrderRecord[]
+        dailyData: RestaDB.Table.DailyData
+      }
+    }
+    type StatAPIGet = {
+      records: RestaDB.Table.Order[]
+      dailyDataInfo: RestaDB.Table.DailyData[]
+    }
+  }
+
+  namespace Chart {
+    interface Props {
+      dateMap: Resta.Statistics.DataMap
+      title: string
+      type: 'bar' | 'line' | 'bubble'
+      handle(
+        dateMap?: Resta.Statistics.DataMap,
+        timeFormat?: 'd' | 'w' | 'm' | 'q' | 'y',
+      ): ChartConfig
+    }
+    interface ChartConfig {
+      options: ChartConfiguration['options']
+      data: ChartConfiguration['data']
+    }
+  }
+
   namespace Commodity {
     type Items =
       (typeof import('../src/constants/defaults/commondities').COMMODITIES)[0]['items']
@@ -112,10 +142,13 @@ declare namespace Resta {
     type PriceMapGroup = {
       [name: 'main-dish' | 'à-la-carte' | 'others']: PriceMap
     }
+    type ResMapGroup = {
+      [name: 'main-dish' | 'à-la-carte' | 'others']: string[]
+    }
   }
 
   type OrderRecord = RestaDB.OrderRecord
-  type OrderList = Order[]
+  type OrderList = RestaDB.Table.Order[]
   type OrderRecords = OrderList
 
   namespace API {
@@ -169,7 +202,9 @@ declare global {
       }
     }
 
-    type OrderRecord = Table.Order
+    type OrderRecord = Table.Order & {
+      $isAM: boolean
+    }
     //  type NewOrderRecord = Omit<OrderRecord, 'id' | 'createdAt' | 'updatedAt'>
     type NewOrderRecord = Partial<OrderRecord>
 

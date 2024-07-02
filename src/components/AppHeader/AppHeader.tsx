@@ -38,10 +38,10 @@ export const AppHeader: React.FC<{}> = memo(() => {
   const headerRef = useRef<HTMLDivElement>()
 
   // set app header shadow by IntersectionObserver
-  const onObserve = useCallback((isIntersecting: boolean) => {
-    headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
-  }, [])
-  useObserverDom(observerRef, onObserve)
+  // const onObserve = useCallback((isIntersecting: boolean) => {
+  //   headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
+  // }, [])
+  // useObserverDom(observerRef, onObserve)
 
   const onClickMenu = useCallback(
     (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -80,6 +80,11 @@ export const AppHeader: React.FC<{}> = memo(() => {
         <FloatButton
           data-url="/order-list"
           icon={<OrderedListOutlined />}
+          onClick={onClickMenu}
+        />
+        <FloatButton
+          data-url="/statistics"
+          icon={<BarChartOutlined />}
           onClick={onClickMenu}
         />
       </FloatButton.Group>

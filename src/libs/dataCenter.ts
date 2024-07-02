@@ -52,4 +52,7 @@ export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
 // getDeviceStorageInfo().then(({ percentageUsed, remaining, unit }) => {
 //   console.log(percentageUsed, remaining, unit)
 // })
+
 // generate('orders', '1Q', true)
+
+// generate('orders', '2d', true)

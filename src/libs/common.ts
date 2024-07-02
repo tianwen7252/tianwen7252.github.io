@@ -2,6 +2,7 @@ import { COMMODITIES } from 'src/constants/defaults/commondities'
 
 export const DATE_FORMAT = 'YYYY/MM/DD dddd'
 export const DATE_FORMAT_DATE = 'YYYY/MM/DD'
+export const DATE_FORMAT_MONTH = 'YYYY/MM'
 export const DATE_FORMAT_TIME = 'MM/DD HH:m:s A'
 export const DATE_FORMAT_DATETIME_UI = 'YYYY/MM/DD HH:mm'
 export const DATE_FORMAT_FOR_ANCHOR = 'MM-DD (dd)'
@@ -20,6 +21,11 @@ export function toCurrency(amount: number) {
 // without $
 export function toCurrencyNumber(amount: number) {
   return toCurrency(amount).substring(1)
+}
+
+export function getHourFormat(hour, next = false) {
+  const hh = hour - (hour > 12 ? 12 : 0)
+  return `${hh} ${hour > 11 ? 'PM' : 'AM'}${next ? ` - ${getHourFormat(hour + 1)}` : ''}`
 }
 
 const userAgent = navigator.userAgent.toLowerCase()
@@ -42,6 +48,7 @@ export function getCommoditiesInfo(
   const priceMap = {} as Resta.Commodity.PriceMap
   const commodityMap = {} as Resta.Commodity.CommodityMap
   const priceMapGroup = {} as Resta.Commodity.PriceMapGroup
+  const resMapGroup = {} as Resta.Commodity.ResMapGroup
   const tidy = (
     type: string,
     items: Resta.Commodity.Items,
@@ -93,6 +100,9 @@ export function getCommoditiesInfo(
           priceMapGroup[type] ?? ({} as Resta.Commodity.PriceMap))
         group[price] = group[price] ?? ([] as Resta.Commodity.RelevancyList)
         group[price].push(record)
+        const resGroup = (resMapGroup[type] =
+          resMapGroup[type] ?? ([] as Resta.Commodity.ResMapGroup))
+        resGroup.push(record.name)
       })
     })
     // fix $15 to à-la-carte type temporarily
@@ -101,6 +111,11 @@ export function getCommoditiesInfo(
       ...priceMapGroup['main-dish']['15'],
     ] as Resta.Commodity.RelevancyList
     delete priceMapGroup['main-dish']['15']
+    resMapGroup['à-la-carte'].push('加蛋')
+    resMapGroup['à-la-carte'].push('加菜')
+    resMapGroup['main-dish'] = resMapGroup['main-dish'].filter(
+      name => name !== '加蛋' && name !== '加菜',
+    )
   }
-  return { data, priceMap, commodityMap, priceMapGroup }
+  return { data, priceMap, commodityMap, priceMapGroup, resMapGroup }
 }
