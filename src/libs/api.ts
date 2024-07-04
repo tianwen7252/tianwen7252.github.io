@@ -1,6 +1,5 @@
 import { db } from 'src/libs/dataCenter'
 import dayjs from 'dayjs'
-import { trim } from 'lodash'
 
 export const orders = {
   get({
@@ -32,7 +31,7 @@ export const orders = {
     if (searchText?.length) {
       collection = collection.filter(({ data, total, memo }) =>
         searchText.some(text => {
-          text = trim(text)
+          text = text.trim()
           return (
             total === +text ||
             memo.some(tag => tag.includes(text)) ||

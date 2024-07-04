@@ -1,10 +1,5 @@
 import { css } from '@emotion/react'
 
-export const chartLabel = css`
-  font-size: 1.4rem;
-  color: #6b6868;
-`
-
 export const chartCss = css`
   .ant-empty-image {
     height: auto;
@@ -17,4 +12,15 @@ export const chartCss = css`
       font-size: 13rem;
     }
   }
+`
+
+export const labelCss = css`
+  font-size: 1.4rem;
+  color: #6b6868;
+  margin-bottom: 20px;
+`
+
+export const headerCss = css`
+  justify-content: space-between;
+  align-items: baseline;
 `

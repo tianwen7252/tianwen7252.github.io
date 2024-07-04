@@ -2,7 +2,7 @@ import { css } from '@emotion/react'
 
 import { getStatCss } from 'src/styles/variables'
 
-export const minCss = css`
+export const mainCss = css`
   padding: 20px;
 `
 
@@ -10,10 +10,24 @@ export const headerCss = css`
   margin-bottom: 20px;
   font-size: 1.4rem;
   color: #6b6868;
+  position: sticky;
+  top: 0;
+  z-index: 870;
+  padding: 10px 20px;
 
   .ant-picker {
     margin-left: 30px;
     margin-right: 20px;
+  }
+  &.resta-header--active {
+    backdrop-filter: blur(10px);
+    box-shadow:
+      0 0 #000,
+      0 0 #0000,
+      0 0 #000,
+      0 0 #0000,
+      0 16px 32px -16px rgba(0, 0, 0, 0.3),
+      0 0 0 1px rgba(0, 0, 0, 0.1);
   }
 `
 

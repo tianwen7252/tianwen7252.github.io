@@ -89,12 +89,6 @@ declare namespace Resta {
   }
 
   namespace Statistics {
-    type DataMap = {
-      [date: string]: {
-        records: RestaDB.Table.OrderRecord[]
-        dailyData: RestaDB.Table.DailyData
-      }
-    }
     type StatAPIGet = {
       records: RestaDB.Table.Order[]
       dailyDataInfo: RestaDB.Table.DailyData[]
@@ -102,13 +96,22 @@ declare namespace Resta {
   }
 
   namespace Chart {
+    type DateMap = {
+      [date: string]: {
+        records: RestaDB.Table.OrderRecord[]
+        dailyData: RestaDB.Table.DailyData
+      }
+    }
+    type DateType = 'd' | 'w' | 'm' | 'q' | 'y'
     interface Props {
       dateMap: Resta.Statistics.DataMap
+      dateType: DateType
       title: string
       type: 'bar' | 'line' | 'bubble'
+      allowedDateType?: string | null
       handle(
         dateMap?: Resta.Statistics.DataMap,
-        timeFormat?: 'd' | 'w' | 'm' | 'q' | 'y',
+        selectedDateType?: DateType,
       ): ChartConfig
     }
     interface ChartConfig {

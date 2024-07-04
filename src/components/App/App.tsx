@@ -3,7 +3,7 @@ import { ConfigProvider } from 'antd'
 import { Global } from '@emotion/react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 
-import 'src/libs/date'
+import 'src/libs/dayjs'
 import { rootCss, antStyles } from 'src/styles/global'
 import Root from '../Root'
 

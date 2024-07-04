@@ -1,5 +1,12 @@
-import React, { memo, useCallback, useState, useMemo, useContext } from 'react'
-import { Flex, Statistic, Space, Empty, DatePicker, FloatButton } from 'antd'
+import React, {
+  memo,
+  useCallback,
+  useState,
+  useMemo,
+  useContext,
+  useRef,
+} from 'react'
+import { Flex, Statistic, Space, DatePicker, FloatButton } from 'antd'
 import { BarChartOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
@@ -11,53 +18,45 @@ import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,
   getCorrectAmount,
-  toCurrency,
-  toCurrencyNumber,
-  getHourFormat,
-  getCommoditiesInfo,
 } from 'src/libs/common'
+import { useObserverDom } from 'src/hooks'
 import { isAMPM } from 'src/constants/defaults/workshift'
 import Chart from 'src/components/Chart'
-import {
-  CHART_BORDER_COLORS,
-  CHART_COLORS,
-  HOURS,
-  pickColor,
-} from 'src/libs/chart'
+import { getDateType } from 'src/libs/chart'
+import { handleIncomeChart } from './charts/income'
+import { handleCustomersChart } from './charts/customers'
+import { handleMainDishChart } from './charts/mainDish'
 
 import * as styles from './styles'
 
 const { RangePicker } = DatePicker
-
-const { resMapGroup } = getCommoditiesInfo(undefined, false, true)
+const DEFAULT_QUERY_DATA = {} as Resta.Statistics.StatAPIGet
 
 export const Statistics: React.FC<{}> = memo(() => {
   const { API } = useContext(AppContext)
+  const observerRef = useRef<HTMLDivElement>()
+  const headerRef = useRef<HTMLDivElement>()
+
+  // set header shadow by IntersectionObserver
+  const onObserve = useCallback((isIntersecting: boolean) => {
+    headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
+  }, [])
+  useObserverDom(observerRef, onObserve)
+
   const [dates, setDates] = useState<Dayjs[]>()
   const [dateDescription, setDateDescription] = useState('')
 
   const todayDate = dayjs.tz()
   const today = todayDate.format(DATE_FORMAT_DATE)
 
-  const [startTime, endTime, displayType] = useMemo(() => {
+  const [startTime, endTime, dateType] = useMemo(() => {
     if (!dates?.length) {
-      return [null, null, null]
+      return [null, null, undefined]
     }
     const range = dates.map(day => day.valueOf())
     const dateCount = Math.abs(dates[0].diff(dates[1], 'day'))
-    let displayType = 'd'
-    if (dateCount <= 7) {
-      displayType = 'd'
-    } else if (dateCount <= 31) {
-      displayType = 'w'
-    } else if (dateCount <= 90) {
-      displayType = 'm'
-    } else if (dateCount <= 180 || dateCount <= 365) {
-      displayType = 'q'
-    } else if (dateCount > 365) {
-      displayType = 'y'
-    }
-    return [...range, displayType] as [number, number, string]
+    const dateType = getDateType(dateCount)
+    return [...range, dateType] as [number, number, Resta.Chart.DateType]
   }, [dates])
   // typeof RangePicker.propTypes['presets'] doesn't work
   const presets: any[] = useMemo(() => {
@@ -178,12 +177,12 @@ export const Statistics: React.FC<{}> = memo(() => {
   const { records, dailyDataInfo } = useLiveQuery(
     async () => {
       if (!startTime || !endTime) {
-        return {} as Resta.Statistics.StatAPIGet
+        return DEFAULT_QUERY_DATA
       }
       return await API.statistics.get(startTime, endTime)
     },
     [startTime, endTime],
-    {} as Resta.Statistics.StatAPIGet,
+    DEFAULT_QUERY_DATA,
   )
 
   const summayData = useMemo(() => {
@@ -200,7 +199,7 @@ export const Statistics: React.FC<{}> = memo(() => {
         dateMap: null,
       }
     }
-    const dateMap = {} as Resta.Statistics.DataMap
+    const dateMap = {} as Resta.Chart.DateMap
     let incomeTotal = 0,
       incomeAMTotal = 0,
       incomePMTotal = 0,
@@ -266,250 +265,12 @@ export const Statistics: React.FC<{}> = memo(() => {
     dateMap,
   } = summayData
 
-  const handleIncomeChart = useCallback((dateMap: Resta.Statistics.DataMap) => {
-    if (!dateMap) return null
-    const datasets = [
-      {
-        label: '上午',
-        data: [],
-        backgroundColor: CHART_COLORS.yellow,
-        stack: 'stack 0',
-      },
-      {
-        label: '下午',
-        data: [],
-        backgroundColor: CHART_COLORS.blue,
-        stack: 'stack 0',
-      },
-    ]
-    const labels = Object.keys(dateMap)
-    const firstOneYear = labels[0]?.split?.('/')?.[0]
-    let allAreSameYear = true
-    const datasetTotal: number[] = []
-    labels.forEach((date, index) => {
-      const { records, dailyData } = dateMap[date]
-      const [year] = date.split('/')
-      records.forEach(({ total, $isAM }) => {
-        if ($isAM) {
-          const data = datasets[0].data
-          data[index] = data[index] ?? 0
-          data[index] += total
-        } else {
-          const data = datasets[1].data
-          data[index] = data[index] ?? 0
-          data[index] += total
-        }
-      })
-      datasetTotal.push(dailyData.total)
-      if (year !== firstOneYear) {
-        allAreSameYear = false
-      }
-    })
-    return {
-      options: {
-        responsive: true,
-        scales: {
-          x: {
-            stacked: true,
-          },
-          y: {
-            stacked: true,
-          },
-        },
-        plugins: {
-          datalabels: {
-            anchor: 'end',
-            align: 'end',
-            formatter(value, context) {
-              const total = datasetTotal[context.dataIndex]
-              return toCurrency(total)
-            },
-            display(context) {
-              return context.datasetIndex === 1
-            },
-          },
-          // type has issue in chart.js 4.4.3
-        } as any,
-      },
-      data: {
-        labels:
-          allAreSameYear && firstOneYear
-            ? labels.map(each => each.split('/').slice(1).join('/'))
-            : labels,
-        datasets,
-      },
-    }
-  }, [])
-  const handleCustomersChart = useCallback(
-    (dateMap: Resta.Statistics.DataMap) => {
-      if (!dateMap) return null
-      const skipped = (ctx, color) =>
-        ctx.p0.skip || ctx.p1.skip ? color : undefined
-      const PM = (ctx, color1, color2?) => {
-        const target = ctx?.p0DataIndex ? ctx.p0DataIndex : ctx.dataIndex
-        return target >= 6 ? color1 : color2
-      }
-      const datasets = [
-        {
-          label: '營業時間',
-          data: [],
-          backgroundColor: ctx =>
-            PM(ctx, CHART_COLORS.blue, CHART_COLORS.yellow),
-          borderColor: ctx =>
-            PM(ctx, CHART_BORDER_COLORS.blue, CHART_BORDER_COLORS.yellow),
-          pointStyle: 'circle',
-          pointRadius: 10,
-          pointHoverRadius: 15,
-          segment: {
-            pointBackgroundColor: ctx => PM(ctx, CHART_COLORS.blue),
-            pointBorderColor: ctx => PM(ctx, CHART_BORDER_COLORS.blue),
-            borderColor: ctx =>
-              skipped(ctx, CHART_BORDER_COLORS.gray) ||
-              PM(ctx, CHART_BORDER_COLORS.blue),
-            borderDash: ctx => skipped(ctx, [6, 6]),
-          },
-          spanGaps: true,
-        },
-      ]
-      const labels: string[] = [...HOURS].map(hour => {
-        return `${getHourFormat(hour, true)}${hour === 14 || hour === 15 ? ' 午休' : ''}`
-      })
-      const dates = Object.keys(dateMap)
-      dates.forEach(date => {
-        const { records } = dateMap[date]
-        records.forEach(({ createdAt }) => {
-          const day = dayjs.tz(createdAt)
-          const hour = day.hour()
-          const index = HOURS.indexOf(hour)
-          const data = datasets[0].data
-          data[index] = data[index] ?? 0
-          ++data[index]
-        })
-      })
-      // break time
-      datasets[0].data[4] = NaN
-      datasets[0].data[5] = NaN
-
-      return {
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              stacked: true,
-            },
-            y: {
-              stacked: true,
-              beginAtZero: true,
-            },
-          },
-          plugins: {
-            totalizer: {
-              calculate: true,
-            },
-            datalabels: {
-              anchor: 'end',
-              align: 'end',
-              formatter(value) {
-                return `${value} 人`
-              },
-            },
-            // type has issue in chart.js 4.4.3
-          } as any,
-          fill: false,
-          interaction: {
-            intersect: false,
-          },
-          radius: 0,
-        },
-        data: {
-          labels,
-          datasets,
-        },
-      }
-    },
-    [],
-  )
-  const handleMainDishChart = useCallback(
-    (dateMap: Resta.Statistics.DataMap) => {
-      if (!dateMap) return null
-      const datasets = resMapGroup['main-dish'].map((label, index) => {
-        return {
-          label,
-          data: [],
-          backgroundColor: pickColor(index),
-          stack: 'stack 0',
-        }
-      })
-      const dates = Object.keys(dateMap)
-      const labels = dates
-      const firstOneYear = labels[0]?.split?.('/')?.[0]
-      let allAreSameYear = true
-      dates.forEach((date, dateIndex) => {
-        const { records } = dateMap[date]
-        const [year] = date.split('/')
-        records.forEach(({ data }) => {
-          data.forEach(({ res, type }) => {
-            if (type === 'main-dish') {
-              const index = resMapGroup['main-dish'].findIndex(
-                name => name === res,
-              )
-              if (index >= 0) {
-                datasets[index].data[dateIndex] =
-                  (datasets[index].data[dateIndex] ?? 0) + 1
-              }
-            }
-          })
-          if (year !== firstOneYear) {
-            allAreSameYear = false
-          }
-        })
-      })
-
-      datasets.push({
-        label: 'Total',
-        data: [...Array.from(Array(dates.length)).map(() => 0)], // 0s are just placeholders
-        datalabels: {
-          align: 'end',
-          anchor: 'end',
-          formatter(value, ctx) {
-            let sum = 0
-            ctx.chart.data.datasets.forEach(dataset => {
-              sum += dataset.data[ctx.dataIndex]
-            })
-            return toCurrencyNumber(sum)
-          },
-        },
-        stack: 'stack 0',
-      })
-      return {
-        options: {
-          responsive: true,
-          scales: {
-            x: {
-              stacked: true,
-            },
-            y: {
-              stacked: true,
-            },
-          },
-        },
-        data: {
-          labels:
-            allAreSameYear && firstOneYear
-              ? labels.map(each => each.split('/').slice(1).join('/'))
-              : labels,
-          datasets,
-        },
-      }
-    },
-    [],
-  )
-
-  console.log('records', displayType, records, dateMap, resMapGroup)
+  // console.log('records', dateType, records, dateMap)
 
   return (
-    <Flex css={styles.minCss} vertical gap={40}>
-      <div css={styles.headerCss}>
+    <>
+      <div id="resta-header-observer" ref={observerRef}></div>
+      <div css={styles.headerCss} ref={headerRef}>
         <Space css={styles.titleCss}>
           <BarChartOutlined />
           <label>統計報表</label>
@@ -526,88 +287,93 @@ export const Statistics: React.FC<{}> = memo(() => {
         />
         <label>{dateDescription && `(${dateDescription})`}</label>
       </div>
-      <div css={styles.summaryCss}>
-        <Flex>
-          <div css={styles.statCss}>
-            <Statistic
-              title="總營業額 (含修正)"
-              prefix={isNil(incomeTotal) ? '' : '$'}
-              value={incomeTotal ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="淨利"
-              prefix={isNil(profits) ? '' : '$'}
-              value={profits ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="成本"
-              prefix={isNil(cost) ? '' : '$'}
-              value={cost ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="訂單數量"
-              prefix={isNil(recordsCount) ? '' : '$'}
-              value={recordsCount ?? '---'}
-            />
-          </div>
-        </Flex>
-        <Flex>
-          <div css={styles.statCss}>
-            <Statistic
-              title="上午營業額"
-              prefix={isNil(incomeAMTotal) ? '' : '$'}
-              value={incomeAMTotal ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="下午營業額"
-              prefix={isNil(incomePMTotal) ? '' : '$'}
-              value={incomePMTotal ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="銷售便當數量"
-              prefix={isNil(mainDishCount) ? '' : '$'}
-              value={mainDishCount ?? '---'}
-            />
-          </div>
-          <div css={styles.statCss}>
-            <Statistic
-              title="銷售商品數量"
-              prefix={isNil(resCount) ? '' : '$'}
-              value={resCount ?? '---'}
-            />
-          </div>
-        </Flex>
-      </div>
-      <Chart
-        type="bar"
-        title="營收分析"
-        handle={handleIncomeChart}
-        dateMap={dateMap}
-      />
-      <Chart
-        type="line"
-        title="客流量分析"
-        handle={handleCustomersChart}
-        dateMap={dateMap}
-      />
-      <Chart
-        type="bar"
-        title="便當銷售分析"
-        handle={handleMainDishChart}
-        dateMap={dateMap}
-      />
-      <FloatButton.BackTop visibilityHeight={100} />
-    </Flex>
+      <Flex css={styles.mainCss} vertical gap={40}>
+        <div css={styles.summaryCss}>
+          <Flex>
+            <div css={styles.statCss}>
+              <Statistic
+                title="總營業額 (含修正)"
+                prefix={isNil(incomeTotal) ? '' : '$'}
+                value={incomeTotal ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="淨利"
+                prefix={isNil(profits) ? '' : '$'}
+                value={profits ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="成本"
+                prefix={isNil(cost) ? '' : '$'}
+                value={cost ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="訂單數量"
+                prefix={isNil(recordsCount) ? '' : '$'}
+                value={recordsCount ?? '---'}
+              />
+            </div>
+          </Flex>
+          <Flex>
+            <div css={styles.statCss}>
+              <Statistic
+                title="上午營業額"
+                prefix={isNil(incomeAMTotal) ? '' : '$'}
+                value={incomeAMTotal ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="下午營業額"
+                prefix={isNil(incomePMTotal) ? '' : '$'}
+                value={incomePMTotal ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="銷售便當數量"
+                prefix={isNil(mainDishCount) ? '' : '$'}
+                value={mainDishCount ?? '---'}
+              />
+            </div>
+            <div css={styles.statCss}>
+              <Statistic
+                title="銷售商品數量"
+                prefix={isNil(resCount) ? '' : '$'}
+                value={resCount ?? '---'}
+              />
+            </div>
+          </Flex>
+        </div>
+        <Chart
+          type="bar"
+          title="營收分析"
+          dateMap={dateMap}
+          dateType={dateType}
+          handle={handleIncomeChart}
+        />
+        <Chart
+          type="line"
+          title="客流量分析"
+          dateMap={dateMap}
+          dateType={dateType}
+          handle={handleCustomersChart}
+        />
+        <Chart
+          type="bar"
+          title="便當銷售分析"
+          dateMap={dateMap}
+          dateType={dateType}
+          handle={handleMainDishChart}
+        />
+        <FloatButton.BackTop visibilityHeight={100} />
+      </Flex>
+    </>
   )
 })
 
