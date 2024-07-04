@@ -53,6 +53,6 @@ export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
 //   console.log(percentageUsed, remaining, unit)
 // })
 
-// generate('orders', '1Q', true)
+// generate('orders', '3Q', true)
 
 // generate('orders', '2d', true)

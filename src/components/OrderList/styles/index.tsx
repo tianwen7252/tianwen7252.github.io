@@ -7,7 +7,7 @@ export const mainCss = css`
   padding: 20px;
   /* width: ${getCalcWidth(40)}; */
   min-height: ${getCalcHeight(40)};
-  label: _____main;
+  label: __main;
 
   [class*='__orderlist_summary'] {
     padding: 20px;
@@ -22,10 +22,13 @@ export const mainCss = css`
 `
 
 export const headerCss = css`
+  padding: 10px 20px;
   h2 {
     color: #bbb;
   }
+`
 
+export const listSummaryCss = css`
   [class*='__orderlist_summary'] {
     padding-bottom: 0;
     width: 70%;

@@ -29,21 +29,17 @@ export function handleIncomeChart(
   const PMTotal: {
     [group: string]: number
   } = {}
-  const { labels } = forEachDateMap(
-    dateMap,
-    dateType,
-    ({ date, group }, index) => {
-      const { records, dailyData } = dateMap[date]
-      records.forEach(({ total, $isAM }) => {
-        if ($isAM) {
-          AMTotal[group] = (AMTotal[group] ?? 0) + total
-        } else {
-          PMTotal[group] = (PMTotal[group] ?? 0) + total
-        }
-      })
-      datasetTotal[group] = (datasetTotal[group] ?? 0) + dailyData.total
-    },
-  )
+  const { labels } = forEachDateMap(dateMap, dateType, ({ date, group }) => {
+    const { records, dailyData } = dateMap[date]
+    records.forEach(({ total, $isAM }) => {
+      if ($isAM) {
+        AMTotal[group] = (AMTotal[group] ?? 0) + total
+      } else {
+        PMTotal[group] = (PMTotal[group] ?? 0) + total
+      }
+    })
+    datasetTotal[group] = (datasetTotal[group] ?? 0) + dailyData.total
+  })
   const totalData = Object.values(datasetTotal)
   datasets[0].data = Object.values(AMTotal)
   datasets[1].data = Object.values(PMTotal)

@@ -58,11 +58,14 @@ export const textAreaCss = css`
 `
 
 export const drawerModeCss = css`
-  /* transform: scale(0.95);
-  margin-left: -30px;
-  margin-top: -40px; */
   margin-bottom: -20px;
   margin-top: -10px;
+
+  .resta-keyboard-left {
+    min-width: 70vw;
+
+    min-height: ${getCalcHeight(22 + 90)};
+  }
 
   /* @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
     // transform: scale(0.93);
@@ -71,6 +74,11 @@ export const drawerModeCss = css`
     margin-bottom: -20px;
     margin-top: -10px;
   } */
+  .resta-keyboard-textArea {
+    @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
+      max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+    }
+  }
 `
 
 export const mealsCss = css`

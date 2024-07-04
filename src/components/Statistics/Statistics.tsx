@@ -1,11 +1,4 @@
-import React, {
-  memo,
-  useCallback,
-  useState,
-  useMemo,
-  useContext,
-  useRef,
-} from 'react'
+import React, { memo, useCallback, useState, useMemo, useContext } from 'react'
 import { Flex, Statistic, Space, DatePicker, FloatButton } from 'antd'
 import { BarChartOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
@@ -13,15 +6,15 @@ import type { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { isNil } from 'lodash'
 
+import StickyHeader from 'src/components/StickyHeader'
+import Chart from 'src/components/Chart'
 import { AppContext } from 'src/components/App/context'
 import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,
   getCorrectAmount,
 } from 'src/libs/common'
-import { useObserverDom } from 'src/hooks'
 import { isAMPM } from 'src/constants/defaults/workshift'
-import Chart from 'src/components/Chart'
 import { getDateType } from 'src/libs/chart'
 import { handleIncomeChart } from './charts/income'
 import { handleCustomersChart } from './charts/customers'
@@ -34,14 +27,6 @@ const DEFAULT_QUERY_DATA = {} as Resta.Statistics.StatAPIGet
 
 export const Statistics: React.FC<{}> = memo(() => {
   const { API } = useContext(AppContext)
-  const observerRef = useRef<HTMLDivElement>()
-  const headerRef = useRef<HTMLDivElement>()
-
-  // set header shadow by IntersectionObserver
-  const onObserve = useCallback((isIntersecting: boolean) => {
-    headerRef.current.classList.toggle('resta-header--active', !isIntersecting)
-  }, [])
-  useObserverDom(observerRef, onObserve)
 
   const [dates, setDates] = useState<Dayjs[]>()
   const [dateDescription, setDateDescription] = useState('')
@@ -269,8 +254,7 @@ export const Statistics: React.FC<{}> = memo(() => {
 
   return (
     <>
-      <div id="resta-header-observer" ref={observerRef}></div>
-      <div css={styles.headerCss} ref={headerRef}>
+      <StickyHeader cls={styles.headerCss}>
         <Space css={styles.titleCss}>
           <BarChartOutlined />
           <label>統計報表</label>
@@ -286,7 +270,7 @@ export const Statistics: React.FC<{}> = memo(() => {
           onChange={onRangeChange}
         />
         <label>{dateDescription && `(${dateDescription})`}</label>
-      </div>
+      </StickyHeader>
       <Flex css={styles.mainCss} vertical gap={40}>
         <div css={styles.summaryCss}>
           <Flex>
@@ -362,6 +346,7 @@ export const Statistics: React.FC<{}> = memo(() => {
           title="客流量分析"
           dateMap={dateMap}
           dateType={dateType}
+          allowedDateType={null}
           handle={handleCustomersChart}
         />
         <Chart

@@ -206,7 +206,7 @@ declare global {
     }
 
     type OrderRecord = Table.Order & {
-      $isAM: boolean
+      $isAM?: boolean
     }
     //  type NewOrderRecord = Omit<OrderRecord, 'id' | 'createdAt' | 'updatedAt'>
     type NewOrderRecord = Partial<OrderRecord>

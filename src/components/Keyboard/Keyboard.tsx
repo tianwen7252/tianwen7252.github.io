@@ -136,12 +136,14 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const reset = useCallback(() => {
     handleInput('Escape')
     setSelectedMemos([])
-    setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
-    setEditMode(false)
-    appEvent.fire(appEvent.ORDER_AFTER_ACTION)
+    if (!drawerMode) {
+      setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
+      setEditMode(false)
+      appEvent.fire(appEvent.ORDER_AFTER_ACTION)
+    }
     recordRef.current = null
     clear()
-  }, [appEvent, handleInput, clear])
+  }, [drawerMode, appEvent, handleInput, clear])
   const onSubmit = useCallback(async () => {
     if (total > 0 || isFree) {
       let type = 'add' as Resta.Order.ActionType
@@ -363,9 +365,14 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           styles.keyboardLeftCss,
           mode === 'commondity' && styles.modeCommondityCss,
         ]}
+        className="resta-keyboard-left"
         vertical
       >
-        <Flex css={styles.textAreaCss} vertical>
+        <Flex
+          css={styles.textAreaCss}
+          className="resta-keyboard-textArea"
+          vertical
+        >
           <div css={styles.mealsCss}>{meals}</div>
           <div css={styles.totalCss}>
             <Space size="large">
@@ -434,6 +441,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             css={[styles.submitBtnCss, isEditMode && styles.updateBtnCss]}
             size="large"
             type="primary"
+            disabled={drawerMode && data?.length === 0}
             onClick={onSubmit}
           >
             {submitBtnText}

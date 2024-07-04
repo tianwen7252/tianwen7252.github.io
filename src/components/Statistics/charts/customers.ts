@@ -44,10 +44,12 @@ export function handleCustomersChart(
     records.forEach(({ createdAt }) => {
       const day = dayjs.tz(createdAt)
       const hour = day.hour()
-      const index = HOURS.indexOf(hour)
-      const data = datasets[0].data
-      data[index] = data[index] ?? 0
-      ++data[index]
+      const index = hour - 10
+      if (index > -1) {
+        const data = datasets[0].data
+        data[index] = data[index] ?? 0
+        ++data[index]
+      }
     })
   })
   // break time
@@ -63,7 +65,6 @@ export function handleCustomersChart(
         },
         y: {
           stacked: true,
-          beginAtZero: true,
         },
       },
       plugins: {

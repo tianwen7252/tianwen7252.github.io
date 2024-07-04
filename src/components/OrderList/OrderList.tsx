@@ -28,6 +28,7 @@ import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { debounce } from 'lodash'
 
+import StickyHeader from 'src/components/StickyHeader'
 import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,
@@ -263,172 +264,185 @@ export const OrderList: React.FC<{}> = () => {
     }, 200)
   }, [offset])
 
+  useEffect(() => {
+    // unmount
+    return () => {
+      window.scroll({
+        top: 0,
+        left: 0,
+        behavior: 'smooth',
+      })
+    }
+  }, [])
+
   const periodsLength = periodsOrder.length
   return (
-    <Flex css={styles.mainCss} gap="middle" vertical>
-      <Drawer
-        css={styles.drawerCss}
-        title={
-          <>
-            <Button icon={<ReloadOutlined />} type="text" onClick={reset}>
-              重設
-            </Button>
-          </>
-        }
-        getContainer={false}
-        placement="left"
-        open={isSearchOpen}
-        mask={true}
-        onClose={closeSearchDrawer}
-      >
-        <Flex vertical gap="large">
+    <>
+      <StickyHeader cls={styles.headerCss}>
+        <Space size={60}>
+          <Button
+            css={styles.searchBtnCss}
+            type="text"
+            icon={<FileSearchOutlined />}
+            onClick={openSearchDrawer}
+          >
+            訂單搜尋
+          </Button>
+          {!!periodsLength && (
+            <h2>
+              {periodsLength === 1
+                ? periodsOrder[0]
+                : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
+              {dateDescription && ` (${dateDescription})`}
+            </h2>
+          )}
+        </Space>
+      </StickyHeader>
+      <Flex css={styles.mainCss} gap="middle" vertical>
+        <Drawer
+          css={styles.drawerCss}
+          title={
+            <>
+              <Button icon={<ReloadOutlined />} type="text" onClick={reset}>
+                重設
+              </Button>
+            </>
+          }
+          getContainer={false}
+          placement="left"
+          open={isSearchOpen}
+          mask={true}
+          onClose={closeSearchDrawer}
+        >
           <Flex vertical gap="large">
-            <h2>日期</h2>
-            <RangePicker
-              showNow
-              presets={presets}
-              showTime={showTime}
-              format={DATE_FORMAT_DATETIME_UI}
-              placeholder={['開始日期', '結束日期']}
-              size="large"
-              // @ts-expect-error expected
-              value={dates}
-              disabledDate={disabled1MonthDate}
-              onChange={onRangeChange}
-              renderExtraFooter={() => (
-                <Button
-                  css={styles.toggleTimeBtnCss}
-                  type="text"
-                  onClick={onSetShowTime}
-                >
-                  {showTime ? '關閉時間' : '指定時間'}
-                </Button>
-              )}
-            />
+            <Flex vertical gap="large">
+              <h2>日期</h2>
+              <RangePicker
+                showNow
+                presets={presets}
+                showTime={showTime}
+                format={DATE_FORMAT_DATETIME_UI}
+                placeholder={['開始日期', '結束日期']}
+                size="large"
+                // @ts-expect-error expected
+                value={dates}
+                disabledDate={disabled1MonthDate}
+                onChange={onRangeChange}
+                renderExtraFooter={() => (
+                  <Button
+                    css={styles.toggleTimeBtnCss}
+                    type="text"
+                    onClick={onSetShowTime}
+                  >
+                    {showTime ? '關閉時間' : '指定時間'}
+                  </Button>
+                )}
+              />
+            </Flex>
+            <Flex vertical gap="large">
+              <h2>關鍵字</h2>
+              <Select
+                placeholder="找什麼呢?"
+                mode="tags"
+                size="large"
+                style={{ width: '100%' }}
+                allowClear
+                onKeyUp={event => {
+                  event.preventDefault()
+                  event.stopPropagation()
+                }}
+                options={MEMO_OPTIONS}
+                disabled={isDisabled}
+                value={searchData}
+                onChange={onChangesearchData}
+              />
+            </Flex>
+            <Flex vertical gap="large">
+              <h2>日期排序</h2>
+              <Switch
+                checkedChildren="反序"
+                unCheckedChildren="正序"
+                defaultChecked
+                onChange={onToggleDateOrder}
+              />
+            </Flex>
+            <Flex vertical gap="large">
+              <h2>單筆金額大於</h2>
+              <InputNumber
+                size="large"
+                prefix="$"
+                style={{ width: '60%' }}
+                formatter={toCurrencyNumber}
+                disabled={isDisabled}
+                value={orderTotal}
+                onChange={onChangeOrderTotal}
+              />
+            </Flex>
+            <Flex vertical gap="large">
+              <h2>當日營業額大於</h2>
+              <InputNumber
+                size="large"
+                prefix="$"
+                style={{ width: '60%' }}
+                formatter={toCurrencyNumber}
+                disabled={isDisabled}
+                value={turnoverSum}
+                onChange={onChangeTurnoverSum}
+              />
+            </Flex>
+            <Flex vertical gap="large">
+              <h2>當日訂單數量大於</h2>
+              <InputNumber
+                size="large"
+                style={{ width: '60%' }}
+                formatter={toCurrencyNumber}
+                disabled={isDisabled}
+                value={ordersSum}
+                onChange={onChangeOrdersSum}
+              />
+            </Flex>
           </Flex>
-          <Flex vertical gap="large">
-            <h2>關鍵字</h2>
-            <Select
-              placeholder="找什麼呢?"
-              mode="tags"
-              size="large"
-              style={{ width: '100%' }}
-              allowClear
-              onKeyUp={event => {
-                event.preventDefault()
-                event.stopPropagation()
-              }}
-              options={MEMO_OPTIONS}
-              disabled={isDisabled}
-              value={searchData}
-              onChange={onChangesearchData}
-            />
-          </Flex>
-          <Flex vertical gap="large">
-            <h2>日期排序</h2>
-            <Switch
-              checkedChildren="反序"
-              unCheckedChildren="正序"
-              defaultChecked
-              onChange={onToggleDateOrder}
-            />
-          </Flex>
-          <Flex vertical gap="large">
-            <h2>單筆金額大於</h2>
-            <InputNumber
-              size="large"
-              prefix="$"
-              style={{ width: '60%' }}
-              formatter={toCurrencyNumber}
-              disabled={isDisabled}
-              value={orderTotal}
-              onChange={onChangeOrderTotal}
-            />
-          </Flex>
-          <Flex vertical gap="large">
-            <h2>當日營業額大於</h2>
-            <InputNumber
-              size="large"
-              prefix="$"
-              style={{ width: '60%' }}
-              formatter={toCurrencyNumber}
-              disabled={isDisabled}
-              value={turnoverSum}
-              onChange={onChangeTurnoverSum}
-            />
-          </Flex>
-          <Flex vertical gap="large">
-            <h2>當日訂單數量大於</h2>
-            <InputNumber
-              size="large"
-              style={{ width: '60%' }}
-              formatter={toCurrencyNumber}
-              disabled={isDisabled}
-              value={ordersSum}
-              onChange={onChangeOrdersSum}
-            />
-          </Flex>
-        </Flex>
-      </Drawer>
-      <Drawer
-        css={[styles.drawerCss, styles.keyboardDrawerCss]}
-        title={
-          <Space>
-            <EditOutlined />
-            <label>編輯訂單</label>
-          </Space>
-        }
-        placement="right"
-        open={isKeyboardOpen}
-        mask={true}
-        onClose={closeKeyboardDrawer}
-        width={820}
-        forceRender={true}
-      >
-        <Keyboard
-          drawerMode
-          callOrderAPI={callOrderAPI}
-          submitCallback={closeKeyboardDrawer}
-        />
-      </Drawer>
-      <div
-        css={[
-          styles.contentCss,
-          (isSearchOpen || isKeyboardOpen) && styles.drawerAcitve,
-        ]}
-      >
-        {anchorElement}
-        <div css={styles.headerCss}>
-          <Space size={60}>
-            <Button
-              css={styles.searchBtnCss}
-              type="text"
-              icon={<FileSearchOutlined />}
-              onClick={openSearchDrawer}
-            >
-              訂單搜尋
-            </Button>
-            {!!periodsLength && (
-              <h2>
-                {periodsLength === 1
-                  ? periodsOrder[0]
-                  : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
-                {dateDescription && ` (${dateDescription})`}
-              </h2>
-            )}
-          </Space>
-          {summaryElement}
+        </Drawer>
+        <Drawer
+          css={[styles.drawerCss, styles.keyboardDrawerCss]}
+          title={
+            <Space>
+              <EditOutlined />
+              <label>編輯訂單</label>
+            </Space>
+          }
+          placement="right"
+          open={isKeyboardOpen}
+          mask={true}
+          onClose={closeKeyboardDrawer}
+          width={820}
+          forceRender={true}
+        >
+          <Keyboard
+            drawerMode
+            callOrderAPI={callOrderAPI}
+            submitCallback={closeKeyboardDrawer}
+          />
+        </Drawer>
+        <div
+          css={[
+            styles.contentCss,
+            (isSearchOpen || isKeyboardOpen) && styles.drawerAcitve,
+          ]}
+        >
+          {anchorElement}
+          <div css={styles.listSummaryCss}>{summaryElement}</div>
+          <Flex wrap>{orderListElement}</Flex>
+          <Pagination
+            hideOnSinglePage
+            total={totalDays}
+            defaultPageSize={ORDER_LIST_PAGE_SIZE}
+            onChange={onPageChange}
+          />
         </div>
-        <Flex wrap>{orderListElement}</Flex>
-        <Pagination
-          hideOnSinglePage
-          total={totalDays}
-          defaultPageSize={ORDER_LIST_PAGE_SIZE}
-          onChange={onPageChange}
-        />
-      </div>
-      <FloatButton.BackTop visibilityHeight={100} />
-    </Flex>
+        <FloatButton.BackTop visibilityHeight={100} />
+      </Flex>
+    </>
   )
 }
 
