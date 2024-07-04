@@ -4,6 +4,7 @@ import { getStatCss } from 'src/styles/variables'
 
 export const mainCss = css`
   padding: 20px;
+  padding-bottom: 80px;
 `
 
 export const headerCss = css`

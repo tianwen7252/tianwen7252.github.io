@@ -126,7 +126,7 @@ export function forEachDateMap(
   dates.forEach((date, index) => {
     const day = dayjs.tz(date)
     const [year, month] = date.split('/')
-    let group: string
+    let group: string // group means the same date unit of a label in order
     switch (dateType) {
       case 'w': {
         const weeks = getWeekNumberOfMonth(day)

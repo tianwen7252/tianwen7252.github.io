@@ -7,10 +7,14 @@ import React, {
   useRef,
 } from 'react'
 import { Space, Empty, Segmented, Flex } from 'antd'
-import { BarChartOutlined, LineChartOutlined } from '@ant-design/icons'
+import {
+  BarChartOutlined,
+  LineChartOutlined,
+  PieChartOutlined,
+} from '@ant-design/icons'
 import { filter, includes } from 'lodash'
 import { Chart as ChartJS } from 'chart.js'
-import { Bar, Line, Bubble } from 'react-chartjs-2'
+import { Bar, Line, Bubble, Doughnut, Pie } from 'react-chartjs-2'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
 import 'chartjs-adapter-dayjs-4/dist/chartjs-adapter-dayjs-4.esm'
 import 'chart.js/auto'
@@ -25,6 +29,34 @@ import * as styles from './styles'
 
 ChartJS.register(ChartDataLabels)
 ChartJS.defaults.plugins.legend.position = 'bottom'
+// reverse the default legend toggle logic
+// reference: https://stackoverflow.com/a/42565029
+// line/area/bar charts only
+ChartJS.defaults.plugins.legend.onClick = (event, legendItem, legend) => {
+  const index = legendItem.datasetIndex
+  const { chart } = legend
+  const alreadyHidden =
+    chart.getDatasetMeta(index).hidden === null
+      ? false
+      : chart.getDatasetMeta(index).hidden
+
+  chart.data.datasets.forEach((evt, dIndex) => {
+    const meta = chart.getDatasetMeta(dIndex)
+    if (dIndex !== index) {
+      if (!alreadyHidden) {
+        meta.hidden = meta.hidden === null ? !meta.hidden : null
+      } else if (meta.hidden === null) {
+        meta.hidden = true
+      }
+    } else if (dIndex === index) {
+      meta.hidden = null
+    }
+  })
+  chart.update()
+}
+ChartJS.defaults.layout.padding = {
+  top: 20,
+}
 
 export const Chart: React.FC<Resta.Chart.Props> = memo(
   ({
@@ -46,8 +78,12 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
       switch (type) {
         case 'line':
           return Line
+        case 'pie':
+          return Pie
         case 'bubble':
           return Bubble
+        case 'doughnut':
+          return Doughnut
         case 'bar':
         default:
           return Bar
@@ -57,6 +93,9 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
       switch (type) {
         case 'line':
           return <LineChartOutlined />
+        case 'doughnut':
+        case 'pie':
+          return <PieChartOutlined />
         case 'bar':
         default:
           return <BarChartOutlined />

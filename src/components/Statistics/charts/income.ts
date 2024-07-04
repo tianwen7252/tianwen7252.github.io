@@ -20,15 +20,9 @@ export function handleIncomeChart(
       stack: 'stack 0',
     },
   ]
-  const datasetTotal: {
-    [group: string]: number
-  } = {}
-  const AMTotal: {
-    [group: string]: number
-  } = {}
-  const PMTotal: {
-    [group: string]: number
-  } = {}
+  const datasetTotal: Resta.Chart.GroupData = {}
+  const AMTotal: Resta.Chart.GroupData = {}
+  const PMTotal: Resta.Chart.GroupData = {}
   const { labels } = forEachDateMap(dateMap, dateType, ({ date, group }) => {
     const { records, dailyData } = dateMap[date]
     records.forEach(({ total, $isAM }) => {

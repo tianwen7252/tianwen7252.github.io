@@ -107,7 +107,7 @@ declare namespace Resta {
       dateMap: Resta.Statistics.DataMap
       dateType: DateType
       title: string
-      type: 'bar' | 'line' | 'bubble'
+      type: 'bar' | 'line' | 'bubble' | 'doughnut' | 'pie'
       allowedDateType?: string | null
       handle(
         dateMap?: Resta.Statistics.DataMap,
@@ -117,6 +117,9 @@ declare namespace Resta {
     interface ChartConfig {
       options: ChartConfiguration['options']
       data: ChartConfiguration['data']
+    }
+    interface GroupData {
+      [group: string]: number
     }
   }
 
@@ -205,7 +208,7 @@ declare global {
       }
     }
 
-    type OrderRecord = Table.Order & {
+    interface OrderRecord extends Table.Order {
       $isAM?: boolean
     }
     //  type NewOrderRecord = Omit<OrderRecord, 'id' | 'createdAt' | 'updatedAt'>

@@ -39,6 +39,8 @@ export function getCorrectAmount(amount: string) {
   return quailty < 1 && quailty > 0 ? 1 : quailty
 }
 
+let priceMapGroupCache: Resta.Commodity.PriceMapGroup
+let resMapGroupCache: Resta.Commodity.ResMapGroup
 export function getCommoditiesInfo(
   data = COMMODITIES,
   revise = false,
@@ -47,8 +49,8 @@ export function getCommoditiesInfo(
   const relevancies: Resta.Commodity.Item[] = []
   const priceMap = {} as Resta.Commodity.PriceMap
   const commodityMap = {} as Resta.Commodity.CommodityMap
-  const priceMapGroup = {} as Resta.Commodity.PriceMapGroup
-  const resMapGroup = {} as Resta.Commodity.ResMapGroup
+  let priceMapGroup = {} as Resta.Commodity.PriceMapGroup
+  let resMapGroup = {} as Resta.Commodity.ResMapGroup
   const tidy = (
     type: string,
     items: Resta.Commodity.Items,
@@ -93,29 +95,38 @@ export function getCommoditiesInfo(
     })
   }
   if (getGroup) {
-    Object.keys(priceMap).forEach(price => {
-      priceMap[price].forEach(record => {
-        const { type } = record
-        const group = (priceMapGroup[type] =
-          priceMapGroup[type] ?? ({} as Resta.Commodity.PriceMap))
-        group[price] = group[price] ?? ([] as Resta.Commodity.RelevancyList)
-        group[price].push(record)
-        const resGroup = (resMapGroup[type] =
-          resMapGroup[type] ?? ([] as Resta.Commodity.ResMapGroup))
-        resGroup.push(record.name)
+    // temporarily
+    if (priceMapGroupCache && resMapGroupCache) {
+      priceMapGroup = priceMapGroupCache
+      resMapGroup = resMapGroupCache
+    } else {
+      Object.keys(priceMap).forEach(price => {
+        priceMap[price].forEach(record => {
+          const { type } = record
+          const group = (priceMapGroup[type] =
+            priceMapGroup[type] ?? ({} as Resta.Commodity.PriceMap))
+          group[price] = group[price] ?? ([] as Resta.Commodity.RelevancyList)
+          group[price].push(record)
+          const resGroup = (resMapGroup[type] =
+            resMapGroup[type] ?? ([] as Resta.Commodity.ResMapGroup))
+          resGroup.push(record.name)
+        })
       })
-    })
-    // fix $15 to à-la-carte type temporarily
-    priceMapGroup['à-la-carte']['15'] = [
-      ...(priceMapGroup['à-la-carte']['15'] ?? []),
-      ...priceMapGroup['main-dish']['15'],
-    ] as Resta.Commodity.RelevancyList
-    delete priceMapGroup['main-dish']['15']
-    resMapGroup['à-la-carte'].push('加蛋')
-    resMapGroup['à-la-carte'].push('加菜')
-    resMapGroup['main-dish'] = resMapGroup['main-dish'].filter(
-      name => name !== '加蛋' && name !== '加菜',
-    )
+      // fix $15 to à-la-carte type temporarily
+      priceMapGroup['à-la-carte']['15'] = [
+        ...(priceMapGroup['à-la-carte']['15'] ?? []),
+        ...priceMapGroup['main-dish']['15'],
+      ] as Resta.Commodity.RelevancyList
+      delete priceMapGroup['main-dish']['15']
+      resMapGroup['à-la-carte'].push('加蛋')
+      resMapGroup['à-la-carte'].push('加菜')
+      resMapGroup['main-dish'] = resMapGroup['main-dish'].filter(
+        name => name !== '加蛋' && name !== '加菜',
+      )
+      // temporarily
+      priceMapGroupCache = priceMapGroup
+      resMapGroupCache = resMapGroup
+    }
   }
   return { data, priceMap, commodityMap, priceMapGroup, resMapGroup }
 }
