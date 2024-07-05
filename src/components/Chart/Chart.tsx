@@ -23,6 +23,8 @@ import {
   DATE_TYPE_MAP,
   DEFAULT_ALLOWED_TYPES,
   DATE_TYPE_ALLOWED_MAP,
+  CHART_COLORS,
+  CHART_COLORS2,
 } from 'src/libs/chart'
 import 'src/libs/chartTotalizer'
 import * as styles from './styles'
@@ -64,6 +66,8 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
     dateType = 'd',
     title,
     type,
+    style,
+    color = '1',
     allowedDateType = DEFAULT_ALLOWED_TYPES,
     handle,
   }) => {
@@ -73,7 +77,18 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
       setSelectedDateType,
     ] = useState<Resta.Chart.DateType>()
     const skipRef = useRef(false)
+    const isPieChart = type === 'doughnut' || type === 'pie'
+    const chartHeight = isPieChart ? 600 : 'auto'
 
+    const colorsMap = useMemo(() => {
+      switch (color) {
+        case '2':
+          return CHART_COLORS2
+        case '1':
+        default:
+          return CHART_COLORS
+      }
+    }, [color])
     const Component = useMemo(() => {
       switch (type) {
         case 'line':
@@ -133,12 +148,12 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
 
     useEffect(() => {
       const process = async () => {
-        const result = await handle?.(dateMap, selectedDateType)
+        const result = await handle?.(dateMap, selectedDateType, colorsMap)
         result && setConfig(result)
       }
       !skipRef.current && process()
       skipRef.current = false
-    }, [dateMap, handle, selectedDateType])
+    }, [dateMap, handle, selectedDateType, colorsMap])
 
     return (
       <div css={styles.chartCss}>
@@ -155,12 +170,19 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
             />
           )}
         </Flex>
-        {config ? (
-          // @ts-expect-error due to dynamic type definition
-          <Component options={config.options} data={config.data} />
-        ) : (
-          <Empty description={false} image={titleIcon} />
-        )}
+        <Flex
+          css={styles.contentCss}
+          align={isPieChart && 'center'}
+          style={{ height: chartHeight, ...style }}
+          vertical
+        >
+          {config ? (
+            // @ts-expect-error due to dynamic type definition
+            <Component options={config.options} data={config.data} />
+          ) : (
+            <Empty description={false} image={titleIcon} />
+          )}
+        </Flex>
       </div>
     )
   },

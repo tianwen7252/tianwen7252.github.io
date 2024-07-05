@@ -301,6 +301,7 @@ export const OrderList: React.FC<{}> = () => {
       <Flex css={styles.mainCss} gap="middle" vertical>
         <Drawer
           css={styles.drawerCss}
+          rootClassName="resta-orderlist-search-drawer"
           title={
             <>
               <Button icon={<ReloadOutlined />} type="text" onClick={reset}>

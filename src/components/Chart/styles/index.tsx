@@ -24,3 +24,10 @@ export const headerCss = css`
   justify-content: space-between;
   align-items: baseline;
 `
+
+export const contentCss = css`
+  width: 100%;
+  .ant-empty {
+    width: 100%;
+  }
+`

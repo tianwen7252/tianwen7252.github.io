@@ -19,6 +19,20 @@ export const mainCss = css`
       font-size: 1rem;
     }
   }
+
+  .resta-orderlist-search-drawer {
+    .ant-drawer-content-wrapper {
+      position: sticky;
+      top: 60px;
+
+      .ant-drawer-body {
+        overflow-y: auto;
+        > div {
+          height: calc(100vh - 170px);
+        }
+      }
+    }
+  }
 `
 
 export const headerCss = css`

@@ -119,6 +119,27 @@ export const soupsCss = css`
   vertical-align: middle;
 `
 
+export const changePanelCss = css``
+
+export const changeCss = css`
+  color: #fff;
+  padding: 2px 4px;
+  border-radius: 4px;
+  letter-spacing: 0;
+  font-size: 1rem;
+  margin-right: 8px;
+
+  &.resta-keyboard-change-1000 {
+    background: #3f6ab0;
+  }
+  &.resta-keyboard-change-500 {
+    background: #ae917d;
+  }
+  &.resta-keyboard-change-100 {
+    background: #f38590;
+  }
+`
+
 export const numberBtnsCss = css`
   position: relative;
   padding-top: 8px;

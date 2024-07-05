@@ -44,6 +44,28 @@ const ICON_MAP = {
   CloseOutlined: <CloseOutlined />,
 }
 
+export const COMMON_BILLS = [1000, 500, 100]
+export function getChange(total: number) {
+  const totalStr = total.toString()
+  const { length } = totalStr
+  const firstNumber = +totalStr[0]
+  const result: [number, number, number][] = [] // bill unit, money, change
+  if (length <= 4 && length > 1) {
+    COMMON_BILLS.forEach((bill, index) => {
+      if (bill > total) {
+        result.push([bill, bill, bill - total])
+      } else if (total > bill) {
+        const money = bill * (firstNumber + 1)
+        if (money > total && (money < COMMON_BILLS[index - 1] || index === 0)) {
+          result.push([bill, money, money - total])
+        }
+      }
+    })
+    return result
+  }
+  return null
+}
+
 export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const { appEvent, isTablet } = useContext(AppContext)
   const { data, total, priceMap, input, updateItemRes, update, clear } =
@@ -327,6 +349,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             <span>
               {value}(
               <Dropdown
+                key={`${index}-${value}`}
                 overlayClassName={styles.btnDropdownCssName}
                 arrow={{ pointAtCenter: true }}
                 placement="bottom"
@@ -353,10 +376,24 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             value
           )
         }
-        return <Space key={`${index}-${value}`}>{content}</Space>
+        // using random key to avoid the bug of rendering of same index cache
+        return <Space key={`${index}-${value}-${Date.now()}`}>{content}</Space>
       }),
     [data, priceMap, onChangeType],
   )
+
+  const changeDesc =
+    !isFree &&
+    total !== 0 &&
+    getChange(total)?.map(([unit, money, change]) => (
+      <span
+        css={styles.changeCss}
+        key={unit}
+        className={`resta-keyboard-change-${unit}`}
+      >
+        ${money} 找 ${change}
+      </span>
+    ))
 
   return (
     <div css={[styles.keyboardCss, drawerMode && styles.drawerModeCss]}>
@@ -382,6 +419,9 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
               <span css={styles.soupsCss}>
                 {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
               </span>
+              {changeDesc && (
+                <span css={styles.changePanelCss}>{changeDesc}</span>
+              )}
             </Space>
           </div>
         </Flex>

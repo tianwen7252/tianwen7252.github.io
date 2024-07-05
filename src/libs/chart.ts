@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 
+// reference: https://www.schemecolor.com/
 export const CHART_BORDER_COLORS = {
   red: '#ff6384',
   orange: '#ff9f40',
@@ -36,6 +37,24 @@ export const CHART_COLORS = {
   armyGreen: '#44501d80', // 14
   coolGrey: '#8898a780', // 15
   chineseSilver: '#c4d0d29e', // 16
+}
+export const CHART_COLORS2 = {
+  chineseWhite: '#D5EAE5', // 1
+  columbiaBlue: '#C9DDE7', // 2
+  champagne: '#F4E5CA', // 3
+  palePink: '#F4D8DD', // 4
+  americanSilver: '#CECED0', // 5
+  sunray: '#E9B95E', // 6
+  tealBlue: '#2D6B8E80', // 7
+  skyBlue: '#7BC7EE', // 8
+  pastelYellow: '#F4F497', // 9
+  deepPeach: '#F6C2A6', // 10
+  cottonCandy: '#FBBED6', // 11
+  africanViolet: '#B68EC990', // 12
+  maximumBlueGreen: '#24DAC5', // 13
+  maize: '#F8C058', // 14
+  conditioner: '#FEFFC9', // 15
+  peru: '#C68642', // 16
 }
 export const MONTHS = [
   '一月',
@@ -90,7 +109,10 @@ export function getDateType(dateCount: number) {
   return dateType
 }
 
-export function pickColor(index: number, colors = CHART_COLORS) {
+export function pickColor(
+  index: number,
+  colors: Resta.Chart.ColorsMap = CHART_COLORS,
+) {
   const keys = Object.keys(colors)
   return colors[keys[index % keys.length]]
 }

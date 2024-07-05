@@ -108,11 +108,18 @@ declare namespace Resta {
       dateType: DateType
       title: string
       type: 'bar' | 'line' | 'bubble' | 'doughnut' | 'pie'
+      style?: React.CSSProperties
+      color?: '1' | '2'
       allowedDateType?: string | null
+      displayTypes?: string
       handle(
         dateMap?: Resta.Statistics.DataMap,
         selectedDateType?: DateType,
+        colorsMap?: ColorsMap,
       ): ChartConfig
+    }
+    interface ColorsMap {
+      [name: string]: string
     }
     interface ChartConfig {
       options: ChartConfiguration['options']

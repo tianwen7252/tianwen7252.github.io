@@ -5,6 +5,7 @@ import { MEMOS } from 'src/constants/defaults/memos'
 export function handleOrderTypes(
   dateMap: Resta.Chart.DateMap,
   dateType: Resta.Chart.DateType,
+  colorsMap: Resta.Chart.ColorsMap,
 ) {
   if (!dateMap) return null
   const groupData: {
@@ -27,7 +28,7 @@ export function handleOrderTypes(
     return {
       label,
       data: Object.values(groupData[label] ?? {}),
-      backgroundColor: pickColor(index),
+      backgroundColor: pickColor(index, colorsMap),
       stack: 'stack 0',
       datalabels: {
         formatter(value, ctx) {

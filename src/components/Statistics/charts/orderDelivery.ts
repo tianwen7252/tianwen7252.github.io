@@ -6,6 +6,7 @@ const { resMapGroup } = getCommoditiesInfo(undefined, false, true)
 export function handleOrderDeliveryChart(
   dateMap: Resta.Chart.DateMap,
   dateType: Resta.Chart.DateType,
+  colorsMap: Resta.Chart.ColorsMap,
 ) {
   if (!dateMap) return null
   const dataList: number[] = []
@@ -29,7 +30,9 @@ export function handleOrderDeliveryChart(
   const datasets = [
     {
       data: dataList,
-      backgroundColor: labels.map((label, index) => pickColor(index)),
+      backgroundColor: labels.map((label, index) =>
+        pickColor(index, colorsMap),
+      ),
       datalabels: {
         formatter(value) {
           const sum = dataList.reduce((result, each) => {

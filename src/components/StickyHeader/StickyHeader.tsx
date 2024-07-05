@@ -16,10 +16,11 @@ export const StickyHeader: React.FC<{
   useEffect(() => {
     const observerDom = observerRef.current
     const observer = new IntersectionObserver(([entry]) => {
-      headerRef.current.classList.toggle(
-        'resta-header--active',
-        !entry.isIntersecting,
-      )
+      headerRef.current &&
+        headerRef.current.classList.toggle(
+          'resta-header--active',
+          !entry.isIntersecting,
+        )
     })
     observer.observe(observerDom)
     return () => {

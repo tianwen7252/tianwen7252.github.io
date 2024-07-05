@@ -17,6 +17,7 @@ import {
 import { isAMPM } from 'src/constants/defaults/workshift'
 import { getDateType } from 'src/libs/chart'
 import { handleIncomeChart } from './charts/income'
+import { handleProfitsChart } from './charts/profits'
 import { handleCustomersChart } from './charts/customers'
 import { useHandleResChart } from './charts/res'
 import { handleOrderTypes } from './charts/orderTypes'
@@ -344,6 +345,13 @@ export const Statistics: React.FC<{}> = memo(() => {
           handle={handleIncomeChart}
         />
         <Chart
+          type="bar"
+          title="淨利分析"
+          dateMap={dateMap}
+          dateType={dateType}
+          handle={handleProfitsChart}
+        />
+        <Chart
           type="line"
           title="客流量分析"
           dateMap={dateMap}
@@ -363,6 +371,7 @@ export const Statistics: React.FC<{}> = memo(() => {
           title="單點銷售分析"
           dateMap={dateMap}
           dateType={dateType}
+          color="2"
           handle={useHandleResChart('à-la-carte')}
         />
         <Chart
@@ -382,9 +391,11 @@ export const Statistics: React.FC<{}> = memo(() => {
         />
         <Chart
           type="doughnut"
-          title="零售銷售分析"
+          title="送外訂單分析"
           dateMap={dateMap}
           dateType={dateType}
+          color="2"
+          allowedDateType={null}
           handle={handleOrderDeliveryChart}
         />
         <FloatButton.BackTop visibilityHeight={100} />
