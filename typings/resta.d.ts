@@ -103,17 +103,19 @@ declare namespace Resta {
       }
     }
     type DateType = 'd' | 'w' | 'm' | 'q' | 'y'
+    type ChartType = 'bar' | 'line' | 'bubble' | 'doughnut' | 'pie'
     interface Props {
       dateMap: Resta.Statistics.DataMap
       dateType: DateType
       title: string
-      type: 'bar' | 'line' | 'bubble' | 'doughnut' | 'pie'
+      type: ChartType
       style?: React.CSSProperties
       color?: '1' | '2'
       allowedDateType?: string | null
       displayTypes?: string
       handle(
         dateMap?: Resta.Statistics.DataMap,
+        selectedChartType?: ChartType,
         selectedDateType?: DateType,
         colorsMap?: ColorsMap,
       ): ChartConfig

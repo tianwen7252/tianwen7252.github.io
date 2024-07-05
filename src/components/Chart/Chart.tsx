@@ -11,8 +11,9 @@ import {
   BarChartOutlined,
   LineChartOutlined,
   PieChartOutlined,
+  TableOutlined,
 } from '@ant-design/icons'
-import { filter, includes } from 'lodash'
+import { filter, includes, uniq } from 'lodash'
 import { Chart as ChartJS } from 'chart.js'
 import { Bar, Line, Bubble, Doughnut, Pie } from 'react-chartjs-2'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
@@ -69,17 +70,26 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
     style,
     color = '1',
     allowedDateType = DEFAULT_ALLOWED_TYPES,
+    displayTypes = '**|doughnut|table', // ** means default chart type (props.type)
     handle,
   }) => {
     const [config, setConfig] = useState<Resta.Chart.ChartConfig>(null)
-    const [
-      selectedDateType = DATE_TYPE_MAP[dateType].value,
-      setSelectedDateType,
-    ] = useState<Resta.Chart.DateType>()
+    const [selectedDateType = DATE_TYPE_MAP[dateType].value, setDateType] =
+      useState<Resta.Chart.DateType>()
+    const [selectedChartType, setChartType] = useState(type)
     const skipRef = useRef(false)
     const isPieChart = type === 'doughnut' || type === 'pie'
     const chartHeight = isPieChart ? 600 : 'auto'
 
+    const chartTypes = useMemo(() => {
+      return (
+        displayTypes &&
+        uniq(displayTypes.trim().replace('**', type).split('|')).map(value => ({
+          label: getChartIcon(value),
+          value,
+        }))
+      )
+    }, [type, displayTypes])
     const colorsMap = useMemo(() => {
       switch (color) {
         case '2':
@@ -104,18 +114,7 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
           return Bar
       }
     }, [type])
-    const titleIcon = useMemo(() => {
-      switch (type) {
-        case 'line':
-          return <LineChartOutlined />
-        case 'doughnut':
-        case 'pie':
-          return <PieChartOutlined />
-        case 'bar':
-        default:
-          return <BarChartOutlined />
-      }
-    }, [type])
+    const titleIcon = useMemo(() => getChartIcon(type), [type])
     const dateTypeOptions = useMemo(() => {
       if (allowedDateType && dateMap) {
         const allOptions = allowedDateType.trim().split('|')
@@ -131,8 +130,11 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
       return []
     }, [dateMap, dateType, allowedDateType])
 
+    const onChangeChartType = useCallback((value: Resta.Chart.ChartType) => {
+      setChartType(value)
+    }, [])
     const onChangeDateType = useCallback((value: Resta.Chart.DateType) => {
-      setSelectedDateType(value)
+      setDateType(value)
     }, [])
 
     useEffect(() => {
@@ -142,18 +144,23 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
         !dateTypeOptions.some(({ value }) => value === selectedDateType)
       ) {
         skipRef.current = true // skip running process because the new date will be coming afterwards
-        setSelectedDateType(dateTypeOptions[0].value)
+        setDateType(dateTypeOptions[0].value)
       }
     }, [dateTypeOptions, selectedDateType])
 
     useEffect(() => {
       const process = async () => {
-        const result = await handle?.(dateMap, selectedDateType, colorsMap)
+        const result = await handle?.(
+          dateMap,
+          selectedChartType,
+          selectedDateType,
+          colorsMap,
+        )
         result && setConfig(result)
       }
       !skipRef.current && process()
       skipRef.current = false
-    }, [dateMap, handle, selectedDateType, colorsMap])
+    }, [dateMap, handle, selectedDateType, selectedChartType, colorsMap])
 
     return (
       <div css={styles.chartCss}>
@@ -162,12 +169,21 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
             {titleIcon}
             <label>{title}</label>
           </Space>
-          {allowedDateType && (
+          {chartTypes && (
+            <Segmented
+              options={chartTypes}
+              value={selectedChartType}
+              onChange={onChangeChartType}
+            />
+          )}
+          {allowedDateType ? (
             <Segmented
               options={dateTypeOptions}
               value={selectedDateType}
               onChange={onChangeDateType}
             />
+          ) : (
+            <div style={{ width: 112 }}></div> // placeholder
           )}
         </Flex>
         <Flex
@@ -187,5 +203,20 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
     )
   },
 )
+
+export function getChartIcon(type: string) {
+  switch (type) {
+    case 'line':
+      return <LineChartOutlined />
+    case 'doughnut':
+    case 'pie':
+      return <PieChartOutlined />
+    case 'table':
+      return <TableOutlined />
+    case 'bar':
+    default:
+      return <BarChartOutlined />
+  }
+}
 
 export default Chart

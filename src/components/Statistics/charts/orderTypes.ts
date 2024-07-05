@@ -4,6 +4,7 @@ import { MEMOS } from 'src/constants/defaults/memos'
 
 export function handleOrderTypes(
   dateMap: Resta.Chart.DateMap,
+  chartType: Resta.Chart.ChartType,
   dateType: Resta.Chart.DateType,
   colorsMap: Resta.Chart.ColorsMap,
 ) {

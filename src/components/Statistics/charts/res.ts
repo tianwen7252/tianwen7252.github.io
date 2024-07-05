@@ -8,6 +8,7 @@ const { resMapGroup } = getCommoditiesInfo(undefined, false, true)
 export function processResChart(
   resType: 'main-dish' | 'à-la-carte' | 'others',
   dateMap: Resta.Chart.DateMap,
+  chartType: Resta.Chart.ChartType,
   dateType: Resta.Chart.DateType,
   colorsMap: Resta.Chart.ColorsMap,
 ) {

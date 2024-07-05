@@ -5,7 +5,7 @@ import { CHART_COLORS, CHART_BORDER_COLORS, HOURS } from 'src/libs/chart'
 
 export function handleCustomersChart(
   dateMap: Resta.Chart.DateMap,
-  dateType: Resta.Chart.DateType,
+  chartType: Resta.Chart.ChartType,
 ) {
   if (!dateMap) return null
   const skipped = (ctx, color) =>

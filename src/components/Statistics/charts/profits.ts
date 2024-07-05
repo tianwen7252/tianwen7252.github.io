@@ -3,6 +3,7 @@ import { CHART_COLORS, forEachDateMap } from 'src/libs/chart'
 
 export function handleProfitsChart(
   dateMap: Resta.Chart.DateMap,
+  chartType: Resta.Chart.ChartType,
   dateType: Resta.Chart.DateType,
 ) {
   if (!dateMap) return null
