@@ -96,15 +96,19 @@ export const mealsCss = css`
 
   .ant-tag {
     font-size: 1rem;
-    vertical-align: middle;
+    vertical-align: text-bottom;
     line-height: inherit;
     margin-inline-end: 4px;
     cursor: pointer;
+    background: #fff;
+    border: 1px solid #222;
+    color: #222;
   }
 
   .ant-tag-close-icon {
     /* vertical-align: middle; */
     font-size: 1rem;
+    color: #222;
   }
 `
 

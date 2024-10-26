@@ -8,7 +8,7 @@ import { isNil } from 'lodash'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Chart from 'src/components/Chart'
-import { AppContext } from 'src/components/App/context'
+import { AppContext } from 'src/pages/App/context'
 import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,

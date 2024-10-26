@@ -169,7 +169,7 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
             {titleIcon}
             <label>{title}</label>
           </Space>
-          {chartTypes && (
+          {chartTypes && config && (
             <Segmented
               options={chartTypes}
               value={selectedChartType}

@@ -87,6 +87,11 @@ export const AppHeader: React.FC<{}> = memo(() => {
           icon={<BarChartOutlined />}
           onClick={onClickMenu}
         />
+        <FloatButton
+          data-url="/settings"
+          icon={<SettingOutlined />}
+          onClick={onClickMenu}
+        />
       </FloatButton.Group>
     </>
   )

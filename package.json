@@ -22,7 +22,7 @@
     "@emotion/react": "^11.11.4",
     "@types/lodash": "^4.17.5",
     "@vitejs/plugin-react-swc": "^3.5.0",
-    "antd": "^5.18.1",
+    "antd": "^5.21.5",
     "chart.js": "^4.4.3",
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "chartjs-plugin-datalabels": "^2.2.0",

@@ -37,7 +37,7 @@ import {
 } from 'src/libs/common'
 import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
 import { useOrderList } from './hooks'
-import { AppContext } from 'src/components/App/context'
+import { AppContext } from 'src/pages/App/context'
 import { Keyboard } from 'src/components/Keyboard'
 import * as styles from './styles'
 

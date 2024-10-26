@@ -213,3 +213,36 @@ export const statistics = {
     return { records, dailyDataInfo }
   },
 }
+
+export const commondityTypes = {
+  async get() {
+    return db.commondityType.toArray()
+  },
+  async add(record: Omit<RestaDB.Table.CommondityType, 'id'>) {
+    record.createdAt = dayjs().utc().valueOf()
+    return db.commondityType.add(record)
+  },
+  async set(
+    id: number,
+    record: Omit<RestaDB.Table.CommondityType, 'type' | 'id' | 'createdAt'>,
+  ) {
+    return db.commondityType.update(id, record)
+  },
+}
+
+export const commondity = {
+  async get(onMarket: RestaDB.Table.Commondity['onMarket'] = '1') {
+    return db.commondity.where('onMarket').equals(onMarket).toArray()
+  },
+  async add(record: Omit<RestaDB.Table.Commondity, 'id'>) {
+    record.createdAt = dayjs().utc().valueOf()
+    return db.commondity.add(record)
+  },
+  async set(
+    id: number,
+    record: Omit<RestaDB.Table.Commondity, 'type' | 'id' | 'createdAt'>,
+  ) {
+    record.updatedAt = dayjs().utc().valueOf()
+    return db.commondity.update(id, record)
+  },
+}

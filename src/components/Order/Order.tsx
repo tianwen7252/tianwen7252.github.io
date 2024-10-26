@@ -19,7 +19,7 @@ import SwipeListener from 'swipe-listener'
 import dayjs from 'dayjs'
 
 import { toCurrency, DATE_FORMAT_TIME } from 'src/libs/common'
-import { AppContext } from 'src/components/App/context'
+import { AppContext } from 'src/pages/App/context'
 import {
   MEMOS_NAME_COLOR_MAP,
   HIGHLIGHT_MEMOS,

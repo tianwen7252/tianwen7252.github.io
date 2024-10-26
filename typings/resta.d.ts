@@ -138,7 +138,7 @@ declare namespace Resta {
     type Item = ItemMenu & {
       showRelevancy?: boolean
       menu?: ItemMenu[]
-      hideOnMode?: Mode | string
+      hideOnMode?: Keyboard.Mode | string
     }
     interface ItemMenu {
       name: string
@@ -159,6 +159,12 @@ declare namespace Resta {
     }
     type ResMapGroup = {
       [name: 'main-dish' | 'à-la-carte' | 'others']: string[]
+    }
+  }
+
+  namespace Products {
+    type commonditiesMap = {
+      [key: string]: Array<RestaDB.Table.Commondity & { key: number }>
     }
   }
 
@@ -185,13 +191,32 @@ declare global {
     namespace Table {
       interface Commondity {
         id: ID
+        typeID: CommondityType['id']
         name: string
+        editor: string
+        createdAt?: number
+        updatedAt?: number
+        price: number
+        priority: number
+        hideOnMode?: Resta.Keyboard.Mode | string
+        onMarket: '1' | '0' // 1: on market, 0: off market
       }
 
       interface CommondityType {
         id: ID
         type: string
+        label: string
+        color: string
+        createdAt?: number
       }
+      // interface CommondityPrice {
+      //   id: ID
+      //   comID: ID
+      //   price: number
+      //   createdAt: number
+      //   updatedAt: number
+      //   editor: string
+      // }
       interface Order {
         id: ID
         uuid: uuid
@@ -202,6 +227,7 @@ declare global {
         createdAt: number
         updatedAt: number
         total: number
+        editor: string
       }
       interface DailyData {
         id: ID
@@ -215,6 +241,24 @@ declare global {
         updatedAt: number
         editor: string
       }
+      interface Cost {
+        laborCosts: number
+        foodCosts: number
+        utilityCosts: number
+        rentCosts: number
+        otherExpenses: number
+        createdAt: number
+        updatedAt: number
+        editor: string
+      }
+      interface Users {
+        id: ID
+        name: string
+        type: 'admin' | 'manager' | 'staff'
+        createdAt: number
+        updatedAt: number
+        deletedAt: number
+      }
     }
 
     interface OrderRecord extends Table.Order {
@@ -224,6 +268,7 @@ declare global {
     type NewOrderRecord = Partial<OrderRecord>
 
     interface OrderData {
+      comID?: Table.Commondity['id']
       value?: string
       res?: Table.Commondity['name']
       type?: Table.CommondityType['type']

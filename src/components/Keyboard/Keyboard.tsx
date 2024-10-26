@@ -32,7 +32,7 @@ import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 import { MEMOS } from 'src/constants/defaults/memos'
-import { AppContext } from 'src/components/App/context'
+import { AppContext } from 'src/pages/App/context'
 import { toCurrency, getCorrectAmount } from 'src/libs/common'
 import { useNumberInput } from './hooks'
 import * as styles from './styles'
@@ -363,7 +363,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
               >
                 <Tag
                   bordered={false}
-                  color="#222"
                   closeIcon
                   onClose={onChangeType.bind(null, item, true)}
                 >

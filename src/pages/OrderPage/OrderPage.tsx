@@ -3,8 +3,8 @@ import { Drawer } from 'antd'
 import dayjs from 'dayjs'
 
 import Keyboard from 'src/components/Keyboard'
-import { useOrderList } from 'src/components/OrderList/hooks'
-import { AppContext } from 'src/components/App/context'
+import { useOrderList } from 'src/pages/OrderList/hooks'
+import { AppContext } from 'src/pages/App/context'
 import * as styles from './styles'
 
 export const OrderPage: React.FC = memo(() => {

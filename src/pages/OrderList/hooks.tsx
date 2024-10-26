@@ -21,7 +21,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 import { debounce } from 'lodash'
 
-import { AppContext } from 'src/components/App/context'
+import { AppContext } from 'src/pages/App/context'
 import { Order } from 'src/components/Order'
 import { WORK_SHIFT_REVERSED } from 'src/constants/defaults/workshift'
 import { MEMO_OPTIONS } from 'src/constants/defaults/memos'

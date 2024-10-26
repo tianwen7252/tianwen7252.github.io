@@ -1,6 +1,6 @@
 import React from 'react'
 
-import AppHeader from '../AppHeader'
+import AppHeader from 'src/components/AppHeader'
 import { Outlet } from 'react-router-dom'
 
 import * as styles from './styles'
