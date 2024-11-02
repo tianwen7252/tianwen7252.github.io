@@ -31,7 +31,7 @@ import {
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
-import { MEMOS } from 'src/constants/defaults/memos'
+import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 import { AppContext } from 'src/pages/App/context'
 import { toCurrency, getCorrectAmount } from 'src/libs/common'
 import { useNumberInput } from './hooks'
@@ -463,9 +463,9 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         <Divider />
         <Flex css={styles.memoCss} gap="small" wrap align="center">
           <span css={styles.memoTextCss}>備註</span>
-          {MEMOS.map(({ name, color }) => (
+          {ORDER_TYPES.map(({ name, color }) => (
             <Tag.CheckableTag
-              css={styles.MEMO_COLOR_MAP[color]}
+              css={styles.ORDER_TYPES_COLOR_MAP[color]}
               key={name}
               checked={selectedMemos.includes(name)}
               onChange={checked => onHandleMemo(name, checked)}

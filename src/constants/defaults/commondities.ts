@@ -1,9 +1,9 @@
 /* THIS DATA HAS BEEN TIDIED BY $npm run tidyCommondities */
 
 export const COMMODITY_TYPES = [
-  { type: 'main-dish', label: '🍱 餐盒', color: 'green' },
-  { type: 'à-la-carte', label: '🍖 單點', color: 'brown' },
-  { type: 'others', label: '🧃 飲料|水餃', color: 'indigo' },
+  { type: 'main-dish', label: '🍱 餐盒', color: 'green', typeID: '1' },
+  { type: 'à-la-carte', label: '🍖 單點', color: 'brown', typeID: '2' },
+  { type: 'others', label: '🧃 飲料|水餃', color: 'indigo', typeID: '3' },
 ]
 
 export const COMMODITIES = [

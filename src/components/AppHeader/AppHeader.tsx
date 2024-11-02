@@ -71,6 +71,7 @@ export const AppHeader: React.FC<{}> = memo(() => {
         trigger="hover"
         style={{ right: 10, top: 10, zIndex: 1001 }}
         icon={<MenuOutlined />}
+        placement="bottom"
       >
         <FloatButton
           data-url="/"

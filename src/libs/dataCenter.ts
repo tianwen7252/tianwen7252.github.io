@@ -6,7 +6,7 @@ import {
   COMMODITY_TYPES,
   COMMODITIES,
 } from 'src/constants/defaults/commondities'
-
+import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 const DB_NAME = 'TianWenDB'
 const GB_UNIT = 1000 * 1000 * 1000
 export const WARNING_DEVICE_SIZE = GB_UNIT
@@ -20,6 +20,7 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   dailyData: EntityTable<RestaDB.Table.DailyData, 'id'>
   commondityType: EntityTable<RestaDB.Table.CommondityType, 'id'>
   commondity: EntityTable<RestaDB.Table.Commondity, 'id'>
+  orderTypes: EntityTable<RestaDB.Table.OrderType, 'id'>
 }
 
 // Schema declaration:
@@ -29,6 +30,7 @@ dbSchema.stores({
   dailyData: '++id, date, createdAt, total',
   commondityType: '++id, type',
   commondity: '++id, name, typeID, onMarket',
+  orderTypes: '++id, name',
 })
 // .upgrade(trans => {
 //   return trans
@@ -38,6 +40,13 @@ dbSchema.stores({
 //       // do something
 //     })
 // })
+
+export function init() {
+  initDB()
+  // getDeviceStorageInfo().then(({ percentageUsed, remaining, unit }) => {
+  //   console.log(percentageUsed, remaining, unit)
+  // })
+}
 
 export async function initDB() {
   // init commondity type and commondities here
@@ -51,7 +60,7 @@ export async function initDB() {
   if (commondities.length === 0) {
     const typesData = await API.commondityTypes.get()
     const typesMap = typesData.reduce((map, data) => {
-      map[data.type] = data.id
+      map[data.type] = data.typeID
       return map
     }, {})
     COMMODITIES.forEach(commodity => {
@@ -60,15 +69,18 @@ export async function initDB() {
         API.commondity.add({
           ...item,
           typeID: typesMap[type],
-          editor: 'admin',
           onMarket: '1',
         })
       })
     })
   }
-  // getDeviceStorageInfo().then(({ percentageUsed, remaining, unit }) => {
-  //   console.log(percentageUsed, remaining, unit)
-  // })
+  // init order types
+  const orderTypes = await API.orderTypes.get()
+  if (orderTypes.length === 0) {
+    ORDER_TYPES.forEach(type => {
+      API.orderTypes.add(type)
+    })
+  }
 }
 
 export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
@@ -95,4 +107,5 @@ export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
 
 // generate('orders', '2d', true)
 
-initDB()
+// here we go
+init()

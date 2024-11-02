@@ -15,7 +15,7 @@ import {
   getTransition,
   getCalcHeight,
 } from 'src/styles/variables'
-import { COLORS } from 'src/constants/defaults/memos'
+import { COLORS } from 'src/constants/defaults/orderTypes'
 
 const BTN_GAP = '10px'
 
@@ -341,7 +341,7 @@ export const goldTagCss = setMemoTagColor(COLORS.gold)
 
 export const redTagCss = setMemoTagColor(COLORS.red)
 
-export const MEMO_COLOR_MAP = {
+export const ORDER_TYPES_COLOR_MAP = {
   brown: brownTagCss,
   purple: purpleTagCss,
   blue: blueTagCss,

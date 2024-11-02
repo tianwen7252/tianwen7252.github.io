@@ -164,7 +164,7 @@ declare namespace Resta {
 
   namespace Products {
     type commonditiesMap = {
-      [key: string]: Array<RestaDB.Table.Commondity & { key: number }>
+      [key: string]: Array<RestaDB.Table.Commondity & { key: string }>
     }
   }
 
@@ -189,11 +189,12 @@ declare global {
     type ID = number
     type UUID = string
     namespace Table {
+      // commondity keeps all the saved data
       interface Commondity {
-        id: ID
+        id: ID | string
         typeID: CommondityType['id']
         name: string
-        editor: string
+        editor?: string
         createdAt?: number
         updatedAt?: number
         price: number
@@ -204,6 +205,7 @@ declare global {
 
       interface CommondityType {
         id: ID
+        typeID: string
         type: string
         label: string
         color: string
@@ -228,6 +230,15 @@ declare global {
         updatedAt: number
         total: number
         editor: string
+      }
+      interface OrderType {
+        id: ID
+        name: string
+        priority: number
+        color?: string
+        createdAt?: number
+        updatedAt?: number
+        editor?: string
       }
       interface DailyData {
         id: ID

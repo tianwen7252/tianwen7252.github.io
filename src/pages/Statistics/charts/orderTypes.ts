@@ -1,6 +1,6 @@
 import { toCurrencyNumber } from 'src/libs/common'
 import { pickColor, forEachDateMap } from 'src/libs/chart'
-import { MEMOS } from 'src/constants/defaults/memos'
+import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 
 export function handleOrderTypes(
   dateMap: Resta.Chart.DateMap,
@@ -25,7 +25,7 @@ export function handleOrderTypes(
       }
     })
   })
-  const datasets = MEMOS.map(({ name: label }, index) => {
+  const datasets = ORDER_TYPES.map(({ name: label }, index) => {
     return {
       label,
       data: Object.values(groupData[label] ?? {}),

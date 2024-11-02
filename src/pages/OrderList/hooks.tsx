@@ -24,7 +24,7 @@ import { debounce } from 'lodash'
 import { AppContext } from 'src/pages/App/context'
 import { Order } from 'src/components/Order'
 import { WORK_SHIFT_REVERSED } from 'src/constants/defaults/workshift'
-import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
+import { ORDER_TYPES_OPTIONS } from 'src/constants/defaults/orderTypes'
 import {
   getCorrectAmount,
   DATE_FORMAT,
@@ -476,7 +476,7 @@ export function useOrderList({
                   event.preventDefault()
                   event.stopPropagation()
                 }}
-                options={MEMO_OPTIONS}
+                options={ORDER_TYPES_OPTIONS}
               />
             )}
             {searchResultNotFound ? (

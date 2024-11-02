@@ -42,6 +42,11 @@ export const typeTable = css`
 `
 export const commondityTable = css`
   margin-top: 20px;
+  margin-bottom: 20px;
+
+  .ant-table-thead > tr > th {
+    background: #f0f9f3;
+  }
 `
 
 export const actionBtn = css`

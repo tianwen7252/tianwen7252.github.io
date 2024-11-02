@@ -35,7 +35,7 @@ import {
   ORDER_LIST_PAGE_SIZE,
   toCurrencyNumber,
 } from 'src/libs/common'
-import { MEMO_OPTIONS } from 'src/constants/defaults/memos'
+import { ORDER_TYPES_OPTIONS } from 'src/constants/defaults/orderTypes'
 import { useOrderList } from './hooks'
 import { AppContext } from 'src/pages/App/context'
 import { Keyboard } from 'src/components/Keyboard'
@@ -352,7 +352,7 @@ export const OrderList: React.FC<{}> = () => {
                   event.preventDefault()
                   event.stopPropagation()
                 }}
-                options={MEMO_OPTIONS}
+                options={ORDER_TYPES_OPTIONS}
                 disabled={isDisabled}
                 value={searchData}
                 onChange={onChangesearchData}

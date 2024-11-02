@@ -1,7 +1,7 @@
 import { css } from '@emotion/react'
 
 import { KEYBOARD_TAG_FONT_SIZE, KEYBOARD_DATE_FONT_SIZE } from 'src/styles'
-import { COLORS } from 'src/constants/defaults/memos'
+import { COLORS } from 'src/constants/defaults/orderTypes'
 
 const actionUIWidth = 42 * 2 - 1 // - 1 border
 const editBgColor = 'linear-gradient(to top, #dbd5a7, #b0dab9)'

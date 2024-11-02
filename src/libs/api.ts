@@ -232,11 +232,20 @@ export const commondityTypes = {
 
 export const commondity = {
   async get(onMarket: RestaDB.Table.Commondity['onMarket'] = '1') {
-    return db.commondity.where('onMarket').equals(onMarket).toArray()
+    return (
+      db.commondity
+        .where('onMarket')
+        .equals(onMarket)
+        //.sortBy('priority')
+        .toArray()
+    )
   },
-  async add(record: Omit<RestaDB.Table.Commondity, 'id'>) {
-    record.createdAt = dayjs().utc().valueOf()
-    return db.commondity.add(record)
+  async add(record: Omit<RestaDB.Table.Commondity, 'id'>, editor = 'admin') {
+    return db.commondity.add({
+      ...record,
+      createdAt: dayjs().utc().valueOf(),
+      editor,
+    })
   },
   async set(
     id: number,
@@ -244,5 +253,25 @@ export const commondity = {
   ) {
     record.updatedAt = dayjs().utc().valueOf()
     return db.commondity.update(id, record)
+  },
+}
+
+export const orderTypes = {
+  async get() {
+    return db.orderTypes.toArray()
+  },
+  async add(record: Omit<RestaDB.Table.OrderType, 'id'>, editor = 'admin') {
+    return db.orderTypes.add({
+      ...record,
+      createdAt: dayjs().utc().valueOf(),
+      editor,
+    })
+  },
+  async set(id: number, record: RestaDB.Table.OrderType) {
+    record.updatedAt = dayjs().utc().valueOf()
+    return db.orderTypes.update(id, record)
+  },
+  async delete(id: number) {
+    return db.orderTypes.delete(id)
   },
 }

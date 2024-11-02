@@ -7,7 +7,7 @@ import {
   DATE_FORMAT_DATE,
   getCommoditiesInfo,
 } from 'src/libs/common'
-import { MEMOS } from 'src/constants/defaults/memos'
+import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 import { db } from 'src/libs/dataCenter'
 import * as API from 'src/libs/api'
 
@@ -146,7 +146,7 @@ async function genOrders(range = '1Q', clear = false) {
         const memo = [...Array(random).keys()]
         memo.forEach(() => {
           const prob = getProbability(randomMemoTypes)
-          set.add(MEMOS[prob].name)
+          set.add(ORDER_TYPES[prob].name)
         })
         set.delete('外送訂單')
         if (isCustomer) {

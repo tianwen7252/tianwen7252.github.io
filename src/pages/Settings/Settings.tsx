@@ -1,13 +1,5 @@
-import React from 'react'
-import {
-  Flex,
-  Statistic,
-  Space,
-  DatePicker,
-  FloatButton,
-  Menu,
-  Tabs,
-} from 'antd'
+import React, { useState, useCallback, useMemo } from 'react'
+import { Space, Tabs, Alert, Button } from 'antd'
 import {
   SettingOutlined,
   DollarOutlined,
@@ -16,6 +8,7 @@ import {
   InfoCircleOutlined,
   CloudSyncOutlined,
 } from '@ant-design/icons'
+import { cloneDeep, get, set } from 'lodash'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Products from 'src/components/Settings/Products'
@@ -51,15 +44,49 @@ const menuItems = [
   },
 ]
 
-export const Settings: React.FC<{}> = props => {
+export const Settings: React.FC<{}> = () => {
+  const storage = useMemo(() => ({ ...DefaultData }), [])
+  const backup = useMemo(() => cloneDeep(DefaultData), [])
+  const [hasUpdated, setHasUpdated] = useState(false)
+  const updateStorage = useCallback(() => {
+    // compare storage and backup by JSON.stringify rather than using fast-deep-equal
+    // because the storage is not an expensive object to compare deeply
+    console.log('comparison', storage, backup)
+    setHasUpdated(JSON.stringify(storage) !== JSON.stringify(backup))
+  }, [storage, backup])
+  const contextValue = useMemo(() => {
+    return {
+      storage,
+      updateStorage,
+      setInitialStorage: (keyPath: string) => {
+        set(backup, keyPath, cloneDeep(get(storage, keyPath)))
+        console.log('init', keyPath, storage, backup)
+      },
+    }
+  }, [storage, backup, updateStorage])
   return (
-    <StorageContext.Provider value={DefaultData}>
+    <StorageContext.Provider value={contextValue}>
       <div css={styles.mainCss}>
         <StickyHeader cls={styles.headerCss}>
           <Space css={styles.titleCss}>
             <SettingOutlined />
             <label>系統設定</label>
+            {hasUpdated && (
+              <Space>
+                <Alert
+                  css={styles.alertCss}
+                  description="設定尚未存檔"
+                  type="warning"
+                  showIcon
+                />
+              </Space>
+            )}
           </Space>
+          {hasUpdated && (
+            <Button css={styles.saveBtnCss} size="small" type="primary">
+              存檔設定
+            </Button>
+          )}
         </StickyHeader>
         <div css={styles.containerCss}>
           <Tabs items={menuItems} defaultActiveKey="cost" />

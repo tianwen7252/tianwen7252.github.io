@@ -21,9 +21,9 @@ import dayjs from 'dayjs'
 import { toCurrency, DATE_FORMAT_TIME } from 'src/libs/common'
 import { AppContext } from 'src/pages/App/context'
 import {
-  MEMOS_NAME_COLOR_MAP,
-  HIGHLIGHT_MEMOS,
-} from 'src/constants/defaults/memos'
+  ORDER_TYPES_NAME_COLOR_MAP,
+  HIGHLIGHT_ORDER_TYPES,
+} from 'src/constants/defaults/orderTypes'
 import * as styles from './styles'
 
 const emptyFn = () => {}
@@ -41,9 +41,9 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
     let bgColor = ''
     if (Array.isArray(memo)) {
       memo.some(tag => {
-        const has = HIGHLIGHT_MEMOS.includes(tag)
+        const has = HIGHLIGHT_ORDER_TYPES.includes(tag)
         if (has) {
-          bgColor = MEMOS_NAME_COLOR_MAP[tag]
+          bgColor = ORDER_TYPES_NAME_COLOR_MAP[tag]
         }
         return has
       })
