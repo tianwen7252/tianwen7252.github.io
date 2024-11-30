@@ -49,6 +49,15 @@ export const commondityTable = css`
   }
 `
 
+export const orderTypeTable = css`
+  margin-top: 20px;
+  margin-bottom: 20px;
+
+  .ant-table-thead > tr > th {
+    background: #fef4cb66;
+  }
+`
+
 export const actionBtn = css`
   margin-right: 10px;
 `

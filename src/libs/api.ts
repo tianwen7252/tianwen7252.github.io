@@ -21,7 +21,7 @@ export const orders = {
     searchText?: string[]
     offset?: number
     limit?: number
-    search?: Resta.API.Orders.SearchCallback
+    search?: Resta.APIFn.Orders.SearchCallback
   }) {
     let collection = db.orders.where(index).between(startTime, endTime)
     type Coll = typeof collection

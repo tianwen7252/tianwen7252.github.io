@@ -25,14 +25,11 @@ export const resetActiveRow = debounce(
     const cells = document
       .getElementById(tableID)
       .querySelectorAll('.ant-table-cell-row-hover')
-    // const cells = document.querySelectorAll('.ant-table-cell-row-hover')
-    console.log('cells', cells)
     if (cells.length) {
       cells.forEach(each => {
         each.classList.remove('ant-table-cell-row-hover')
       })
       const row = cells?.[0]?.parentNode
-      console.log('row', row, row?.previousSibling?.childNodes)
       if (direction === 'up') {
         row?.previousSibling?.childNodes?.forEach((each: HTMLElement) => {
           each.classList.add('ant-table-cell-row-hover')
@@ -63,13 +60,6 @@ export const Products: React.FC = () => {
     },
     [],
     [],
-  )
-  const update = useCallback(
-    (rerender = false) => {
-      rerender && refresh()
-      updateStorage()
-    },
-    [updateStorage],
   )
   const onChangeTypeLabel = useCallback(
     debounce((id: number, event: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,6 +93,13 @@ export const Products: React.FC = () => {
     [onChangeTypeLabel],
   )
 
+  const update = useCallback(
+    (rerender = false) => {
+      rerender && refresh()
+      updateStorage()
+    },
+    [updateStorage],
+  )
   const commonditiesData = useLiveQuery(
     async () => {
       const data = await API.commondity.get()
@@ -532,6 +529,7 @@ export const Products: React.FC = () => {
       <h2 css={styles.title}>訂單分類</h2>
       <Table
         id="resta-settings-orderTypes-table"
+        css={styles.orderTypeTable}
         bordered={false}
         dataSource={orderTypesDataSource}
         columns={orderTypesColumns}

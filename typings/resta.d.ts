@@ -163,6 +163,8 @@ declare namespace Resta {
   }
 
   namespace Products {
+    type storageContext =
+      typeof import('../src/pages/Settings/context').contextValue
     type commonditiesMap = {
       [key: string]: Array<RestaDB.Table.Commondity & { key: string }>
     }
@@ -172,7 +174,8 @@ declare namespace Resta {
   type OrderList = RestaDB.Table.Order[]
   type OrderRecords = OrderList
 
-  namespace API {
+  type API = typeof import('../src/libs/api')
+  namespace APIFn {
     namespace Orders {
       type SearchCallback = (
         collection: Collection<RestaDB.Table.Order>,
@@ -268,7 +271,7 @@ declare global {
         type: 'admin' | 'manager' | 'staff'
         createdAt: number
         updatedAt: number
-        deletedAt: number
+        active: '0' | '1'
       }
     }
 

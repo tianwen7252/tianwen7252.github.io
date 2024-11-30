@@ -109,7 +109,7 @@ export function useOrderList({
   offset?: number
   limit?: number
   handleRecords?: Resta.OrderList.HandleRecords
-  search?: Resta.API.Orders.SearchCallback
+  search?: Resta.APIFn.Orders.SearchCallback
 }) {
   datetime = datetime ?? 'today'
   const { API } = useContext(AppContext)

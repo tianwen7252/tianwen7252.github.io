@@ -101,14 +101,14 @@ export const mealsCss = css`
     margin-inline-end: 4px;
     cursor: pointer;
     background: #fff;
-    border: 1px solid #222;
-    color: #222;
+    border: 1px solid #2222229c;
+    color: #2222229c;
   }
 
   .ant-tag-close-icon {
     /* vertical-align: middle; */
     font-size: 1rem;
-    color: #222;
+    color: #2222229c;
   }
 `
 

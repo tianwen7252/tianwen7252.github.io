@@ -27,11 +27,10 @@ import {
   AppstoreAddOutlined,
   AppstoreOutlined,
 } from '@ant-design/icons'
+import { useLiveQuery } from 'dexie-react-hooks'
 
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
-import { COMMODITIES } from 'src/constants/defaults/commondities'
-import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 import { AppContext } from 'src/pages/App/context'
 import { toCurrency, getCorrectAmount } from 'src/libs/common'
 import { useNumberInput } from './hooks'
@@ -67,7 +66,7 @@ export function getChange(total: number) {
 }
 
 export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
-  const { appEvent, isTablet } = useContext(AppContext)
+  const { API, appEvent, isTablet } = useContext(AppContext)
   const { data, total, priceMap, input, updateItemRes, update, clear } =
     useNumberInput()
   const {
@@ -100,6 +99,45 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const isFree = useMemo(() => {
     return selectedMemos.includes('免費')
   }, [selectedMemos])
+
+  // === APIs ===
+  const commTypesData = useLiveQuery(
+    async () => {
+      const data = await API.commondityTypes.get()
+      return data.map(type => ({ key: type.id, ...type }))
+    },
+    [],
+    [] as RestaDB.Table.CommondityType[],
+  )
+  const commData = useLiveQuery(
+    async () => {
+      const data = await API.commondity.get()
+      const map: Resta.Products.commonditiesMap = {}
+      data?.forEach(item => {
+        const { id, typeID, priority, onMarket } = item
+        map[typeID] = map[typeID] ?? []
+        if (onMarket === '1') {
+          map[typeID].push({
+            key: `${id}-${priority}`,
+            ...item,
+          })
+        }
+      })
+      return map
+    },
+    [],
+    {} as Resta.Products.commonditiesMap,
+  )
+  const orderTypesData = useLiveQuery(
+    async () => {
+      const data = await API.orderTypes.get()
+      return data
+    },
+    [],
+    [] as RestaDB.Table.OrderType[],
+  )
+
+  // === callbacks ===
   const handleInput = useCallback(
     (meta: string) => {
       const [key, res] = meta.split('|')
@@ -266,8 +304,9 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   }, [onButtonClick])
 
   const commondities = useMemo(() => {
-    return COMMODITIES.map(tab => {
-      const { type, label, items, color } = tab
+    return commTypesData.map(typeData => {
+      const { type, label, typeID, color } = typeData
+      const items = commData[typeID] ?? []
       const buttons = items.map((each: Resta.Commodity.Item, index) => {
         const { name, price, menu, visible, showRelevancy, hideOnMode } = each
         if (visible === false || hideOnMode === mode) return null
@@ -319,7 +358,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           return btnElement
         }
       })
-
       return {
         label,
         key: type,
@@ -330,7 +368,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         ),
       }
     })
-  }, [mode, onButtonClick, onMenuClick])
+  }, [mode, commTypesData, commData, onButtonClick, onMenuClick])
 
   const meals = useMemo(
     () =>
@@ -454,7 +492,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
               <Tabs
                 css={styles.tabCss}
                 tabPosition={mode === 'commondity' ? 'left' : 'top'}
-                defaultActiveKey={COMMODITIES[0].type}
+                defaultActiveKey={commTypesData?.[0]?.type}
                 items={commondities}
               />
             )}
@@ -463,7 +501,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         <Divider />
         <Flex css={styles.memoCss} gap="small" wrap align="center">
           <span css={styles.memoTextCss}>備註</span>
-          {ORDER_TYPES.map(({ name, color }) => (
+          {orderTypesData?.map(({ name, color }) => (
             <Tag.CheckableTag
               css={styles.ORDER_TYPES_COLOR_MAP[color]}
               key={name}

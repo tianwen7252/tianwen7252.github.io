@@ -27,7 +27,7 @@ export const COMMODITIES = [
       { name: '加蛋', price: 15, priority: 13, hideOnMode: 'both' },
       { name: '加菜', price: 15, priority: 14, hideOnMode: 'both' },
       { name: '沙拉', price: 100, priority: 15 },
-      { name: '舒肥雞沙拉', price: 160, priority: 16 },
+      { name: '雞胸肉沙拉', price: 160, priority: 16 },
       // {
       //   name: '120',
       //   price: 120,
