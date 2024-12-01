@@ -148,9 +148,9 @@ async function genOrders(range = '1Q', clear = false) {
           const prob = getProbability(randomMemoTypes)
           set.add(ORDER_TYPES[prob].name)
         })
-        set.delete('外送訂單')
+        set.delete('外送')
         if (isCustomer) {
-          set.add('外送訂單')
+          set.add('外送')
         }
         return Array.from(set)
       }

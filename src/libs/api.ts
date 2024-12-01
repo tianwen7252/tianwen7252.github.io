@@ -232,13 +232,31 @@ export const commondityTypes = {
 
 export const commondity = {
   async get(onMarket: RestaDB.Table.Commondity['onMarket'] = '1') {
-    return (
-      db.commondity
-        .where('onMarket')
-        .equals(onMarket)
-        //.sortBy('priority')
-        .toArray()
-    )
+    if (onMarket) {
+      return (
+        db.commondity
+          .where('onMarket')
+          .equals(onMarket)
+          //.sortBy('priority')
+          .toArray()
+      )
+    }
+    return db.commondity.toArray()
+  },
+  async getMapData(onMarket?: RestaDB.Table.Commondity['onMarket']) {
+    const data = await commondity.get(onMarket)
+    const map: Resta.Products.commonditiesMap = {}
+    data?.forEach(item => {
+      const { id, typeID, priority, onMarket } = item
+      map[typeID] = map[typeID] ?? []
+      if (onMarket === '1') {
+        map[typeID].push({
+          key: `${id}-${priority}`,
+          ...item,
+        })
+      }
+    })
+    return map
   },
   async add(record: Omit<RestaDB.Table.Commondity, 'id'>, editor = 'admin') {
     return db.commondity.add({

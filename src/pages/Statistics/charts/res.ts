@@ -1,9 +1,7 @@
 import { useMemo } from 'react'
 
-import { toCurrencyNumber, getCommoditiesInfo } from 'src/libs/common'
+import { toCurrencyNumber } from 'src/libs/common'
 import { pickColor, forEachDateMap } from 'src/libs/chart'
-
-const { resMapGroup } = getCommoditiesInfo(undefined, false, true)
 
 export function processResChart(
   resType: 'main-dish' | 'à-la-carte' | 'others',
@@ -11,6 +9,7 @@ export function processResChart(
   chartType: Resta.Chart.ChartType,
   dateType: Resta.Chart.DateType,
   colorsMap: Resta.Chart.ColorsMap,
+  resMapGroup: Resta.Commodity.ResMapGroup,
 ) {
   if (!dateMap) return null
   const groupData: {
@@ -47,6 +46,7 @@ export function processResChart(
       },
     }
   })
+
   datasets.push({
     label: 'Total',
     data: [...Array.from(Array(labels.length)).map(() => 0)], // 0 are just placeholders

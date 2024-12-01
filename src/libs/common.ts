@@ -1,4 +1,4 @@
-import { COMMODITIES } from 'src/constants/defaults/commondities'
+import { forIn } from 'lodash'
 
 export const DATE_FORMAT = 'YYYY/MM/DD dddd'
 export const DATE_FORMAT_DATE = 'YYYY/MM/DD'
@@ -42,7 +42,7 @@ export function getCorrectAmount(amount: string) {
 let priceMapGroupCache: Resta.Commodity.PriceMapGroup
 let resMapGroupCache: Resta.Commodity.ResMapGroup
 export function getCommoditiesInfo(
-  data = COMMODITIES,
+  data: Resta.Products.commonditiesMap = null,
   revise = false,
   getGroup = false,
 ) {
@@ -78,7 +78,20 @@ export function getCommoditiesInfo(
       }
     })
   }
-  data.forEach(({ type, items }) => {
+  forIn(data, (items, typeID) => {
+    // hard code temporarily
+    let type = ''
+    switch (typeID) {
+      case '1':
+        type = 'main-dish'
+        break
+      case '2':
+        type = 'à-la-carte'
+        break
+      case '3':
+        type = 'others'
+        break
+    }
     tidy(type, items)
   })
   if (revise) {

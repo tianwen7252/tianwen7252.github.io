@@ -16,14 +16,11 @@ import {
   ReloadOutlined,
 } from '@ant-design/icons'
 import SwipeListener from 'swipe-listener'
+import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 
 import { toCurrency, DATE_FORMAT_TIME } from 'src/libs/common'
 import { AppContext } from 'src/pages/App/context'
-import {
-  ORDER_TYPES_NAME_COLOR_MAP,
-  HIGHLIGHT_ORDER_TYPES,
-} from 'src/constants/defaults/orderTypes'
 import * as styles from './styles'
 
 const emptyFn = () => {}
@@ -32,24 +29,30 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
   const { record, number, editable = true, callOrderAPI = emptyFn } = props
   const [showAction, setShowAction] = useState(false)
   const [isEditing, setEditState] = useState(false)
-  const { appEvent, isTablet } = useContext(AppContext)
+  const { API, appEvent, isTablet } = useContext(AppContext)
   const ref = useRef<HTMLDivElement>()
   const { data, total, memo, createdAt, updatedAt } = record
   const createdDate = dayjs.tz(createdAt)
   const updatedDate = updatedAt && dayjs.tz(updatedAt)
+  // === APIs ===
+  const orderTypes = useLiveQuery(
+    async () => await API.orderTypes.get(),
+    [],
+    [] as RestaDB.Table.OrderType[],
+  )
   const bgColor = useMemo(() => {
     let bgColor = ''
     if (Array.isArray(memo)) {
       memo.some(tag => {
-        const has = HIGHLIGHT_ORDER_TYPES.includes(tag)
-        if (has) {
-          bgColor = ORDER_TYPES_NAME_COLOR_MAP[tag]
+        const typeData = orderTypes.find(type => type.name === tag)
+        if (typeData) {
+          bgColor = typeData.color
         }
-        return has
+        return typeData
       })
     }
     return bgColor
-  }, [memo])
+  }, [memo, orderTypes])
 
   const toggleActionUI = useCallback(() => {
     setShowAction(toShow => !toShow)

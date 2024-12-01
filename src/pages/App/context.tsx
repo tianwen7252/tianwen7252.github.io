@@ -9,8 +9,10 @@ import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_TIME,
   DATE_FORMAT_DATETIME_UI,
+  getCommoditiesInfo,
 } from 'src/libs/common'
 
+let cacheCommoditiesInfo: ReturnType<typeof getCommoditiesInfo>
 export const DefaultContextData = {
   db,
   API,
@@ -20,6 +22,13 @@ export const DefaultContextData = {
   DATE_FORMAT_DATE,
   DATE_FORMAT_TIME,
   DATE_FORMAT_DATETIME_UI,
+  async getAllCommoditiesInfo() {
+    if (!cacheCommoditiesInfo) {
+      const data = await API.commondity.getMapData()
+      cacheCommoditiesInfo = getCommoditiesInfo(data, false, true)
+    }
+    return cacheCommoditiesInfo
+  },
 }
 
 export const AppContext = createContext(DefaultContextData)

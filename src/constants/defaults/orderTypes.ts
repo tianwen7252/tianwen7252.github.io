@@ -64,8 +64,6 @@ export const ORDER_TYPES_OPTIONS = [
   },
 ]
 
-export const HIGHLIGHT_ORDER_TYPES = ['電話自取', '外送訂單', '優惠價', '免費']
-
 export const COLORS = {
   red: '#db476c',
   blue: '#546ca3',

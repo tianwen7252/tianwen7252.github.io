@@ -118,6 +118,7 @@ declare namespace Resta {
         selectedChartType?: ChartType,
         selectedDateType?: DateType,
         colorsMap?: ColorsMap,
+        resMapGroup?: Resta.Commodity.ResMapGroup,
       ): ChartConfig
     }
     interface ColorsMap {
@@ -133,8 +134,7 @@ declare namespace Resta {
   }
 
   namespace Commodity {
-    type Items =
-      (typeof import('../src/constants/defaults/commondities').COMMODITIES)[0]['items']
+    type Items = Item[]
     type Item = ItemMenu & {
       showRelevancy?: boolean
       menu?: ItemMenu[]

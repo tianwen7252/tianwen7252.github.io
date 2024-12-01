@@ -67,8 +67,34 @@ export function getChange(total: number) {
 
 export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const { API, appEvent, isTablet } = useContext(AppContext)
+  // === APIs ===
+  const commTypesData = useLiveQuery(
+    async () => {
+      const data = await API.commondityTypes.get()
+      return data.map(type => ({ key: type.id, ...type }))
+    },
+    [],
+    [] as RestaDB.Table.CommondityType[],
+  )
+  const commData = useLiveQuery(
+    async () => {
+      const data = await API.commondity.getMapData()
+      return data
+    },
+    [],
+    {} as Resta.Products.commonditiesMap,
+  )
+  const orderTypesData = useLiveQuery(
+    async () => {
+      const data = await API.orderTypes.get()
+      return data
+    },
+    [],
+    [] as RestaDB.Table.OrderType[],
+  )
   const { data, total, priceMap, input, updateItemRes, update, clear } =
-    useNumberInput()
+    useNumberInput(commData)
+
   const {
     editMode = false,
     record,
@@ -99,43 +125,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const isFree = useMemo(() => {
     return selectedMemos.includes('免費')
   }, [selectedMemos])
-
-  // === APIs ===
-  const commTypesData = useLiveQuery(
-    async () => {
-      const data = await API.commondityTypes.get()
-      return data.map(type => ({ key: type.id, ...type }))
-    },
-    [],
-    [] as RestaDB.Table.CommondityType[],
-  )
-  const commData = useLiveQuery(
-    async () => {
-      const data = await API.commondity.get()
-      const map: Resta.Products.commonditiesMap = {}
-      data?.forEach(item => {
-        const { id, typeID, priority, onMarket } = item
-        map[typeID] = map[typeID] ?? []
-        if (onMarket === '1') {
-          map[typeID].push({
-            key: `${id}-${priority}`,
-            ...item,
-          })
-        }
-      })
-      return map
-    },
-    [],
-    {} as Resta.Products.commonditiesMap,
-  )
-  const orderTypesData = useLiveQuery(
-    async () => {
-      const data = await API.orderTypes.get()
-      return data
-    },
-    [],
-    [] as RestaDB.Table.OrderType[],
-  )
 
   // === callbacks ===
   const handleInput = useCallback(

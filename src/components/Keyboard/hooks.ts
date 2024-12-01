@@ -1,9 +1,7 @@
-import { useState, useCallback, useEffect, useRef } from 'react'
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react'
 
 import { process, calculate } from 'src/libs/arithmetic'
 import { getCommoditiesInfo } from 'src/libs/common'
-
-const { priceMap, commodityMap } = getCommoditiesInfo()
 
 export function converData(data: Resta.Keyboard.Data) {
   let text = ''
@@ -16,7 +14,11 @@ export function converData(data: Resta.Keyboard.Data) {
   }
 }
 
-export function useNumberInput() {
+export function useNumberInput(commData?: Resta.Products.commonditiesMap) {
+  const { priceMap, commodityMap } = useMemo(
+    () => getCommoditiesInfo(commData),
+    [commData],
+  )
   const displayedText = useRef('')
   const readyToMultiply = useRef(false)
   const [text, setText] = useState('')
@@ -59,7 +61,7 @@ export function useNumberInput() {
       }
       return item
     },
-    [],
+    [commodityMap],
   )
   const updateItemRes = useCallback(
     (meta: string, target?: Resta.Keyboard.InputItem, remove = false) => {
@@ -205,7 +207,7 @@ export function useNumberInput() {
       }
       return { data }
     },
-    [handleOperator, updateRes],
+    [handleOperator, updateRes, priceMap, commodityMap],
   )
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {

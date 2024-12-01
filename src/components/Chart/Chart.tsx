@@ -5,6 +5,7 @@ import React, {
   useMemo,
   useCallback,
   useRef,
+  useContext,
 } from 'react'
 import { Space, Empty, Segmented, Flex } from 'antd'
 import {
@@ -28,6 +29,8 @@ import {
   CHART_COLORS2,
 } from 'src/libs/chart'
 import 'src/libs/chartTotalizer'
+import { AppContext } from 'src/pages/App/context'
+
 import * as styles from './styles'
 
 ChartJS.register(ChartDataLabels)
@@ -73,6 +76,7 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
     displayTypes = '**|doughnut|table', // ** means default chart type (props.type)
     handle,
   }) => {
+    const { getAllCommoditiesInfo } = useContext(AppContext)
     const [config, setConfig] = useState<Resta.Chart.ChartConfig>(null)
     const [selectedDateType = DATE_TYPE_MAP[dateType].value, setDateType] =
       useState<Resta.Chart.DateType>()
@@ -150,17 +154,26 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
 
     useEffect(() => {
       const process = async () => {
+        const { resMapGroup } = await getAllCommoditiesInfo()
         const result = await handle?.(
           dateMap,
           selectedChartType,
           selectedDateType,
           colorsMap,
+          resMapGroup,
         )
         result && setConfig(result)
       }
       !skipRef.current && process()
       skipRef.current = false
-    }, [dateMap, handle, selectedDateType, selectedChartType, colorsMap])
+    }, [
+      dateMap,
+      handle,
+      selectedDateType,
+      selectedChartType,
+      colorsMap,
+      getAllCommoditiesInfo,
+    ])
 
     return (
       <div css={styles.chartCss}>

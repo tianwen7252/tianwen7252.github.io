@@ -162,6 +162,7 @@ export const Statistics: React.FC<{}> = memo(() => {
     [presets],
   )
 
+  // === APIs ===
   const { records, dailyDataInfo } = useLiveQuery(
     async () => {
       if (!startTime || !endTime) {

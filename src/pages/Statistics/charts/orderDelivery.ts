@@ -1,13 +1,11 @@
-import { getCommoditiesInfo } from 'src/libs/common'
 import { pickColor, forEachDateMap } from 'src/libs/chart'
-
-const { resMapGroup } = getCommoditiesInfo(undefined, false, true)
 
 export function handleOrderDeliveryChart(
   dateMap: Resta.Chart.DateMap,
   chartType: Resta.Chart.ChartType,
   dateType: Resta.Chart.DateType,
   colorsMap: Resta.Chart.ColorsMap,
+  resMapGroup: Resta.Commodity.ResMapGroup,
 ) {
   if (!dateMap) return null
   const dataList: number[] = []
@@ -15,7 +13,7 @@ export function handleOrderDeliveryChart(
   forEachDateMap(dateMap, dateType, ({ date }) => {
     const { records } = dateMap[date]
     records.forEach(({ data, memo }) => {
-      if (memo?.length && !memo.includes('外送訂單')) {
+      if (memo?.length && !memo.includes('外送')) {
         return
       }
       data.forEach(({ res, type }) => {
@@ -36,6 +34,7 @@ export function handleOrderDeliveryChart(
       ),
       datalabels: {
         formatter(value) {
+          if (value === undefined) return ''
           const sum = dataList.reduce((result, each) => {
             return result + each
           }, 0)
