@@ -1,3 +1,4 @@
+// @ts-nocheck this file is going to be deprecated
 import fs from 'node:fs'
 import * as prettier from 'prettier'
 
