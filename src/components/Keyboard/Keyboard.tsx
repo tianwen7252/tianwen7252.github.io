@@ -113,7 +113,10 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const soups = useMemo(() => {
     let count = 0
     data.forEach(({ res, type, amount = '' }) => {
-      if (type === CONFIG.MAIN_DISH_TYPE || res === '湯') {
+      const noNeedSoup = CONFIG.NO_NEED_SOUP_KEYWORDS.some(keyword =>
+        res?.includes(keyword),
+      )
+      if (!noNeedSoup && (type === CONFIG.MAIN_DISH_TYPE || res === '湯')) {
         count += getCorrectAmount(amount)
       }
     })
