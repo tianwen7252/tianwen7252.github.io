@@ -1,11 +1,11 @@
 {
-  "name": "resta",
+  "name": "tianwen7252.github.io",
   "version": "0.0.1",
-  "description": "Restaurant App",
+  "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/RyanRoll/Resta.git"
+    "url": "git+https://github.com/tianwen7252/tianwen7252.github.io.git"
   },
   "author": "Ryan Roll",
   "type": "module",
