@@ -7,10 +7,11 @@
     "type": "git",
     "url": "git+https://github.com/tianwen7252/tianwen7252.github.io.git"
   },
-  "author": "Ryan Roll",
+  "author": "Tianwen",
   "type": "module",
   "scripts": {
-    "start": "vite",
+    "start": "electron-forge start",
+    "start:electron": "electron electron/",
     "build": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -53,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "chalk": "^5.3.0",
+    "electron": "^33.2.1",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-import-resolver-typescript": "^3.6.1",
