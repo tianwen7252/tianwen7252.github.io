@@ -4,27 +4,41 @@
 const { app, BrowserWindow, WebContentsView } = require('electron')
 // const path = require('node:path')
 
+require('v8-compile-cache')
+
 const createWindow = () => {
   // Create the browser window.
+
+  const width = 1080
+  const height = 810
   const mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 810,
+    width,
+    height,
     frame: false,
     resizable: false,
     center: true,
+    show: false,
     webPreferences: { webviewTag: true },
   })
 
-  // and load the index.html of the app.
-  mainWindow.loadFile('index.html')
+  mainWindow.loadURL('https://tianwen7252.github.io')
 
-  const webView = new WebContentsView()
-  mainWindow.contentView.addChildView(webView)
-  webView.webContents.loadURL('https://tianwen7252.github.io')
-  webView.setBounds({ x: 0, y: 0, width: 1080, height: 810 })
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show()
+  })
+
+  // and load the index.html of the app.
+  // mainWindow.loadFile('index.html')
 
   // Open the DevTools.
+
+  // mainWindow.webContents.openDevTools({ mode: 'detach', activate: true })
+
   // mainWindow.webContents.openDevTools()
+
+  // setTimeout(() => {
+  //   mainWindow.webContents.openDevTools({ mode: 'detach', activate: true })
+  // }, 1000)
 }
 
 // This method will be called when Electron has finished

@@ -44,17 +44,36 @@ export const modeCommondityCss = css`
   }
 `
 
+const ipadTextAreaMinHeight = css`
+  min-height: ${TABLET.KEYBOARD_TEXT_MIN_HEIGHT};
+`
+const ipadChromeTextAreaMinHeight = css`
+  min-height: calc(${TABLET.KEYBOARD_TEXT_MIN_HEIGHT} - 50px);
+`
+
 export const textAreaCss = css`
   margin-bottom: 20px;
   word-wrap: break-word;
   min-height: ${KEYBOARD_TEXT_MIN_HEIGHT};
+
+  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+    ${ipadTextAreaMinHeight}
+  }
   @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-    min-height: ${TABLET.KEYBOARD_TEXT_MIN_HEIGHT};
+    ${ipadTextAreaMinHeight}
   }
+
   // for ipad chrome
-  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
-    min-height: calc(${TABLET.KEYBOARD_TEXT_MIN_HEIGHT} - 50px);
+  @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
+    ${ipadChromeTextAreaMinHeight}
   }
+  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+    ${ipadChromeTextAreaMinHeight}
+  }
+`
+
+const ipadDrawerTextAreaMaxHeight = css`
+  max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
 `
 
 export const drawerModeCss = css`
@@ -75,21 +94,38 @@ export const drawerModeCss = css`
     margin-top: -10px;
   } */
   .resta-keyboard-textArea {
+    @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+      ${ipadDrawerTextAreaMaxHeight}
+    }
     @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-      max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+      ${ipadDrawerTextAreaMaxHeight}
     }
   }
+`
+
+const ipadMealsMaxHeight = css`
+  max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+`
+
+const ipadChromeMealsMaxHeight = css`
+  max-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} - 100px);
 `
 
 export const mealsCss = css`
   max-height: ${KEYBOARD_TEXT_MEALS_HEIGHT};
 
+  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+    ${ipadMealsMaxHeight}
+  }
   @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-    max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+    ${ipadMealsMaxHeight}
   }
   // for ipad chrome
+  @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
+    ${ipadChromeMealsMaxHeight}
+  }
   @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
-    max-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} - 100px);
+    ${ipadChromeMealsMaxHeight}
   }
 
   overflow-y: auto;
@@ -158,13 +194,26 @@ export const orderPageModeCss = css`
   width: min-content;
 `
 
+const ipadBtnArea = css`
+  flex: unset !important;
+`
+
 export const btnAreaCss = css`
   flex: auto;
   justify-content: end;
   // for ipad chrome mode
-  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
-    flex: unset !important;
+  @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
+    ${ipadBtnArea}
   }
+  @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
+    ${ipadBtnArea}
+  }
+`
+
+const ipadBtnFlex = css`
+  gap: 10px;
+  margin-bottom: 10px;
+  max-height: 290px;
 `
 
 export const btnCss = css`
@@ -174,10 +223,11 @@ export const btnCss = css`
     align-content: flex-start;
 
     // for ipad chrome mode
+    @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
+      ${ipadBtnFlex}
+    }
     @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
-      gap: 10px;
-      margin-bottom: 10px;
-      max-height: 290px;
+      ${ipadBtnFlex}
     }
   }
 
@@ -246,6 +296,11 @@ export const btnDropdownCssName = cssPlugin.css`
   }
 `
 
+const ipadMemoTag = css`
+  letter-spacing: 2px;
+  margin-left: 2px;
+`
+
 export const memoCss = css`
   font-size: 1rem;
   margin: 5px 0;
@@ -259,9 +314,11 @@ export const memoCss = css`
     margin-left: 4px;
 
     // for ipad
+    @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+      ${ipadMemoTag}
+    }
     @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-      letter-spacing: 2px;
-      margin-left: 2px;
+      ${ipadMemoTag}
     }
 
     &.ant-tag-checkable:not(.ant-tag-checkable-checked):hover {
