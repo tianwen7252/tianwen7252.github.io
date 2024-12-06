@@ -7,7 +7,7 @@ import {
   COMMODITIES,
 } from 'src/constants/defaults/commondities'
 import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
-const DB_NAME = 'TianWenDB'
+const DB_NAME = 'TianwenDB'
 const GB_UNIT = 1000 * 1000 * 1000
 export const WARNING_DEVICE_SIZE = GB_UNIT
 

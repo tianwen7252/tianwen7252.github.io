@@ -492,7 +492,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         </Flex>
         <Divider />
         <Flex css={styles.memoCss} gap="small" wrap align="center">
-          <span css={styles.memoTextCss}>備註</span>
+          {/* <span css={styles.memoTextCss}>備註</span> */}
           {orderTypesData?.map(({ name, color }) => (
             <Tag.CheckableTag
               css={styles.ORDER_TYPES_COLOR_MAP[color]}
