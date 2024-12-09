@@ -18,6 +18,7 @@ const createWindow = () => {
     resizable: false,
     center: true,
     show: false,
+    fullScreenable: false,
     webPreferences: { webviewTag: true },
   })
 
@@ -32,9 +33,9 @@ const createWindow = () => {
 
   // Open the DevTools.
 
-  // mainWindow.webContents.openDevTools({ mode: 'detach', activate: true })
-
   // mainWindow.webContents.openDevTools()
+
+  // mainWindow.webContents.openDevTools({ mode: 'detach', activate: true })
 
   // setTimeout(() => {
   //   mainWindow.webContents.openDevTools({ mode: 'detach', activate: true })

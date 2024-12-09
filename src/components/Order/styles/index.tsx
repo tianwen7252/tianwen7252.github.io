@@ -18,8 +18,12 @@ export const orderCss = css`
   min-width: var(--resta-order-card-width);
 
   // for iPad 10
-  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+  @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
     --resta-order-card-width: 260px;
+  }
+
+  @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
+    --resta-order-card-width: 284px;
   }
 `
 

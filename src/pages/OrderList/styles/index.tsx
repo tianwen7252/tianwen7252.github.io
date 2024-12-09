@@ -98,18 +98,14 @@ export const keyboardDrawerCss = css`
   }
 `
 
-const ipadContent = css`
-  padding-bottom: 280px;
-`
-
 export const contentCss = css`
   padding-bottom: 350px; // for anchor last item and scroll-top buttn
 
-  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
-    ${ipadContent}
+  @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
+    padding-bottom: 280px;
   }
-  @media only screen and (max-device-width: 1180px) and (orientation: landscape) {
-    ${ipadContent}
+  @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
+    padding-bottom: 350px;
   }
 `
 
