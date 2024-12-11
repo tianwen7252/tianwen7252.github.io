@@ -219,15 +219,16 @@ export const Products: React.FC = () => {
         key: 'hideOnMode',
         render: (_, record: RestaDB.Table.Commondity) => (
           <Select
-            defaultValue={record.hideOnMode || 'both'}
+            defaultValue={record.hideOnMode || ''}
             style={{ width: 140 }}
             onChange={value =>
               onChangeCommondity(record.id, 'edit', 'hideOnMode', value)
             }
           >
-            <Select.Option value="both">皆顯示</Select.Option>
+            <Select.Option value="">皆顯示</Select.Option>
             <Select.Option value="calculator">僅顯示在計算機</Select.Option>
             <Select.Option value="commondity">僅顯示在商品</Select.Option>
+            <Select.Option value="both">皆不顯示</Select.Option>
           </Select>
         ),
       },
@@ -306,7 +307,7 @@ export const Products: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [commondityTypes, onChangeCommondity, commonditiesData, refreshFlag])
   const onAddComm = useCallback(() => {
-    const typeID = +typeIDRef.current
+    const typeID = typeIDRef.current
     const { commondities } = storage.product
     const dataSource = commondities
       .filter(comm => comm.typeID === typeID)
