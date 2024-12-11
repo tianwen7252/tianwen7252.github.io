@@ -195,7 +195,7 @@ declare global {
       // commondity keeps all the saved data
       interface Commondity {
         id: ID | string
-        typeID: CommondityType['id']
+        typeID: string
         name: string
         editor?: string
         createdAt?: number
