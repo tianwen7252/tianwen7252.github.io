@@ -274,6 +274,19 @@ export const rootCss = css`
       background-color: #f9f9f9;
     }
   }
+
+  /* PWA: It targets only the app used with a system icon in all mode */
+  @media (display-mode: standalone),
+    (display-mode: fullscreen),
+    (display-mode: minimal-ui) {
+    * {
+      user-select: none;
+    }
+    // stop browser-refreshing when scrolling down to bottom
+    body {
+      overscroll-behavior-y: contain;
+    }
+  }
 `
 
 export const primaryBtnBg = `linear-gradient(to right, #2bc0e4 0%, #eaecc6 51%, #2bc0e4 100%);
