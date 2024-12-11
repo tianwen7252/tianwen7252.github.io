@@ -18,8 +18,8 @@ export const rootCss = css`
     font-weight: 400;
 
     color-scheme: light dark;
-    color: rgba(255, 255, 255, 0.87);
-    background-color: #242424;
+    color: #213547;
+    background-color: #fff;
     font-size: 16px;
 
     font-synthesis: none;
@@ -46,6 +46,7 @@ export const rootCss = css`
     margin: 0;
     min-width: 320px;
     min-height: 100vh;
+    /* background-color: #fff; */ // move it to root instead, otherwise the circle style of statistics will be gone
   }
 
   h1 {
@@ -196,7 +197,7 @@ export const rootCss = css`
   }
 
   .ant-divider {
-    margin: 10px 0;
+    margin: 8px 0;
   }
 
   .ant-input-affix-wrapper .ant-input-clear-icon {
@@ -265,13 +266,20 @@ export const rootCss = css`
   @media (prefers-color-scheme: light) {
     :root {
       color: #213547;
-      background-color: #ffffff;
+      /* background-color: #ffffff; */
     }
     a:hover {
       color: #747bff;
     }
     button {
       background-color: #f9f9f9;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      color: #213547;
+      /* background-color: #ffffff; */
     }
   }
 

@@ -68,7 +68,7 @@ export const AppHeader: React.FC<{}> = memo(() => {
         </Flex>
       </Header> */}
       <FloatButton.Group
-        trigger="hover"
+        trigger="click"
         style={{ right: 10, top: 10, zIndex: 1001 }}
         icon={<MenuOutlined />}
         placement="bottom"

@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
+import { isNil } from 'lodash'
 
 import { generate } from 'src/scripts/generator'
 import * as API from './api'
@@ -7,6 +8,8 @@ import {
   COMMODITIES,
 } from 'src/constants/defaults/commondities'
 import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
+import * as SYNC from 'src/constants/sync'
+
 const DB_NAME = 'TianwenDB'
 const GB_UNIT = 1000 * 1000 * 1000
 export const WARNING_DEVICE_SIZE = GB_UNIT
@@ -50,19 +53,27 @@ export function init() {
 
 export async function initDB() {
   // init commondity type and commondities here
+  // also sycn up for dev only
+  const syncNumber = localStorage.getItem('SYNC_NUMBER')
+  const shouldSyncUpOnDev = isNil(syncNumber) || SYNC.NUMBER > +syncNumber
+  syncNumber && SYNC.METHOD === 'dev' && SYNC.SOURDCE === 'default'
+  const syncTable = shouldSyncUpOnDev && SYNC.SPECIFIC_TABLE
+
   const commondityTypes = await API.commondityTypes.get()
-  if (commondityTypes.length === 0) {
+  if (commondityTypes.length === 0 || syncTable === 'commondityType') {
+    shouldSyncUpOnDev && API.commondityTypes.clear()
     COMMODITY_TYPES.forEach(type => {
       API.commondityTypes.add(type)
     })
   }
   const commondities = await API.commondity.get()
-  if (commondities.length === 0) {
+  if (commondities.length === 0 || syncTable === 'commondity') {
     const typesData = await API.commondityTypes.get()
     const typesMap = typesData.reduce((map, data) => {
       map[data.type] = data.typeID
       return map
     }, {})
+    shouldSyncUpOnDev && API.commondity.clear()
     COMMODITIES.forEach(commodity => {
       const { type, items } = commodity
       items.forEach(item => {
@@ -76,10 +87,14 @@ export async function initDB() {
   }
   // init order types
   const orderTypes = await API.orderTypes.get()
-  if (orderTypes.length === 0) {
+  if (orderTypes.length === 0 || syncTable === 'orderTypes') {
+    shouldSyncUpOnDev && API.orderTypes.clear()
     ORDER_TYPES.forEach(type => {
       API.orderTypes.add(type)
     })
+  }
+  if (shouldSyncUpOnDev) {
+    localStorage.setItem('SYNC_NUMBER', SYNC.NUMBER.toString())
   }
 }
 

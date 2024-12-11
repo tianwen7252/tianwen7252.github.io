@@ -309,7 +309,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         const btnElement = (
           <Button
             key={`${index}-${meta}`}
-            shape="circle"
             size="large"
             data-meta={meta}
             css={styles.BTN_COLOR_MAP[color]}
@@ -411,6 +410,30 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     [data, priceMap, onChangeType],
   )
 
+  const [mealTypeEls, orderTypeEls] = useMemo(() => {
+    const meals: JSX.Element[] = []
+    const orders: JSX.Element[] = []
+    orderTypesData.forEach(item => {
+      const { name, color, type } = item
+      const element = (
+        <Tag.CheckableTag
+          css={styles.ORDER_TYPES_COLOR_MAP[color]}
+          key={name}
+          checked={selectedMemos.includes(name)}
+          onChange={checked => onHandleMemo(name, checked)}
+        >
+          {name}
+        </Tag.CheckableTag>
+      )
+      if (type === 'meal') {
+        meals.push(element)
+      } else {
+        orders.push(element)
+      }
+    })
+    return [meals, orders]
+  }, [orderTypesData, selectedMemos, onHandleMemo])
+
   const changeDesc =
     !isFree &&
     total !== 0 &&
@@ -491,18 +514,14 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           </Flex>
         </Flex>
         <Divider />
-        <Flex css={styles.memoCss} gap="small" wrap align="center">
-          {/* <span css={styles.memoTextCss}>備註</span> */}
-          {orderTypesData?.map(({ name, color }) => (
-            <Tag.CheckableTag
-              css={styles.ORDER_TYPES_COLOR_MAP[color]}
-              key={name}
-              checked={selectedMemos.includes(name)}
-              onChange={checked => onHandleMemo(name, checked)}
-            >
-              {name}
-            </Tag.CheckableTag>
-          ))}
+        <Flex css={styles.orderTypesCss} gap="small" wrap align="center">
+          <Space
+            css={styles.orderTypesBarCss}
+            split={<span css={styles.verticalBarCss} />}
+          >
+            <Space>{mealTypeEls}</Space>
+            <Space>{orderTypeEls}</Space>
+          </Space>
         </Flex>
         <Divider />
         <Flex vertical>

@@ -228,6 +228,9 @@ export const commondityTypes = {
   ) {
     return db.commondityType.update(id, record)
   },
+  async clear() {
+    return db.commondityType.clear()
+  },
 }
 
 export const commondity = {
@@ -272,6 +275,9 @@ export const commondity = {
     record.updatedAt = dayjs().utc().valueOf()
     return db.commondity.update(id, record)
   },
+  async clear() {
+    return db.commondity.clear()
+  },
 }
 
 export const orderTypes = {
@@ -291,5 +297,8 @@ export const orderTypes = {
   },
   async delete(id: number) {
     return db.orderTypes.delete(id)
+  },
+  async clear() {
+    return db.orderTypes.clear()
   },
 }

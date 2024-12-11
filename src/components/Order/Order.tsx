@@ -102,7 +102,11 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
   }, [appEvent, onSwipe])
 
   return (
-    <div css={[styles.orderCss, showAction && styles.onEditCss]} ref={ref}>
+    <div
+      css={[styles.orderCss, showAction && styles.onEditCss]}
+      className="resta-order-card"
+      ref={ref}
+    >
       <Flex css={styles.frameCss}>
         <div css={[styles.mainCss, styles.BG_COLOR_MAP[bgColor]]}>
           <Flex css={styles.cardCss} vertical>
