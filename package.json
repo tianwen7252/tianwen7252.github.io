@@ -11,10 +11,11 @@
   "type": "module",
   "scripts": {
     "start": "vite",
-    "build": "tsc && vite build",
+    "build": "tsc && npm run updateManifest && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
-    "tidyCommondities": "tsx src/scripts/tidy.ts"
+    "tidyCommondities": "tsx src/scripts/tidy.ts",
+    "updateManifest": "tsx src/scripts/manifest.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",

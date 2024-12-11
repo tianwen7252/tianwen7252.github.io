@@ -2,16 +2,8 @@
   "short_name": "天文點餐",
   "name": "天文點餐系統",
   "icons": [
-    {
-      "src": "/images/favicon.png",
-      "type": "image/png",
-      "sizes": "24x24"
-    },
-    {
-      "src": "/images/icon.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "/images/favicon.png", "type": "image/png", "sizes": "24x24" },
+    { "src": "/images/icon.png", "type": "image/png", "sizes": "512x512" }
   ],
   "start_url": ".?v=0.0.2",
   "orientation": "landscape",
