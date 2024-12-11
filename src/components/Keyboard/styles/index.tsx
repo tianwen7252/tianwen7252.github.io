@@ -34,7 +34,7 @@ export const keyboardLeftCss = css`
   letter-spacing: ${KEYBOARD_FONT_LETTER_SPACINGZE};
 
   .ant-divider {
-    margin: 10px 0;
+    margin: 8px 0;
   }
 `
 
@@ -178,6 +178,7 @@ export const orderPageModeCss = css`
 export const btnAreaCss = css`
   flex: auto;
   justify-content: end;
+
   // for ipad chrome mode
   @media only screen and (max-height: 697px) and (min-device-width: 1080px) and (orientation: landscape) {
     flex: unset !important;
@@ -195,17 +196,24 @@ const ipadBtnFlex = css`
 
 export const btnCss = css`
   width: min-content;
+  gap: 20px;
+
+  // for ipad 11 air
+  @media only screen and (max-device-width: 1180px) and (max-height: 796px) and (orientation: landscape) {
+    gap: 70px;
+  }
+
   .ant-flex {
     margin-bottom: ${BTN_GAP};
-    align-content: flex-start;
+    align-content: space-between;
 
     // for ipad chrome mode - TBD to fix
-    @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
+    /* @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
       ${ipadBtnFlex}
     }
     @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
       ${ipadBtnFlex}
-    }
+    } */
   }
 
   .ant-btn {
@@ -213,6 +221,7 @@ export const btnCss = css`
     height: 4.2rem;
     white-space: normal;
     word-break: break-word;
+    padding: 0;
     /* transform: scale(0.9); */
 
     > span:not(.ant-btn-icon) {
@@ -273,9 +282,32 @@ export const btnDropdownCssName = cssPlugin.css`
   }
 `
 
-export const memoCss = css`
+const orderTypeTagCommonCss = css`
+  display: block;
+  padding: 2px;
+  position: absolute;
+  top: -22px;
+  color: #777;
+  font-size: 0.8rem;
+  background: #fff;
+`
+
+export const orderTypesCss = css`
   font-size: 1rem;
-  margin: 5px 0;
+  padding: 5px 0;
+  position: relative;
+
+  &:before {
+    content: '餐點備註';
+    left: 0;
+    ${orderTypeTagCommonCss}
+  }
+
+  &:after {
+    content: '訂單備註';
+    right: 0;
+    ${orderTypeTagCommonCss}
+  }
 
   .ant-tag {
     font-size: ${KEYBOARD_TAG_FONT_SIZE};
@@ -283,17 +315,8 @@ export const memoCss = css`
     border: 1px solid #ddd;
     margin-right: 0;
     padding: 2px 6px;
-    margin-left: 4px;
-
-    // for ipad
-    @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
-      letter-spacing: 2px;
-      margin-left: 2px;
-    }
-    @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
-      letter-spacing: 2px;
-      margin-left: 4px;
-    }
+    letter-spacing: 2px;
+    margin-left: 2px;
 
     */ &.ant-tag-checkable:not(.ant-tag-checkable-checked):hover {
       color: #333;
@@ -313,10 +336,16 @@ export const memoCss = css`
   }
 `
 
-export const memoTextCss = css`
+export const orderTypesBarCss = css`
+  width: 100%;
+  justify-content: space-between;
+`
+
+export const verticalBarCss = css`
   border-right: 1px solid rgba(5, 5, 5, 0.06);
   border-image: linear-gradient(to bottom, #fff, #999, #fff) 1 100%;
-  padding-right: 6px;
+  margin: 0 2px;
+  height: 26px;
 `
 
 export const submitBtnCss = css`
@@ -353,7 +382,7 @@ export const BTN_COLOR_MAP = {
   indigo: indigoBtnCss,
 }
 
-const setMemoTagColor = (bgColor, color = '#fff') => {
+const setOrderTypeTagColor = (bgColor, color = '#fff') => {
   return css`
     &.ant-tag.ant-tag-checkable-checked {
       background-color: ${bgColor};
@@ -362,15 +391,15 @@ const setMemoTagColor = (bgColor, color = '#fff') => {
   `
 }
 
-export const brownTagCss = setMemoTagColor(COLORS.brown)
+export const brownTagCss = setOrderTypeTagColor(COLORS.brown)
 
-export const purpleTagCss = setMemoTagColor(COLORS.purple)
+export const purpleTagCss = setOrderTypeTagColor(COLORS.purple)
 
-export const blueTagCss = setMemoTagColor(COLORS.blue)
+export const blueTagCss = setOrderTypeTagColor(COLORS.blue)
 
-export const goldTagCss = setMemoTagColor(COLORS.gold)
+export const goldTagCss = setOrderTypeTagColor(COLORS.gold)
 
-export const redTagCss = setMemoTagColor(COLORS.red)
+export const redTagCss = setOrderTypeTagColor(COLORS.red)
 
 export const ORDER_TYPES_COLOR_MAP = {
   brown: brownTagCss,

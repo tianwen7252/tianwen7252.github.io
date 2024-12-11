@@ -1,6 +1,11 @@
 import { css } from '@emotion/react'
 
-import { KEYBOARD_TAG_FONT_SIZE, KEYBOARD_DATE_FONT_SIZE } from 'src/styles'
+import {
+  KEYBOARD_TAG_FONT_SIZE,
+  KEYBOARD_DATE_FONT_SIZE,
+  ORDER_CARD_WIDTH,
+  TABLET,
+} from 'src/styles'
 import { COLORS } from 'src/constants/defaults/orderTypes'
 
 const actionUIWidth = 42 * 2 - 1 // - 1 border
@@ -8,7 +13,7 @@ const editBgColor = 'linear-gradient(to top, #dbd5a7, #b0dab9)'
 const deleteBgColor = 'linear-gradient(to bottom, #fb578e, #f7bb97)'
 
 export const orderCss = css`
-  --resta-order-card-width: 284px;
+  --resta-order-card-width: ${ORDER_CARD_WIDTH};
   font-size: 1rem;
   position: relative;
   overflow: hidden;
@@ -18,13 +23,16 @@ export const orderCss = css`
   min-width: var(--resta-order-card-width);
 
   // for iPad 10
-  @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
-    --resta-order-card-width: 260px;
+  @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+    --resta-order-card-width: ${TABLET.ORDER_CARD_WIDTH};
   }
 
+  /* @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
+    --resta-order-card-width: 260px;
+  }
   @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
     --resta-order-card-width: 284px;
-  }
+  } */
 `
 
 export const frameCss = css`

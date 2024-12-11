@@ -101,12 +101,12 @@ export const keyboardDrawerCss = css`
 export const contentCss = css`
   padding-bottom: 350px; // for anchor last item and scroll-top buttn
 
-  @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
+  /* @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
     padding-bottom: 280px;
   }
   @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
     padding-bottom: 350px;
-  }
+  } */
 `
 
 export const drawerAcitve = css`

@@ -238,6 +238,7 @@ declare global {
         id: ID
         name: string
         priority: number
+        type: 'meal' | 'order'
         color?: string
         createdAt?: number
         updatedAt?: number
