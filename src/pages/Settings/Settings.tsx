@@ -84,7 +84,7 @@ export const Settings: React.FC<{}> = () => {
           </Space>
           {hasUpdated && (
             <Button css={styles.saveBtnCss} size="small" type="primary">
-              存檔設定
+              存檔設定 (未完成)
             </Button>
           )}
         </StickyHeader>

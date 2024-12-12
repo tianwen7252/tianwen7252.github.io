@@ -199,9 +199,9 @@ export const btnCss = css`
   gap: 20px;
 
   // for ipad 11 air
-  @media only screen and (max-device-width: 1180px) and (max-height: 796px) and (orientation: landscape) {
+  /* @media only screen and (max-device-width: 1180px) and (max-height: 796px) and (orientation: landscape) {
     gap: 70px;
-  }
+  } */
 
   .ant-flex {
     margin-bottom: ${BTN_GAP};
@@ -330,6 +330,7 @@ export const orderTypesCss = css`
         content: '✔️';
         top: -18px;
         left: 40%;
+        z-index: 1;
         /* right: 50%; */
       }
     }

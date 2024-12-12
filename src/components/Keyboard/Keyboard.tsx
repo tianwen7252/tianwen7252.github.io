@@ -16,6 +16,9 @@ import {
   Tag,
   Segmented,
   Divider,
+  Modal,
+  Input,
+  InputNumber,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -26,6 +29,7 @@ import {
   CalculatorOutlined,
   AppstoreAddOutlined,
   AppstoreOutlined,
+  EditOutlined,
 } from '@ant-design/icons'
 import { useLiveQuery } from 'dexie-react-hooks'
 
@@ -109,6 +113,8 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
   const [isEditMode, setEditMode] = useState(editMode)
+  const [isModalOpen, setIsModalOpen] = useState(false)
+
   const recordRef = useRef<RestaDB.OrderRecord>(record)
   const soups = useMemo(() => {
     let count = 0
@@ -124,9 +130,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   }, [data])
   const noNeedSoups = useMemo(() => {
     return selectedMemos.includes('不要湯')
-  }, [selectedMemos])
-  const isFree = useMemo(() => {
-    return selectedMemos.includes('免費')
   }, [selectedMemos])
 
   // === callbacks ===
@@ -185,6 +188,15 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     },
     [selectedMemos],
   )
+  const onEditTotal = useCallback(() => {
+    setIsModalOpen(true)
+  }, [])
+  const onHandleTotal = () => {
+    setIsModalOpen(false)
+  }
+  const onCancelTotal = () => {
+    setIsModalOpen(false)
+  }
   const reset = useCallback(() => {
     handleInput('Escape')
     setSelectedMemos([])
@@ -197,12 +209,12 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     clear()
   }, [drawerMode, appEvent, handleInput, clear])
   const onSubmit = useCallback(async () => {
-    if (total > 0 || isFree) {
+    if (total > 0) {
       let type = 'add' as Resta.Order.ActionType
       const newRecord = {
         data,
         number: lastRecordNumber + 1,
-        total: isFree ? 0 : total,
+        total,
         soups,
         memo:
           !soups || noNeedSoups
@@ -233,7 +245,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     lastRecordNumber,
     total,
     soups,
-    isFree,
     isEditMode,
     noNeedSoups,
     selectedMemos,
@@ -435,7 +446,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   }, [orderTypesData, selectedMemos, onHandleMemo])
 
   const changeDesc =
-    !isFree &&
     total !== 0 &&
     getChange(total)?.map(([unit, money, change]) => (
       <span
@@ -466,7 +476,14 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           <div css={styles.totalCss}>
             <Space size="large">
               <span>
-                {total ? `= ${toCurrency(isFree ? 0 : total)}` : total}
+                {total ? `= ${toCurrency(total)}` : total}
+                {/* {total !== 0 && (
+                  <Button
+                    type="text"
+                    icon={<EditOutlined />}
+                    onClick={onEditTotal}
+                  />
+                )} */}
               </span>
               <span css={styles.soupsCss}>
                 {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
@@ -536,6 +553,35 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           </Button>
         </Flex>
       </Flex>
+      <Modal
+        title="設定訂單總金額"
+        open={isModalOpen}
+        onOk={onEditTotal}
+        onCancel={onCancelTotal}
+      >
+        <Flex vertical gap="middle">
+          <div>目前總金額: {toCurrency(total)}</div>
+          <div>
+            修改金額:{' '}
+            <InputNumber
+              addonBefore="$"
+              // formatter={value => toCurrency(value)}
+              formatter={value =>
+                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+              }
+              parser={value =>
+                value?.replace(/\s?\$\s?|(,*)/g, '') as unknown as number
+              }
+              type="number"
+              defaultValue={total}
+              min={0}
+            />
+          </div>
+          <div>
+            備註: <Input type="text" placeholder="請輸入備註" />
+          </div>
+        </Flex>
+      </Modal>
     </div>
   )
 })
