@@ -1,6 +1,6 @@
 {
   "name": "tianwen7252.github.io",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
@@ -15,7 +15,7 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
-    "updateManifest": "tsx src/scripts/manifest.ts"
+    "updateManifest": "tsx src/scripts/manifest.ts && git add public/manifest.json"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",

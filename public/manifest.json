@@ -5,7 +5,7 @@
     { "src": "/images/favicon.png", "type": "image/png", "sizes": "24x24" },
     { "src": "/images/icon.png", "type": "image/png", "sizes": "512x512" }
   ],
-  "start_url": ".?v=0.0.2",
+  "start_url": ".?v=0.0.3",
   "orientation": "landscape",
   "background_color": "#fff",
   "display": "fullscreen"
