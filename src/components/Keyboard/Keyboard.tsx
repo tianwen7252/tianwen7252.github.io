@@ -477,13 +477,13 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             <Space size="large">
               <span>
                 {total ? `= ${toCurrency(total)}` : total}
-                {/* {total !== 0 && (
+                {total !== 0 && (
                   <Button
                     type="text"
                     icon={<EditOutlined />}
                     onClick={onEditTotal}
                   />
-                )} */}
+                )}
               </span>
               <span css={styles.soupsCss}>
                 {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
@@ -556,7 +556,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
       <Modal
         title="設定訂單總金額"
         open={isModalOpen}
-        onOk={onEditTotal}
+        onOk={onHandleTotal}
         onCancel={onCancelTotal}
       >
         <Flex vertical gap="middle">
@@ -566,12 +566,9 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             <InputNumber
               addonBefore="$"
               // formatter={value => toCurrency(value)}
-              formatter={value =>
-                `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-              }
-              parser={value =>
-                value?.replace(/\s?\$\s?|(,*)/g, '') as unknown as number
-              }
+              // parser={value =>
+              //   value?.replace(/\s?\$\s?|(,*)/g, '') as unknown as number
+              // }
               type="number"
               defaultValue={total}
               min={0}

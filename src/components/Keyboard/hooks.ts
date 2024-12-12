@@ -211,6 +211,10 @@ export function useNumberInput(commData?: Resta.Products.commonditiesMap) {
   )
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {
+      // except for modal
+      if (document.querySelector('.ant-modal-mask')) {
+        return
+      }
       input(event.key)
     },
     [input],

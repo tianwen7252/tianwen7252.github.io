@@ -288,13 +288,15 @@ export const OrderList: React.FC<{}> = () => {
           >
             訂單搜尋
           </Button>
-          {!!periodsLength && (
+          {periodsLength ? (
             <h2>
               {periodsLength === 1
                 ? periodsOrder[0]
                 : [periodsOrder[0], periodsOrder.at(-1) ?? ''].join(' ~ ')}
               {dateDescription && ` (${dateDescription})`}
             </h2>
+          ) : (
+            <h2>今天</h2>
           )}
         </Space>
       </StickyHeader>
