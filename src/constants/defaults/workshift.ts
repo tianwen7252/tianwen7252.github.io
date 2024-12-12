@@ -2,7 +2,7 @@ export const WORK_SHIFT = [
   {
     title: '上午',
     key: 'morning',
-    startTime: '10:00', // HH:MM
+    startTime: '09:00', // HH:MM
     color: '#fdf4d5',
   },
   // {
@@ -13,7 +13,7 @@ export const WORK_SHIFT = [
   {
     title: '下午',
     key: 'afternoon',
-    startTime: '15:00', // HH:MM
+    startTime: '13:30', // HH:MM
     color: '#EBF3F7',
   },
 ]

@@ -199,9 +199,9 @@ export const btnCss = css`
   gap: 20px;
 
   // for ipad 11 air
-  /* @media only screen and (max-device-width: 1180px) and (max-height: 796px) and (orientation: landscape) {
+  @media only screen and (min-device-width: 1180px) and (max-height: 796px) and (orientation: landscape) {
     gap: 70px;
-  } */
+  }
 
   .ant-flex {
     margin-bottom: ${BTN_GAP};
@@ -257,6 +257,10 @@ export const tabCss = css`
 
   .ant-tabs-tab + .ant-tabs-tab {
     margin: 0 0 0 2rem;
+    // for iPad 10
+    @media only screen and (max-device-width: 1080px) and (orientation: landscape) {
+      margin: 0 0 0 1rem;
+    }
   }
 
   .ant-tabs-tab-btn {
