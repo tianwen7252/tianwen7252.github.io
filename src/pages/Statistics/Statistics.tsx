@@ -31,11 +31,14 @@ const DEFAULT_QUERY_DATA = {} as Resta.Statistics.StatAPIGet
 export const Statistics: React.FC<{}> = memo(() => {
   const { API } = useContext(AppContext)
 
-  const [dates, setDates] = useState<Dayjs[]>()
-  const [dateDescription, setDateDescription] = useState('')
-
   const todayDate = dayjs.tz()
   const today = todayDate.format(DATE_FORMAT_DATE)
+
+  const [dates, setDates] = useState<Dayjs[]>(() => [
+    todayDate.startOf('day'),
+    todayDate.endOf('day'),
+  ])
+  const [dateDescription, setDateDescription] = useState('今天')
 
   const [startTime, endTime, dateType] = useMemo(() => {
     if (!dates?.length) {
