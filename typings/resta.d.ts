@@ -232,6 +232,8 @@ declare global {
         createdAt: number
         updatedAt: number
         total: number
+        originalTotal?: number
+        editedMemo?: string
         editor: string
       }
       interface OrderType {

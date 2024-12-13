@@ -136,6 +136,11 @@ export const totalCss = css`
   font-weight: 500;
   text-align: right;
 `
+
+export const editedTotalCss = css`
+  font-size: 0.85rem;
+`
+
 export const dateCss = css`
   font-size: ${KEYBOARD_DATE_FONT_SIZE};
   width: 100%;

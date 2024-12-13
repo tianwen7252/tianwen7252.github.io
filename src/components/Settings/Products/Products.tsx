@@ -207,6 +207,7 @@ export const Products: React.FC = () => {
         key: 'price',
         render: (_, record: RestaDB.Table.Commondity) => (
           <InputNumber
+            type="number"
             key={record.id}
             defaultValue={record.price}
             onChange={onChangeCommondity.bind(null, record.id, 'edit', 'price')}

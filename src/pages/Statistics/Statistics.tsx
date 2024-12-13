@@ -265,6 +265,7 @@ export const Statistics: React.FC<{}> = memo(() => {
         </Space>
         <RangePicker
           showNow
+          inputReadOnly
           presets={presets}
           format={DATE_FORMAT_DATETIME_UI}
           placeholder={['開始日期', '結束日期']}

@@ -18,6 +18,7 @@ import {
 import SwipeListener from 'swipe-listener'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
+import { isNil } from 'lodash'
 
 import { toCurrency, DATE_FORMAT_TIME } from 'src/libs/common'
 import { AppContext } from 'src/pages/App/context'
@@ -31,7 +32,8 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
   const [isEditing, setEditState] = useState(false)
   const { API, appEvent, isTablet } = useContext(AppContext)
   const ref = useRef<HTMLDivElement>()
-  const { data, total, memo, createdAt, updatedAt } = record
+  const { data, total, originalTotal, memo, editedMemo, createdAt, updatedAt } =
+    record
   const createdDate = dayjs.tz(createdAt)
   const updatedDate = updatedAt && dayjs.tz(updatedAt)
   // === APIs ===
@@ -157,7 +159,16 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
               <Divider />
             </div>
             <div css={styles.footerCss}>
-              <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
+              <div css={styles.totalCss}>
+                金額 {toCurrency(total)}
+                {!isNil(originalTotal) && (
+                  <span css={styles.editedTotalCss}>
+                    {' '}
+                    (原金額: {toCurrency(originalTotal)})
+                  </span>
+                )}
+              </div>
+              {editedMemo && <Space css={styles.dateCss}>{editedMemo}</Space>}
               <Space css={styles.dateCss}>
                 {createdDate.format(DATE_FORMAT_TIME)}
                 <span>({createdDate.fromNow()})</span>

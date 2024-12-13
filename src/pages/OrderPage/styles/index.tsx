@@ -22,6 +22,10 @@ export const orderPageCss = css`
       );
     }
   }
+
+  .ant-empty {
+    font-size: 1rem;
+  }
 `
 
 export const drawerCss = css`

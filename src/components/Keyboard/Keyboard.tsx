@@ -19,6 +19,7 @@ import {
   Modal,
   Input,
   InputNumber,
+  Form,
 } from 'antd'
 import type { MenuProps } from 'antd'
 import {
@@ -36,7 +37,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
 import { AppContext } from 'src/pages/App/context'
-import { toCurrency, getCorrectAmount } from 'src/libs/common'
+import { toCurrency, toCurrencyNumber, getCorrectAmount } from 'src/libs/common'
 import { useNumberInput } from './hooks'
 import * as styles from './styles'
 
@@ -108,12 +109,15 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     submitCallback,
   } = props
   const [mode, setMode] = useState(props.mode || 'both')
-  const [selectedMemos, setSelectedMemos] = useState<string[]>([])
+  const [selectedOrderTypes, setSelectedOrderTypes] = useState<string[]>([])
   const [submitBtnText, setSubmitBtnText] = useState(
     CONFIG.KEYBOARD_SUBMIT_BTN_TEXT,
   )
   const [isEditMode, setEditMode] = useState(editMode)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editedTotal, setEditedTotal] = useState<number>(null)
+  const [editedTotalMemo, setEditedTotalMemo] = useState('')
+  const [hasEditedTotal, setHasEditedTotal] = useState(false)
 
   const recordRef = useRef<RestaDB.OrderRecord>(record)
   const soups = useMemo(() => {
@@ -129,8 +133,8 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     return count
   }, [data])
   const noNeedSoups = useMemo(() => {
-    return selectedMemos.includes('不要湯')
-  }, [selectedMemos])
+    return selectedOrderTypes.includes('不要湯')
+  }, [selectedOrderTypes])
 
   // === callbacks ===
   const handleInput = useCallback(
@@ -175,31 +179,38 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     },
     [updateItemRes],
   )
-  const onHandleMemo = useCallback(
+  const onChangeOrderTypes = useCallback(
     (name: string, checked: boolean) => {
-      const index = selectedMemos.indexOf(name)
-
+      const index = selectedOrderTypes.indexOf(name)
       if (checked) {
-        index === -1 && selectedMemos.push(name)
+        index === -1 && selectedOrderTypes.push(name)
       } else {
-        selectedMemos.splice(index, 1)
+        selectedOrderTypes.splice(index, 1)
       }
-      setSelectedMemos([...selectedMemos])
+      setSelectedOrderTypes([...selectedOrderTypes])
     },
-    [selectedMemos],
+    [selectedOrderTypes],
   )
   const onEditTotal = useCallback(() => {
     setIsModalOpen(true)
   }, [])
-  const onHandleTotal = () => {
+  const onChangeTotal = useCallback(() => {
+    if (!selectedOrderTypes.includes('優惠價')) {
+      setSelectedOrderTypes([...selectedOrderTypes, '優惠價'])
+    }
+    setHasEditedTotal(true)
     setIsModalOpen(false)
-  }
-  const onCancelTotal = () => {
+  }, [selectedOrderTypes])
+  const onCancelTotal = useCallback(() => {
+    setHasEditedTotal(false)
+    setEditedTotal(null)
+    setEditedTotalMemo('')
     setIsModalOpen(false)
-  }
+  }, [])
   const reset = useCallback(() => {
     handleInput('Escape')
-    setSelectedMemos([])
+    setSelectedOrderTypes([])
+    onCancelTotal()
     if (!drawerMode) {
       setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
       setEditMode(false)
@@ -207,19 +218,22 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     }
     recordRef.current = null
     clear()
-  }, [drawerMode, appEvent, handleInput, clear])
+  }, [drawerMode, appEvent, handleInput, clear, onCancelTotal])
   const onSubmit = useCallback(async () => {
-    if (total > 0) {
+    const newTotal = hasEditedTotal ? editedTotal : total
+    if (newTotal > 0) {
       let type = 'add' as Resta.Order.ActionType
       const newRecord = {
         data,
         number: lastRecordNumber + 1,
-        total,
+        total: newTotal,
+        originalTotal: hasEditedTotal ? total : undefined,
+        editedMemo: editedTotalMemo,
         soups,
         memo:
           !soups || noNeedSoups
-            ? selectedMemos
-            : [...selectedMemos, `${soups}杯湯`],
+            ? selectedOrderTypes
+            : [...selectedOrderTypes, `${soups}杯湯`],
       }
       if (isEditMode) {
         const record = recordRef.current
@@ -247,7 +261,10 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     soups,
     isEditMode,
     noNeedSoups,
-    selectedMemos,
+    selectedOrderTypes,
+    hasEditedTotal,
+    editedTotal,
+    editedTotalMemo,
     callOrderAPI,
     submitCallback,
     reset,
@@ -265,7 +282,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             const { data, total, memo, number } = record
             recordRef.current = record
             update(data, total)
-            setSelectedMemos(memo.filter(text => !text.includes('杯湯')))
+            setSelectedOrderTypes(memo.filter(text => !text.includes('杯湯')))
             setSubmitBtnText(`編輯訂單 - 編號[${number}]`)
             setEditMode(true)
             break
@@ -430,8 +447,8 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         <Tag.CheckableTag
           css={styles.ORDER_TYPES_COLOR_MAP[color]}
           key={name}
-          checked={selectedMemos.includes(name)}
-          onChange={checked => onHandleMemo(name, checked)}
+          checked={selectedOrderTypes.includes(name)}
+          onChange={checked => onChangeOrderTypes(name, checked)}
         >
           {name}
         </Tag.CheckableTag>
@@ -443,22 +460,43 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
       }
     })
     return [meals, orders]
-  }, [orderTypesData, selectedMemos, onHandleMemo])
+  }, [orderTypesData, selectedOrderTypes, onChangeOrderTypes])
 
-  const changeDesc =
-    total !== 0 &&
-    getChange(total)?.map(([unit, money, change]) => (
-      <span
-        css={styles.changeCss}
-        key={unit}
-        className={`resta-keyboard-change-${unit}`}
-      >
-        ${money} 找 ${change}
-      </span>
-    ))
+  const changeDesc = useMemo(() => {
+    const newTotal = hasEditedTotal ? editedTotal : total
+    return (
+      newTotal !== 0 &&
+      getChange(newTotal)?.map(([unit, money, change]) => (
+        <span
+          css={styles.changeCss}
+          key={unit}
+          className={`resta-keyboard-change-${unit}`}
+        >
+          ${money} 找 ${change}
+        </span>
+      ))
+    )
+  }, [hasEditedTotal, total, editedTotal])
+
+  const soupsAndChange = useMemo(() => {
+    return (
+      <>
+        <span css={styles.soupsCss}>
+          {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
+        </span>
+        {changeDesc && <span css={styles.changePanelCss}>{changeDesc}</span>}
+      </>
+    )
+  }, [soups, noNeedSoups, changeDesc])
 
   return (
-    <div css={[styles.keyboardCss, drawerMode && styles.drawerModeCss]}>
+    <div
+      css={[
+        styles.keyboardCss,
+        drawerMode && styles.drawerModeCss,
+        hasEditedTotal && styles.keyboardHasEditedTotal,
+      ]}
+    >
       <Flex
         css={[
           styles.keyboardLeftCss,
@@ -475,7 +513,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           <div css={styles.mealsCss}>{meals}</div>
           <div css={styles.totalCss}>
             <Space size="large">
-              <span>
+              <span css={hasEditedTotal && styles.originalTotalCss}>
                 {total ? `= ${toCurrency(total)}` : total}
                 {total !== 0 && (
                   <Button
@@ -485,14 +523,17 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
                   />
                 )}
               </span>
-              <span css={styles.soupsCss}>
-                {soups > 0 && !noNeedSoups && `(${soups}杯湯)`}
-              </span>
-              {changeDesc && (
-                <span css={styles.changePanelCss}>{changeDesc}</span>
-              )}
+              {!hasEditedTotal && soupsAndChange}
             </Space>
           </div>
+          {hasEditedTotal && (
+            <div css={[styles.totalCss, styles.editedTotalCss]}>
+              <Space size="large">
+                <span>{`= ${toCurrency(editedTotal)}`}</span>
+                {soupsAndChange}
+              </Space>
+            </div>
+          )}
         </Flex>
         <Flex css={styles.btnAreaCss} gap="middle" vertical>
           <Space size="middle">
@@ -556,27 +597,45 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
       <Modal
         title="設定訂單總金額"
         open={isModalOpen}
-        onOk={onHandleTotal}
+        okText="確定修改"
+        cancelText="取消 (還原)"
+        closable={false}
+        maskClosable={false}
+        onOk={onChangeTotal}
         onCancel={onCancelTotal}
       >
-        <Flex vertical gap="middle">
-          <div>目前總金額: {toCurrency(total)}</div>
-          <div>
-            修改金額:{' '}
-            <InputNumber
-              addonBefore="$"
-              // formatter={value => toCurrency(value)}
-              // parser={value =>
-              //   value?.replace(/\s?\$\s?|(,*)/g, '') as unknown as number
-              // }
-              type="number"
-              defaultValue={total}
-              min={0}
-            />
-          </div>
-          <div>
-            備註: <Input type="text" placeholder="請輸入備註" />
-          </div>
+        <Flex vertical>
+          <Form
+            labelCol={{ span: 4 }}
+            wrapperCol={{ span: 18 }}
+            css={styles.editTotalFormCss}
+          >
+            <Form.Item label="目前金額">{toCurrency(total)}</Form.Item>
+            <Form.Item label="修改金額">
+              <InputNumber<number>
+                type="number"
+                prefix="$"
+                // formatter={toCurrencyNumber}
+                // parser={value => Number(value?.replace(/\$\s?|(,*)/g, ''))}
+                value={editedTotal === null ? total : editedTotal}
+                min={0}
+                style={{ minWidth: '60%' }}
+                addonAfter={`($${toCurrencyNumber(editedTotal === null ? total : editedTotal)})`}
+                onChange={useCallback(value => setEditedTotal(value), [])}
+              />
+            </Form.Item>
+            <Form.Item label="備註">
+              <Input
+                type="text"
+                placeholder="請輸入備註"
+                value={editedTotalMemo}
+                onChange={useCallback(
+                  event => setEditedTotalMemo(event.target.value),
+                  [],
+                )}
+              />
+            </Form.Item>
+          </Form>
         </Flex>
       </Modal>
     </div>
