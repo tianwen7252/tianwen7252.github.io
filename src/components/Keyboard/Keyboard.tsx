@@ -33,6 +33,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { isNil } from 'lodash'
 
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
@@ -279,8 +280,15 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
         const { record, action } = event.detail
         switch (action) {
           case 'edit': {
-            const { data, total, memo, number } = record
+            const { data, memo, number, editedMemo } = record
+            let { total, originalTotal } = record
             recordRef.current = record
+            if (!isNil(originalTotal)) {
+              setEditedTotal(total)
+              setEditedTotalMemo(editedMemo)
+              setHasEditedTotal(true)
+              total = originalTotal
+            }
             update(data, total)
             setSelectedOrderTypes(memo.filter(text => !text.includes('杯湯')))
             setSubmitBtnText(`編輯訂單 - 編號[${number}]`)
