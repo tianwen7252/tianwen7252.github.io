@@ -1,6 +1,6 @@
 {
   "name": "tianwen7252.github.io",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
@@ -15,7 +15,8 @@
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
-    "updateManifest": "tsx src/scripts/manifest.ts && git add public/manifest.json"
+    "updateManifest": "tsx src/scripts/manifest.ts",
+    "prepare": "husky"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
@@ -23,7 +24,7 @@
     "@emotion/react": "^11.11.4",
     "@types/lodash": "^4.17.5",
     "@vitejs/plugin-react-swc": "^3.5.0",
-    "antd": "^5.21.5",
+    "antd": "^5.22.4",
     "chart.js": "^4.4.3",
     "chartjs-adapter-dayjs-4": "^1.0.4",
     "chartjs-plugin-datalabels": "^2.2.0",
@@ -61,6 +62,7 @@
     "eslint-plugin-react": "^7.34.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "husky": "^9.1.7",
     "react-test-renderer": "^18.3.1",
     "tsx": "^4.15.5",
     "vitest": "^1.6.0"

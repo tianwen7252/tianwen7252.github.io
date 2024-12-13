@@ -1,0 +1,2 @@
+npm run updateManifest
+git add public/manifest.json

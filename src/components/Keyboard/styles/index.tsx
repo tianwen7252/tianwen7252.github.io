@@ -22,6 +22,10 @@ const BTN_GAP = '10px'
 export const keyboardCss = css`
   position: relative;
   overflow: hidden;
+  --resta-original-total-room: 0px;
+`
+export const keyboardHasEditedTotal = css`
+  --resta-original-total-room: 38px;
 `
 
 export const keyboardLeftCss = css`
@@ -55,14 +59,6 @@ export const textAreaCss = css`
   @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
     min-height: ${KEYBOARD_TEXT_MIN_HEIGHT};
   }
-
-  // for ipad chrome
-  @media only screen and (max-height: 697px) and (min-device-width: 1080px) and (orientation: landscape) {
-    min-height: calc(${TABLET.KEYBOARD_TEXT_MIN_HEIGHT} - 50px);
-  }
-  @media only screen and (max-height: 697px) and (min-device-width: 1280px) and (orientation: landscape) {
-    min-height: ${KEYBOARD_TEXT_MIN_HEIGHT};
-  }
 `
 
 export const drawerModeCss = css`
@@ -93,20 +89,19 @@ export const drawerModeCss = css`
 `
 
 export const mealsCss = css`
-  max-height: ${KEYBOARD_TEXT_MEALS_HEIGHT};
+  max-height: calc(
+    ${KEYBOARD_TEXT_MEALS_HEIGHT} - var(--resta-original-total-room)
+  );
 
   @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
-    max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+    max-height: calc(
+      ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} - var(--resta-original-total-room)
+    );
   }
   @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
-    max-height: ${KEYBOARD_TEXT_MEALS_HEIGHT};
-  }
-  // for ipad chrome
-  @media only screen and (max-height: 697px) and (min-device-width: 1080px) and (orientation: landscape) {
-    max-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} - 100px);
-  }
-  @media only screen and (max-height: 697px) and (min-device-width: 1280px) and (orientation: landscape) {
-    max-height: ${KEYBOARD_TEXT_MEALS_HEIGHT};
+    max-height: calc(
+      ${KEYBOARD_TEXT_MEALS_HEIGHT} - var(--resta-original-total-room)
+    );
   }
 
   overflow-y: auto;
@@ -133,6 +128,15 @@ export const totalCss = css`
   margin-top: 1rem;
   font-weight: 500;
   font-size: ${KEYBOARD_TOTAL_FONT_SIZE};
+`
+
+export const originalTotalCss = css`
+  color: #aaa;
+  text-decoration: line-through;
+`
+
+export const editedTotalCss = css`
+  margin-top: 0;
 `
 
 export const soupsCss = css`
@@ -178,14 +182,6 @@ export const orderPageModeCss = css`
 export const btnAreaCss = css`
   flex: auto;
   justify-content: end;
-
-  // for ipad chrome mode
-  @media only screen and (max-height: 697px) and (min-device-width: 1080px) and (orientation: landscape) {
-    flex: unset !important;
-  }
-  @media only screen and (max-height: 697px) and (min-device-width: 1280px) and (orientation: landscape) {
-    flex: auto;
-  }
 `
 
 const ipadBtnFlex = css`
@@ -206,14 +202,6 @@ export const btnCss = css`
   .ant-flex {
     margin-bottom: ${BTN_GAP};
     align-content: space-between;
-
-    // for ipad chrome mode - TBD to fix
-    /* @media only screen and (max-height: 697px) and (max-device-width: 1080px) and (orientation: landscape) {
-      ${ipadBtnFlex}
-    }
-    @media only screen and (max-height: 697px) and (max-device-width: 1180px) and (orientation: landscape) {
-      ${ipadBtnFlex}
-    } */
   }
 
   .ant-btn {
@@ -363,6 +351,13 @@ export const submitBtnCss = css`
 `
 export const updateBtnCss = css`
   background: linear-gradient(to right, rgb(201, 255, 191), rgb(255, 175, 189));
+`
+
+export const editTotalFormCss = css`
+  margin-top: 20px;
+  .ant-form-item-row .ant-form-item-label > label {
+    font-size: 1rem;
+  }
 `
 
 const setBtnColor = (border, color = border) => {

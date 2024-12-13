@@ -5,6 +5,7 @@ import dayjs from 'dayjs'
 import Keyboard from 'src/components/Keyboard'
 import { useOrderList } from 'src/pages/OrderList/hooks'
 import { AppContext } from 'src/pages/App/context'
+import { ORDER_EMPTY_DESCRIPTION } from 'src/constants/defaults/description'
 import * as styles from './styles'
 
 export const OrderPage: React.FC = memo(() => {
@@ -19,12 +20,10 @@ export const OrderPage: React.FC = memo(() => {
   } = useOrderList({
     datetime: 'today',
     orderPageMode: true,
-    emptyDescription: (
-      <>
-        <p>還沒營業? 今天沒人來? 還是老闆不爽做?</p>
-        <p>加油好嗎</p>
-      </>
-    ),
+    emptyDescription:
+      ORDER_EMPTY_DESCRIPTION[
+        Math.floor(Math.random() * ORDER_EMPTY_DESCRIPTION.length)
+      ],
   })
 
   const submitCallback = useCallback(

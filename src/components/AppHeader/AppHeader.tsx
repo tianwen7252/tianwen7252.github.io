@@ -8,6 +8,7 @@ import {
   UserSwitchOutlined,
   SettingOutlined,
   MenuOutlined,
+  ReloadOutlined,
 } from '@ant-design/icons'
 
 import { useObserverDom } from 'src/hooks'
@@ -52,6 +53,10 @@ export const AppHeader: React.FC<{}> = memo(() => {
     [navigate],
   )
 
+  const onReload = useCallback(() => {
+    window.location.reload()
+  }, [])
+
   return (
     <>
       <div id="resta-header-observer" ref={observerRef}></div>
@@ -93,6 +98,7 @@ export const AppHeader: React.FC<{}> = memo(() => {
           icon={<SettingOutlined />}
           onClick={onClickMenu}
         />
+        <FloatButton icon={<ReloadOutlined />} onClick={onReload} />
       </FloatButton.Group>
     </>
   )

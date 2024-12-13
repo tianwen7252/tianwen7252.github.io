@@ -33,7 +33,6 @@ import {
   DATE_FORMAT_DATE,
   DATE_FORMAT_DATETIME_UI,
   ORDER_LIST_PAGE_SIZE,
-  toCurrencyNumber,
 } from 'src/libs/common'
 import { ORDER_TYPES_OPTIONS } from 'src/constants/defaults/orderTypes'
 import { useOrderList } from './hooks'
@@ -322,6 +321,7 @@ export const OrderList: React.FC<{}> = () => {
               <h2>日期</h2>
               <RangePicker
                 showNow
+                inputReadOnly
                 presets={presets}
                 showTime={showTime}
                 format={DATE_FORMAT_DATETIME_UI}
@@ -373,9 +373,10 @@ export const OrderList: React.FC<{}> = () => {
               <h2>單筆金額大於</h2>
               <InputNumber
                 size="large"
+                type="number"
                 prefix="$"
                 style={{ width: '60%' }}
-                formatter={toCurrencyNumber}
+                // formatter={toCurrencyNumber}
                 disabled={isDisabled}
                 value={orderTotal}
                 onChange={onChangeOrderTotal}
@@ -385,9 +386,10 @@ export const OrderList: React.FC<{}> = () => {
               <h2>當日營業額大於</h2>
               <InputNumber
                 size="large"
+                type="number"
                 prefix="$"
                 style={{ width: '60%' }}
-                formatter={toCurrencyNumber}
+                // formatter={toCurrencyNumber}
                 disabled={isDisabled}
                 value={turnoverSum}
                 onChange={onChangeTurnoverSum}
@@ -397,8 +399,9 @@ export const OrderList: React.FC<{}> = () => {
               <h2>當日訂單數量大於</h2>
               <InputNumber
                 size="large"
+                type="number"
                 style={{ width: '60%' }}
-                formatter={toCurrencyNumber}
+                // formatter={toCurrencyNumber}
                 disabled={isDisabled}
                 value={ordersSum}
                 onChange={onChangeOrdersSum}
