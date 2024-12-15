@@ -138,7 +138,8 @@ export const totalCss = css`
 `
 
 export const editedTotalCss = css`
-  font-size: 0.85rem;
+  font-size: ${KEYBOARD_DATE_FONT_SIZE};
+  text-align: right;
 `
 
 export const dateCss = css`

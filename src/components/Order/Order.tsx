@@ -159,16 +159,15 @@ export const Order: React.FC<Resta.Order.Props> = memo(props => {
               <Divider />
             </div>
             <div css={styles.footerCss}>
-              <div css={styles.totalCss}>
-                金額 {toCurrency(total)}
-                {!isNil(originalTotal) && (
-                  <span css={styles.editedTotalCss}>
-                    {' '}
-                    (原金額: {toCurrency(originalTotal)})
-                  </span>
-                )}
-              </div>
+              <div css={styles.totalCss}>金額 {toCurrency(total)}</div>
+              {!isNil(originalTotal) && (
+                <div css={styles.editedTotalCss}>
+                  {' '}
+                  (原金額: {toCurrency(originalTotal)})
+                </div>
+              )}
               {editedMemo && <Space css={styles.dateCss}>{editedMemo}</Space>}
+              <Space css={styles.dateCss}>訂單編號: {record.number}</Space>
               <Space css={styles.dateCss}>
                 {createdDate.format(DATE_FORMAT_TIME)}
                 <span>({createdDate.fromNow()})</span>

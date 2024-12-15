@@ -33,7 +33,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { isNil } from 'lodash'
+import { isNil, pull } from 'lodash'
 
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'
@@ -196,18 +196,26 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     setIsModalOpen(true)
   }, [])
   const onChangeTotal = useCallback(() => {
-    if (!selectedOrderTypes.includes('優惠價')) {
-      setSelectedOrderTypes([...selectedOrderTypes, '優惠價'])
+    if (editedTotal === null || editedTotal === total) {
+      setEditedTotal(null)
+      setHasEditedTotal(false)
+    } else {
+      if (!selectedOrderTypes.includes('優惠價')) {
+        setSelectedOrderTypes([...selectedOrderTypes, '優惠價'])
+      }
+      setHasEditedTotal(true)
     }
-    setHasEditedTotal(true)
     setIsModalOpen(false)
-  }, [selectedOrderTypes])
+  }, [editedTotal, total, selectedOrderTypes])
   const onCancelTotal = useCallback(() => {
     setHasEditedTotal(false)
     setEditedTotal(null)
     setEditedTotalMemo('')
+    if (selectedOrderTypes.includes('優惠價')) {
+      setSelectedOrderTypes([...pull(selectedOrderTypes, '優惠價')])
+    }
     setIsModalOpen(false)
-  }, [])
+  }, [selectedOrderTypes])
   const reset = useCallback(() => {
     handleInput('Escape')
     setSelectedOrderTypes([])
