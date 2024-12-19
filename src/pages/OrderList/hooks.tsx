@@ -13,8 +13,8 @@ import {
   Modal,
   Divider,
   Select,
-  Skeleton,
   Empty,
+  Tabs,
 } from 'antd'
 import type { AnchorProps } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -23,7 +23,12 @@ import { debounce } from 'lodash'
 
 import { AppContext } from 'src/pages/App/context'
 import { Order } from 'src/components/Order'
-import { WORK_SHIFT_REVERSED } from 'src/constants/defaults/workshift'
+import {
+  WORK_SHIFT_REVERSED,
+  isAMPM,
+  TODAY_LABELS,
+  LABEL_MAP,
+} from 'src/constants/defaults/workshift'
 import { ORDER_TYPES_OPTIONS } from 'src/constants/defaults/orderTypes'
 import {
   getCorrectAmount,
@@ -49,8 +54,8 @@ const summaryText = [
   '下午營業額',
 ]
 
-function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
-  const theDate = dayjs.tz(createAt)
+function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createdAt: number) {
+  const theDate = dayjs.tz(createdAt)
   const dateString = theDate.format('YYYY-MM-DD')
   periodMap[dateString] = periodMap[dateString] ?? {
     periods: WORK_SHIFT_REVERSED.map(
@@ -58,23 +63,39 @@ function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createAt: number) {
         const [hours, minutes] = workStartTime.split(':')
         return {
           title,
+          key,
           id: `resta-anchor-${dateString}-${key}`,
           createdAt: theDate.hour(+hours).minute(+minutes).valueOf(),
           elements: [],
+          elementsProps: [],
           color,
           total: 0,
+          numberCount: 0,
         }
       },
     ),
-    soldCount: 0,
-    recordCount: 0,
-    datetime: createAt, // usinng the first one is enough
+    datetime: createdAt, // usinng the first one is enough
     dateWithWeek: theDate.format(DATE_FORMAT),
+    AM: {
+      soldCount: 0,
+      recordCount: 0,
+      total: 0,
+    },
+    PM: {
+      soldCount: 0,
+      recordCount: 0,
+      total: 0,
+    },
+    today: {
+      soldCount: 0,
+      recordCount: 0,
+      total: 0,
+    },
   }
-  const periodData = periodMap[dateString]
+  const dateData = periodMap[dateString]
   return {
-    periodData,
-    periods: periodData.periods,
+    dateData,
+    periods: dateData.periods,
   }
 }
 
@@ -83,6 +104,8 @@ function getPeriodsOrder(periodMap: Resta.OrderList.PeriodMap, desc = true) {
     return desc ? b.localeCompare(a) : a.localeCompare(b)
   })
 }
+
+export const TODAY = 'today'
 
 export function useOrderList({
   datetime,
@@ -98,7 +121,7 @@ export function useOrderList({
   handleRecords,
   search,
 }: {
-  datetime: number[] | 'today'
+  datetime: number[] | typeof TODAY
   searchData?: string[]
   dateOrder?: boolean
   searchUI?: boolean
@@ -111,17 +134,21 @@ export function useOrderList({
   handleRecords?: Resta.OrderList.HandleRecords
   search?: Resta.APIFn.Orders.SearchCallback
 }) {
-  datetime = datetime ?? 'today'
+  datetime = datetime ?? TODAY
   const { API } = useContext(AppContext)
   const [noti, contextHolder] = notification.useNotification()
   const [modal, modelContextHolder] = Modal.useModal()
   const [startTime, endTime] = useMemo(() => {
     const today = dayjs.tz()
-    return datetime === 'today'
+    return datetime === TODAY
       ? [today.startOf('day').valueOf(), today.endOf('day').valueOf()]
       : datetime
   }, [datetime])
-  const contentRef = useRef<HTMLDivElement>()
+  const getCategoryLabel = useCallback(() => {
+    const hour = dayjs.tz().hour()
+    return isAMPM(hour)
+  }, [])
+  const [categoryLabel, setCategoryLabel] = useState(getCategoryLabel)
   const [searchText, setSearchText] = useState<string[]>([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const onSearch = useCallback(
@@ -130,21 +157,25 @@ export function useOrderList({
     }, 500),
     [],
   )
-  const anchorKeyToUpdate = useRef(1)
-  const getAnchorContainer = useCallback(() => {
-    // not working well...
-    return contentRef.current
-  }, [])
-  const getEmptyUI = useCallback(() => {
-    return (
-      <Flex css={styles.emptyCss}>
-        <Empty
-          description={emptyDescription || '查無資料'}
-          style={{ marginTop: 100 }}
-        />
-      </Flex>
-    )
-  }, [emptyDescription])
+  const contentRef = useRef<HTMLDivElement>()
+  // const tabKeyToUpdate = useRef(1)
+  // const getAnchorContainer = useCallback(() => {
+  //   // not working well...
+  //   return contentRef.current
+  // }, [])
+  const getEmptyUI = useCallback(
+    (isSearch = false) => {
+      return (
+        <Flex css={styles.emptyCss}>
+          <Empty
+            description={isSearch ? '查無資料' : emptyDescription}
+            style={{ marginTop: 100 }}
+          />
+        </Flex>
+      )
+    },
+    [emptyDescription],
+  )
   const openNotification = useCallback(
     ({
       type,
@@ -247,13 +278,16 @@ export function useOrderList({
           errorMsg: err?.message,
         })
       } finally {
-        setTimeout(() => {
-          ++anchorKeyToUpdate.current
-        }, 5)
+        if (action === 'add') {
+          const label = getCategoryLabel()
+          if (label !== categoryLabel) {
+            setCategoryLabel(label)
+          }
+        }
       }
       return null
     },
-    [API, modal, openNotification],
+    [API, modal, categoryLabel, getCategoryLabel, openNotification],
   )
   // get db dtata
   const queryResult = useLiveQuery(async () => {
@@ -270,38 +304,60 @@ export function useOrderList({
     let totalDays = 0
     let periodsOrder = [] as string[]
     let orderListElement: JSX.Element = null
-    let contentElement: JSX.Element[] = null
+    let contentElement: JSX.Element[] | JSX.Element = null
     let anchorElement: JSX.Element = null
     let summaryElement: JSX.Element = null
     const periodMap = {} as Resta.OrderList.PeriodMap // needs always update-to-date
     const recordLength = records?.length
     if (recordLength || searchText.length) {
-      const searchResultNotFound = recordLength === 0 && searchText.length
+      const searchResultNotFound = !!(recordLength === 0 && searchText.length)
       records?.forEach(record => {
-        const { data, total, createdAt, number } = record
-        const { periodData, periods } = setPeriodMap(periodMap, createdAt)
+        const { data, total, createdAt } = record
+        const { dateData, periods } = setPeriodMap(periodMap, createdAt)
         totalCount += total
-        ++periodData.recordCount
+        ++dateData.today.recordCount
+        let soldCountOfRecord = 0
         data.forEach(({ res, amount }) => {
           if (res) {
             const soldCount = getCorrectAmount(amount)
-            soldItemsCount += soldCount
-            periodData.soldCount += soldCount
+            soldCountOfRecord += soldCount
+            dateData.today.soldCount += soldCount
           }
         })
-        const element = (
-          <Order
-            key={createdAt}
-            record={record}
-            number={number}
-            callOrderAPI={callOrderAPI}
-          />
-        )
+        // set category (AM or PM) data
+        const category = isAMPM(dayjs.tz(createdAt).hour())
+        const categoryData = dateData[category]
+        ++categoryData.recordCount
+        categoryData.total += total
+        categoryData.soldCount += soldCountOfRecord
+        soldItemsCount += soldCountOfRecord
+        const createOrderElement = (period: Resta.OrderList.Period) => {
+          ++period.numberCount
+          const { elements, elementsProps, numberCount } = period
+          period.total += total
+          const key = `${createdAt}-${numberCount}`
+          if (orderPageMode) {
+            elementsProps.push({
+              record,
+              key,
+              number: numberCount,
+              callOrderAPI,
+            })
+          } else {
+            elements.push(
+              <Order
+                key={key}
+                record={record}
+                number={numberCount}
+                callOrderAPI={callOrderAPI}
+              />,
+            )
+          }
+        }
         const result = periods.some(period => {
-          const { elements, createdAt: time } = period
+          const { createdAt: time } = period
           if (createdAt >= time) {
-            period.total += total
-            elements.push(element)
+            createOrderElement(period)
             return true
           }
           return false
@@ -309,11 +365,15 @@ export function useOrderList({
         // not found, put it to the last
         if (!result) {
           const last = periods.at(-1)
-          last.total += total
-          last.elements.push(element)
+          createOrderElement(last)
         }
       })
-      let singleAnchorItems: AnchorProps['items'] // for order page only
+      // process periods data
+      periodsOrder = getPeriodsOrder(periodMap, dateOrder)
+      totalDays = periodsOrder.length
+      if (limit) {
+        periodsOrder = periodsOrder.slice(offset, offset + limit)
+      }
       const yearMap = {} as {
         [year: string]: {
           yearId: string
@@ -321,116 +381,140 @@ export function useOrderList({
           anchorItems: AnchorProps['items']
         }
       }
-      periodsOrder = getPeriodsOrder(periodMap, dateOrder)
-      totalDays = periodsOrder.length
-      if (limit) {
-        periodsOrder = periodsOrder.slice(offset, offset + limit)
-      }
-      periodsOrder.every(date => {
-        const dateId = `resta-anchor-${date}`
-        const { periods, dateWithWeek, datetime } = periodMap[date]
-        const year = date.split('-')[0]
-        const yearId = `resta-anchor-${year}`
-        const map = (yearMap[year] = yearMap[year] ?? {
-          yearId,
-          dateElements: [],
-          anchorItems: [],
-        })
-        const { dateElements, anchorItems } = map
-        const anchorDate = dayjs.tz(datetime).format(DATE_FORMAT_FOR_ANCHOR)
-        anchorItems.push({
-          key: `${year}-${anchorDate}`,
-          href: `#${dateId}`,
-          title: anchorDate,
-          children: [],
-        })
-        !orderPageMode && periods.reverse()
-        const periodElements = periods
-          .filter(({ elements }) => (orderPageMode ? true : elements.length))
-          .map(({ elements, id, color, title }) => {
-            const style = orderPageMode
-              ? null
-              : {
-                  backgroundColor: color,
+      let todaysPeriod: Resta.OrderList.DateData = null
+      if (orderPageMode) {
+        todaysPeriod = periodMap[Object.keys(periodMap)[0]]
+        if (todaysPeriod) {
+          const { periods } = todaysPeriod
+          // needs today's all elements
+          const todayElements = []
+          const tabItems = periods
+            .map(
+              ({
+                elements,
+                elementsProps,
+                numberCount,
+                title,
+                key,
+                createdAt,
+              }) => {
+                elementsProps.forEach((props, index) => {
+                  // adjust the number count
+                  props.number = numberCount - index
+                  const elKey = `${createdAt}-${props.number}`
+                  elements.push(<Order {...props} key={elKey} />)
+                  // for today's all elements
+                  const number = props.record.number
+                  props.number = number
+                  todayElements.push(
+                    <Order {...props} key={`${createdAt}-${number}`} />,
+                  )
+                })
+                return {
+                  label: title,
+                  key,
+                  children: (
+                    <Flex gap={10} wrap>
+                      {elements}
+                    </Flex>
+                  ),
                 }
-            anchorItems.at(-1).children.push({
-              key: id,
-              href: `#${id}`,
-              title,
-            })
-            return (
-              <Flex
-                css={!orderPageMode && styles.panelCss}
-                key={id}
-                id={id}
-                data-title={title}
-                vertical={vertical}
-                gap={10}
-                wrap
-                style={style}
-              >
-                {elements}
-              </Flex>
+              },
             )
+            .reverse()
+          tabItems.push({
+            label: TODAY_LABELS[1],
+            key: TODAY_LABELS[0],
+            children: (
+              <Flex gap={10} wrap>
+                {todayElements}
+              </Flex>
+            ),
           })
-        if (orderPageMode) {
-          singleAnchorItems = anchorItems[0].children
-          contentElement = periodElements
-          return false // stop this loop
-        } else {
-          const { recordCount, soldCount } = periodMap[date]
-          const morningSum = Math.round(periods[0].total)
-          const afternoonSum = Math.round(periods[1].total)
-          const daysSum = morningSum + afternoonSum
+          contentElement = (
+            <Tabs
+              tabPosition="right"
+              items={tabItems}
+              activeKey={categoryLabel}
+              onChange={setCategoryLabel}
+            />
+          )
+        }
+      } else {
+        periodsOrder.forEach(date => {
+          const dateId = `resta-anchor-${date}`
+          const dateData = periodMap[date]
+          const { periods, dateWithWeek, datetime } = dateData
+          const year = date.split('-')[0]
+          const yearId = `resta-anchor-${year}`
+          const map = (yearMap[year] = yearMap[year] ?? {
+            yearId,
+            dateElements: [],
+            anchorItems: [],
+          })
+          const { dateElements, anchorItems } = map
+          const anchorDate = dayjs.tz(datetime).format(DATE_FORMAT_FOR_ANCHOR)
+          anchorItems.push({
+            key: `${year}-${anchorDate}`,
+            href: `#${dateId}`,
+            title: anchorDate,
+            children: [],
+          })
+          !orderPageMode && periods.reverse()
+          const periodElements = periods
+            .filter(({ elements }) => elements.length)
+            .map(({ elements, id, color, title }) => {
+              const style = {
+                backgroundColor: color,
+              }
+              anchorItems.at(-1).children.push({
+                key: id,
+                href: `#${id}`,
+                title,
+              })
+              return (
+                <Flex
+                  css={styles.panelCss}
+                  key={id}
+                  id={id}
+                  data-title={title}
+                  vertical={vertical}
+                  gap={10}
+                  wrap
+                  style={style}
+                >
+                  {elements}
+                </Flex>
+              )
+            })
+
+          const { today, AM, PM } = dateData
+          const AMTotal = Math.round(AM.total)
+          const PMTotal = Math.round(PM.total)
+          const dayTotal = AMTotal + PMTotal
           const dayElement = (
             <section css={styles.sectionCss} key={date}>
               <h1 id={dateId}>{dateWithWeek}</h1>
               <Flex css={styles.symmaryCss} justify="space-between">
-                <Statistic title={summaryText[0]} value={recordCount} />
-                <Statistic title={summaryText[1]} value={soldCount} />
-                <Statistic
-                  title={summaryText[3]}
-                  prefix="$"
-                  value={morningSum}
-                />
-                <Statistic
-                  title={summaryText[4]}
-                  prefix="$"
-                  value={afternoonSum}
-                />
-                <Statistic title={summaryText[2]} prefix="$" value={daysSum} />
+                <Statistic title={summaryText[0]} value={today.recordCount} />
+                <Statistic title={summaryText[1]} value={today.soldCount} />
+                <Statistic title={summaryText[3]} prefix="$" value={AMTotal} />
+                <Statistic title={summaryText[4]} prefix="$" value={PMTotal} />
+                <Statistic title={summaryText[2]} prefix="$" value={dayTotal} />
               </Flex>
               {periodElements}
             </section>
           )
           dateElements.push(dayElement)
-        }
-        return true
-      })
+        })
+      }
+
+      // render content
       if (!searchResultNotFound) {
         const anchorProps = {
           css: styles.anchorCss,
         }
-        if (orderPageMode) {
-          anchorElement = (
-            <Anchor
-              {...anchorProps}
-              key={anchorKeyToUpdate.current}
-              items={singleAnchorItems}
-              getContainer={getAnchorContainer}
-              // offset + searchbox height + searchbox margin-bottom
-              // bounds={20 + 32 + 16}
-              bounds={200}
-              getCurrentAnchor={activeLink => {
-                // if afternoon is empty
-                if (!periodMap[periodsOrder[0]].periods[0].elements.length) {
-                  return singleAnchorItems.at(-1)?.href
-                }
-                return activeLink
-              }}
-            />
-          )
-        } else {
+        if (!orderPageMode) {
           const yearAnchorItems = [] as AnchorProps['items']
           const years = Object.keys(yearMap)
           if (dateOrder) {
@@ -462,6 +546,7 @@ export function useOrderList({
         }
       }
 
+      // render the whole order list with search and tabs/anchor
       orderListElement = (
         <Flex css={styles.orderListCss} gap={8} ref={contentRef}>
           <div css={[styles.listCss, !vertical && styles.horizontalListCss]}>
@@ -480,31 +565,55 @@ export function useOrderList({
               />
             )}
             {searchResultNotFound ? (
-              getEmptyUI()
+              getEmptyUI(searchResultNotFound)
             ) : (
               <>
                 <div className="resta-orders-content">{contentElement}</div>
               </>
             )}
           </div>
-          {orderPageMode && anchorElement}
         </Flex>
       )
 
       totalCount = Math.round(totalCount)
       const onePeriod = periodsOrder.length === 1
       const summaryDesc = onePeriod ? summaryText : allSummaryText
+      // for all or today
+      let summaryOrdersCount = recordLength ?? 0
+      let summarySoldItemsCount = soldItemsCount
+      let summaryTotalCount = totalCount
+      // for orderpage's AM or PM
+      if (
+        orderPageMode &&
+        todaysPeriod &&
+        (categoryLabel === 'AM' || categoryLabel === 'PM')
+      ) {
+        const categoryData = todaysPeriod[categoryLabel]
+        summaryOrdersCount = categoryData.recordCount
+        summarySoldItemsCount = categoryData.soldCount
+        summaryTotalCount = categoryData.total
+      }
       summaryElement =
         !orderPageMode && onePeriod ? null : (
           <Flex css={styles.symmaryCss} justify="space-between">
             <div css={!orderPageMode && styles.statWrapperCss}>
-              <Statistic title={summaryDesc[0]} value={recordLength ?? 0} />
+              <Statistic
+                title={`${orderPageMode ? LABEL_MAP[categoryLabel] : ''}${summaryDesc[0]}`}
+                value={summaryOrdersCount}
+              />
             </div>
             <div css={!orderPageMode && styles.statWrapperCss}>
-              <Statistic title={summaryDesc[1]} value={soldItemsCount} />
+              <Statistic
+                title={`${orderPageMode ? LABEL_MAP[categoryLabel] : ''}${summaryDesc[1]}`}
+                value={summarySoldItemsCount}
+              />
             </div>
             <div css={!orderPageMode && styles.statWrapperCss}>
-              <Statistic title={summaryDesc[2]} prefix="$" value={totalCount} />
+              <Statistic
+                title={`${orderPageMode ? LABEL_MAP[categoryLabel] : ''}${summaryDesc[2]}`}
+                prefix="$"
+                value={summaryTotalCount}
+              />
             </div>
           </Flex>
         )
@@ -533,6 +642,7 @@ export function useOrderList({
     startTime,
     endTime,
     searchText,
+    categoryLabel,
     searchData,
     offset,
     limit,

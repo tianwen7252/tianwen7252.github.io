@@ -64,23 +64,35 @@ declare namespace Resta {
   }
 
   namespace OrderList {
+    type TimeData = {
+      soldCount: number
+      recordCount: number
+      total: number
+    }
+
+    type DateData = {
+      periods: Period[]
+      datetime: number
+      dateWithWeek: string
+      AM: TimeData
+      PM: TimeData
+      today: TimeData
+    }
+
     type PeriodMap = {
-      [date: string]: {
-        periods: Period[]
-        soldCount: number
-        datetime: number
-        dateWithWeek: string
-        recordCount: number
-      }
+      [date: string]: DateData
     }
 
     type Period = {
       title: string
+      key: string
       id: string
       createdAt: number
       elements: JSX.Element[]
+      elementsProps: ({ key: string | number } & Resta.Order.Props)[]
       color: string
       total: number
+      numberCount: number
     }
 
     type HandleRecords = (

@@ -21,6 +21,9 @@ export const orderPageCss = css`
         #c0e9f9 93.6%
       );
     }
+    .ant-drawer-body {
+      overflow: hidden;
+    }
   }
 
   .ant-empty {

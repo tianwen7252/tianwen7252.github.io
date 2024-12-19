@@ -74,6 +74,27 @@ export const orderListCss = css`
     margin-bottom: 1rem;
   }
 
+  .ant-tabs {
+    &.ant-tabs-right {
+      > .ant-tabs-content-holder {
+        border-right: none;
+      }
+      > .ant-tabs-nav .ant-tabs-tab {
+        padding: 4px 12px;
+      }
+      .ant-tabs-content > .ant-tabs-tabpane {
+        min-height: 300px;
+        max-height: 600px;
+        min-width: 292px;
+        overflow-y: auto;
+      }
+    }
+    > .ant-tabs-nav {
+      right: -62px;
+      position: absolute;
+    }
+  }
+
   // for anchor
   /* .ant-flex:empty {
     height: 1px;
