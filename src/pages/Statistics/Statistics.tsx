@@ -212,8 +212,7 @@ export const Statistics: React.FC<{}> = memo(() => {
       const { createdAt, data, total } = record
       const day = dayjs.tz(createdAt)
       const date = day.format(DATE_FORMAT_DATE)
-      const hour = day.hour()
-      const isAM = isAMPM(hour) === 'AM'
+      const isAM = isAMPM(day.hour(), day.minute()) === 'AM'
       if (isAM) {
         incomeAMTotal += total
       } else {

@@ -90,6 +90,7 @@ export const orderListCss = css`
       }
     }
     > .ant-tabs-nav {
+      top: 2px;
       right: -62px;
       position: absolute;
     }
