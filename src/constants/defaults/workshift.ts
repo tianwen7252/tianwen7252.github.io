@@ -35,7 +35,8 @@ export function isAMPM(
   minute: number,
   labelType: 'en' | 'zh' = 'en',
 ) {
-  if (hour >= PM_HOUR && minute >= PM_MINUTE) {
+  // compare by minutes
+  if (hour * 60 + minute >= PM_HOUR * 60 + PM_MINUTE) {
     return labelType === 'en' ? PM_LABELS[0] : PM_LABELS[1]
   }
   return labelType === 'en' ? AM_LABELS[0] : AM_LABELS[1]

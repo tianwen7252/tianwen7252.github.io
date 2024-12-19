@@ -54,7 +54,10 @@ const summaryText = [
   '下午營業額',
 ]
 
-function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createdAt: number) {
+export function setPeriodMap(
+  periodMap: Resta.OrderList.PeriodMap,
+  createdAt: number,
+) {
   const theDate = dayjs.tz(createdAt)
   const dateString = theDate.format('YYYY-MM-DD')
   periodMap[dateString] = periodMap[dateString] ?? {
@@ -99,10 +102,52 @@ function setPeriodMap(periodMap: Resta.OrderList.PeriodMap, createdAt: number) {
   }
 }
 
-function getPeriodsOrder(periodMap: Resta.OrderList.PeriodMap, desc = true) {
+export function getPeriodsOrder(
+  periodMap: Resta.OrderList.PeriodMap,
+  desc = true,
+) {
   return Object.keys(periodMap).sort((a, b) => {
     return desc ? b.localeCompare(a) : a.localeCompare(b)
   })
+}
+
+export function correctMealsAmount(record: RestaDB.NewOrderRecord) {
+  const mealMap = new Map<
+    string,
+    { amount: number; type: string; value: string }
+  >()
+  let hasChange = false
+
+  // merge the same meal
+  for (const { res, amount, type, value } of record.data) {
+    if (!res) continue
+
+    const existing = mealMap.get(res)
+    if (existing?.type === type) {
+      hasChange = true
+      existing.amount += getCorrectAmount(amount)
+    } else {
+      mealMap.set(res, { amount: getCorrectAmount(amount), type, value })
+    }
+  }
+
+  // rebuild the order if data has merged
+  if (hasChange && mealMap.size) {
+    const newData = Array.from(mealMap)
+      .flatMap(([res, { amount, type, value }]) => [
+        { res, type, value, ...(amount > 1 ? { amount: String(amount) } : {}) },
+        ...(amount > 1 ? [{ value: String(amount), operator: '*' }] : []),
+        { value: '', operator: '+' },
+      ])
+      .slice(0, -1) as RestaDB.OrderData[] // remove the last '+'
+    record.data = newData
+    // console.log(
+    //   record.data,
+    //   mealMap.keys(),
+    //   Object.fromEntries(mealMap),
+    //   newData,
+    // )
+  }
 }
 
 export const TODAY = 'today'
@@ -135,19 +180,22 @@ export function useOrderList({
   search?: Resta.APIFn.Orders.SearchCallback
 }) {
   datetime = datetime ?? TODAY
+  const today = dayjs.tz()
+  const todayDate = today.format(DATE_FORMAT)
   const { API } = useContext(AppContext)
   const [noti, contextHolder] = notification.useNotification()
   const [modal, modelContextHolder] = Modal.useModal()
   const [startTime, endTime] = useMemo(() => {
-    const today = dayjs.tz()
     return datetime === TODAY
       ? [today.startOf('day').valueOf(), today.endOf('day').valueOf()]
       : datetime
-  }, [datetime])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [datetime, todayDate]) // use todayDate instead of today
   const getCategoryLabel = useCallback(() => {
-    const hour = dayjs.tz().hour()
-    return isAMPM(hour)
-  }, [])
+    const now = dayjs.tz()
+    return isAMPM(now.hour(), now.minute())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayDate]) // use todayDate to update
   const [categoryLabel, setCategoryLabel] = useState(getCategoryLabel)
   const [searchText, setSearchText] = useState<string[]>([])
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -214,6 +262,7 @@ export function useOrderList({
       try {
         switch (action) {
           case 'add': {
+            correctMealsAmount(record)
             const result = await API.orders.add(record)
             openNotification({
               type: 'success',
@@ -222,6 +271,7 @@ export function useOrderList({
             return result
           }
           case 'edit': {
+            correctMealsAmount(record)
             const result = await API.orders.set(
               record.id,
               record as RestaDB.NewOrderRecord,
@@ -325,7 +375,8 @@ export function useOrderList({
           }
         })
         // set category (AM or PM) data
-        const category = isAMPM(dayjs.tz(createdAt).hour())
+        const day = dayjs.tz(createdAt)
+        const category = isAMPM(day.hour(), day.minute())
         const categoryData = dateData[category]
         ++categoryData.recordCount
         categoryData.total += total
@@ -655,6 +706,22 @@ export function useOrderList({
     search,
   ])
 
+  const lastRecordNumber = useLiveQuery(async () => {
+    let count = 0
+    // only OrderPage needs lastRecordNumber
+    if (orderPageMode) {
+      const [todayStartTime, todayEndTime] = [
+        today.startOf('day').valueOf(),
+        today.endOf('day').valueOf(),
+      ]
+      count = await API.orders.count({
+        startTime: todayStartTime,
+        endTime: todayEndTime,
+      })
+    }
+    return count
+  }, [todayDate, orderPageMode])
+
   const {
     records,
     recordLength,
@@ -676,7 +743,7 @@ export function useOrderList({
     totalDays,
     soldItemsCount,
     periodsOrder,
-    lastRecordNumber: records?.at?.(0)?.number || 0,
+    lastRecordNumber,
     orderListElement: (
       <>
         {contextHolder}
