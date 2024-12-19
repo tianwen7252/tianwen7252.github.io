@@ -127,6 +127,17 @@ export const orders = {
       }
     }
   },
+  count({
+    startTime,
+    endTime,
+    index = 'createdAt',
+  }: {
+    startTime: number
+    endTime: number
+    index?: string
+  }) {
+    return db.orders.where(index).between(startTime, endTime).count()
+  },
 }
 
 export const dailyData = {

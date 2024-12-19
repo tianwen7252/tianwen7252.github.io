@@ -29,7 +29,8 @@ export const OrderPage: React.FC = memo(() => {
   const submitCallback = useCallback(
     (type: Resta.Order.ActionType) => {
       // scroll the drawer content to top
-      type === 'add' && contentRef.current?.parentElement?.scroll?.(0, 0)
+      type === 'add' &&
+        contentRef.current?.querySelector('.ant-tabs-tabpane')?.scroll?.(0, 0)
     },
     [contentRef],
   )
