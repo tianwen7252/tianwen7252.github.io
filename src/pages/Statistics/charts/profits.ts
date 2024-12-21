@@ -40,8 +40,8 @@ export function handleProfitsChart(
   })
   const totalData = Object.values(datasetTotal)
   datasets[0].data = totalData
-  datasets[1].data = Object.values(AMTotal) // fake temporarily
-  datasets[2].data = Object.values(PMTotal) // fake temporarily
+  datasets[1].data = [] // fake temporarily
+  datasets[2].data = totalData // fake temporarily
   return {
     options: {
       responsive: true,

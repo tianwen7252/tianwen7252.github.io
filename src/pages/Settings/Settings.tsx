@@ -12,14 +12,16 @@ import { cloneDeep, get, set } from 'lodash'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Products from 'src/components/Settings/Products'
+import Info from 'src/components/Settings/Info'
 import { StorageContext, DefaultData } from './context'
 import * as styles from './styles'
 
 const menuItems = [
   {
-    key: 'cost',
-    icon: <DollarOutlined />,
-    label: '每月成本',
+    key: 'info',
+    icon: <InfoCircleOutlined />,
+    label: '系統資訊',
+    children: <Info />,
   },
   {
     key: 'product',
@@ -33,9 +35,9 @@ const menuItems = [
     label: '員工設定',
   },
   {
-    key: 'system',
-    icon: <InfoCircleOutlined />,
-    label: '系統資訊',
+    key: 'cost',
+    icon: <DollarOutlined />,
+    label: '每月成本',
   },
   {
     key: 'cloud',
@@ -89,7 +91,11 @@ export const Settings: React.FC<{}> = () => {
           )}
         </StickyHeader>
         <div css={styles.containerCss}>
-          <Tabs items={menuItems} defaultActiveKey="cost" />
+          <Tabs
+            items={menuItems}
+            defaultActiveKey="info"
+            destroyInactiveTabPane
+          />
         </div>
       </div>
     </StorageContext.Provider>

@@ -253,6 +253,12 @@ export const rootCss = css`
         }
       }
     }
+    &.ant-notification-topRight {
+      .ant-notification-notice-wrapper {
+        top: -20px;
+        right: 32px;
+      }
+    }
   }
 
   .ant-float-btn {

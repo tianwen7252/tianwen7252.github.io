@@ -122,7 +122,7 @@ declare namespace Resta {
       title: string
       type: ChartType
       style?: React.CSSProperties
-      color?: '1' | '2'
+      color?: '1' | '2' | 'orderTypes'
       allowedDateType?: string | null
       displayTypes?: string
       handle(
@@ -249,7 +249,7 @@ declare global {
         editor: string
       }
       interface OrderType {
-        id: ID
+        id: ID | string
         name: string
         priority: number
         type: 'meal' | 'order'

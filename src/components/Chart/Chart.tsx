@@ -27,6 +27,7 @@ import {
   DATE_TYPE_ALLOWED_MAP,
   CHART_COLORS,
   CHART_COLORS2,
+  CHART_COLOR_ORDER_TYPES,
 } from 'src/libs/chart'
 import 'src/libs/chartTotalizer'
 import { AppContext } from 'src/pages/App/context'
@@ -96,6 +97,8 @@ export const Chart: React.FC<Resta.Chart.Props> = memo(
     }, [type, displayTypes])
     const colorsMap = useMemo(() => {
       switch (color) {
+        case 'orderTypes':
+          return CHART_COLOR_ORDER_TYPES
         case '2':
           return CHART_COLORS2
         case '1':

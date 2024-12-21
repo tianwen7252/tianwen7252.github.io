@@ -59,7 +59,7 @@ export const numberCss = css`
   min-width: 40px;
   min-height: 30px;
   line-height: 30px;
-  background: #222;
+  background: #444;
   color: #fff;
   text-align: center;
   border-radius: 0 0 8px 0;

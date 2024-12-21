@@ -265,6 +265,7 @@ export function useOrderList({
             correctMealsAmount(record)
             const result = await API.orders.add(record)
             openNotification({
+              message: '',
               type: 'success',
               description: '新增訂單成功!',
             })
@@ -277,6 +278,7 @@ export function useOrderList({
               record as RestaDB.NewOrderRecord,
             )
             openNotification({
+              message: '',
               type: 'success',
               description: `編輯訂單[${record.number}]成功!`,
             })

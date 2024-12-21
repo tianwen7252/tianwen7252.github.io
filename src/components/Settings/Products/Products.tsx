@@ -4,10 +4,20 @@ import React, {
   useContext,
   useCallback,
   useRef,
+  useLayoutEffect,
+  useState,
 } from 'react'
 import { debounce } from 'lodash'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { Button, Input, InputNumber, Table, Select, Tabs } from 'antd'
+import {
+  Button,
+  Input,
+  InputNumber,
+  Table,
+  Select,
+  Tabs,
+  notification,
+} from 'antd'
 import {
   DeleteOutlined,
   ArrowUpOutlined,
@@ -19,38 +29,47 @@ import { AppContext } from 'src/pages/App/context'
 import { StorageContext } from 'src/pages/Settings/context'
 import * as styles from './styles'
 
-// antd has a bug on the second table on touch event mode...
-export const resetActiveRow = debounce(
-  (direction: 'up' | 'down', tableID: string) => {
-    const cells = document
-      .getElementById(tableID)
-      .querySelectorAll('.ant-table-cell-row-hover')
-    if (cells.length) {
-      cells.forEach(each => {
-        each.classList.remove('ant-table-cell-row-hover')
-      })
-      const row = cells?.[0]?.parentNode
-      if (direction === 'up') {
-        row?.previousSibling?.childNodes?.forEach((each: HTMLElement) => {
-          each.classList.add('ant-table-cell-row-hover')
-        })
-      } else {
-        row?.nextSibling?.childNodes?.forEach((each: HTMLElement) => {
-          each.classList.add('ant-table-cell-row-hover')
-        })
-      }
-    }
-  },
-  100,
-)
+export const getHoverRowIndex = (target: HTMLElement) => {
+  const row = target.closest('.ant-table-row')
+  return Array.from(row?.parentElement?.childNodes ?? []).indexOf(row)
+}
 
 export const Products: React.FC = () => {
   const { API } = useContext(AppContext)
   const { storage, updateStorage, setInitialStorage } =
     useContext(StorageContext)
+  const [hoverRow, updateHoverRow] = useState('')
+  const [noti, contextHolder] = notification.useNotification()
   const [refreshFlag, refresh] = useReducer(o => !o, true)
   const typeIDRef = useRef('1')
 
+  useLayoutEffect(() => {
+    if (hoverRow) {
+      const [tableID, direction, index] = hoverRow.split(':')
+      setTimeout(() => {
+        const rows = document
+          .getElementById(tableID)
+          .querySelectorAll('.ant-table-tbody > tr')
+        if (rows.length && rows[index]) {
+          const row = rows[index]
+          row.childNodes.forEach(each => {
+            each.classList.remove('ant-table-cell-row-hover')
+          })
+          if (direction === 'up') {
+            row?.previousSibling?.childNodes?.forEach((each: HTMLElement) => {
+              each.classList.add('ant-table-cell-row-hover')
+            })
+          } else {
+            row?.nextSibling?.childNodes?.forEach((each: HTMLElement) => {
+              each.classList.add('ant-table-cell-row-hover')
+            })
+          }
+        }
+      }, 100)
+    }
+  }, [hoverRow])
+
+  // comm types
   const commondityTypes = useLiveQuery(
     async () => {
       const types = await API.commondityTypes.get()
@@ -100,6 +119,8 @@ export const Products: React.FC = () => {
     },
     [updateStorage],
   )
+
+  // commondities
   const commonditiesData = useLiveQuery(
     async () => {
       const data = await API.commondity.get()
@@ -124,6 +145,7 @@ export const Products: React.FC = () => {
         const { typeID } = commondity
         if (commondity) {
           const target = (event as React.ChangeEvent<HTMLInputElement>)?.target
+          const tableID = 'resta-settings-commondity-tabs'
           switch (action) {
             case 'edit': {
               const value = target?.value ?? event
@@ -152,8 +174,9 @@ export const Products: React.FC = () => {
               if (upCommondity) {
                 ++upCommondity.priority
                 --commondity.priority
+                const rowIndex = getHoverRowIndex(target)
                 update(true)
-                resetActiveRow('up', 'resta-settings-commondity-tabs')
+                updateHoverRow(`${tableID}:up:${rowIndex}`)
               }
               break
             }
@@ -167,8 +190,9 @@ export const Products: React.FC = () => {
               if (downCommondity) {
                 --downCommondity.priority
                 ++commondity.priority
+                const rowIndex = getHoverRowIndex(target)
                 update(true)
-                resetActiveRow('down', 'resta-settings-commondity-tabs')
+                updateHoverRow(`${tableID}:down:${rowIndex}`)
               }
               break
             }
@@ -329,7 +353,12 @@ export const Products: React.FC = () => {
       })
       update(true)
       window.scroll({
-        top: document.body.scrollHeight,
+        top:
+          document
+            .getElementById('resta-settings-commondity-tabs')
+            ?.getBoundingClientRect()?.bottom -
+          document.body.getBoundingClientRect().top -
+          150,
         left: 0,
         behavior: 'smooth',
       })
@@ -360,6 +389,7 @@ export const Products: React.FC = () => {
         })
         if (orderType) {
           const target = (event as React.ChangeEvent<HTMLInputElement>)?.target
+          const tableID = 'resta-settings-orderTypes-table'
           switch (action) {
             case 'edit': {
               const value = target?.value ?? event
@@ -381,8 +411,9 @@ export const Products: React.FC = () => {
               if (upOrderType) {
                 ++upOrderType.priority
                 --orderType.priority
+                const rowIndex = getHoverRowIndex(target)
                 update(true)
-                resetActiveRow('up', 'resta-settings-orderTypes-table')
+                updateHoverRow(`${tableID}:up:${rowIndex}`)
               }
               break
             }
@@ -393,8 +424,9 @@ export const Products: React.FC = () => {
               if (downOrderType) {
                 --downOrderType.priority
                 ++orderType.priority
+                const rowIndex = getHoverRowIndex(target)
                 update(true)
-                resetActiveRow('down', 'resta-settings-orderTypes-table')
+                updateHoverRow(`${tableID}:down:${rowIndex}`)
               }
               break
             }
@@ -501,6 +533,41 @@ export const Products: React.FC = () => {
     // refreshFlag is a flag to force re-render
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orderTypesData, onChangeOrderType, refreshFlag])
+  const onAddOrderType = useCallback(() => {
+    const { orderTypes } = storage.product
+    if (orderTypes.length >= 10) {
+      noti.warning({
+        message: '系統設定',
+        description: '訂單分類最多只能10個',
+        showProgress: true,
+      })
+      return
+    }
+    const dataSource = orderTypes.sort((prev, next) => {
+      return prev.priority - next.priority
+    })
+    if (dataSource) {
+      const lastPriority = dataSource.at(-1).priority + 1
+      orderTypes.push({
+        id: `new-${Date.now()}`,
+        name: '',
+        priority: lastPriority,
+        editor: 'admin',
+        type: 'order',
+      })
+      update(true)
+      window.scroll({
+        top:
+          document
+            .getElementById('resta-settings-orderTypes-table')
+            ?.getBoundingClientRect()?.bottom -
+          document.body.getBoundingClientRect().top -
+          100,
+        left: 0,
+        behavior: 'smooth',
+      })
+    }
+  }, [storage.product, noti, update])
 
   const onChangeTab = useCallback((activeKey: string) => {
     typeIDRef.current = activeKey
@@ -508,6 +575,7 @@ export const Products: React.FC = () => {
 
   return (
     <div css={styles.container}>
+      {contextHolder}
       <h2 css={styles.title}>商品種類</h2>
       <Table
         bordered={false}
@@ -528,7 +596,16 @@ export const Products: React.FC = () => {
         }
         onChange={onChangeTab}
       />
-      <h2 css={styles.title}>訂單分類</h2>
+      <h2 css={styles.title}>
+        訂單分類
+        <Button
+          css={styles.addCategoryButton}
+          icon={<PlusOutlined />}
+          onClick={onAddOrderType}
+        >
+          新增分類
+        </Button>
+      </h2>
       <Table
         id="resta-settings-orderTypes-table"
         css={styles.orderTypeTable}

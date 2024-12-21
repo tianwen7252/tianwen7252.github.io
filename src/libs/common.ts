@@ -25,7 +25,7 @@ export function toCurrencyNumber(amount: number) {
 
 export function getHourFormat(hour, next = false) {
   const hh = hour - (hour > 12 ? 12 : 0)
-  return `${hh} ${hour > 11 ? 'PM' : 'AM'}${next ? ` - ${getHourFormat(hour + 1)}` : ''}`
+  return `${hh}${next ? '' : hour > 11 ? ' PM' : ' AM'}${next ? ` - ${getHourFormat(hour + 1)}` : ''}`
 }
 
 const userAgent = navigator.userAgent.toLowerCase()
