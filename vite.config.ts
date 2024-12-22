@@ -41,9 +41,6 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // if (id.includes('@ant-design')) {
-            //   return 'antd-design'
-            // }
             if (id.includes('antd')) {
               return 'antd'
             }
@@ -53,6 +50,9 @@ export default defineConfig({
             //   id.includes('/@rc-')
             // ) {
             //   return 'antd-deps'
+            // }
+            // if (id.includes('@ant-design')) {
+            //   return 'antd-design'
             // }
             if (id.includes('/chart.js/') || id.includes('chartjs-')) {
               return 'chartjs'
