@@ -47,13 +47,13 @@ export default defineConfig({
             if (id.includes('antd')) {
               return 'antd'
             }
-            if (
-              id.includes('/rc-') ||
-              id.includes('/@rc-')
-              // id.includes('@ant-design') // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
-            ) {
-              return 'antd-deps'
-            }
+            // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
+            // if (
+            //   id.includes('/rc-') ||
+            //   id.includes('/@rc-')
+            // ) {
+            //   return 'antd-deps'
+            // }
             if (id.includes('/chart.js/') || id.includes('chartjs-')) {
               return 'chartjs'
             }
