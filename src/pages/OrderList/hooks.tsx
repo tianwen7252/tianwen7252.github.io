@@ -19,7 +19,7 @@ import {
 import type { AnchorProps } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 
 import { AppContext } from 'src/pages/App/context'
 import { Order } from 'src/components/Order'

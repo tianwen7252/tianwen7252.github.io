@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie'
-import { isNil } from 'lodash'
+import { isNil } from 'lodash-es'
 
 import { generate } from 'src/scripts/generator'
 import * as API from './api'

@@ -4,7 +4,7 @@ import { BarChartOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { isNil } from 'lodash'
+import { isNil } from 'lodash-es'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Chart from 'src/components/Chart'

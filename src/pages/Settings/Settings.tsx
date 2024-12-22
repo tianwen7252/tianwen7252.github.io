@@ -8,7 +8,7 @@ import {
   InfoCircleOutlined,
   CloudSyncOutlined,
 } from '@ant-design/icons'
-import { cloneDeep, get, set } from 'lodash'
+import { cloneDeep, get, set } from 'lodash-es'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Products from 'src/components/Settings/Products'

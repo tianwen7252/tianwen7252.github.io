@@ -7,7 +7,7 @@ import React, {
   useLayoutEffect,
   useState,
 } from 'react'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
   Button,

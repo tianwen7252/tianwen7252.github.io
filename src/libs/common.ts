@@ -1,4 +1,4 @@
-import { forIn } from 'lodash'
+import { forIn } from 'lodash-es'
 
 export const DATE_FORMAT = 'YYYY/MM/DD dddd'
 export const DATE_FORMAT_DATE = 'YYYY/MM/DD'

@@ -33,7 +33,7 @@ import {
   EditOutlined,
 } from '@ant-design/icons'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { isNil, pull } from 'lodash'
+import { isNil, pull } from 'lodash-es'
 
 import { CONFIG } from 'src/constants/defaults/config'
 import { NUMBER_BUTTONS } from 'src/constants/defaults/numberButtons'

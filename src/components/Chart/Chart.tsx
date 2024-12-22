@@ -14,7 +14,7 @@ import {
   PieChartOutlined,
   TableOutlined,
 } from '@ant-design/icons'
-import { filter, includes, uniq } from 'lodash'
+import { filter, includes, uniq } from 'lodash-es'
 import { Chart as ChartJS } from 'chart.js'
 import { Bar, Line, Bubble, Doughnut, Pie } from 'react-chartjs-2'
 import ChartDataLabels from 'chartjs-plugin-datalabels'
