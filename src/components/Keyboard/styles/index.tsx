@@ -67,7 +67,6 @@ export const drawerModeCss = css`
 
   .resta-keyboard-left {
     min-width: 70vw;
-
     min-height: ${getCalcHeight(22 + 90)};
   }
 
@@ -80,7 +79,8 @@ export const drawerModeCss = css`
   } */
   .resta-keyboard-textArea {
     @media only screen and (min-device-width: 1080px) and (orientation: landscape) {
-      max-height: ${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT};
+      min-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} + 20px);
+      max-height: calc(${TABLET.KEYBOARD_TEXT_MEALS_HEIGHT} + 20px);
     }
     @media only screen and (min-device-width: 1280px) and (orientation: landscape) {
       max-height: none;
@@ -184,12 +184,6 @@ export const btnAreaCss = css`
   justify-content: end;
 `
 
-const ipadBtnFlex = css`
-  gap: 10px;
-  margin-bottom: 10px;
-  max-height: 290px;
-`
-
 export const btnCss = css`
   width: min-content;
   gap: 20px;
@@ -232,6 +226,12 @@ export const deleteBtnCss = css`
     line-height: inherit;
     font-size: 1rem;
     border-radius: 4px;
+
+    .ant-btn-icon {
+      vertical-align: middle;
+      margin-right: 4px;
+      margin-top: -2px;
+    }
   }
 `
 

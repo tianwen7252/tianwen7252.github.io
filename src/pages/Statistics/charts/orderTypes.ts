@@ -46,6 +46,7 @@ export function handleOrderTypes(
   datasets.push({
     label: 'Total',
     data: [...Array.from(Array(labels.length)).map(() => 0)], // 0 are just placeholders
+    backgroundColor: '#7BC7EE',
     datalabels: {
       // @ts-expect-error expected
       align: 'end',

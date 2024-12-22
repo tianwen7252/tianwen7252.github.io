@@ -1,18 +1,13 @@
 import Dexie, { type EntityTable } from 'dexie'
-import { isNil } from 'lodash'
+import { isNil } from 'lodash-es'
 
 import { generate } from 'src/scripts/generator'
 import * as API from './api'
-import {
-  COMMODITY_TYPES,
-  COMMODITIES,
-} from 'src/constants/defaults/commondities'
-import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
 import * as SYNC from 'src/constants/sync'
+import { COMMODITIES } from 'src/constants/defaults/commondities'
+import { getDeviceStorageInfo } from './common'
 
 const DB_NAME = 'TianwenDB'
-const GB_UNIT = 1000 * 1000 * 1000
-export const WARNING_DEVICE_SIZE = GB_UNIT
 
 const DB_VERSION = 7
 export const db = new Dexie(DB_NAME) as Dexie & {
@@ -46,8 +41,8 @@ dbSchema.stores({
 
 export function init() {
   initDB()
-  // getDeviceStorageInfo().then(({ percentageUsed, remaining, unit }) => {
-  //   console.log(percentageUsed, remaining, unit)
+  // getDeviceStorageInfo().then(({ useage, percentageUsed, remaining }) => {
+  //   console.log(useage, percentageUsed, remaining)
   // })
 }
 
@@ -61,10 +56,7 @@ export async function initDB() {
 
   const commondityTypes = await API.commondityTypes.get()
   if (commondityTypes.length === 0 || syncTable === 'commondityType') {
-    shouldSyncUpOnDev && API.commondityTypes.clear()
-    COMMODITY_TYPES.forEach(type => {
-      API.commondityTypes.add(type)
-    })
+    API.resetCommonditType(shouldSyncUpOnDev)
   }
   const commondities = await API.commondity.get()
   if (commondities.length === 0 || syncTable === 'commondity') {
@@ -88,33 +80,10 @@ export async function initDB() {
   // init order types
   const orderTypes = await API.orderTypes.get()
   if (orderTypes.length === 0 || syncTable === 'orderTypes') {
-    shouldSyncUpOnDev && API.orderTypes.clear()
-    ORDER_TYPES.forEach(type => {
-      API.orderTypes.add(type)
-    })
+    API.resetOrderType(shouldSyncUpOnDev)
   }
   if (shouldSyncUpOnDev) {
     localStorage.setItem('SYNC_NUMBER', SYNC.NUMBER.toString())
-  }
-}
-
-export async function getDeviceStorageInfo(unit: 'bytes' | 'GB' = 'GB') {
-  let percentageUsed = '0'
-  let remaining = '0'
-  if (navigator?.storage?.estimate) {
-    const quota = await navigator.storage.estimate()
-    const unitSize = unit === 'GB' ? GB_UNIT : 1
-    // quota.usage -> Number of bytes used.
-    // quota.quota -> Maximum number of bytes available.
-    percentageUsed = ((quota.usage / quota.quota) * 100).toFixed(2)
-    // console.log(`This app used ${percentageUsed}% of the available storage.`)
-    remaining = ((quota.quota - quota.usage) / unitSize).toFixed(2)
-    // console.log(`This app can write up to ${remaining} more ${unit}.`)
-  }
-  return {
-    percentageUsed,
-    remaining,
-    unit,
   }
 }
 

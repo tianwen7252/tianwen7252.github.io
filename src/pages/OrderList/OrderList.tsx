@@ -26,7 +26,7 @@ import {
 } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
-import { debounce } from 'lodash'
+import { debounce } from 'lodash-es'
 
 import StickyHeader from 'src/components/StickyHeader'
 import {

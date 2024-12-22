@@ -1,7 +1,8 @@
-import { defineConfig } from 'vite'
+import path from 'path'
+import { defineConfig, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
-import path from 'path'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -10,6 +11,7 @@ export default defineConfig({
       jsxImportSource: '@emotion/react',
     }),
     svgr(),
+    process.env.NODE_ENV === 'production' && (visualizer() as PluginOption),
   ],
   resolve: {
     alias: [
@@ -33,5 +35,34 @@ export default defineConfig({
   },
   server: {
     port: 4150,
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@ant-design')) {
+              return 'antd-design'
+            }
+            if (id.includes('antd')) {
+              return 'antd'
+            }
+            if (id.includes('/rc-') || id.includes('/@rc-')) {
+              return 'antd-rc'
+            }
+            if (id.includes('/chart.js/') || id.includes('chartjs-')) {
+              return 'chartjs'
+            }
+            if (id.includes('/mathjs/')) {
+              return 'mathjs'
+            }
+            // if (id.includes('/dexie/')) {
+            //   return 'dexie'
+            // }
+            return 'vendor'
+          }
+        },
+      },
+    },
   },
 })

@@ -36,7 +36,10 @@ export function handleCustomersChart(
     },
   ]
   const labels: string[] = [...HOURS].map(hour => {
-    return `${getHourFormat(hour, true)}${hour === 14 || hour === 15 ? ' 午休' : ''}`
+    if (hour === 14 || hour === 15) {
+      return `午休 (${getHourFormat(hour, true)})`
+    }
+    return getHourFormat(hour, true)
   })
   const dates = Object.keys(dateMap)
   dates.forEach(date => {

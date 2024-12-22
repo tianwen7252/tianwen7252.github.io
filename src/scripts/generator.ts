@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 import type { ManipulateType } from 'dayjs'
-import { cloneDeep } from 'lodash'
+import { cloneDeep } from 'lodash-es'
 
 import {
   DATE_FORMAT_TIME,

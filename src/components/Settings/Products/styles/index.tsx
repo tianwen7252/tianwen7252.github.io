@@ -16,8 +16,8 @@ export const title = css`
 //   border-radius: 3px;
 // `
 
-export const addButton = css`
-  margin-bottom: 16px;
+export const addCategoryButton = css`
+  float: right;
 `
 
 export const input = css`
@@ -42,7 +42,7 @@ export const typeTable = css`
 `
 export const commondityTable = css`
   margin-top: 20px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
 
   .ant-table-thead > tr > th {
     background: #f0f9f3;
@@ -64,4 +64,8 @@ export const actionBtn = css`
 
 export const deleteBtn = css`
   margin-left: 10px;
+`
+export const resetButton = css`
+  margin-top: 40px;
+  padding: 20px;
 `

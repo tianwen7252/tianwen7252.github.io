@@ -1,24 +1,26 @@
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 
+import { COLORS } from 'src/constants/defaults/orderTypes'
+
 // reference: https://www.schemecolor.com/
 export const CHART_BORDER_COLORS = {
-  red: '#ff6384',
-  orange: '#ff9f40',
-  yellow: '#ffcd56',
-  green: '#4bc0c0',
-  blue: '#36a2eb',
-  purple: '#9966ff',
-  gray: '#c9cbcf',
-  cinnabar: '#ea4335',
-  palePink: '#f4d8dd',
-  pastelPurple: '#b99fb1',
-  brownSugar: '#b47556',
-  coffee: '#6d4932',
-  gunmetal: '#30313c',
-  armyGreen: '#44501d',
-  coolGrey: '#8898a7',
-  chineseSilver: '#c4d0d2',
+  red: '#ff6384', // 1
+  orange: '#ff9f40', //2
+  yellow: '#ffcd56', //3
+  green: '#4bc0c0', //4
+  blue: '#36a2eb', //5
+  purple: '#9966ff', //6
+  gray: '#c9cbcf', //7
+  cinnabar: '#ea4335', //8
+  palePink: '#f4d8dd', //9
+  pastelPurple: '#b99fb1', //10
+  brownSugar: '#b47556', //11
+  coffee: '#6d4932', //12
+  gunmetal: '#30313c', //13
+  armyGreen: '#44501d', //14
+  coolGrey: '#8898a7', //15
+  chineseSilver: '#c4d0d2', // 16
 }
 export const CHART_COLORS = {
   red: '#ff638480', // 1
@@ -49,6 +51,24 @@ export const CHART_COLORS2 = {
   skyBlue: '#7BC7EE', // 8
   pastelYellow: '#F4F497', // 9
   deepPeach: '#F6C2A6', // 10
+  cottonCandy: '#FBBED6', // 11
+  africanViolet: '#B68EC990', // 12
+  maximumBlueGreen: '#24DAC5', // 13
+  maize: '#F8C058', // 14
+  conditioner: '#FEFFC9', // 15
+  peru: '#C68642', // 16
+}
+export const CHART_COLOR_ORDER_TYPES = {
+  chineseWhite: '#D5EAE5', // 1
+  columbiaBlue: '#C9DDE7', // 2
+  champagne: '#F4E5CA', // 3
+  palePink: '#F4D8DD', // 4
+  americanSilver: '#CECED0', // 5
+  purple: `${COLORS.purple}80`, // 6
+  blue: `${COLORS.blue}80`, // 7
+  gold: `${COLORS.gold}80`, // 8
+  red: `${COLORS.red}80`, // 9
+  skyBlue: '#7BC7EE', // 10
   cottonCandy: '#FBBED6', // 11
   africanViolet: '#B68EC990', // 12
   maximumBlueGreen: '#24DAC5', // 13

@@ -4,7 +4,7 @@ import { BarChartOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { isNil } from 'lodash'
+import { isNil } from 'lodash-es'
 
 import StickyHeader from 'src/components/StickyHeader'
 import Chart from 'src/components/Chart'
@@ -357,7 +357,7 @@ export const Statistics: React.FC<{}> = memo(() => {
         />
         <Chart
           type="line"
-          title="客流量分析"
+          title="客流量分析 (總計)"
           dateMap={dateMap}
           dateType={dateType}
           allowedDateType={null}
@@ -390,6 +390,7 @@ export const Statistics: React.FC<{}> = memo(() => {
           title="訂單備註分析"
           dateMap={dateMap}
           dateType={dateType}
+          color="orderTypes"
           // @ts-expect-error expected
           handle={handleOrderTypes}
         />
@@ -398,7 +399,6 @@ export const Statistics: React.FC<{}> = memo(() => {
           title="送外訂單分析"
           dateMap={dateMap}
           dateType={dateType}
-          color="2"
           allowedDateType={null}
           handle={handleOrderDeliveryChart}
         />

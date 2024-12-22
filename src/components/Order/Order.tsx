@@ -18,7 +18,7 @@ import {
 import SwipeListener from 'swipe-listener'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
-import { isNil } from 'lodash'
+import { isNil } from 'lodash-es'
 
 import { toCurrency, DATE_FORMAT_TIME } from 'src/libs/common'
 import { AppContext } from 'src/pages/App/context'
