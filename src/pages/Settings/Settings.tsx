@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react'
+import React, { useState, useCallback, useMemo, useContext } from 'react'
 import { Space, Tabs, Alert, Button } from 'antd'
 import {
   SettingOutlined,
@@ -14,6 +14,8 @@ import StickyHeader from 'src/components/StickyHeader'
 import Products from 'src/components/Settings/Products'
 import Info from 'src/components/Settings/Info'
 import { StorageContext, DefaultData } from './context'
+import { AppContext } from '../App/context'
+
 import * as styles from './styles'
 
 const menuItems = [
@@ -47,15 +49,29 @@ const menuItems = [
 ]
 
 export const Settings: React.FC<{}> = () => {
+  const { API } = useContext(AppContext)
   const storage = useMemo(() => ({ ...DefaultData }), [])
   const backup = useMemo(() => cloneDeep(DefaultData), [])
   const [hasUpdated, setHasUpdated] = useState(false)
+
   const updateStorage = useCallback(() => {
     // compare storage and backup by JSON.stringify rather than using fast-deep-equal
     // because the storage is not an expensive object to compare deeply
     console.log('comparison', storage, backup)
     setHasUpdated(JSON.stringify(storage) !== JSON.stringify(backup))
   }, [storage, backup])
+  const onSave = useCallback(() => {
+    // TBD
+    // products
+    const {
+      product: { commondityTypes, commondities, orderTypes },
+    } = storage
+    commondityTypes.forEach(type => {
+      API.commondityTypes.set(type.id, type)
+    })
+    setHasUpdated(false)
+  }, [storage, backup, updateStorage, API])
+
   const contextValue = useMemo(() => {
     return {
       storage,
@@ -85,7 +101,12 @@ export const Settings: React.FC<{}> = () => {
             )}
           </Space>
           {hasUpdated && (
-            <Button css={styles.saveBtnCss} size="small" type="primary">
+            <Button
+              css={styles.saveBtnCss}
+              size="small"
+              type="primary"
+              onClick={onSave}
+            >
               存檔設定 (未完成)
             </Button>
           )}

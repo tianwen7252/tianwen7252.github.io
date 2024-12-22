@@ -1,6 +1,14 @@
 import { db } from 'src/libs/dataCenter'
 import dayjs from 'dayjs'
 
+import {
+  COMMODITY_TYPES,
+  COMMODITIES,
+} from 'src/constants/defaults/commondities'
+import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
+
+export const MANIFEST_URL = 'https://tianwen7252.github.io/manifest.json'
+
 export const orders = {
   get({
     startTime,
@@ -237,6 +245,7 @@ export const commondityTypes = {
     id: number,
     record: Omit<RestaDB.Table.CommondityType, 'type' | 'id' | 'createdAt'>,
   ) {
+    record.updatedAt = dayjs().utc().valueOf()
     return db.commondityType.update(id, record)
   },
   async clear() {
@@ -312,4 +321,38 @@ export const orderTypes = {
   async clear() {
     return db.orderTypes.clear()
   },
+}
+
+export function reset(clear = true) {
+  resetCommonditType(clear)
+  resetCommondity(clear)
+  resetOrderType(clear)
+}
+
+export function resetCommonditType(clear = true) {
+  clear && commondityTypes.clear()
+  COMMODITY_TYPES.forEach(type => {
+    commondityTypes.add(type)
+  })
+}
+
+export function resetCommondity(clear = true) {
+  clear && commondity.clear()
+  COMMODITIES.forEach((commodity, index) => {
+    const { items } = commodity
+    items.forEach(item => {
+      commondity.add({
+        ...item,
+        typeID: String(index + 1),
+        onMarket: '1',
+      })
+    })
+  })
+}
+
+export function resetOrderType(clear = true) {
+  clear && orderTypes.clear()
+  ORDER_TYPES.forEach(type => {
+    orderTypes.add(type)
+  })
 }

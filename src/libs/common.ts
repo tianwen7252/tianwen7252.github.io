@@ -9,6 +9,10 @@ export const DATE_FORMAT_FOR_ANCHOR = 'MM-DD (dd)'
 
 export const ORDER_LIST_PAGE_SIZE = 7
 
+export const MB_UNIT = 1000 * 1000
+export const GB_UNIT = MB_UNIT * 1000
+export const WARNING_DEVICE_SIZE = GB_UNIT
+
 export function toCurrency(amount: number) {
   return (+amount).toLocaleString('zh-TW', {
     style: 'currency',
@@ -142,4 +146,40 @@ export function getCommoditiesInfo(
     }
   }
   return { data, priceMap, commodityMap, priceMapGroup, resMapGroup }
+}
+
+export async function getDeviceStorageInfo(unit: 'MB' | 'GB' = 'GB') {
+  let useage = 0,
+    usageText = '---'
+  let percentageUsed = 0,
+    percentageUsedText = '---'
+  let remaining = 0,
+    remainingText = '---'
+  if (navigator?.storage?.estimate) {
+    const quota = await navigator.storage.estimate()
+    const unitSize = unit === 'GB' ? GB_UNIT : MB_UNIT
+    // quota.usage -> Number of bytes used.
+    // quota.quota -> Maximum number of bytes available.
+    useage = quota.usage / unitSize
+    if (useage < 1) {
+      useage = quota.usage / MB_UNIT
+      usageText = `${useage.toFixed(2)} MB`
+    } else {
+      usageText = `${useage.toFixed(2)} GB`
+    }
+    percentageUsed = (quota.usage / quota.quota) * 100
+    percentageUsedText = `${percentageUsed < 0.01 ? 0 : percentageUsed.toFixed(2)}%`
+    remaining = (quota.quota - quota.usage) / unitSize
+    if (remaining < 1) {
+      remaining = (quota.quota - quota.usage) / MB_UNIT
+      remainingText = `${remaining.toFixed(2)} MB`
+    } else {
+      remainingText = `${remaining.toFixed(2)} GB`
+    }
+  }
+  return {
+    useage: usageText,
+    percentageUsed: percentageUsedText,
+    remaining: remainingText,
+  }
 }

@@ -17,6 +17,8 @@ import {
   Select,
   Tabs,
   notification,
+  Modal,
+  FloatButton,
 } from 'antd'
 import {
   DeleteOutlined,
@@ -27,6 +29,8 @@ import {
 
 import { AppContext } from 'src/pages/App/context'
 import { StorageContext } from 'src/pages/Settings/context'
+import { LATEST_UPDATE_TIME } from 'src/constants/sync'
+
 import * as styles from './styles'
 
 export const getHoverRowIndex = (target: HTMLElement) => {
@@ -39,9 +43,12 @@ export const Products: React.FC = () => {
   const { storage, updateStorage, setInitialStorage } =
     useContext(StorageContext)
   const [hoverRow, updateHoverRow] = useState('')
-  const [noti, contextHolder] = notification.useNotification()
+  const [noti, notiContextHolder] = notification.useNotification()
+  const [modal, modalContextHolder] = Modal.useModal()
   const [refreshFlag, refresh] = useReducer(o => !o, true)
   const typeIDRef = useRef('1')
+  // a flag to stop useLiveQuery to re-render when the observed data changes
+  const resetRef = useRef(false)
 
   useLayoutEffect(() => {
     if (hoverRow) {
@@ -69,9 +76,20 @@ export const Products: React.FC = () => {
     }
   }, [hoverRow])
 
+  const update = useCallback(
+    (rerender = false) => {
+      rerender && refresh()
+      updateStorage()
+    },
+    [updateStorage],
+  )
+
   // comm types
   const commondityTypes = useLiveQuery(
     async () => {
+      if (resetRef.current) {
+        return []
+      }
       const types = await API.commondityTypes.get()
       storage.product.commondityTypes = types
       setInitialStorage('product.commondityTypes')
@@ -85,12 +103,13 @@ export const Products: React.FC = () => {
       storage.product.commondityTypes.some(type => {
         if (type.id === id) {
           type.label = event.target.value
+          update()
           return true
         }
         return false
       })
     }, 300),
-    [],
+    [update],
   )
   const commondityTypeColumns = useMemo(
     () => [
@@ -112,17 +131,12 @@ export const Products: React.FC = () => {
     [onChangeTypeLabel],
   )
 
-  const update = useCallback(
-    (rerender = false) => {
-      rerender && refresh()
-      updateStorage()
-    },
-    [updateStorage],
-  )
-
   // commondities
   const commonditiesData = useLiveQuery(
     async () => {
+      if (resetRef.current) {
+        return
+      }
       const data = await API.commondity.get()
       storage.product.commondities = data
       setInitialStorage('product.commondities')
@@ -342,7 +356,7 @@ export const Products: React.FC = () => {
     if (dataSource) {
       const lastPriority = dataSource.at(-1).priority + 1
       commondities.push({
-        hideOnMode: 'both',
+        hideOnMode: '',
         id: `new-${Date.now()}`,
         name: '',
         onMarket: '1',
@@ -368,6 +382,9 @@ export const Products: React.FC = () => {
   // order types
   const orderTypesData = useLiveQuery(
     async () => {
+      if (resetRef.current) {
+        return
+      }
       const data = await API.orderTypes.get()
       storage.product.orderTypes = data
       setInitialStorage('product.orderTypes')
@@ -575,7 +592,8 @@ export const Products: React.FC = () => {
 
   return (
     <div css={styles.container}>
-      {contextHolder}
+      {notiContextHolder}
+      {modalContextHolder}
       <h2 css={styles.title}>商品種類</h2>
       <Table
         bordered={false}
@@ -614,6 +632,49 @@ export const Products: React.FC = () => {
         columns={orderTypesColumns}
         pagination={false}
       />
+      <Button
+        css={styles.resetButton}
+        type="primary"
+        danger
+        block
+        onClick={useCallback(() => {
+          modal.confirm({
+            title: '危險動作 - 請再次確認',
+            content: (
+              <>
+                <label>
+                  確定要還原所有商品和分類到預設狀態嗎？此操作無法復原。
+                </label>
+                <h4>預設資料的最後更新日期為：{LATEST_UPDATE_TIME}</h4>
+              </>
+            ),
+            okText: '確認還原',
+            cancelText: '取消',
+            okType: 'danger',
+            width: 500,
+            onOk: () => {
+              resetRef.current = true
+              API.reset()
+              // avoid flickering
+              setTimeout(() => {
+                noti.success({
+                  message: '系統設定',
+                  description: '資料已還原成功，即將重新啟動App...',
+                  showProgress: true,
+                  duration: 3,
+                })
+              }, 100)
+              // reload app after 3 seconds
+              setTimeout(() => {
+                window.location.reload()
+              }, 3000)
+            },
+          })
+        }, [modal, API, noti])}
+      >
+        還原預設
+      </Button>
+      <FloatButton.BackTop visibilityHeight={100} />
     </div>
   )
 }

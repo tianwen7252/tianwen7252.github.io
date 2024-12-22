@@ -225,6 +225,7 @@ declare global {
         label: string
         color: string
         createdAt?: number
+        updatedAt?: number
       }
       // interface CommondityPrice {
       //   id: ID

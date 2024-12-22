@@ -21,6 +21,9 @@ export const mainCss = css`
     border-radius: 4px;
     padding-left: 8px;
   }
+  .ant-tabs .ant-tabs-tab {
+    font-size: 1rem;
+  }
 `
 export const containerCss = css`
   padding: 0 20px;

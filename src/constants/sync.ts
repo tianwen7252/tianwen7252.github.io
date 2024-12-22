@@ -1,4 +1,4 @@
-// manual update for beta (dev) version only
+// manual update for beta (default local) version only
 
 export const NUMBER = 3
 export const METHOD = 'dev' // 'dev' | 'could'

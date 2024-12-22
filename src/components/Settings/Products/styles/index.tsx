@@ -65,3 +65,7 @@ export const actionBtn = css`
 export const deleteBtn = css`
   margin-left: 10px;
 `
+export const resetButton = css`
+  margin-top: 40px;
+  padding: 20px;
+`
