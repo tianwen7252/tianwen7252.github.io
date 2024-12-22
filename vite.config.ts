@@ -41,19 +41,19 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            // if (id.includes('@ant-design')) {
-            //   return 'antd-design'
-            // }
             if (id.includes('antd')) {
               return 'antd'
             }
-            if (
-              id.includes('/rc-') ||
-              id.includes('/@rc-') ||
-              id.includes('@ant-design')
-            ) {
-              return 'antd-deps'
-            }
+            // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
+            // if (
+            //   id.includes('/rc-') ||
+            //   id.includes('/@rc-')
+            // ) {
+            //   return 'antd-deps'
+            // }
+            // if (id.includes('@ant-design')) {
+            //   return 'antd-design'
+            // }
             if (id.includes('/chart.js/') || id.includes('chartjs-')) {
               return 'chartjs'
             }
