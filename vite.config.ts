@@ -49,8 +49,8 @@ export default defineConfig({
             }
             if (
               id.includes('/rc-') ||
-              id.includes('/@rc-') ||
-              id.includes('@ant-design')
+              id.includes('/@rc-')
+              // id.includes('@ant-design') // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
             ) {
               return 'antd-deps'
             }
