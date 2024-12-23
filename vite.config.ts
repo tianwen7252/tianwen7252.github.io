@@ -1,8 +1,11 @@
 import path from 'path'
-import { defineConfig, type PluginOption } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import { visualizer } from 'rollup-plugin-visualizer'
+import viteCompression from 'vite-plugin-compression'
+
+const isProduction = process.env.NODE_ENV === 'production'
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -11,7 +14,8 @@ export default defineConfig({
       jsxImportSource: '@emotion/react',
     }),
     svgr(),
-    process.env.NODE_ENV === 'production' && (visualizer() as PluginOption),
+    isProduction && viteCompression(),
+    isProduction && visualizer(),
   ],
   resolve: {
     alias: [
@@ -39,33 +43,43 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          if (id.includes('node_modules')) {
-            if (id.includes('antd')) {
-              return 'antd'
-            }
-            // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
-            // if (
-            //   id.includes('/rc-') ||
-            //   id.includes('/@rc-')
-            // ) {
-            //   return 'antd-deps'
-            // }
-            // if (id.includes('@ant-design')) {
-            //   return 'antd-design'
-            // }
-            if (id.includes('/chart.js/') || id.includes('chartjs-')) {
-              return 'chartjs'
-            }
-            if (id.includes('/mathjs/')) {
-              return 'mathjs'
-            }
-            // if (id.includes('/dexie/')) {
-            //   return 'dexie'
-            // }
-            return 'vendor'
-          }
+        // experimentalMinChunkSize: 500000, // doesn't work in Vite
+        manualChunks: {
+          react: ['react', 'react-dom'],
+          lodash: ['lodash-es'],
+          antd: ['antd'],
+          chartjs: ['chart.js'],
+          mathjs: ['mathjs'],
         },
+
+        // manualChunks(id) {
+        //   if (id.includes('node_modules')) {
+        //     if (id.includes('/react/') || id.includes('/react-')) {
+        //       return 'react'
+        //     }
+        //     if (id.includes('antd')) {
+        //       return 'antd'
+        //     }
+        //     // will get - Uncaught TypeError: Cannot read properties of undefined (reading 'createContext')
+        //     // if (
+        //     //   id.includes('/rc-') ||
+        //     //   id.includes('@ant-design') ||
+        //     //   id.includes('/@rc-')
+        //     // ) {
+        //     //   return 'antd-deps'
+        //     // }
+        //     if (id.includes('/chart.js/') || id.includes('chartjs-')) {
+        //       return 'chartjs'
+        //     }
+        //     if (id.includes('/mathjs/')) {
+        //       return 'mathjs'
+        //     }
+        //     // if (id.includes('/dexie/')) {
+        //     //   return 'dexie'
+        //     // }
+        //     return 'vendor'
+        //   }
+        // },
       },
     },
   },
