@@ -1,6 +1,6 @@
 {
   "name": "tianwen7252.github.io",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
@@ -31,6 +31,7 @@
     "dayjs": "^1.11.11",
     "dexie": "^4.0.7",
     "dexie-react-hooks": "^1.1.7",
+    "html2canvas": "^1.4.1",
     "ky": "^1.7.4",
     "lodash-es": "^4.17.21",
     "mathjs": "^12.4.2",

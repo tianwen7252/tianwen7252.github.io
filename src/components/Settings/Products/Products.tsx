@@ -47,8 +47,6 @@ export const Products: React.FC = () => {
   const [modal, modalContextHolder] = Modal.useModal()
   const [refreshFlag, refresh] = useReducer(o => !o, true)
   const typeIDRef = useRef('1')
-  // a flag to stop useLiveQuery to re-render when the observed data changes
-  const resetRef = useRef(false)
 
   useLayoutEffect(() => {
     if (hoverRow) {
@@ -87,9 +85,6 @@ export const Products: React.FC = () => {
   // comm types
   const commondityTypes = useLiveQuery(
     async () => {
-      if (resetRef.current) {
-        return []
-      }
       const types = await API.commondityTypes.get()
       storage.product.commondityTypes = types
       setInitialStorage('product.commondityTypes')
@@ -134,9 +129,6 @@ export const Products: React.FC = () => {
   // commondities
   const commonditiesData = useLiveQuery(
     async () => {
-      if (resetRef.current) {
-        return
-      }
       const data = await API.commondity.get()
       storage.product.commondities = data
       setInitialStorage('product.commondities')
@@ -382,9 +374,6 @@ export const Products: React.FC = () => {
   // order types
   const orderTypesData = useLiveQuery(
     async () => {
-      if (resetRef.current) {
-        return
-      }
       const data = await API.orderTypes.get()
       storage.product.orderTypes = data
       setInitialStorage('product.orderTypes')
@@ -653,7 +642,6 @@ export const Products: React.FC = () => {
             okType: 'danger',
             width: 500,
             onOk: () => {
-              resetRef.current = true
               API.reset()
               // avoid flickering
               setTimeout(() => {
