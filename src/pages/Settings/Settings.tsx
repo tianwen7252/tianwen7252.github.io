@@ -60,16 +60,22 @@ export const Settings: React.FC<{}> = () => {
     console.log('comparison', storage, backup)
     setHasUpdated(JSON.stringify(storage) !== JSON.stringify(backup))
   }, [storage, backup])
+
   const onSave = useCallback(() => {
+    let saved = false
     // TBD
     // products
     const {
       product: { commondityTypes, commondities, orderTypes },
     } = storage
-    commondityTypes.forEach(type => {
-      API.commondityTypes.set(type.id, type)
+    commondityTypes.forEach((type, index) => {
+      const original = backup.product.commondityTypes[index]
+      if (original.label !== type.label) {
+        API.commondityTypes.set(type.id, type)
+        saved = true
+      }
     })
-    setHasUpdated(false)
+    saved && setHasUpdated(false)
   }, [storage, backup, updateStorage, API])
 
   const contextValue = useMemo(() => {

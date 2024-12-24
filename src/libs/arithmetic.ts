@@ -1,11 +1,11 @@
-import { create, evaluateDependencies } from 'mathjs'
+import { create, evaluateDependencies, unaryPlusDependencies } from 'mathjs'
 import { trim } from 'lodash-es'
 
 const OPERATORS = ['+', '*']
 const OPERATORS_STRING = OPERATORS.join('')
 
 // light-weight mathjs
-const { evaluate } = create(evaluateDependencies)
+const { evaluate } = create({ evaluateDependencies, unaryPlusDependencies })
 
 export function calculate(input: string) {
   return evaluate(input)
