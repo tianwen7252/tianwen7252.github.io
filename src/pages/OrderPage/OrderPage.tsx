@@ -11,20 +11,15 @@ import * as styles from './styles'
 export const OrderPage: React.FC = memo(() => {
   const { DATE_FORMAT } = useContext(AppContext)
 
-  const {
-    orderListElement,
-    summaryElement,
-    lastRecordNumber,
-    contentRef,
-    callOrderAPI,
-  } = useOrderList({
-    datetime: 'today',
-    orderPageMode: true,
-    emptyDescription:
-      ORDER_EMPTY_DESCRIPTION[
-        Math.floor(Math.random() * ORDER_EMPTY_DESCRIPTION.length)
-      ],
-  })
+  const { orderListElement, summaryElement, contentRef, callOrderAPI } =
+    useOrderList({
+      datetime: 'today',
+      orderPageMode: true,
+      emptyDescription:
+        ORDER_EMPTY_DESCRIPTION[
+          Math.floor(Math.random() * ORDER_EMPTY_DESCRIPTION.length)
+        ],
+    })
 
   const submitCallback = useCallback(
     (type: Resta.Order.ActionType) => {
@@ -37,11 +32,7 @@ export const OrderPage: React.FC = memo(() => {
 
   return (
     <div css={styles.orderPageCss}>
-      <Keyboard
-        lastRecordNumber={lastRecordNumber}
-        callOrderAPI={callOrderAPI}
-        submitCallback={submitCallback}
-      />
+      <Keyboard callOrderAPI={callOrderAPI} submitCallback={submitCallback} />
       <Drawer
         css={styles.drawerCss}
         title={<span>訂單記錄 - {dayjs.tz().format(DATE_FORMAT)}</span>}

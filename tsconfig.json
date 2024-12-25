@@ -27,9 +27,12 @@
     "baseUrl": ".",
     "rootDirs": ["src"],
     "types": ["vitest/globals", "vite-plugin-svgr/client"],
-    "typeRoots": ["./typings", "./node_modules/@types", "./node_modules"]
+    "typeRoots": ["./typings", "./node_modules/@types", "./node_modules"],
+    "paths": {
+      "src/*": ["src/*"]
+    }
   },
-  "include": ["src", "src/**/*", "typings/*"],
+  "include": ["src", "src/**/*", "typings/*", "src/test/*"],
   "exclude": [
     "build",
     "scripts",

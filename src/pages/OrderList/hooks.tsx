@@ -205,6 +205,18 @@ export function useOrderList({
     }, 500),
     [],
   )
+  const getLastRecordNumber = useCallback(async () => {
+    const today = dayjs.tz()
+    const [todayStartTime, todayEndTime] = [
+      today.startOf('day').valueOf(),
+      today.endOf('day').valueOf(),
+    ]
+    const count = await API.orders.count({
+      startTime: todayStartTime,
+      endTime: todayEndTime,
+    })
+    return count
+  }, [API])
   const contentRef = useRef<HTMLDivElement>()
   // const tabKeyToUpdate = useRef(1)
   // const getAnchorContainer = useCallback(() => {
@@ -263,6 +275,8 @@ export function useOrderList({
         switch (action) {
           case 'add': {
             correctMealsAmount(record)
+            record.number = (await getLastRecordNumber()) + 1
+            // record.number = 110
             const result = await API.orders.add(record)
             openNotification({
               message: '',
@@ -452,7 +466,7 @@ export function useOrderList({
                 createdAt,
               }) => {
                 elementsProps.forEach((props, index) => {
-                  // adjust the number count
+                  // adjust the number count by descending
                   props.number = numberCount - index
                   const elKey = `${createdAt}-${props.number}`
                   elements.push(<Order {...props} key={elKey} />)
@@ -708,22 +722,6 @@ export function useOrderList({
     search,
   ])
 
-  const lastRecordNumber = useLiveQuery(async () => {
-    let count = 0
-    // only OrderPage needs lastRecordNumber
-    if (orderPageMode) {
-      const [todayStartTime, todayEndTime] = [
-        today.startOf('day').valueOf(),
-        today.endOf('day').valueOf(),
-      ]
-      count = await API.orders.count({
-        startTime: todayStartTime,
-        endTime: todayEndTime,
-      })
-    }
-    return count
-  }, [todayDate, orderPageMode])
-
   const {
     records,
     recordLength,
@@ -745,7 +743,6 @@ export function useOrderList({
     totalDays,
     soldItemsCount,
     periodsOrder,
-    lastRecordNumber,
     orderListElement: (
       <>
         {contextHolder}

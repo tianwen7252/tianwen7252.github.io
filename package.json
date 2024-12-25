@@ -1,6 +1,6 @@
 {
   "name": "tianwen7252.github.io",
-  "version": "0.0.14",
+  "version": "0.0.15",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
@@ -16,7 +16,10 @@
     "preview": "vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
     "updateManifest": "tsx src/scripts/manifest.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@ant-design/icons": "^5.3.7",
@@ -51,8 +54,11 @@
   "devDependencies": {
     "@emotion/eslint-plugin": "^11.11.0",
     "@emotion/jest": "^11.11.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.1.0",
+    "@testing-library/user-event": "^14.5.2",
     "@types/jest": "^29.5.12",
-    "@types/node": "^20.12.12",
+    "@types/node": "^20.17.10",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@typescript-eslint/eslint-plugin": "^7.2.0",
@@ -65,7 +71,9 @@
     "eslint-plugin-react": "^7.34.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "happy-dom": "^15.11.7",
     "husky": "^9.1.7",
+    "jsdom": "^25.0.1",
     "react-test-renderer": "^18.3.1",
     "rollup-plugin-visualizer": "^5.12.0",
     "tsx": "^4.15.5",

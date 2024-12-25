@@ -75,6 +75,15 @@ export const Settings: React.FC<{}> = () => {
         saved = true
       }
     })
+    // commondities
+    const backupComm = backup.product.commondities
+    backupComm.forEach((commondity, index) => {
+      const original = backupComm[index]
+      // if (original.label !== commondity.label) {
+      //   API.commondity.set(commondity.id, commondity)
+      //   saved = true
+      // }
+    })
     saved && setHasUpdated(false)
   }, [storage, backup, updateStorage, API])
 
