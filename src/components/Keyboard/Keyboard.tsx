@@ -28,7 +28,6 @@ import {
   DeleteOutlined,
   CloseOutlined,
   CalculatorOutlined,
-  AppstoreAddOutlined,
   AppstoreOutlined,
   EditOutlined,
 } from '@ant-design/icons'
@@ -551,9 +550,8 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             <Segmented
               css={styles.orderPageModeCss}
               options={[
-                { value: 'both', icon: <AppstoreAddOutlined /> },
+                { value: 'both', icon: <CalculatorOutlined /> },
                 { value: 'commondity', icon: <AppstoreOutlined /> },
-                { value: 'calculator', icon: <CalculatorOutlined /> },
               ]}
               onChange={onChangeorderPageMode}
             />
@@ -569,17 +567,15 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
             </Button>
           </Space>
           <Flex css={styles.btnCss} gap="middle">
-            {mode !== 'commondity' && (
+            {mode === 'both' && (
               <div css={styles.numberBtnsCss}>{numberButtons}</div>
             )}
-            {mode !== 'calculator' && (
-              <Tabs
-                css={styles.tabCss}
-                tabPosition={mode === 'commondity' ? 'left' : 'top'}
-                defaultActiveKey={commTypesData?.[0]?.type}
-                items={commondities}
-              />
-            )}
+            <Tabs
+              css={styles.tabCss}
+              tabPosition={mode === 'commondity' ? 'left' : 'top'}
+              defaultActiveKey={commTypesData?.[0]?.type}
+              items={commondities}
+            />
           </Flex>
         </Flex>
         <Divider />
