@@ -104,7 +104,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
   const {
     editMode = false,
     record,
-    lastRecordNumber,
     drawerMode = false,
     callOrderAPI,
     submitCallback,
@@ -217,9 +216,8 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     setIsModalOpen(false)
   }, [selectedOrderTypes])
   const reset = useCallback(() => {
-    handleInput('Escape')
-    setSelectedOrderTypes([])
     onCancelTotal()
+    setSelectedOrderTypes([])
     if (!drawerMode) {
       setSubmitBtnText(CONFIG.KEYBOARD_SUBMIT_BTN_TEXT)
       setEditMode(false)
@@ -227,14 +225,13 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     }
     recordRef.current = null
     clear()
-  }, [drawerMode, appEvent, handleInput, clear, onCancelTotal])
+  }, [drawerMode, appEvent, clear, onCancelTotal])
   const onSubmit = useCallback(async () => {
     const newTotal = hasEditedTotal ? editedTotal : total
     if (newTotal > 0) {
       let type = 'add' as Resta.Order.ActionType
       const newRecord = {
         data,
-        number: lastRecordNumber + 1,
         total: newTotal,
         originalTotal: hasEditedTotal ? total : undefined,
         editedMemo: editedTotalMemo,
@@ -246,7 +243,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
       }
       if (isEditMode) {
         const record = recordRef.current
-        delete newRecord.number
         type = 'edit'
         if (record) {
           callOrderAPI(
@@ -265,7 +261,6 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     }
   }, [
     data,
-    lastRecordNumber,
     total,
     soups,
     isEditMode,

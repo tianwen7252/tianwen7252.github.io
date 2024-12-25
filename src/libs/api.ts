@@ -15,7 +15,7 @@ export const orders = {
     endTime,
     reverse = true,
     index = 'createdAt',
-    sortKey = 'number',
+    sortKey = 'createdAt',
     searchText = null,
     offset = 0,
     limit = 0,
