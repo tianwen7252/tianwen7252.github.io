@@ -81,6 +81,7 @@ export const orderListCss = css`
       }
       > .ant-tabs-nav .ant-tabs-tab {
         padding: 4px 12px;
+        font-size: 1rem;
       }
       .ant-tabs-content > .ant-tabs-tabpane {
         min-height: 300px;
@@ -91,7 +92,7 @@ export const orderListCss = css`
     }
     > .ant-tabs-nav {
       top: 2px;
-      right: -62px;
+      right: -66px;
       position: absolute;
     }
   }
@@ -191,6 +192,10 @@ export const listCss = css`
 export const symmaryCss = css`
   text-align: center;
   label: __orderlist_summary; // @emotion only
+
+  .ant-statistic-title {
+    font-size: 1rem;
+  }
 `
 
 export const horizontalListCss = css`

@@ -4,6 +4,7 @@ import {
   KEYBOARD_TAG_FONT_SIZE,
   KEYBOARD_DATE_FONT_SIZE,
   ORDER_CARD_WIDTH,
+  ORDER_CARD_FONT_SIZE,
   TABLET,
 } from 'src/styles'
 import { COLORS } from 'src/constants/defaults/orderTypes'
@@ -14,7 +15,7 @@ const deleteBgColor = 'linear-gradient(to bottom, #fb578e, #f7bb97)'
 
 export const orderCss = css`
   --resta-order-card-width: ${ORDER_CARD_WIDTH};
-  font-size: 1rem;
+  font-size: ${ORDER_CARD_FONT_SIZE};
   position: relative;
   overflow: hidden;
   border-radius: 8px;

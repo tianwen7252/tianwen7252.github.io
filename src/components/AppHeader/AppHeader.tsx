@@ -3,7 +3,7 @@ import { Menu, Layout, Flex, FloatButton } from 'antd'
 import { useLocation, Link, useNavigate } from 'react-router-dom'
 import {
   FormOutlined,
-  OrderedListOutlined,
+  UnorderedListOutlined,
   BarChartOutlined,
   UserSwitchOutlined,
   SettingOutlined,
@@ -25,7 +25,7 @@ const MENU_ITEMS = [
   {
     key: '/order-list',
     label: <Link to="/order-list">訂單</Link>,
-    icon: <OrderedListOutlined />,
+    icon: <UnorderedListOutlined />,
   },
   { key: '/statistics', label: '統計', icon: <BarChartOutlined /> },
   { key: '/staff', label: '員工', icon: <UserSwitchOutlined /> },
@@ -85,7 +85,7 @@ export const AppHeader: React.FC<{}> = memo(() => {
         />
         <FloatButton
           data-url="/order-list"
-          icon={<OrderedListOutlined />}
+          icon={<UnorderedListOutlined />}
           onClick={onClickMenu}
         />
         <FloatButton
