@@ -566,7 +566,11 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
               清除
             </Button>
           </Space>
-          <Flex css={styles.btnCss} gap="middle">
+          <Flex
+            css={styles.btnCss}
+            gap="middle"
+            className="resta-keyboard-btn-area"
+          >
             {mode === 'both' && (
               <div css={styles.numberBtnsCss}>{numberButtons}</div>
             )}

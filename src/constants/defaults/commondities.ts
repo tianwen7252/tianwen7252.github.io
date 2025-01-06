@@ -123,7 +123,7 @@ export const COMMODITIES = [
       { name: '原萃綠茶', price: 25, priority: 8 },
       { name: '樂天優格', price: 25, priority: 9 },
       { name: '蜂蜜牛奶', price: 23, priority: 10 },
-      { name: '可口可樂Zero', price: 25, priority: 11 },
+      { name: '可樂Zero', price: 25, priority: 11 },
       { name: '維大力', price: 25, priority: 12 },
       { name: '樹頂蘋果汁', price: 40, priority: 13 },
       { name: '瓶裝水', price: 10, priority: 14 },

@@ -14,6 +14,8 @@ import {
   // KEYBOARD_DRAWER_TEXT_MIN_HEIGHT,
   getTransition,
   getCalcHeight,
+  KEYBOARD_MODE_COMM_TAB_FONT_SIZE,
+  KEYBOARD_MODE_COMM_BTN_FONT_SIZE,
 } from 'src/styles/variables'
 import { COLORS } from 'src/constants/defaults/orderTypes'
 
@@ -45,6 +47,20 @@ export const keyboardLeftCss = css`
 export const modeCommondityCss = css`
   .ant-tabs {
     margin-top: 0;
+
+    .ant-tabs-tab-btn {
+      font-size: ${KEYBOARD_MODE_COMM_TAB_FONT_SIZE};
+    }
+  }
+  .resta-keyboard-btn-area {
+    .ant-btn {
+      width: 5rem;
+    }
+
+    .ant-btn,
+    .anticon {
+      font-size: ${KEYBOARD_MODE_COMM_BTN_FONT_SIZE};
+    }
   }
 `
 

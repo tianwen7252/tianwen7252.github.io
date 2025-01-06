@@ -77,12 +77,40 @@ export const Settings: React.FC<{}> = () => {
     })
     // commondities
     const backupComm = backup.product.commondities
+    const result =
+      commondities.length >= backupComm.length
+        ? 'new'
+        : commondities.length < backupComm.length
+          ? 'deleted'
+          : 'same'
+    const newList = []
+    const deletedList = []
+    const [source, target] =
+      result === 'new' ? [commondities, backupComm] : [backupComm, commondities]
+    const iDMap = new Set<string>(
+      backupComm.map(commondity => commondity.id.toString()),
+    )
     backupComm.forEach((commondity, index) => {
-      const original = backupComm[index]
+      const targetComm = target[index]
+      const id = targetComm.id.toString()
+      if (id.includes('new-')) {
+        newList.push(commondity)
+      } else if (iDMap.has(id)) {
+        iDMap.delete(id)
+        const { name, price, priority } = targetComm
+        if (name !== commondity.name) {
+          // TBD
+        }
+      }
+
       // if (original.label !== commondity.label) {
       //   API.commondity.set(commondity.id, commondity)
       //   saved = true
       // }
+
+      if (!targetComm) {
+        deletedList.push(commondity)
+      }
     })
     saved && setHasUpdated(false)
   }, [storage, backup, updateStorage, API])
