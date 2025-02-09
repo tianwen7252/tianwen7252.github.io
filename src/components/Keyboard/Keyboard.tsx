@@ -448,6 +448,11 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
     [data, priceMap, onChangeType],
   )
 
+  useEffect(() => {
+    const mealsArea = document.getElementById('resta-keyboard-meals')
+    mealsArea.scrollTop = mealsArea.scrollHeight
+  }, [meals])
+
   const [mealTypeEls, orderTypeEls] = useMemo(() => {
     const meals: JSX.Element[] = []
     const orders: JSX.Element[] = []
@@ -520,7 +525,9 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
           className="resta-keyboard-textArea"
           vertical
         >
-          <div css={styles.mealsCss}>{meals}</div>
+          <div id="resta-keyboard-meals" css={styles.mealsCss}>
+            {meals}
+          </div>
           <div css={styles.totalCss}>
             <Space size="large">
               <span css={hasEditedTotal && styles.originalTotalCss}>
