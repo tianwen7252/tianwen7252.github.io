@@ -85,12 +85,14 @@ export const Settings: React.FC<{}> = () => {
           : 'same'
     const newList = []
     const deletedList = []
+    const updatedList = []
     const [source, target] =
       result === 'new' ? [commondities, backupComm] : [backupComm, commondities]
     const iDMap = new Set<string>(
       backupComm.map(commondity => commondity.id.toString()),
     )
-    backupComm.forEach((commondity, index) => {
+    console.log('source & iDMap', source, Array.from(iDMap))
+    source.forEach((commondity, index) => {
       const targetComm = target[index]
       const id = targetComm.id.toString()
       if (id.includes('new-')) {
@@ -98,8 +100,12 @@ export const Settings: React.FC<{}> = () => {
       } else if (iDMap.has(id)) {
         iDMap.delete(id)
         const { name, price, priority } = targetComm
-        if (name !== commondity.name) {
+        if (name !== commondity.name || price !== commondity.price) {
           // TBD
+          newList.push(commondity)
+          deletedList.push(commondity)
+        } else if (priority !== commondity.priority) {
+          updatedList.push(commondity)
         }
       }
 
@@ -112,6 +118,11 @@ export const Settings: React.FC<{}> = () => {
         deletedList.push(commondity)
       }
     })
+    // console.log('result', {
+    //   newList,
+    //   deletedList,
+    //   updatedList,
+    // })
     saved && setHasUpdated(false)
   }, [storage, backup, updateStorage, API])
 

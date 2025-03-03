@@ -190,24 +190,26 @@ export function useNumberInput(commData?: Resta.Products.commonditiesMap) {
         }
       }
       // guess the data res
-      if (!lastData?.operator && lastData?.value) {
-        const reference = priceMap[lastData.value]?.[0]?.name
-        const [currentResPrice] = commodityMap?.[lastData.res] ?? []
-        if (+lastData.value !== currentResPrice) {
-          const newRes = reference ?? ''
-          if (lastData.res !== newRes) {
-            updateRes(lastData, newRes)
-            newData = [...data]
-          }
-        }
-      }
+      // boss said it’s hard for them to guess the price of the meal after entering the order, so rule this out
+      // if (!lastData?.operator && lastData?.value) {
+      //   const reference = priceMap[lastData.value]?.[0]?.name
+      //   const [currentResPrice] = commodityMap?.[lastData.res] ?? []
+      //   if (+lastData.value !== currentResPrice) {
+      //     const newRes = reference ?? ''
+      //     if (lastData.res !== newRes) {
+      //       updateRes(lastData, newRes)
+      //       newData = [...data]
+      //     }
+      //   }
+      // }
       if (newData) {
         dataRef.current = data = newData
         setData(newData)
       }
       return { data }
     },
-    [handleOperator, updateRes, priceMap, commodityMap],
+    // [handleOperator, updateRes, priceMap, commodityMap],
+    [handleOperator, updateRes],
   )
   const onKeyUp = useCallback(
     (event: KeyboardEvent) => {

@@ -105,7 +105,7 @@ export const COMMODITIES = [
       { name: '無骨雞排', price: 55, priority: 11 },
       { name: '蔬菜', price: 30, priority: 12 },
       { name: '加蛋', price: 15, priority: 13 },
-      { name: '加菜', price: 15, priority: 14 },
+      { name: '加菜(大)', price: 30, priority: 14 },
       { name: '白飯', price: 10, priority: 15 },
       { name: '白飯(小)', price: 5, priority: 16 },
     ],
