@@ -13,7 +13,7 @@
     "start": "vite",
     "build": "tsc && npm run updateManifest && vite build && rm -rf docs && mv dist docs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
+    "preview": "mv docs dist && vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
     "updateManifest": "tsx src/scripts/manifest.ts",
     "prepare": "husky",
