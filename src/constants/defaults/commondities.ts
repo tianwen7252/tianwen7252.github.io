@@ -119,6 +119,7 @@ export const COMMODITIES = [
       { name: '招牌水餃', price: 220, priority: 2 },
       { name: '韭菜水餃', price: 220, priority: 3 },
       { name: '養生水餃', price: 250, priority: 4 },
+      { name: '玉米水餃', price: 220, priority: 4 },
       { name: '4包水餃', price: 900, priority: 5 },
       { name: '果醋飲', price: 20, priority: 6 },
       { name: '果醋飲x3', price: 50, priority: 7 },
