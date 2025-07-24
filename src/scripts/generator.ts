@@ -114,7 +114,8 @@ async function genOrders(range = '1Q', clear = false) {
     await db.orders.clear()
     await db.dailyData.clear()
   }
-  const { priceMapGroup } = getCommoditiesInfo(undefined, false, true)
+  const data = await API.commondity.getMapData()
+  const { priceMapGroup } = getCommoditiesInfo(data, false, true)
   const dateMap = {} as Resta.IObject
   for (const index of betweenDays) {
     const day = today.add(-index - 1, 'd')

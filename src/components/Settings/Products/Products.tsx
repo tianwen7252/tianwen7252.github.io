@@ -341,7 +341,7 @@ export const Products: React.FC = () => {
     const typeID = typeIDRef.current
     const { commondities } = storage.product
     const dataSource = commondities
-      .filter(comm => comm.typeID === typeID)
+      .filter(comm => comm.typeID === typeID && comm.onMarket !== '0')
       .sort((prev, next) => {
         return prev.priority - next.priority
       })
