@@ -13,6 +13,7 @@ import { cloneDeep, get, set } from 'lodash-es'
 import StickyHeader from 'src/components/StickyHeader'
 import Products from 'src/components/Settings/Products'
 import Info from 'src/components/Settings/Info'
+import Backup from 'src/components/Settings/Backup'
 import { StorageContext, DefaultData } from './context'
 import { AppContext } from '../App/context'
 
@@ -31,20 +32,21 @@ const menuItems = [
     label: '商品設定',
     children: <Products />,
   },
-  {
-    key: 'stuff',
-    icon: <UserOutlined />,
-    label: '員工設定',
-  },
+  // {
+  //   key: 'stuff',
+  //   icon: <UserOutlined />,
+  //   label: '員工設定',
+  // },
   {
     key: 'cost',
     icon: <DollarOutlined />,
     label: '每月成本',
   },
   {
-    key: 'cloud',
+    key: 'backup',
     icon: <CloudSyncOutlined />,
-    label: '雲端同步',
+    label: '雲端備份',
+    children: <Backup />,
   },
 ]
 
@@ -77,51 +79,44 @@ export const Settings: React.FC<{}> = () => {
     })
     // commondities
     const backupComm = backup.product.commondities
-    const result =
-      commondities.length >= backupComm.length
-        ? 'new'
-        : commondities.length < backupComm.length
-          ? 'deleted'
-          : 'same'
     const newList = []
     const deletedList = []
     const updatedList = []
-    const [source, target] =
-      result === 'new' ? [commondities, backupComm] : [backupComm, commondities]
-    const iDMap = new Set<string>(
-      backupComm.map(commondity => commondity.id.toString()),
+    const iDMap = new Map(
+      backupComm.map(backup => [backup.id.toString(), backup]),
     )
-    console.log('source & iDMap', source, Array.from(iDMap))
-    source.forEach((commondity, index) => {
-      const targetComm = target[index]
-      const id = targetComm.id.toString()
+    console.log('source & iDMap', commondities, Array.from(iDMap))
+    commondities.forEach(commondity => {
+      const id = commondity.id.toString()
+      const target = iDMap.get(id)
       if (id.includes('new-')) {
         newList.push(commondity)
-      } else if (iDMap.has(id)) {
         iDMap.delete(id)
-        const { name, price, priority } = targetComm
-        if (name !== commondity.name || price !== commondity.price) {
+      } else if (iDMap.has(id)) {
+        const { name, price, priority, onMarket } = commondity
+        if (name !== target.name || price !== target.price) {
           // TBD
           newList.push(commondity)
           deletedList.push(commondity)
-        } else if (priority !== commondity.priority) {
+        } else if (onMarket === '0') {
+          deletedList.push(commondity)
+        } else if (priority !== target.priority) {
           updatedList.push(commondity)
         }
-      }
-
-      // if (original.label !== commondity.label) {
-      //   API.commondity.set(commondity.id, commondity)
-      //   saved = true
-      // }
-
-      if (!targetComm) {
-        deletedList.push(commondity)
+        iDMap.delete(id)
       }
     })
-    // console.log('result', {
-    //   newList,
-    //   deletedList,
-    //   updatedList,
+    for (const [, commondity] of iDMap) {
+      deletedList.push(commondity)
+    }
+    console.log('result', {
+      newList,
+      deletedList,
+      updatedList,
+    })
+    // newList.forEach(record => {
+    //   delete record.id
+    //   API.commondity.add(record)
     // })
     saved && setHasUpdated(false)
   }, [storage, backup, updateStorage, API])
@@ -161,7 +156,7 @@ export const Settings: React.FC<{}> = () => {
               type="primary"
               onClick={onSave}
             >
-              存檔設定 (未完成)
+              存檔設定 (測式中-未完成)
             </Button>
           )}
         </StickyHeader>

@@ -13,7 +13,7 @@ import {
 } from 'src/libs/common'
 
 let cacheCommoditiesInfo: ReturnType<typeof getCommoditiesInfo>
-export const DefaultContextData = {
+const baseContextData = {
   db,
   API,
   appEvent,
@@ -31,4 +31,17 @@ export const DefaultContextData = {
   },
 }
 
-export const AppContext = createContext(DefaultContextData)
+type BaseContextType = typeof baseContextData
+
+export interface AppContextValue extends BaseContextType {
+  gAPIToken: string | null
+  setGAPIToken: (token: string | null) => void
+}
+
+export const DefaultContextData: AppContextValue = {
+  ...baseContextData,
+  gAPIToken: null,
+  setGAPIToken: () => {},
+}
+
+export const AppContext = createContext<AppContextValue>(DefaultContextData)
