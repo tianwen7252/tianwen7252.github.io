@@ -5,6 +5,10 @@ const GDRIVE_UPLOAD_URL =
   'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable'
 const GDRIVE_API_URL = 'https://www.googleapis.com/drive/v3/files'
 
+export function generateDefaultBackupName() {
+  return `backup-${dayjs.tz().format('YYYY-MM-DD_HH-mm-ss')}.json`
+}
+
 /**
  * Export all IndexedDB object stores into a JSON blob.
  */
@@ -43,8 +47,8 @@ async function exportIndexedDB(): Promise<Blob> {
 async function initResumableUpload(
   token: string,
   fileSize: number,
+  fileName: string,
 ): Promise<string> {
-  const fileName = `backup-${dayjs.tz().format('YYYY-MM-DD_HH:mm:ss')}.json`
   const res = await fetch(GDRIVE_UPLOAD_URL, {
     method: 'POST',
     headers: {
@@ -68,9 +72,10 @@ async function initResumableUpload(
 async function uploadFileResumable(
   token: string,
   blob: Blob,
+  fileName: string,
   onProgress?: (percent: number) => void,
 ) {
-  const uploadUrl = await initResumableUpload(token, blob.size)
+  const uploadUrl = await initResumableUpload(token, blob.size, fileName)
   const chunkSize = 262144 // 256 KB
   let offset = 0
 
@@ -112,10 +117,9 @@ export async function listDriveFiles(
       headers: { Authorization: `Bearer ${token}` },
     },
   )
-  if (!res.ok) throw new Error('Failed to list files')
   const data = await res.json()
+  if (!res.ok) throw data
   const files = data?.files ?? []
-  console.log('files', files)
   files.forEach(file => {
     file.size = formatFileSize(file.size)
   })
@@ -146,9 +150,14 @@ export async function deleteFiles(token: string, fileIds: string[]) {
 export async function backupAndUpload(
   token: string,
   onProgress?: (percent: number) => void,
+  fileName?: string,
 ) {
   const blob = await exportIndexedDB()
-  return await uploadFileResumable(token, blob, onProgress)
+  const resolvedName =
+    fileName && fileName.trim().length > 0
+      ? fileName.trim()
+      : generateDefaultBackupName()
+  return await uploadFileResumable(token, blob, resolvedName, onProgress)
 }
 
 async function downloadBackup(token: string, fileId: string) {

@@ -45,7 +45,7 @@ const menuItems = [
   {
     key: 'backup',
     icon: <CloudSyncOutlined />,
-    label: '雲端同步',
+    label: '雲端備份',
     children: <Backup />,
   },
 ]
