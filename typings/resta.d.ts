@@ -181,6 +181,24 @@ declare namespace Resta {
     }
   }
 
+  namespace Backup {
+    interface Props {
+      // token: string // Google OAuth token
+    }
+
+    interface BackupFile {
+      id: string
+      name: string
+      size: number
+      createdTime: string
+    }
+
+    interface UploadProgress {
+      fileId: string
+      progress: number // 0~100
+    }
+  }
+
   type OrderRecord = RestaDB.OrderRecord
   type OrderList = RestaDB.Table.Order[]
   type OrderRecords = OrderList
@@ -196,6 +214,11 @@ declare namespace Resta {
 }
 
 declare global {
+  type google = any
+  interface Window {
+    google: any
+  }
+
   type IObject = Resta.JsonObject
   type JsonObject = IObject
 

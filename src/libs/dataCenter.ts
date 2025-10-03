@@ -7,7 +7,7 @@ import * as SYNC from 'src/constants/sync'
 import { COMMODITIES } from 'src/constants/defaults/commondities'
 import { getDeviceStorageInfo } from './common'
 
-const DB_NAME = 'TianwenDB'
+export const DB_NAME = 'TianwenDB'
 
 const DB_VERSION = 7
 export const db = new Dexie(DB_NAME) as Dexie & {
