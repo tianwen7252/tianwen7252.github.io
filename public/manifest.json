@@ -13,7 +13,7 @@
       "sizes": "512x512"
     }
   ],
-  "start_url": ".?v=0.0.23",
+  "start_url": ".?v=0.0.24",
   "orientation": "landscape",
   "background_color": "#fff",
   "display": "fullscreen"
