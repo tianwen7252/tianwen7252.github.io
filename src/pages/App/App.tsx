@@ -21,7 +21,7 @@ const router = createBrowserRouter([
   },
 ])
 
-export const App: React.FC<{}> = () => {
+export const App: React.FC = () => {
   const [gAPIToken, setGAPITokenState] = useState<string | null>(() => {
     try {
       return localStorage.getItem(GAPI_TOKEN_STORAGE_KEY)

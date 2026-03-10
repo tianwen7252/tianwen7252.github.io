@@ -311,6 +311,21 @@ declare global {
         updatedAt: number
         active: '0' | '1'
       }
+      interface Employee {
+        id?: ID
+        name: string
+        avatar?: string
+        status?: string
+        createdAt?: number
+        updatedAt?: number
+      }
+      interface Attendance {
+        id?: ID
+        employeeId: ID | string
+        date: string
+        clockIn?: number
+        clockOut?: number
+      }
     }
 
     interface OrderRecord extends Table.Order {
