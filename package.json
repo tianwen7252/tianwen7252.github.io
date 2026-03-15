@@ -12,7 +12,7 @@
   "scripts": {
     "start": "vite",
     "build": "tsc && npm run updateManifest && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings -1",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 9999",
     "preview": "vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
     "updateManifest": "tsx src/scripts/manifest.ts",
