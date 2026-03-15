@@ -61,6 +61,7 @@ export const rootCss = css`
   .ant-btn {
     &.ant-btn-primary {
       text-shadow: 0 0 5px #beb7b7;
+      box-shadow: 0 0 10px #ccc;
     }
 
     &.ant-btn-default {

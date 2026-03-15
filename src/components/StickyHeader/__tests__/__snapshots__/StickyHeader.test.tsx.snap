@@ -1,0 +1,12 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`StickyHeader tests > snapshot 1`] = `
+[
+  <div
+    id="resta-header-observer"
+  />,
+  <header
+    className="css-wn5var-StickyHeader"
+  />,
+]
+`;

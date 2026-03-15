@@ -15,6 +15,7 @@ import Products from 'src/components/Settings/Products'
 import Info from 'src/components/Settings/Info'
 import Backup from 'src/components/Settings/Backup'
 import Staff from 'src/components/Settings/Staff'
+import { StaffAdmin } from 'src/components/Settings/StaffAdmin'
 import { StorageContext, DefaultData } from './context'
 import { AppContext } from '../App/context'
 
@@ -34,16 +35,17 @@ const menuItems = [
     children: <Staff />,
   },
   {
+    key: 'staff-admin',
+    icon: <UserOutlined />,
+    label: '員工管理',
+    children: <StaffAdmin />,
+  },
+  {
     key: 'product',
     icon: <ShoppingOutlined />,
     label: '商品設定',
     children: <Products />,
   },
-  // {
-  //   key: 'cost',
-  //   icon: <DollarOutlined />,
-  //   label: '每月成本',
-  // },
   {
     key: 'backup',
     icon: <CloudSyncOutlined />,

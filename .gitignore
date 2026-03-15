@@ -53,3 +53,6 @@ electron/out
 
 # Visualizer
 stats.html
+
+# Claude
+.claude/worktrees/

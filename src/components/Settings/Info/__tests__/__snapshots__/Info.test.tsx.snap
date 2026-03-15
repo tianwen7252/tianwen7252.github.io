@@ -1,0 +1,408 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Info tests > snapshot 1`] = `
+<div
+  className="css-1kuanmy"
+>
+  <div
+    className="ant-row css-dev-only-do-not-override-mncuj7"
+    style={
+      {
+        "marginLeft": "-6px",
+        "marginRight": "-6px",
+        "rowGap": undefined,
+      }
+    }
+  >
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機App版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-prefix"
+              >
+                v
+              </span>
+              <span
+                className="ant-statistic-content-value"
+              >
+                0.0.25
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              程式資料庫同步版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                <span
+                  className="ant-statistic-content-value-int"
+                >
+                  8
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機資料庫同步版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                null
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="ant-row css-dev-only-do-not-override-mncuj7"
+    style={
+      {
+        "marginLeft": "-6px",
+        "marginRight": "-6px",
+        "marginTop": 12,
+        "rowGap": undefined,
+      }
+    }
+  >
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              最新App版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-prefix"
+              >
+                v
+              </span>
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              雲端資料同步版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機雲端資料同步版本
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    className="ant-row css-dev-only-do-not-override-mncuj7"
+    style={
+      {
+        "marginLeft": "-6px",
+        "marginRight": "-6px",
+        "marginTop": 12,
+        "rowGap": undefined,
+      }
+    }
+  >
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機資料庫使用量
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機資料庫剩餘量
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      className="ant-col ant-col-8 css-dev-only-do-not-override-mncuj7"
+      style={
+        {
+          "paddingLeft": "6px",
+          "paddingRight": "6px",
+        }
+      }
+    >
+      <div
+        className="ant-card ant-card-bordered css-dev-only-do-not-override-mncuj7"
+        style={{}}
+      >
+        <div
+          className="ant-card-body"
+          style={{}}
+        >
+          <div
+            className="ant-statistic css-dev-only-do-not-override-mncuj7"
+            style={{}}
+          >
+            <div
+              className="ant-statistic-title"
+            >
+              本機資料庫使用率
+            </div>
+            <div
+              className="ant-statistic-content"
+            >
+              <span
+                className="ant-statistic-content-value"
+              >
+                ---
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

@@ -9,6 +9,7 @@ import React, {
 import { Table, Button, Progress, notification, Modal, Input } from 'antd'
 
 import { AppContext } from 'src/pages/App/context'
+import { AuthGuard } from 'src/components/AuthGuard'
 import {
   backupAndUpload,
   listDriveFiles,
@@ -17,8 +18,6 @@ import {
   generateDefaultBackupName,
 } from './fileService'
 import * as styles from './styles'
-
-const gAPIID = '799987452297-qetqo8blfushga2h064of13epeqtgh4a'
 
 /**
  * React component for managing IndexedDB backups on Google Drive.
@@ -49,10 +48,10 @@ export const Backup: React.FC<Resta.Backup.Props> = () => {
       try {
         const res = await listDriveFiles(token)
         setFiles(res)
-      } catch (err) {
+      } catch (err: any) {
         const errorType = err?.error?.errors?.[0]?.message
         if (errorType === 'Invalid Credentials') {
-          requestToken(true)
+            setGAPIToken(null)
         } else {
           noti.error({
             message: '無法載入備份資料',
@@ -61,51 +60,21 @@ export const Backup: React.FC<Resta.Backup.Props> = () => {
         }
       }
     },
-    [gAPIToken, noti],
+    [gAPIToken, setGAPIToken, noti],
   )
 
-  const requestToken = useCallback(
-    (force = false) => {
-      if (!force && gAPIToken) return
-
-      const oauth = window.google?.accounts?.oauth2
-      if (!oauth) {
-        noti.error({ message: 'Google OAuth 尚未載入，請稍後再試' })
-        return
-      }
-
-      const client = oauth.initTokenClient({
-        client_id: `${gAPIID}.apps.googleusercontent.com`,
-        scope: 'https://www.googleapis.com/auth/drive.file',
-        callback: tokenResponse => {
-          const token = tokenResponse?.access_token
-          if (!token) {
-            noti.error({ message: '未取得授權 Token，請重試' })
-            return
-          }
-          setGAPIToken(token)
-          loadFiles(token)
-        },
-      })
-      client.requestAccessToken()
-    },
-    [gAPIToken, loadFiles, noti, setGAPIToken],
-  )
 
   useEffect(() => {
     if (gAPIToken) {
       loadFiles(gAPIToken)
-    } else {
-      requestToken()
     }
-  }, [gAPIToken, loadFiles, requestToken])
+  }, [gAPIToken, loadFiles])
 
   const getAuthorizedToken = useCallback(() => {
     if (gAPIToken) return gAPIToken
-    noti.info({ message: '請先授權 Google Drive 帳戶' })
-    requestToken()
+    noti.info({ message: '請先登入 Google 帳號' })
     return null
-  }, [gAPIToken, noti, requestToken])
+  }, [gAPIToken, noti])
 
   const openBackupModal = useCallback(() => {
     const token = getAuthorizedToken()
@@ -215,7 +184,7 @@ export const Backup: React.FC<Resta.Backup.Props> = () => {
   }, [])
 
   return (
-    <>
+    <AuthGuard>
       {contextHolder}
       <Modal
         title="設定備份檔名"
@@ -263,7 +232,7 @@ export const Backup: React.FC<Resta.Backup.Props> = () => {
           刪除
         </Button>
       )}
-    </>
+    </AuthGuard>
   )
 }
 

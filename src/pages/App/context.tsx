@@ -33,15 +33,25 @@ const baseContextData = {
 
 type BaseContextType = typeof baseContextData
 
+export interface AdminInfo {
+  sub: string
+  name: string
+  email: string
+}
+
 export interface AppContextValue extends BaseContextType {
   gAPIToken: string | null
   setGAPIToken: (token: string | null) => void
+  adminInfo: AdminInfo | null
+  setAdminInfo: (info: AdminInfo | null) => void
 }
 
 export const DefaultContextData: AppContextValue = {
   ...baseContextData,
   gAPIToken: null,
   setGAPIToken: () => {},
+  adminInfo: null,
+  setAdminInfo: () => {},
 }
 
 export const AppContext = createContext<AppContextValue>(DefaultContextData)
