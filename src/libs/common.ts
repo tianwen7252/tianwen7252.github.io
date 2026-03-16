@@ -130,16 +130,20 @@ export function getCommoditiesInfo(
         })
       })
       // fix $15 to à-la-carte type temporarily
-      priceMapGroup['à-la-carte']['15'] = [
-        ...(priceMapGroup['à-la-carte']['15'] ?? []),
-        ...priceMapGroup['main-dish']['15'],
-      ] as Resta.Commodity.RelevancyList
-      delete priceMapGroup['main-dish']['15']
-      resMapGroup['à-la-carte'].push('加蛋')
-      resMapGroup['à-la-carte'].push('加菜')
-      resMapGroup['main-dish'] = resMapGroup['main-dish'].filter(
-        name => name !== '加蛋' && name !== '加菜',
-      )
+      if (priceMapGroup['main-dish']?.['15'] && priceMapGroup['à-la-carte']) {
+        priceMapGroup['à-la-carte']['15'] = [
+          ...(priceMapGroup['à-la-carte']['15'] ?? []),
+          ...priceMapGroup['main-dish']['15'],
+        ] as Resta.Commodity.RelevancyList
+        delete priceMapGroup['main-dish']['15']
+      }
+      if (resMapGroup['à-la-carte'] && resMapGroup['main-dish']) {
+        resMapGroup['à-la-carte'].push('加蛋')
+        resMapGroup['à-la-carte'].push('加菜')
+        resMapGroup['main-dish'] = resMapGroup['main-dish'].filter(
+          name => name !== '加蛋' && name !== '加菜',
+        )
+      }
       // temporarily
       priceMapGroupCache = priceMapGroup
       resMapGroupCache = resMapGroup
