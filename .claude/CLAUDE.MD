@@ -183,16 +183,36 @@ Epic (plan title)
   └── Task: [Security] finding  [security:critical]  ← security-reviewer 建立
 ```
 
+### Jira Status 流程
+
+```
+To Do → In Progress → Done (git push)
+              │
+              └──→ Verified (E2E 通過)
+Done/Verified → REOPENED (CRITICAL bug)
+```
+
+| Status      | 類別    | 說明                           |
+| ----------- | ------- | ------------------------------ |
+| To Do       | new     | 建立時預設                     |
+| In Progress | active  | 開始工作時                     |
+| Done        | done    | git push 時自動轉換            |
+| Verified    | done    | E2E 測試全部通過時             |
+| REOPENED    | new     | code-reviewer 發現 CRITICAL 時 |
+| DELETE      | —       | 僅手動使用                     |
+
 ### 自動化流程
 
 | 事件                   | Jira 動作                                                                       |
 | ---------------------- | ------------------------------------------------------------------------------- |
-| planner 完成           | 建立 **Epic** + N 個 **Stories**（依 Phase 分 scope），寫 `.jira-session.json`  |
+| planner 完成           | 建立 **Epic** + N 個 **Stories**，Epic/首個 Story → In Progress                 |
+| `[STORY: DEV-X]` marker | 該 Story → In Progress                                                        |
 | tdd-guide 完成         | 在 active Story 下建 **Subtask** `[TDD] ...` → Done                             |
-| code-reviewer 完成     | CRITICAL → **Bug**；HIGH → **Subtask**；MEDIUM/LOW → Comment                    |
+| code-reviewer 完成     | CRITICAL → **Bug** + Story → REOPENED；HIGH → **Subtask**；MEDIUM/LOW → Comment |
 | security-reviewer 完成 | 在 Epic 下建獨立 **Task** `[Security] ...`，加 `security:critical/medium` label |
 | `git commit`           | 在 active Story 加 commit SHA comment                                           |
 | `git push`             | active Story → Done；若所有子票完成 → Epic → Done                               |
+| E2E 全部通過           | active Story → Verified；若所有子票完成 → Epic → Verified                       |
 
 ### Session 狀態（`.jira-session.json`）
 

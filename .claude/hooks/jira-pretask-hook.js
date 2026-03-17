@@ -50,10 +50,10 @@ async function main() {
   if (storyMatch) {
     const storyKey = storyMatch[1].trim()
     jira('session-set-active', storyKey)
-    // Transition Story to In Progress when work begins
-    jira('transition', storyKey, 'In Progress')
+    // Transition Story to In Progress when work begins (safe: skip if already In Progress)
+    const result = jira('transition', storyKey, 'In Progress')
     console.error(
-      `[jira-pretask-hook] Active story set to ${storyKey} → In Progress`,
+      `[jira-pretask-hook] Active story set to ${storyKey}${result ? ' → In Progress' : ''}`,
     )
   }
 

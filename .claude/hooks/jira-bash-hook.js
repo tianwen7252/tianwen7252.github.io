@@ -32,6 +32,15 @@ function jira(...args) {
   }
 }
 
+// Try transition, silently skip if not available from current status
+function safeTransition(key, status) {
+  const result = jira('transition', key, status)
+  if (result) {
+    console.error(`[jira-bash-hook] ${key} → ${status}`)
+  }
+  return result
+}
+
 function readSession() {
   try {
     return fs.existsSync(SESSION_FILE)
@@ -110,20 +119,18 @@ async function main() {
   // git push → transition Story to Done, then check if Epic can close
   if (isPush) {
     if (storyKey) {
-      jira('transition', storyKey, 'Done')
-      console.error(`[jira-bash-hook] Story ${storyKey} → Done`)
+      safeTransition(storyKey, 'Done')
     }
 
     if (epicKey) {
       const allDone = jira('check-epic-done', epicKey)
       if (allDone === 'true') {
-        jira('transition', epicKey, 'Done')
+        safeTransition(epicKey, 'Done')
         jira(
           'comment',
           epicKey,
           '🎉 所有 Stories 與 Tasks 均已完成，Epic 關閉。',
         )
-        console.error(`[jira-bash-hook] Epic ${epicKey} → Done`)
       } else {
         const session2 = readSession()
         const openStories = ((session2 && session2.stories) || [])
@@ -141,21 +148,18 @@ async function main() {
     }
   }
 
-  // E2E tests all passed → transition active Story to Verified
+  // E2E tests all passed → transition Story to Verified (only from In Progress)
   if (isE2ePass) {
     if (storyKey) {
-      jira('transition', storyKey, 'Verified')
+      safeTransition(storyKey, 'Verified')
       jira('comment', storyKey, '✅ E2E 測試全部通過，Story 已驗證。')
-      console.error(`[jira-bash-hook] Story ${storyKey} → Verified`)
     }
 
-    // Check if all Epic children are Done/Verified
     if (epicKey) {
       const allDone = jira('check-epic-done', epicKey)
       if (allDone === 'true') {
-        jira('transition', epicKey, 'Verified')
+        safeTransition(epicKey, 'Verified')
         jira('comment', epicKey, '🎉 所有 Stories 均已驗證，Epic 驗證完成。')
-        console.error(`[jira-bash-hook] Epic ${epicKey} → Verified`)
       }
     }
   }
