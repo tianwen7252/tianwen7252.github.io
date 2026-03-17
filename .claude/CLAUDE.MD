@@ -2,7 +2,7 @@
 
 ## 專案概述
 
-**Tianwen App** 是一個餐廳 POS（銷售點）管理系統，以 PWA（漸進式網頁應用程式）形式運作，部署於 GitHub Pages。介面語言為繁體中文。
+**天文 (Tianwen) App** 是一個餐廳 POS（銷售點）管理系統，以 PWA（漸進式網頁應用程式）形式運作，部署於 GitHub Pages。介面語言為繁體中文。
 
 ---
 
@@ -22,7 +22,7 @@
 | 測試       | Vitest + @testing-library/react + happy-dom |
 | Linting    | ESLint + Prettier                           |
 | Git Hooks  | Husky（pre-commit）                         |
-| NodeJS     | v24                                         |
+| NodeJS     | v24 (nvm use v24)                           |
 
 ---
 
@@ -161,3 +161,88 @@ src/
 - **裝置支援**：App 支援 iPad 10（2022）及 iPad 11（2025）以後的版本，CSS 與互動設計需確保在這些裝置上正常運作
 - **程式碼注解**：所有程式碼注解（inline comment、JSDoc）一律使用**英文**撰寫
 - **專案管理**: 在這個project所建立的專案計畫都要複製專案內容到./claude/plans裡。
+
+---
+
+## Jira 整合
+
+**Jira Project:** [DEV](https://tianwen7252.atlassian.net/jira/software/projects/DEV/boards)
+
+Priority, type, 標籤類的保持英文，其餘生成的內容都是繁體中文(台灣地區)
+
+### 票據階層
+
+```
+Epic (plan title)
+  ├── Story: Scope A  [component:auth]        ← planner 建立
+  │     ├── Subtask: [TDD] Story A            ← tdd-guide 建立
+  │     ├── Bug: [Critical] issue             ← code-reviewer CRITICAL
+  │     └── Subtask: [High] issue             ← code-reviewer HIGH
+  ├── Story: Scope B  [component:order]
+  │     └── Subtask: [TDD] Story B
+  └── Task: [Security] finding  [security:critical]  ← security-reviewer 建立
+```
+
+### 自動化流程
+
+| 事件                   | Jira 動作                                                                       |
+| ---------------------- | ------------------------------------------------------------------------------- |
+| planner 完成           | 建立 **Epic** + N 個 **Stories**（依 Phase 分 scope），寫 `.jira-session.json`  |
+| tdd-guide 完成         | 在 active Story 下建 **Subtask** `[TDD] ...` → Done                             |
+| code-reviewer 完成     | CRITICAL → **Bug**；HIGH → **Subtask**；MEDIUM/LOW → Comment                    |
+| security-reviewer 完成 | 在 Epic 下建獨立 **Task** `[Security] ...`，加 `security:critical/medium` label |
+| `git commit`           | 在 active Story 加 commit SHA comment                                           |
+| `git push`             | active Story → Done；若所有子票完成 → Epic → Done                               |
+
+### Session 狀態（`.jira-session.json`）
+
+```json
+{
+  "epicKey": "DEV-10",
+  "epicSummary": "Plan title",
+  "planFile": ".claude/plans/2026-03-16-feature.md",
+  "stories": [
+    { "key": "DEV-11", "summary": "Auth scope", "scope": "component:auth" }
+  ],
+  "activeStoryKey": "DEV-11"
+}
+```
+
+手動切換 active story：`node ~/.claude/scripts/jira-utils.js session-set-active DEV-12`
+
+或在 agent prompt 中加 `[STORY: DEV-12]` marker。
+
+### 相關檔案
+
+| 檔案                                 | 用途                                                           |
+| ------------------------------------ | -------------------------------------------------------------- |
+| `~/.claude/scripts/jira-utils.js`    | Jira REST API helper（所有操作的入口）                         |
+| `.claude/hooks/jira-pretask-hook.js` | **PreToolUse** hook：偵測 `[STORY:]` marker，更新 session      |
+| `.claude/hooks/jira-task-hook.js`    | **PostToolUse** hook：agent 完成後建立/更新 Jira 票據          |
+| `.claude/hooks/jira-bash-hook.js`    | **PostToolUse** hook：git commit/push 觸發 Story/Epic 狀態更新 |
+| `~/.claude/agents/jira-sync.md`      | 手動同步 agent                                                 |
+
+### 手動操作
+
+```bash
+# 建立 Epic
+node ~/.claude/scripts/jira-utils.js create-epic "Plan Title" "Description"
+
+# 建立 Story（掛在 Epic 下）
+node ~/.claude/scripts/jira-utils.js create-story "Story title" "AC..." DEV-10 "component:auth"
+
+# 建立 Subtask（掛在 Story 下）
+node ~/.claude/scripts/jira-utils.js create-subtask "[TDD] title" "spec..." DEV-11
+
+# 建立安全 Task（掛在 Epic 下）
+node ~/.claude/scripts/jira-utils.js create-security-task "[Security] XSS" "desc" DEV-10 "security:critical"
+
+# 轉換狀態
+node ~/.claude/scripts/jira-utils.js transition DEV-11 "Done"
+
+# 確認 Epic 所有子票完成
+node ~/.claude/scripts/jira-utils.js check-epic-done DEV-10
+
+# 查看目前 session
+node ~/.claude/scripts/jira-utils.js session-read
+```
