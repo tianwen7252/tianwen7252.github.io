@@ -185,6 +185,8 @@ test.describe('Order Flow — E2E Tests', () => {
     const activePanel = seededPage.locator(
       '.resta-keyboard-btn-area .ant-tabs-tabpane-active .ant-btn',
     )
-    await expect(activePanel.filter({ hasText: '油淋雞腿' })).toBeVisible()
+    await expect(
+      activePanel.filter({ hasText: '油淋雞腿' }).first(),
+    ).toBeVisible()
   })
 })

@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test'
+import { defineConfig } from '@playwright/test'
 
 // Detect CI environment
 const isCI = !!process.env.CI
@@ -17,7 +17,10 @@ export default defineConfig({
 
   // Reporter configuration
   reporter: isCI
-    ? 'github'
+    ? [
+        ['github'],
+        ['html', { outputFolder: './playwright-report', open: 'never' }],
+      ]
     : [['html', { outputFolder: './playwright-report', open: 'never' }]],
 
   // Output directory for test artifacts

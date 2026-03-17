@@ -136,6 +136,7 @@ export class KeyboardComponent {
     const tag = this.page
       .locator('.ant-tag-checkable')
       .filter({ hasText: name })
+      .first()
     await tag.click()
   }
 
