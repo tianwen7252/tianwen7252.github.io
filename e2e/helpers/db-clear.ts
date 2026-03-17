@@ -31,7 +31,7 @@ export async function clearDatabase(page: Page): Promise<void> {
         }
 
         // Only clear tables that exist in the current DB
-        const tablesToClear = TABLE_NAMES.filter((name) =>
+        const tablesToClear = TABLE_NAMES.filter(name =>
           storeNames.includes(name),
         )
 
@@ -42,7 +42,7 @@ export async function clearDatabase(page: Page): Promise<void> {
         }
 
         const tx = db.transaction(tablesToClear, 'readwrite')
-        tablesToClear.forEach((name) => {
+        tablesToClear.forEach(name => {
           tx.objectStore(name).clear()
         })
 

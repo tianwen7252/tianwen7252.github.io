@@ -72,7 +72,7 @@ export class SettingsPage extends BasePage {
    */
   async getStorageInfoCards(): Promise<Locator[]> {
     const titles = ['本機資料庫使用量', '本機資料庫剩餘量', '本機資料庫使用率']
-    return titles.map((title) =>
+    return titles.map(title =>
       this.page.locator('.ant-statistic', {
         has: this.page.locator('.ant-statistic-title', { hasText: title }),
       }),

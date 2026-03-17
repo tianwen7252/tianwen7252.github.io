@@ -75,37 +75,37 @@ export async function seedDatabase(page: Page): Promise<void> {
           'orders',
           'dailyData',
           'attendances',
-        ].filter((name) => storeNames.includes(name))
+        ].filter(name => storeNames.includes(name))
 
         const tx = db.transaction(targetStores, 'readwrite')
 
         // Seed commondityType
         const typeStore = tx.objectStore('commondityType')
-        data.commondityTypes.forEach((ct) => typeStore.add(ct))
+        data.commondityTypes.forEach(ct => typeStore.add(ct))
 
         // Seed commondity
         const comStore = tx.objectStore('commondity')
-        data.commondities.forEach((c) => comStore.add(c))
+        data.commondities.forEach(c => comStore.add(c))
 
         // Seed orderTypes
         const otStore = tx.objectStore('orderTypes')
-        data.orderTypes.forEach((ot) => otStore.add(ot))
+        data.orderTypes.forEach(ot => otStore.add(ot))
 
         // Seed employees
         const empStore = tx.objectStore('employees')
-        data.employees.forEach((e) => empStore.add(e))
+        data.employees.forEach(e => empStore.add(e))
 
         // Seed orders
         const orderStore = tx.objectStore('orders')
-        data.orders.forEach((o) => orderStore.add(o))
+        data.orders.forEach(o => orderStore.add(o))
 
         // Seed dailyData
         const ddStore = tx.objectStore('dailyData')
-        data.dailyData.forEach((d) => ddStore.add(d))
+        data.dailyData.forEach(d => ddStore.add(d))
 
         // Seed attendances
         const attStore = tx.objectStore('attendances')
-        data.attendances.forEach((a) => attStore.add(a))
+        data.attendances.forEach(a => attStore.add(a))
 
         tx.oncomplete = () => {
           db.close()
