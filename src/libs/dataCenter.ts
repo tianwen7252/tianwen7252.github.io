@@ -9,7 +9,7 @@ import { getDeviceStorageInfo } from './common'
 
 export const DB_NAME = 'TianwenDB'
 
-const DB_VERSION = 7
+const DB_VERSION = 8
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -19,6 +19,8 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   commondityType: EntityTable<RestaDB.Table.CommondityType, 'id'>
   commondity: EntityTable<RestaDB.Table.Commondity, 'id'>
   orderTypes: EntityTable<RestaDB.Table.OrderType, 'id'>
+  employees: EntityTable<RestaDB.Table.Employee, 'id'>
+  attendances: EntityTable<RestaDB.Table.Attendance, 'id'>
 }
 
 // Schema declaration:
@@ -29,6 +31,8 @@ dbSchema.stores({
   commondityType: '++id, type',
   commondity: '++id, name, typeID, onMarket',
   orderTypes: '++id, name',
+  employees: '++id, name, avatar, status',
+  attendances: '++id, employeeId, date, clockIn, clockOut'
 })
 // .upgrade(trans => {
 //   return trans

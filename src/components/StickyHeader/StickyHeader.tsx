@@ -1,7 +1,6 @@
 import React, { useRef, useEffect } from 'react'
 
-import type { Interpolation } from '@emotion/serialize'
-import type { Theme } from '@emotion/react'
+import type { Interpolation, Theme } from '@emotion/react'
 import * as styles from './styles'
 
 export const StickyHeader: React.FC<{

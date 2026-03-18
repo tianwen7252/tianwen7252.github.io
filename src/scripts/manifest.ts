@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import fs from 'node:fs'
 import * as prettier from 'prettier'
 

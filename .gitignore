@@ -9,6 +9,9 @@ node_modules
 /coverage
 /e2e-report
 /unit-test-report
+e2e/test-results/
+e2e/playwright-report/
+e2e/blob-report/
 
 # production
 /build
@@ -53,3 +56,16 @@ electron/out
 
 # Visualizer
 stats.html
+
+# Claude
+.claude/worktrees/*
+.claude/settings.local.json
+.claude/plans/*
+
+# MCP servers (contains tokens)
+.mcp.json
+
+# Jira session state
+.jira-session.json
+
+/mockups

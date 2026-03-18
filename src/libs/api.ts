@@ -356,3 +356,42 @@ export function resetOrderType(clear = true) {
     orderTypes.add(type)
   })
 }
+
+export const employees = {
+  async get() {
+    return db.employees.toArray()
+  },
+  async add(record: Omit<RestaDB.Table.Employee, 'id' | 'createdAt' | 'updatedAt'>) {
+    return db.employees.add({
+      ...record,
+      createdAt: dayjs().utc().valueOf(),
+      updatedAt: dayjs().utc().valueOf(),
+    } as RestaDB.Table.Employee)
+  },
+  async set(id: number, record: Partial<Omit<RestaDB.Table.Employee, 'id'>>) {
+    return db.employees.update(id, {
+      ...record,
+      updatedAt: dayjs().utc().valueOf(),
+    })
+  },
+  async delete(id: number) {
+    return db.employees.delete(id)
+  }
+}
+
+export const attendances = {
+  async getByDate(date: string) {
+    return db.attendances.where('date').equals(date).toArray()
+  },
+  async getByMonth(yearMonth: string) {
+    const list = await db.attendances.toArray()
+    return list.filter(record => record.date.startsWith(yearMonth))
+  },
+  async add(record: Omit<RestaDB.Table.Attendance, 'id'>) {
+    return db.attendances.add(record as RestaDB.Table.Attendance)
+  },
+  async set(id: number, record: Partial<Omit<RestaDB.Table.Attendance, 'id'>>) {
+    return db.attendances.update(id, record)
+  }
+}
+

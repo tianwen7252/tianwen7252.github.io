@@ -15,7 +15,13 @@ export default defineConfig({
   ],
   test: {
     include: ['**/*.test.tsx'],
-    exclude: [...configDefaults.exclude, '**/node_modules/**', 'packages/*'],
+    exclude: [
+      ...configDefaults.exclude,
+      '**/node_modules/**',
+      'packages/*',
+      '.fttemplates/*',
+      '.claude/*',
+    ],
     globals: true,
     css: true,
     setupFiles: ['./src/test/setup.ts'],

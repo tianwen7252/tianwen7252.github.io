@@ -12,7 +12,6 @@ import {
 } from '@ant-design/icons'
 
 import { useObserverDom } from 'src/hooks'
-import viteLogo from '/vite.svg'
 import { headerCss, menuCss, logoCss } from './styles'
 
 const { Header } = Layout

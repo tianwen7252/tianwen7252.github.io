@@ -7,9 +7,10 @@ import 'src/libs/dayjs'
 import { rootCss, antStyles } from 'src/styles/global'
 import Root from '../Root'
 
-import { AppContext, DefaultContextData } from './context'
+import { AppContext, DefaultContextData, AdminInfo } from './context'
 
 const GAPI_TOKEN_STORAGE_KEY = 'gapi-token'
+const ADMIN_INFO_STORAGE_KEY = 'admin-info'
 
 // import { main } from 'src/scripts/generator'
 // main('show-orders')
@@ -21,7 +22,7 @@ const router = createBrowserRouter([
   },
 ])
 
-export const App: React.FC<{}> = () => {
+export const App: React.FC = () => {
   const [gAPIToken, setGAPITokenState] = useState<string | null>(() => {
     try {
       return localStorage.getItem(GAPI_TOKEN_STORAGE_KEY)
@@ -43,13 +44,37 @@ export const App: React.FC<{}> = () => {
     }
   }, [])
 
+  const [adminInfo, setAdminInfoState] = useState<AdminInfo | null>(() => {
+    try {
+      const stored = localStorage.getItem(ADMIN_INFO_STORAGE_KEY)
+      return stored ? JSON.parse(stored) : null
+    } catch {
+      return null
+    }
+  })
+
+  const setAdminInfo = useCallback((info: AdminInfo | null) => {
+    setAdminInfoState(info)
+    try {
+      if (info) {
+        localStorage.setItem(ADMIN_INFO_STORAGE_KEY, JSON.stringify(info))
+      } else {
+        localStorage.removeItem(ADMIN_INFO_STORAGE_KEY)
+      }
+    } catch {
+      // ignore persistence errors (e.g., storage disabled)
+    }
+  }, [])
+
   const contextValue = useMemo(
     () => ({
       ...DefaultContextData,
       gAPIToken,
       setGAPIToken,
+      adminInfo,
+      setAdminInfo,
     }),
-    [gAPIToken, setGAPIToken],
+    [gAPIToken, setGAPIToken, adminInfo, setAdminInfo],
   )
 
   // todo QuotaExceededError with react-error-boundary

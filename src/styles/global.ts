@@ -61,6 +61,7 @@ export const rootCss = css`
   .ant-btn {
     &.ant-btn-primary {
       text-shadow: 0 0 5px #beb7b7;
+      box-shadow: 0 0 10px #ccc;
     }
 
     &.ant-btn-default {
@@ -303,22 +304,13 @@ export const rootCss = css`
   }
 `
 
-export const primaryBtnBg = `linear-gradient(to right, #2bc0e4 0%, #eaecc6 51%, #2bc0e4 100%);
-    background-size: 200% auto;
-    border-radius: 10px;
-  `
+export const primaryBtnBg = '#AFBEA5'
 
 export const btnStyles = {
   primaryColor: '#fff',
   colorPrimary: primaryBtnBg,
-  colorPrimaryHover: `'?';
-    background-position: center;
-    box-shadow: 0 0 20px #eee;
-  `,
-  colorPrimaryActive: `'?';
-    background-position: center;
-    box-shadow: 0 0 20px #eee;
-  `,
+  colorPrimaryHover: '#7F956A',
+  colorPrimaryActive: '#7F956A',
   // defaultBg: '#23272f0d',
   // defaultColor: '#404756',
   // defaultActiveColor: '#087ea4',

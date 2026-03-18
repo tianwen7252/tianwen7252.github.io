@@ -450,7 +450,7 @@ export const Keyboard: React.FC<Resta.Keyboard.Props> = memo(props => {
 
   useEffect(() => {
     const mealsArea = document.getElementById('resta-keyboard-meals')
-    mealsArea.scrollTop = mealsArea.scrollHeight
+    if (mealsArea) mealsArea.scrollTop = mealsArea.scrollHeight
   }, [meals])
 
   const [mealTypeEls, orderTypeEls] = useMemo(() => {

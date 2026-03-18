@@ -196,8 +196,8 @@ export const Statistics: React.FC<{}> = memo(() => {
       incomeAMTotal = 0,
       incomePMTotal = 0,
       resCount = 0,
-      mainDishCount = 0,
-      profits = 0,
+      mainDishCount = 0
+    const profits = 0,
       cost = 0
 
     dailyDataInfo.forEach(each => {
