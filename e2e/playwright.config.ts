@@ -56,7 +56,7 @@ export default defineConfig({
 
   // Dev server configuration
   webServer: {
-    command: 'npm run start',
+    command: 'pnpm run start',
     port: 4150,
     reuseExistingServer: true,
     timeout: 60_000,
