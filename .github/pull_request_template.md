@@ -12,9 +12,9 @@
 
 ## 測試方式
 
-- [ ] `npm run test -- --run` 通過
-- [ ] `npm run lint` 無警告
-- [ ] `npm run build` 成功
+- [ ] `pnpm run test -- --run` 通過
+- [ ] `pnpm run lint` 無警告
+- [ ] `pnpm run build` 成功
 - [ ] 本機瀏覽器手動測試
 
 ## 截圖（如有 UI 變更）

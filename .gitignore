@@ -62,5 +62,10 @@ stats.html
 .claude/settings.local.json
 .claude/plans/*
 
+# MCP servers (contains tokens)
+.mcp.json
+
 # Jira session state
 .jira-session.json
+
+/mockups

@@ -20,6 +20,7 @@
 | 日期處理   | dayjs                                       |
 | 工具函式庫 | lodash-es、mathjs                           |
 | 測試       | Vitest + @testing-library/react + happy-dom |
+| 套件管理   | pnpm 10                                     |
 | Linting    | ESLint + Prettier                           |
 | Git Hooks  | Husky（pre-commit）                         |
 | NodeJS     | v24 (nvm use v24)                           |
@@ -29,14 +30,14 @@
 ## 常用指令
 
 ```bash
-npm run start        # 開發伺服器（port 4150）
-npm run build        # TypeScript 型別檢查 → 更新 manifest → Vite 打包
-npm run test         # 執行 Vitest 測試
-npm run test:ui      # Vitest UI 介面
-npm run coverage     # 產生測試覆蓋率報告
-npm run lint         # ESLint 檢查（max-warnings 0）
-npm run tidyCommondities  # 整理商品資料腳本
-npm run updateManifest    # 更新 public/manifest.json
+pnpm run start        # 開發伺服器（port 4150）
+pnpm run build        # TypeScript 型別檢查 → 更新 manifest → Vite 打包
+pnpm run test         # 執行 Vitest 測試
+pnpm run test:ui      # Vitest UI 介面
+pnpm run coverage     # 產生測試覆蓋率報告
+pnpm run lint         # ESLint 檢查（max-warnings 0）
+pnpm run tidyCommondities  # 整理商品資料腳本
+pnpm run updateManifest    # 更新 public/manifest.json
 ```
 
 ---
@@ -144,7 +145,7 @@ src/
 
 `pre-commit` 會自動執行：
 
-1. `npm run updateManifest` — 更新 manifest 版本
+1. `pnpm run updateManifest` — 更新 manifest 版本
 2. `git add public/manifest.json` — 將更新後的 manifest 加入暫存
 
 ---
@@ -158,6 +159,7 @@ src/
 - 統計圖表資料來自 `orders` + `dailyData` 雙表，透過 `src/pages/Statistics/charts/` 各模組處理
 - Vite build 使用手動 chunk 分割：`react`、`lodash`、`antd`、`chartjs`、`mathjs`
 - 使用nvm use v24當準備進行執行nodejs
+- 套件管理器使用 **pnpm**，所有安裝與執行指令請使用 `pnpm` 而非 `npm`
 - **裝置支援**：App 支援 iPad 10（2022）及 iPad 11（2025）以後的版本，CSS 與互動設計需確保在這些裝置上正常運作
 - **程式碼注解**：所有程式碼注解（inline comment、JSDoc）一律使用**英文**撰寫
 - **專案管理**: 在這個project所建立的專案計畫都要複製專案內容到./claude/plans裡。

@@ -9,9 +9,10 @@
   },
   "author": "Tianwen",
   "type": "module",
+  "packageManager": "pnpm@10.31.0",
   "scripts": {
     "start": "vite",
-    "build": "tsc && npm run updateManifest && vite build",
+    "build": "tsc && pnpm run updateManifest && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 9999",
     "preview": "vite preview",
     "tidyCommondities": "tsx src/scripts/tidy.ts",
@@ -88,5 +89,8 @@
     "tsx": "^4.15.5",
     "vite-plugin-compression": "^0.5.1",
     "vitest": "^4.0.18"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["@swc/core", "esbuild", "unrs-resolver"]
   }
 }
