@@ -1,6 +1,6 @@
 {
   "name": "tianwen7252.github.io",
-  "version": "0.0.25",
+  "version": "0.0.26",
   "description": "Tianwen App",
   "main": "src/index.tsx",
   "repository": {
@@ -91,6 +91,10 @@
     "vitest": "^4.0.18"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@swc/core", "esbuild", "unrs-resolver"]
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "esbuild",
+      "unrs-resolver"
+    ]
   }
 }
