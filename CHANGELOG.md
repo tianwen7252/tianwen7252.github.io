@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.28](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.27...v0.0.28) (2026-03-18)
+
+
+### Bug Fixes
+
+* move deploy job into release-please workflow ([b330051](https://github.com/tianwen7252/tianwen7252.github.io/commit/b3300515e7b0e92cd4540122bd4b48e3037682c7))
+
 ## [0.0.27](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.26...v0.0.27) (2026-03-18)
 
 
