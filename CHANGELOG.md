@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.27](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.26...v0.0.27) (2026-03-18)
+
+
+### Bug Fixes
+
+* sync manifest.json with Release Please version bump ([5798c18](https://github.com/tianwen7252/tianwen7252.github.io/commit/5798c18c71c0fef24d644701542af4bcbd534725))
+
+
+### Refactoring
+
+* remove prettier from manifest.ts and move to devDependencies ([84e2fc0](https://github.com/tianwen7252/tianwen7252.github.io/commit/84e2fc0c30225a490a75baa25eaee5db3709e444))
+
 ## [0.0.26](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.25...v0.0.26) (2026-03-18)
 
 
