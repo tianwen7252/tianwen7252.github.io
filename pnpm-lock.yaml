@@ -53,9 +53,6 @@ importers:
       mathjs:
         specifier: ^12.4.2
         version: 12.4.3
-      prettier:
-        specifier: ^3.3.1
-        version: 3.8.1
       react:
         specifier: ^18.3.1
         version: 18.3.1
@@ -174,6 +171,9 @@ importers:
       jsdom:
         specifier: ^25.0.1
         version: 25.0.1
+      prettier:
+        specifier: ^3.3.1
+        version: 3.8.1
       react-test-renderer:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
