@@ -166,9 +166,11 @@ src/
 
 ---
 
-## Jira 整合
+## Jira 整合（MCP）
 
 **Jira Project:** [DEV](https://tianwen7252.atlassian.net/jira/software/projects/DEV/boards)
+
+所有 Jira 操作透過 **Atlassian MCP server**（`mcp-atlassian`）執行
 
 Priority, type, 標籤類的保持英文，其餘生成的內容都是繁體中文(台灣地區)
 
@@ -194,29 +196,33 @@ To Do → In Progress → Done (git push)
 Done/Verified → REOPENED (CRITICAL bug)
 ```
 
-| Status      | 類別    | 說明                           |
-| ----------- | ------- | ------------------------------ |
-| To Do       | new     | 建立時預設                     |
-| In Progress | active  | 開始工作時                     |
-| Done        | done    | git push 時自動轉換            |
-| Verified    | done    | E2E 測試全部通過時             |
-| REOPENED    | new     | code-reviewer 發現 CRITICAL 時 |
-| DELETE      | —       | 僅手動使用                     |
+| Status      | 類別   | 說明                           |
+| ----------- | ------ | ------------------------------ |
+| To Do       | new    | 建立時預設                     |
+| In Progress | active | 開始工作時                     |
+| Done        | done   | git push 時轉換                |
+| Verified    | done   | E2E 測試全部通過時             |
+| REOPENED    | new    | code-reviewer 發現 CRITICAL 時 |
+| DELETE      | —      | 僅手動使用                     |
 
-### 自動化流程
+### Claude 主動操作流程
 
-| 事件                   | Jira 動作                                                                       |
-| ---------------------- | ------------------------------------------------------------------------------- |
-| planner 完成           | 建立 **Epic** + N 個 **Stories**，Epic/首個 Story → In Progress                 |
-| `[STORY: DEV-X]` marker | 該 Story → In Progress                                                        |
-| tdd-guide 完成         | 在 active Story 下建 **Subtask** `[TDD] ...` → Done                             |
-| code-reviewer 完成     | CRITICAL → **Bug** + Story → REOPENED；HIGH → **Subtask**；MEDIUM/LOW → Comment |
-| security-reviewer 完成 | 在 Epic 下建獨立 **Task** `[Security] ...`，加 `security:critical/medium` label |
-| `git commit`           | 在 active Story 加 commit SHA comment                                           |
-| `git push`             | active Story → Done；若所有子票完成 → Epic → Done                               |
-| E2E 全部通過           | active Story → Verified；若所有子票完成 → Epic → Verified                       |
+由於不再使用 hooks 自動化，Claude **必須在以下時機主動呼叫 MCP tools**：
+
+| 時機                   | MCP 操作                                                                                                 |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| planner 完成           | `jira_create_issue`（Epic）+ N 個 Stories，`jira_transition_issue` → In Progress                         |
+| 開始處理某個 Story     | `jira_transition_issue` → In Progress，更新 `.jira-session.json`                                         |
+| tdd-guide 完成         | `jira_create_issue`（Subtask）掛在 active Story 下，`jira_transition_issue` → Done                       |
+| code-reviewer 完成     | CRITICAL → `jira_create_issue`（Bug）+ Story → REOPENED；HIGH → Subtask；MEDIUM/LOW → `jira_add_comment` |
+| security-reviewer 完成 | `jira_create_issue`（Task）掛在 Epic 下，加 `security:critical/medium` label                             |
+| `git commit`           | `jira_add_comment` 在 active Story 加 commit SHA                                                         |
+| `git push`             | `jira_transition_issue` active Story → Done；檢查 Epic 子票是否全部完成                                  |
+| E2E 全部通過           | `jira_transition_issue` active Story → Verified                                                          |
 
 ### Session 狀態（`.jira-session.json`）
+
+Session 檔案用於追蹤目前工作中的 Epic 和 Story，由 Claude 直接讀寫管理。
 
 ```json
 {
@@ -230,41 +236,22 @@ Done/Verified → REOPENED (CRITICAL bug)
 }
 ```
 
-手動切換 active story：`node ~/.claude/scripts/jira-utils.js session-set-active DEV-12`
+### MCP Tools 對應表
 
-或在 agent prompt 中加 `[STORY: DEV-12]` marker。
+| 操作       | MCP Tool                                   |
+| ---------- | ------------------------------------------ |
+| 建立 Issue | `mcp__atlassian__jira_create_issue`        |
+| 批量建立   | `mcp__atlassian__jira_batch_create_issues` |
+| 查詢 Issue | `mcp__atlassian__jira_get_issue`           |
+| JQL 搜尋   | `mcp__atlassian__jira_search`              |
+| 狀態轉換   | `mcp__atlassian__jira_transition_issue`    |
+| 加留言     | `mcp__atlassian__jira_add_comment`         |
+| 更新 Issue | `mcp__atlassian__jira_update_issue`        |
 
 ### 相關檔案
 
-| 檔案                                 | 用途                                                           |
-| ------------------------------------ | -------------------------------------------------------------- |
-| `~/.claude/scripts/jira-utils.js`    | Jira REST API helper（所有操作的入口）                         |
-| `.claude/hooks/jira-pretask-hook.js` | **PreToolUse** hook：偵測 `[STORY:]` marker，更新 session      |
-| `.claude/hooks/jira-task-hook.js`    | **PostToolUse** hook：agent 完成後建立/更新 Jira 票據          |
-| `.claude/hooks/jira-bash-hook.js`    | **PostToolUse** hook：git commit/push 觸發 Story/Epic 狀態更新 |
-| `~/.claude/agents/jira-sync.md`      | 手動同步 agent                                                 |
-
-### 手動操作
-
-```bash
-# 建立 Epic
-node ~/.claude/scripts/jira-utils.js create-epic "Plan Title" "Description"
-
-# 建立 Story（掛在 Epic 下）
-node ~/.claude/scripts/jira-utils.js create-story "Story title" "AC..." DEV-10 "component:auth"
-
-# 建立 Subtask（掛在 Story 下）
-node ~/.claude/scripts/jira-utils.js create-subtask "[TDD] title" "spec..." DEV-11
-
-# 建立安全 Task（掛在 Epic 下）
-node ~/.claude/scripts/jira-utils.js create-security-task "[Security] XSS" "desc" DEV-10 "security:critical"
-
-# 轉換狀態
-node ~/.claude/scripts/jira-utils.js transition DEV-11 "Done"
-
-# 確認 Epic 所有子票完成
-node ~/.claude/scripts/jira-utils.js check-epic-done DEV-10
-
-# 查看目前 session
-node ~/.claude/scripts/jira-utils.js session-read
-```
+| 檔案                            | 用途                                       |
+| ------------------------------- | ------------------------------------------ |
+| `.mcp.json`                     | Atlassian MCP server 設定（含 Jira token） |
+| `.jira-session.json`            | 目前工作中的 Epic/Story session 狀態       |
+| `~/.claude/agents/jira-sync.md` | 手動同步 agent                             |
