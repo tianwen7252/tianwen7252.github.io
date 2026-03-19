@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { Badge, Button, message } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
@@ -77,8 +77,18 @@ function deriveAvatarBorderCss(
 export const ClockIn: React.FC = () => {
   const employees = useLiveQuery(() => API.employees.get()) || []
 
-  // Recompute on every render — cheap, avoids stale date after midnight on POS iPad
-  const today = dayjs().format('YYYY-MM-DD')
+  // Auto-update date at midnight for POS iPad left running overnight
+  const [today, setToday] = useState(() => dayjs().format('YYYY-MM-DD'))
+  useEffect(() => {
+    const msUntilMidnight =
+      dayjs().endOf('day').valueOf() - dayjs().valueOf() + 1000
+    const timer = setTimeout(
+      () => setToday(dayjs().format('YYYY-MM-DD')),
+      msUntilMidnight,
+    )
+    return () => clearTimeout(timer)
+  }, [today])
+
   const todayAttendances = useLiveQuery(
     () => API.attendances.getByDate(today),
     [today],
@@ -216,7 +226,13 @@ export const ClockIn: React.FC = () => {
               key={employee.id}
               className={styles.cardCss}
               data-testid="employee-card"
+              role="button"
+              tabIndex={0}
+              aria-label={`${employee.name} 打卡 — ${badgeText}`}
               onClick={() => handleCardClick(employee, record)}
+              onKeyDown={e =>
+                e.key === 'Enter' && handleCardClick(employee, record)
+              }
             >
               {/* Avatar with colored border */}
               <div className={styles.avatarWrapCss}>
@@ -253,7 +269,6 @@ export const ClockIn: React.FC = () => {
                 <div className={styles.vacationBtnCss}>
                   <Button
                     danger
-                    size="small"
                     onClick={e => handleVacationClick(e, employee)}
                   >
                     休假

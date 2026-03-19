@@ -41,7 +41,7 @@ export const styles = {
 
   gridCss: css`
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 16px;
   `,
 
@@ -57,7 +57,8 @@ export const styles = {
       transform 0.15s ease,
       box-shadow 0.15s ease;
 
-    &:hover {
+    &:hover,
+    &:active {
       transform: translateY(-2px);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
     }
