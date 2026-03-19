@@ -328,6 +328,7 @@ declare global {
         date: string
         clockIn?: number
         clockOut?: number
+        type?: import('src/constants/defaults/attendanceTypes').AttendanceType
       }
     }
 

@@ -12,8 +12,17 @@ import {
 import { LeftOutlined, RightOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
 import * as API from 'src/libs/api'
 import EditRecordModal from './EditRecordModal'
+
+/** Check whether an attendance record is a vacation type */
+const isVacation = (record: RestaDB.Table.Attendance): boolean =>
+  record.type === ATTENDANCE_TYPES.VACATION
+
+/** Display label for the attendance type column */
+const getTypeLabel = (record: RestaDB.Table.Attendance): string =>
+  isVacation(record) ? '休假' : '一般'
 
 export const Records: React.FC = () => {
   const [currentMonth, setCurrentMonth] = useState<Dayjs>(dayjs())
@@ -56,12 +65,24 @@ export const Records: React.FC = () => {
       >
         {dayRecords.map(item => {
           const empName = employeesMap[item.employeeId] || 'Unknown'
+          const vacation = isVacation(item)
           const inTime = item.clockIn
             ? dayjs(item.clockIn).format('HH:mm')
             : '??'
-          const outTime = item.clockOut
-            ? dayjs(item.clockOut).format('HH:mm')
-            : '??'
+          const outTime = vacation
+            ? '\u2014'
+            : item.clockOut
+              ? dayjs(item.clockOut).format('HH:mm')
+              : '??'
+          // Vacation records use 'error' (red) badge; regular use success/processing
+          const badgeStatus = vacation
+            ? 'error'
+            : item.clockOut
+              ? 'success'
+              : 'processing'
+          const badgeText = vacation
+            ? `${empName} 休假`
+            : `${empName} ${inTime} - ${outTime}`
           return (
             <li
               key={item.id}
@@ -74,10 +95,7 @@ export const Records: React.FC = () => {
               }}
               onClick={() => setSelectedRecord(item)}
             >
-              <Badge
-                status={item.clockOut ? 'success' : 'processing'}
-                text={`${empName} ${inTime} - ${outTime}`}
-              />
+              <Badge status={badgeStatus} text={badgeText} />
             </li>
           )
         })}
@@ -94,6 +112,11 @@ export const Records: React.FC = () => {
         employeesMap[record.employeeId] || 'Unknown',
     },
     {
+      title: '類型',
+      key: 'type',
+      render: (_: any, record: RestaDB.Table.Attendance) => getTypeLabel(record),
+    },
+    {
       title: '上班時間',
       key: 'clockIn',
       render: (_: any, record: RestaDB.Table.Attendance) =>
@@ -103,7 +126,11 @@ export const Records: React.FC = () => {
       title: '下班時間',
       key: 'clockOut',
       render: (_: any, record: RestaDB.Table.Attendance) =>
-        record.clockOut ? dayjs(record.clockOut).format('HH:mm:ss') : '--',
+        isVacation(record)
+          ? '\u2014'
+          : record.clockOut
+            ? dayjs(record.clockOut).format('HH:mm:ss')
+            : '--',
     },
     {
       title: '操作',

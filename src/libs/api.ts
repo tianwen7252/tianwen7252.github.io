@@ -392,14 +392,18 @@ export const attendances = {
     return db.attendances.where('date').equals(date).toArray()
   },
   async getByMonth(yearMonth: string) {
-    const list = await db.attendances.toArray()
-    return list.filter(record => record.date.startsWith(yearMonth))
+    // Use indexed date field with startsWith for efficient prefix query
+    return db.attendances.where('date').startsWith(yearMonth).toArray()
   },
   async add(record: Omit<RestaDB.Table.Attendance, 'id'>) {
-    return db.attendances.add(record as RestaDB.Table.Attendance)
+    // Spread to avoid mutating the caller's input object (Dexie adds id in-place)
+    return db.attendances.add({ ...record } as RestaDB.Table.Attendance)
   },
   async set(id: number, record: Partial<Omit<RestaDB.Table.Attendance, 'id'>>) {
     return db.attendances.update(id, record)
-  }
+  },
+  async delete(id: number) {
+    return db.attendances.delete(id)
+  },
 }
 
