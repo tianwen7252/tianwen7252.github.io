@@ -1,8 +1,17 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { Table, Button, Modal, Form, Input, Tag, Popconfirm, Radio, message } from 'antd'
+import React, { useEffect, useState } from 'react'
+import {
+  Table,
+  Button,
+  Modal,
+  Form,
+  Input,
+  Tag,
+  Popconfirm,
+  Radio,
+  message,
+} from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
-import dayjs from 'dayjs'
 import { AuthGuard } from 'src/components/AuthGuard'
 import { AvatarImage } from 'src/components/AvatarImage'
 import * as API from 'src/libs/api'
@@ -39,20 +48,9 @@ interface EmployeeFormValues {
 export const StaffAdmin: React.FC = () => {
   const employees = useLiveQuery(() => API.employees.get()) || []
 
-  // Compute on every render — cheap and avoids stale date after midnight on POS iPad
-  const today = dayjs().format('YYYY-MM-DD')
-  const todayAttendances = useLiveQuery(() => API.attendances.getByDate(today), [today])
-  const attendanceMap = useMemo(
-    () =>
-      (todayAttendances ?? []).reduce(
-        (map, r) => ({ ...map, [r.employeeId as number]: r }),
-        {} as Record<number, RestaDB.Table.Attendance>,
-      ),
-    [todayAttendances],
-  )
-
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [editingEmployee, setEditingEmployee] = useState<RestaDB.Table.Employee | null>(null)
+  const [editingEmployee, setEditingEmployee] =
+    useState<RestaDB.Table.Employee | null>(null)
   const [form] = Form.useForm<EmployeeFormValues>()
   const avatarValue = Form.useWatch('avatar', form)
 
@@ -133,7 +131,7 @@ export const StaffAdmin: React.FC = () => {
       key: 'employee',
       render: (_: any, employee: RestaDB.Table.Employee) => (
         <div className={styles.employeeInfoCss}>
-          <AvatarImage avatar={employee.avatar} size={36} />
+          <AvatarImage avatar={employee.avatar} size={54} />
           <span>{employee.name}</span>
         </div>
       ),
@@ -149,33 +147,17 @@ export const StaffAdmin: React.FC = () => {
       },
     },
     {
-      title: '今日狀態',
-      key: 'status',
-      render: (_: any, employee: RestaDB.Table.Employee) => {
-        const record = attendanceMap[employee.id!]
-        if (!record) return <Tag>未打卡</Tag>
-        if (record.clockIn && record.clockOut) {
-          return (
-            <Tag color="success">
-              已下班 {dayjs(record.clockIn).format('HH:mm')}–{dayjs(record.clockOut).format('HH:mm')}
-            </Tag>
-          )
-        }
-        return <Tag color="processing">已上班 {dayjs(record.clockIn).format('HH:mm')}</Tag>
-      },
-    },
-    {
       title: '操作',
       key: 'actions',
+      width: 100,
       render: (_: any, employee: RestaDB.Table.Employee) => (
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', gap: 12 }}>
           <Button
-            size="small"
-            icon={<EditOutlined />}
+            type="text"
+            aria-label="edit"
+            icon={<EditOutlined style={{ fontSize: 20 }} />}
             onClick={() => openEdit(employee)}
-          >
-            編輯
-          </Button>
+          />
           <Popconfirm
             title={`確定要刪除「${employee.name}」嗎？`}
             description="此操作將無法復原"
@@ -183,9 +165,7 @@ export const StaffAdmin: React.FC = () => {
             okText="確定"
             cancelText="取消"
           >
-            <Button size="small" danger icon={<DeleteOutlined />}>
-              刪除
-            </Button>
+            <Button type="text" danger aria-label="delete" icon={<DeleteOutlined style={{ fontSize: 20 }} />} />
           </Popconfirm>
         </div>
       ),
@@ -222,7 +202,7 @@ export const StaffAdmin: React.FC = () => {
               label="員工姓名"
               rules={[{ required: true, message: '請輸入員工姓名' }]}
             >
-              <Input placeholder="請輸入員工姓名" />
+              <Input placeholder="請輸入員工姓名" style={{ fontSize: 18 }} />
             </Form.Item>
 
             <Form.Item name="shiftType" label="班別" initialValue="regular">
@@ -250,7 +230,11 @@ export const StaffAdmin: React.FC = () => {
             </Form.Item>
 
             <Form.Item>
-              <Button type="primary" htmlType="submit" style={{ width: '100%' }}>
+              <Button
+                type="primary"
+                htmlType="submit"
+                style={{ width: '100%' }}
+              >
                 確認
               </Button>
             </Form.Item>

@@ -14,9 +14,6 @@ vi.mock('src/libs/api', () => ({
     set: vi.fn(),
     delete: vi.fn(),
   },
-  attendances: {
-    getByDate: vi.fn(),
-  },
   commondityTypes: { get: vi.fn() },
 }))
 vi.mock('src/libs/dataCenter', () => ({
@@ -49,9 +46,6 @@ vi.mock('dexie-react-hooks', () => ({
     callback()
     if (callback.toString().includes('employees')) {
       return mockEmployees
-    }
-    if (callback.toString().includes('attendances')) {
-      return []
     }
     return []
   },
@@ -130,24 +124,13 @@ describe('StaffAdmin Component', () => {
     expect(screen.getByText('排班')).toBeInTheDocument()
   })
 
-  it('renders today status column', () => {
-    renderWithContext(<StaffAdmin />)
-    // Column header
-    expect(screen.getByText('今日狀態')).toBeInTheDocument()
-    // Both employees have no attendance records, so should show '未打卡'
-    const notClockedTags = screen.getAllByText('未打卡')
-    expect(notClockedTags.length).toBe(2)
-  })
-
-  it('renders action column with edit and delete buttons', () => {
+  it('renders action column with icon-only edit and delete buttons', () => {
     renderWithContext(<StaffAdmin />)
     // Column header
     expect(screen.getByText('操作')).toBeInTheDocument()
-    // Should have edit and delete buttons for each employee
-    const editButtons = screen.getAllByText('編輯')
-    const deleteButtons = screen.getAllByText('刪除')
-    expect(editButtons.length).toBe(2)
-    expect(deleteButtons.length).toBe(2)
+    // Icon-only buttons should exist (no text labels)
+    expect(screen.queryAllByText('編輯')).toHaveLength(0)
+    expect(screen.queryAllByText('刪除')).toHaveLength(0)
   })
 
   // -- Modal form tests --
@@ -224,7 +207,7 @@ describe('StaffAdmin Component', () => {
     renderWithContext(<StaffAdmin />)
 
     // Click the first Edit button (for Alice)
-    const editBtns = screen.getAllByText('編輯')
+    const editBtns = screen.getAllByLabelText('edit')
     fireEvent.click(editBtns[0])
 
     const input = await screen.findByPlaceholderText('請輸入員工姓名')
@@ -240,7 +223,7 @@ describe('StaffAdmin Component', () => {
     renderWithContext(<StaffAdmin />)
 
     // Click edit for Alice
-    const editBtns = screen.getAllByText('編輯')
+    const editBtns = screen.getAllByLabelText('edit')
     fireEvent.click(editBtns[0])
 
     await screen.findByPlaceholderText('請輸入員工姓名')
@@ -318,7 +301,7 @@ describe('StaffAdmin Component', () => {
     renderWithContext(<StaffAdmin />)
 
     // Edit Alice (who has avatar 'images/aminals/780258.png')
-    const editBtns = screen.getAllByText('編輯')
+    const editBtns = screen.getAllByLabelText('edit')
     fireEvent.click(editBtns[0])
 
     await screen.findByPlaceholderText('請輸入員工姓名')
@@ -337,6 +320,6 @@ describe('StaffAdmin Component', () => {
     renderWithContext(<StaffAdmin />)
     const columnHeaders = screen.getAllByRole('columnheader')
     const headerTexts = columnHeaders.map(h => h.textContent?.trim())
-    expect(headerTexts).toEqual(['員工編號', '員工', '班別', '今日狀態', '操作'])
+    expect(headerTexts).toEqual(['員工編號', '員工', '班別', '操作'])
   })
 })

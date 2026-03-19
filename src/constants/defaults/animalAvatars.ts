@@ -3,6 +3,8 @@
 export const ANIMAL_AVATARS = [
   { id: '780258', path: 'images/aminals/780258.png' },
   { id: '780260', path: 'images/aminals/780260.png' },
+  { id: '840492', path: 'images/aminals/840492.png' },
+  { id: '1049013', path: 'images/aminals/1049013.png' },
   { id: '1308845', path: 'images/aminals/1308845.png' },
   { id: '1326387', path: 'images/aminals/1326387.png' },
   { id: '1326390', path: 'images/aminals/1326390.png' },
@@ -13,6 +15,8 @@ export const ANIMAL_AVATARS = [
   { id: '1862418', path: 'images/aminals/1862418.png' },
   { id: '2523618', path: 'images/aminals/2523618.png' },
   { id: '2829735', path: 'images/aminals/2829735.png' },
+  { id: '3500329', path: 'images/aminals/3500329.png' },
+  { id: '3544763', path: 'images/aminals/3544763.png' },
   { id: '3940403', path: 'images/aminals/3940403.png' },
   { id: '3940404', path: 'images/aminals/3940404.png' },
   { id: '3940412', path: 'images/aminals/3940412.png' },

@@ -5,6 +5,8 @@ import { ANIMAL_AVATARS } from '../animalAvatars'
 const EXPECTED_IDS = [
   '780258',
   '780260',
+  '840492',
+  '1049013',
   '1308845',
   '1326387',
   '1326390',
@@ -15,6 +17,8 @@ const EXPECTED_IDS = [
   '1862418',
   '2523618',
   '2829735',
+  '3500329',
+  '3544763',
   '3940403',
   '3940404',
   '3940412',
@@ -32,8 +36,8 @@ const EXPECTED_IDS = [
 ]
 
 describe('ANIMAL_AVATARS', () => {
-  it('should contain exactly 26 animal avatars', () => {
-    expect(ANIMAL_AVATARS).toHaveLength(26)
+  it('should contain exactly 30 animal avatars', () => {
+    expect(ANIMAL_AVATARS).toHaveLength(30)
   })
 
   it('should have unique IDs for all entries', () => {
