@@ -15,6 +15,8 @@ export const styles = {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
+    max-height: 360px;
+    overflow-y: auto;
   `,
   // Individual animal image item in the grid picker
   imageItemCss: css`
@@ -22,7 +24,7 @@ export const styles = {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    border-radius: 50%;
+    border-radius: 8px;
     border: 2px solid transparent;
     padding: 2px;
     transition: border-color 0.15s;
@@ -40,7 +42,7 @@ export const styles = {
   `,
   // Selected state for image item in grid picker
   imageItemSelectedCss: css`
-    border-color: #1677ff !important;
-    background: #e6f4ff;
+    border-color: #afbea5 !important;
+    background: #f3faef;
   `,
 }

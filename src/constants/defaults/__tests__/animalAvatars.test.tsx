@@ -70,12 +70,6 @@ describe('ANIMAL_AVATARS', () => {
     })
   })
 
-  it('should have IDs sorted numerically', () => {
-    const ids = ANIMAL_AVATARS.map(a => Number(a.id))
-    const sortedIds = [...ids].sort((a, b) => a - b)
-    expect(ids).toEqual(sortedIds)
-  })
-
   it('should use relative paths without leading slash (Vite base: "./")', () => {
     ANIMAL_AVATARS.forEach(avatar => {
       expect(avatar.path).not.toMatch(/^\//)

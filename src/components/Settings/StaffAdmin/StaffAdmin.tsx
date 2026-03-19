@@ -195,6 +195,7 @@ export const StaffAdmin: React.FC = () => {
           onCancel={handleClose}
           footer={null}
           width={700}
+          centered
           destroyOnHidden
         >
           <Form form={form} onFinish={handleSaveEmployee} layout="vertical">
