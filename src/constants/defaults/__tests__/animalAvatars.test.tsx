@@ -3,6 +3,7 @@ import { ANIMAL_AVATARS } from '../animalAvatars'
 
 // Expected IDs based on actual files in public/images/aminals/
 const EXPECTED_IDS = [
+  '414686',
   '780258',
   '780260',
   '840492',
@@ -12,14 +13,13 @@ const EXPECTED_IDS = [
   '1326390',
   '1326401',
   '1326405',
-  '1760998',
   '1810917',
   '1862418',
   '2523618',
   '2829735',
+  '3500055',
   '3500329',
   '3544763',
-  '3940403',
   '3940404',
   '3940412',
   '4322991',
@@ -30,14 +30,12 @@ const EXPECTED_IDS = [
   '4775614',
   '4775621',
   '4775646',
-  '4775692',
-  '8549219',
   '10738692',
 ]
 
 describe('ANIMAL_AVATARS', () => {
-  it('should contain exactly 30 animal avatars', () => {
-    expect(ANIMAL_AVATARS).toHaveLength(30)
+  it('should contain exactly 28 animal avatars', () => {
+    expect(ANIMAL_AVATARS).toHaveLength(28)
   })
 
   it('should have unique IDs for all entries', () => {

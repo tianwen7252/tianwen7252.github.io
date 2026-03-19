@@ -194,6 +194,7 @@ export const StaffAdmin: React.FC = () => {
           open={isModalOpen}
           onCancel={handleClose}
           footer={null}
+          width={700}
           destroyOnHidden
         >
           <Form form={form} onFinish={handleSaveEmployee} layout="vertical">

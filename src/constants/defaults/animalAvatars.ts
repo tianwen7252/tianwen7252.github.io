@@ -1,6 +1,7 @@
 // Animal avatar definitions for employee profile pictures
 // Images located in public/images/aminals/, paths are relative to public/ (compatible with Vite base: './')
 export const ANIMAL_AVATARS = [
+  { id: '414686', path: 'images/aminals/414686.png' },
   { id: '780258', path: 'images/aminals/780258.png' },
   { id: '780260', path: 'images/aminals/780260.png' },
   { id: '840492', path: 'images/aminals/840492.png' },
@@ -10,14 +11,13 @@ export const ANIMAL_AVATARS = [
   { id: '1326390', path: 'images/aminals/1326390.png' },
   { id: '1326401', path: 'images/aminals/1326401.png' },
   { id: '1326405', path: 'images/aminals/1326405.png' },
-  { id: '1760998', path: 'images/aminals/1760998.png' },
   { id: '1810917', path: 'images/aminals/1810917.png' },
   { id: '1862418', path: 'images/aminals/1862418.png' },
   { id: '2523618', path: 'images/aminals/2523618.png' },
   { id: '2829735', path: 'images/aminals/2829735.png' },
+  { id: '3500055', path: 'images/aminals/3500055.png' },
   { id: '3500329', path: 'images/aminals/3500329.png' },
   { id: '3544763', path: 'images/aminals/3544763.png' },
-  { id: '3940403', path: 'images/aminals/3940403.png' },
   { id: '3940404', path: 'images/aminals/3940404.png' },
   { id: '3940412', path: 'images/aminals/3940412.png' },
   { id: '4322991', path: 'images/aminals/4322991.png' },
@@ -28,7 +28,5 @@ export const ANIMAL_AVATARS = [
   { id: '4775614', path: 'images/aminals/4775614.png' },
   { id: '4775621', path: 'images/aminals/4775621.png' },
   { id: '4775646', path: 'images/aminals/4775646.png' },
-  { id: '4775692', path: 'images/aminals/4775692.png' },
-  { id: '8549219', path: 'images/aminals/8549219.png' },
   { id: '10738692', path: 'images/aminals/10738692.png' },
 ] as const
