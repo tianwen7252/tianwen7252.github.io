@@ -154,18 +154,22 @@ export const ClockIn: React.FC = () => {
   }, [])
 
   // Handle confirm action from modal — dispatches the correct API call
+  // Uses fresh dayjs() at click time to avoid stale date across midnight
   const handleConfirm = useCallback(async () => {
     const { employee: emp, action, attendance: record } = modalState
     if (!emp?.id) return
 
     setLoading(true)
     try {
+      const now = dayjs()
+      const currentDate = now.format('YYYY-MM-DD')
+
       switch (action) {
         case 'clockIn':
           await API.attendances.add({
             employeeId: emp.id,
-            date: today,
-            clockIn: dayjs().valueOf(),
+            date: currentDate,
+            clockIn: now.valueOf(),
             type: 'regular',
           })
           message.success(`${emp.name} 已打卡上班`)
@@ -174,17 +178,20 @@ export const ClockIn: React.FC = () => {
         case 'clockOut':
           if (record?.id != null) {
             await API.attendances.set(record.id, {
-              clockOut: dayjs().valueOf(),
+              clockOut: now.valueOf(),
             })
             message.success(`${emp.name} 已打卡下班`)
+          } else {
+            message.error('無法打卡下班：找不到打卡記錄')
+            return
           }
           break
 
         case 'vacation':
           await API.attendances.add({
             employeeId: emp.id,
-            date: today,
-            clockIn: dayjs().valueOf(),
+            date: currentDate,
+            clockIn: now.valueOf(),
             type: 'vacation',
           })
           message.success(`${emp.name} 已登記休假`)
@@ -194,6 +201,9 @@ export const ClockIn: React.FC = () => {
           if (record?.id != null) {
             await API.attendances.delete(record.id)
             message.success(`${emp.name} 已取消休假`)
+          } else {
+            message.error('無法取消休假：找不到打卡記錄')
+            return
           }
           break
       }
@@ -203,7 +213,7 @@ export const ClockIn: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [modalState, today, handleModalClose])
+  }, [modalState, handleModalClose])
 
   return (
     <div className={styles.containerCss}>

@@ -54,13 +54,15 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
   // Real-time clock state
   const [currentTime, setCurrentTime] = useState(() => dayjs())
 
-  // Update time every second
+  // Update time every second — only when modal is open to avoid wasting CPU
   useEffect(() => {
+    if (!open) return
+    setCurrentTime(dayjs())
     const intervalId = setInterval(() => {
       setCurrentTime(dayjs())
     }, 1000)
     return () => clearInterval(intervalId)
-  }, [])
+  }, [open])
 
   // Early return if no employee
   if (!employee) {
@@ -85,7 +87,9 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
   const isCancelVacation = action === 'cancelVacation'
   const timeLabel = isCancelVacation ? '休假打卡時間' : '目前時間'
   const timeValue = isCancelVacation
-    ? formatTimeAmPm(dayjs(attendance?.clockIn))
+    ? attendance?.clockIn != null
+      ? formatTimeAmPm(dayjs(attendance.clockIn))
+      : '--:--'
     : formatTimeAmPm(currentTime)
 
   return (
@@ -104,7 +108,6 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
           boxShadow: 'none',
           padding: 0,
         },
-        wrapper: {},
       }}
     >
       <div className={styles.modalContainerCss}>
