@@ -8,6 +8,7 @@ import {
   Tag,
   Popconfirm,
   Radio,
+  Checkbox,
   message,
 } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -20,10 +21,11 @@ import { SHIFT_TYPES } from 'src/constants/defaults/shiftTypes'
 import type { ShiftType } from 'src/constants/defaults/shiftTypes'
 import { styles } from './styles'
 
-// Format employee number with admin label for the first employee
-function formatEmployeeNo(employeeNo?: string): React.ReactNode {
+// Format employee number with optional admin label
+function formatEmployeeNo(employee: RestaDB.Table.Employee): React.ReactNode {
+  const { employeeNo, isAdmin } = employee
   if (!employeeNo) return '—'
-  if (employeeNo === '001') {
+  if (isAdmin) {
     return (
       <span>
         {employeeNo} <Tag color="gold">管理員</Tag>
@@ -43,6 +45,7 @@ interface EmployeeFormValues {
   name: string
   avatar?: string
   shiftType: ShiftType
+  isAdmin?: boolean
 }
 
 export const StaffAdmin: React.FC = () => {
@@ -62,8 +65,9 @@ export const StaffAdmin: React.FC = () => {
               name: editingEmployee.name,
               avatar: editingEmployee.avatar ?? '',
               shiftType: editingEmployee.shiftType ?? 'regular',
+              isAdmin: editingEmployee.isAdmin ?? false,
             }
-          : { name: '', avatar: '', shiftType: 'regular' },
+          : { name: '', avatar: '', shiftType: 'regular', isAdmin: false },
       )
     }
   }, [isModalOpen, editingEmployee, form])
@@ -90,6 +94,7 @@ export const StaffAdmin: React.FC = () => {
           name: values.name,
           avatar: values.avatar,
           shiftType: values.shiftType,
+          isAdmin: values.isAdmin ?? false,
         })
         message.success('已更新員工資料')
       } else {
@@ -98,6 +103,7 @@ export const StaffAdmin: React.FC = () => {
           avatar: values.avatar,
           status: 'active',
           shiftType: values.shiftType,
+          isAdmin: values.isAdmin ?? false,
         })
         message.success('新增員工成功')
       }
@@ -124,7 +130,7 @@ export const StaffAdmin: React.FC = () => {
       key: 'employeeNo',
       width: 120,
       render: (_: any, employee: RestaDB.Table.Employee) =>
-        formatEmployeeNo(employee.employeeNo),
+        formatEmployeeNo(employee),
     },
     {
       title: '員工',
@@ -215,6 +221,10 @@ export const StaffAdmin: React.FC = () => {
                   </Radio>
                 ))}
               </Radio.Group>
+            </Form.Item>
+
+            <Form.Item name="isAdmin" valuePropName="checked" initialValue={false}>
+              <Checkbox>管理員權限</Checkbox>
             </Form.Item>
 
             <Form.Item name="avatar" label="頭像">

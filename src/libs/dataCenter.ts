@@ -9,7 +9,7 @@ import { getDeviceStorageInfo } from './common'
 
 export const DB_NAME = 'TianwenDB'
 
-const DB_VERSION = 9
+const DB_VERSION = 10
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -32,24 +32,18 @@ dbSchema
     commondityType: '++id, type',
     commondity: '++id, name, typeID, onMarket',
     orderTypes: '++id, name',
-    employees: '++id, name, avatar, status, shiftType, employeeNo',
+    employees: '++id, name, avatar, status, shiftType, employeeNo, isAdmin',
     attendances: '++id, employeeId, date, clockIn, clockOut',
   })
   .upgrade(async trans => {
-    // Dexie .upgrade() requires direct property mutation on table records.
-    // Sort by id to ensure deterministic employeeNo assignment.
+    // v9→v10: add isAdmin field, default to false, first employee (001) is admin
     const employees = await trans.table('employees').orderBy('id').toArray()
     await Promise.all(
-      employees.map((employee, index) => {
-        const avatar = employee.avatar ?? ''
-        const isHttpUrl = avatar.startsWith('http')
-        const isAnimalAvatar = avatar.includes('images/aminals/')
-        return trans.table('employees').update(employee.id, {
-          shiftType: 'regular',
-          employeeNo: String(index + 1).padStart(3, '0'),
-          avatar: isHttpUrl || isAnimalAvatar ? avatar : '',
-        })
-      }),
+      employees.map(employee =>
+        trans.table('employees').update(employee.id, {
+          isAdmin: employee.employeeNo === '001',
+        }),
+      ),
     )
   })
 

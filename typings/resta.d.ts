@@ -318,6 +318,7 @@ declare global {
         status?: string
         shiftType?: 'regular' | 'shift'
         employeeNo?: string // '001', '002', ...
+        isAdmin?: boolean
         createdAt?: number
         updatedAt?: number
       }

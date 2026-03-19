@@ -28,6 +28,7 @@ const mockEmployees: RestaDB.Table.Employee[] = [
     status: 'active',
     employeeNo: '001',
     shiftType: 'regular',
+    isAdmin: true,
     avatar: 'images/aminals/780258.png',
   },
   {
@@ -36,6 +37,7 @@ const mockEmployees: RestaDB.Table.Employee[] = [
     status: 'active',
     employeeNo: '002',
     shiftType: 'shift',
+    isAdmin: false,
     avatar: 'images/aminals/1308845.png',
   },
 ]
@@ -156,6 +158,7 @@ describe('StaffAdmin Component', () => {
         avatar: '',
         status: 'active',
         shiftType: 'regular',
+        isAdmin: false,
       })
     })
   })
@@ -241,6 +244,7 @@ describe('StaffAdmin Component', () => {
         name: 'Alice',
         avatar: 'images/aminals/780258.png',
         shiftType: 'shift',
+        isAdmin: true,
       })
     })
   })
