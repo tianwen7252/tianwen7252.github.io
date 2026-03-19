@@ -63,4 +63,28 @@ describe('ClockIn Component', () => {
     // Verify no attendance API was called on render
     expect(API.attendances.add).not.toHaveBeenCalled()
   })
+
+  // -- AvatarImage integration tests --
+
+  it('renders AvatarImage with img for employees with http avatar', () => {
+    render(<ClockIn />)
+    // Bob has avatar: 'https://avatar.com/bob.png', should render <img>
+    const img = screen.getByAltText('avatar')
+    expect(img).toBeInTheDocument()
+    expect(img).toHaveAttribute('src', 'https://avatar.com/bob.png')
+  })
+
+  it('renders AvatarImage fallback icon for employees without avatar', () => {
+    const { container } = render(<ClockIn />)
+    // Alice has no avatar, should render UserOutlined fallback
+    const icons = container.querySelectorAll('[aria-label="user"]')
+    expect(icons.length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('renders AvatarImage with 40px size in ClockIn cards', () => {
+    render(<ClockIn />)
+    // Bob's avatar img should have 40px size
+    const img = screen.getByAltText('avatar')
+    expect(img).toHaveStyle({ width: '40px', height: '40px' })
+  })
 })

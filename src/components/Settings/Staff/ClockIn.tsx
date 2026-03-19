@@ -1,16 +1,10 @@
 import React, { useMemo } from 'react'
 import { Card, Space, Badge, Popconfirm, message } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { UserOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import * as API from 'src/libs/api'
+import { AvatarImage } from 'src/components/AvatarImage'
 import { styles } from './styles'
-
-function renderAvatar(avatar?: string) {
-  if (!avatar) return <UserOutlined style={{ fontSize: 40 }} />
-  if (avatar.startsWith('http')) return <img src={avatar} alt="avatar" style={{ width: '100%' }} />
-  return <span style={{ fontSize: 40 }}>{avatar}</span>
-}
 
 function formatTime(ts?: number) {
   return ts ? dayjs(ts).format('HH:mm') : '--:--'
@@ -19,7 +13,8 @@ function formatTime(ts?: number) {
 export const ClockIn: React.FC = () => {
   const employees = useLiveQuery(() => API.employees.get()) || []
 
-  const today = useMemo(() => dayjs().format('YYYY-MM-DD'), [])
+  // Compute on every render — cheap and avoids stale date after midnight on POS iPad
+  const today = dayjs().format('YYYY-MM-DD')
   const todayAttendances = useLiveQuery(() => API.attendances.getByDate(today), [today])
   const attendanceMap = useMemo(
     () =>
@@ -64,7 +59,9 @@ export const ClockIn: React.FC = () => {
 
           const cardContent = (
             <Card hoverable className={styles.cardCss}>
-              <div className={styles.avatarCss}>{renderAvatar(employee.avatar)}</div>
+              <div className={styles.avatarCss}>
+                <AvatarImage avatar={employee.avatar} size={40} />
+              </div>
               <div className={styles.nameCss}>{employee.name}</div>
               <Badge status={badgeStatus} text={badgeText} />
               <div className={styles.timesCss}>

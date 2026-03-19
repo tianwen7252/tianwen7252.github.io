@@ -1,29 +1,46 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { Table, Button, Modal, Form, Input, Tag, Popconfirm, message } from 'antd'
+import { Table, Button, Modal, Form, Input, Tag, Popconfirm, Radio, message } from 'antd'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { UserOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import dayjs from 'dayjs'
 import { AuthGuard } from 'src/components/AuthGuard'
+import { AvatarImage } from 'src/components/AvatarImage'
 import * as API from 'src/libs/api'
+import { ANIMAL_AVATARS } from 'src/constants/defaults/animalAvatars'
+import { SHIFT_TYPES } from 'src/constants/defaults/shiftTypes'
+import type { ShiftType } from 'src/constants/defaults/shiftTypes'
 import { styles } from './styles'
 
-const AVATAR_EMOJIS = [
-  '😀', '😊', '🙂', '😎', '🤩',
-  '👩', '👨', '👧', '👦', '🧑',
-  '👩‍🍳', '👨‍🍳', '🧑‍💼', '👩‍💼', '👨‍💼',
-  '🐱', '🐶', '🦊', '🐼', '🐨',
-]
+// Format employee number with admin label for the first employee
+function formatEmployeeNo(employeeNo?: string): React.ReactNode {
+  if (!employeeNo) return '—'
+  if (employeeNo === '001') {
+    return (
+      <span>
+        {employeeNo} <Tag color="gold">管理員</Tag>
+      </span>
+    )
+  }
+  return employeeNo
+}
 
-function renderAvatar(avatar?: string) {
-  if (!avatar) return <UserOutlined style={{ fontSize: 28 }} />
-  if (avatar.startsWith('http')) return <img src={avatar} alt="avatar" style={{ width: 32, height: 32, borderRadius: '50%' }} />
-  return <span className={styles.avatarCss}>{avatar}</span>
+// Get shift type label from key
+function getShiftLabel(shiftType?: string): string {
+  const found = SHIFT_TYPES.find(s => s.key === shiftType)
+  return found?.label ?? '常日班'
+}
+
+interface EmployeeFormValues {
+  name: string
+  avatar?: string
+  shiftType: ShiftType
 }
 
 export const StaffAdmin: React.FC = () => {
   const employees = useLiveQuery(() => API.employees.get()) || []
 
-  const today = useMemo(() => dayjs().format('YYYY-MM-DD'), [])
+  // Compute on every render — cheap and avoids stale date after midnight on POS iPad
+  const today = dayjs().format('YYYY-MM-DD')
   const todayAttendances = useLiveQuery(() => API.attendances.getByDate(today), [today])
   const attendanceMap = useMemo(
     () =>
@@ -36,12 +53,20 @@ export const StaffAdmin: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<RestaDB.Table.Employee | null>(null)
-  const [form] = Form.useForm()
+  const [form] = Form.useForm<EmployeeFormValues>()
   const avatarValue = Form.useWatch('avatar', form)
 
   useEffect(() => {
     if (isModalOpen) {
-      form.setFieldsValue(editingEmployee ?? { name: '', avatar: '' })
+      form.setFieldsValue(
+        editingEmployee
+          ? {
+              name: editingEmployee.name,
+              avatar: editingEmployee.avatar ?? '',
+              shiftType: editingEmployee.shiftType ?? 'regular',
+            }
+          : { name: '', avatar: '', shiftType: 'regular' },
+      )
     }
   }, [isModalOpen, editingEmployee, form])
 
@@ -60,33 +85,68 @@ export const StaffAdmin: React.FC = () => {
     form.resetFields()
   }
 
-  const handleSaveEmployee = async (values: { name: string; avatar?: string }) => {
-    if (editingEmployee) {
-      await API.employees.set(editingEmployee.id!, { name: values.name, avatar: values.avatar })
-      message.success('已更新員工資料')
-    } else {
-      await API.employees.add({ name: values.name, avatar: values.avatar, status: 'active' })
-      message.success('新增員工成功')
+  const handleSaveEmployee = async (values: EmployeeFormValues) => {
+    try {
+      if (editingEmployee) {
+        await API.employees.set(editingEmployee.id!, {
+          name: values.name,
+          avatar: values.avatar,
+          shiftType: values.shiftType,
+        })
+        message.success('已更新員工資料')
+      } else {
+        await API.employees.add({
+          name: values.name,
+          avatar: values.avatar,
+          status: 'active',
+          shiftType: values.shiftType,
+        })
+        message.success('新增員工成功')
+      }
+      handleClose()
+    } catch (err) {
+      message.error('儲存員工資料失敗，請再試一次')
+      console.error('[StaffAdmin] save employee failed', err)
     }
-    handleClose()
   }
 
   const handleDeleteEmployee = async (id: number, name: string) => {
-    await API.employees.delete(id)
-    message.success(`已刪除員工：${name}`)
+    try {
+      await API.employees.delete(id)
+      message.success(`已刪除員工：${name}`)
+    } catch (err) {
+      message.error('刪除員工失敗，請再試一次')
+      console.error('[StaffAdmin] delete employee failed', err)
+    }
   }
 
   const columns = [
     {
-      title: '頭像',
-      key: 'avatar',
-      width: 60,
-      render: (_: any, employee: RestaDB.Table.Employee) => renderAvatar(employee.avatar),
+      title: '員工編號',
+      key: 'employeeNo',
+      width: 120,
+      render: (_: any, employee: RestaDB.Table.Employee) =>
+        formatEmployeeNo(employee.employeeNo),
     },
     {
-      title: '姓名',
-      dataIndex: 'name',
-      key: 'name',
+      title: '員工',
+      key: 'employee',
+      render: (_: any, employee: RestaDB.Table.Employee) => (
+        <div className={styles.employeeInfoCss}>
+          <AvatarImage avatar={employee.avatar} size={36} />
+          <span>{employee.name}</span>
+        </div>
+      ),
+    },
+    {
+      title: '班別',
+      key: 'shiftType',
+      width: 100,
+      render: (_: any, employee: RestaDB.Table.Employee) => {
+        const label = getShiftLabel(employee.shiftType)
+        const color = employee.shiftType === 'shift' ? 'blue' : 'default'
+        return <Tag color={color}>{label}</Tag>
+      },
     },
     {
       title: '今日狀態',
@@ -157,19 +217,33 @@ export const StaffAdmin: React.FC = () => {
           destroyOnHidden
         >
           <Form form={form} onFinish={handleSaveEmployee} layout="vertical">
-            <Form.Item name="name" label="姓名" rules={[{ required: true, message: '請輸入員工姓名' }]}>
+            <Form.Item
+              name="name"
+              label="員工姓名"
+              rules={[{ required: true, message: '請輸入員工姓名' }]}
+            >
               <Input placeholder="請輸入員工姓名" />
             </Form.Item>
 
+            <Form.Item name="shiftType" label="班別" initialValue="regular">
+              <Radio.Group>
+                {SHIFT_TYPES.map(st => (
+                  <Radio key={st.key} value={st.key}>
+                    {st.label}
+                  </Radio>
+                ))}
+              </Radio.Group>
+            </Form.Item>
+
             <Form.Item name="avatar" label="頭像">
-              <div className={styles.emojiGridCss}>
-                {AVATAR_EMOJIS.map(emoji => (
+              <div className={styles.imageGridCss}>
+                {ANIMAL_AVATARS.map(animal => (
                   <div
-                    key={emoji}
-                    className={`${styles.emojiItemCss} ${avatarValue === emoji ? styles.emojiItemSelectedCss : ''}`}
-                    onClick={() => form.setFieldValue('avatar', emoji)}
+                    key={animal.id}
+                    className={`${styles.imageItemCss} ${avatarValue === animal.path ? styles.imageItemSelectedCss : ''}`}
+                    onClick={() => form.setFieldValue('avatar', animal.path)}
                   >
-                    {emoji}
+                    <img src={animal.path} alt={`avatar-${animal.id}`} />
                   </div>
                 ))}
               </div>

@@ -316,6 +316,8 @@ declare global {
         name: string
         avatar?: string
         status?: string
+        shiftType?: 'regular' | 'shift'
+        employeeNo?: string // '001', '002', ...
         createdAt?: number
         updatedAt?: number
       }

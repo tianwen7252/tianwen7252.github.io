@@ -6,6 +6,7 @@ import {
   COMMODITIES,
 } from 'src/constants/defaults/commondities'
 import { ORDER_TYPES } from 'src/constants/defaults/orderTypes'
+import { generateNextEmployeeNo } from './employeeUtils'
 
 export const MANIFEST_URL = 'https://tianwen7252.github.io/manifest.json'
 
@@ -361,12 +362,19 @@ export const employees = {
   async get() {
     return db.employees.toArray()
   },
-  async add(record: Omit<RestaDB.Table.Employee, 'id' | 'createdAt' | 'updatedAt'>) {
-    return db.employees.add({
-      ...record,
-      createdAt: dayjs().utc().valueOf(),
-      updatedAt: dayjs().utc().valueOf(),
-    } as RestaDB.Table.Employee)
+  async add(record: Omit<RestaDB.Table.Employee, 'id' | 'createdAt' | 'updatedAt' | 'employeeNo'>) {
+    // Use transaction to prevent race condition on employeeNo generation
+    return db.transaction('rw', db.employees, async () => {
+      const existingEmployees = await db.employees.toArray()
+      const employeeNo = generateNextEmployeeNo(existingEmployees)
+      const now = dayjs().utc().valueOf()
+      return db.employees.add({
+        ...record,
+        employeeNo,
+        createdAt: now,
+        updatedAt: now,
+      } as RestaDB.Table.Employee)
+    })
   },
   async set(id: number, record: Partial<Omit<RestaDB.Table.Employee, 'id'>>) {
     return db.employees.update(id, {

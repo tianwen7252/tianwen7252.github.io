@@ -9,7 +9,7 @@ import { getDeviceStorageInfo } from './common'
 
 export const DB_NAME = 'TianwenDB'
 
-const DB_VERSION = 8
+const DB_VERSION = 9
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -25,23 +25,33 @@ export const db = new Dexie(DB_NAME) as Dexie & {
 
 // Schema declaration:
 const dbSchema = db.version(DB_VERSION)
-dbSchema.stores({
-  orders: '++id, createdAt', // primary key "id" (for the runtime!),
-  dailyData: '++id, date, createdAt, total',
-  commondityType: '++id, type',
-  commondity: '++id, name, typeID, onMarket',
-  orderTypes: '++id, name',
-  employees: '++id, name, avatar, status',
-  attendances: '++id, employeeId, date, clockIn, clockOut'
-})
-// .upgrade(trans => {
-//   return trans
-//     .table('orders')
-//     .toCollection()
-//     .modify(record => {
-//       // do something
-//     })
-// })
+dbSchema
+  .stores({
+    orders: '++id, createdAt', // primary key "id" (for the runtime!),
+    dailyData: '++id, date, createdAt, total',
+    commondityType: '++id, type',
+    commondity: '++id, name, typeID, onMarket',
+    orderTypes: '++id, name',
+    employees: '++id, name, avatar, status, shiftType, employeeNo',
+    attendances: '++id, employeeId, date, clockIn, clockOut',
+  })
+  .upgrade(async trans => {
+    // Dexie .upgrade() requires direct property mutation on table records.
+    // Sort by id to ensure deterministic employeeNo assignment.
+    const employees = await trans.table('employees').orderBy('id').toArray()
+    await Promise.all(
+      employees.map((employee, index) => {
+        const avatar = employee.avatar ?? ''
+        const isHttpUrl = avatar.startsWith('http')
+        const isAnimalAvatar = avatar.includes('images/aminals/')
+        return trans.table('employees').update(employee.id, {
+          shiftType: 'regular',
+          employeeNo: String(index + 1).padStart(3, '0'),
+          avatar: isHttpUrl || isAnimalAvatar ? avatar : '',
+        })
+      }),
+    )
+  })
 
 export function init() {
   initDB()
