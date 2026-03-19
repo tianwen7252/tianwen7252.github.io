@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.29](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.28...v0.0.29) (2026-03-18)
+
+
+### Bug Fixes
+
+* use pnpm instead of npm in playwright webServer command ([2605d03](https://github.com/tianwen7252/tianwen7252.github.io/commit/2605d0338de034ee891e12827b5d8732029b2b02))
+
 ## [0.0.28](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.27...v0.0.28) (2026-03-18)
 
 
