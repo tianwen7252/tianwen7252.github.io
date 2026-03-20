@@ -153,7 +153,7 @@ function renderDayCell(
 
   // Regular day cell
   return (
-    <div key={day.date} className={className}>
+    <div key={day.date} className={className} {...(day.isToday ? { 'data-today': 'true' } : {})}>
       {/* Date header */}
       {day.isToday ? (
         <div className={styles.calendarTodayHeaderCss}>

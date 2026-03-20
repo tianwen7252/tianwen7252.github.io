@@ -251,20 +251,22 @@ describe('buildDayRows', () => {
     }),
   ]
 
-  it('returns correct number of days for March (31 days)', () => {
+  it('returns only days up to today (future dates filtered out)', () => {
     const rows = buildDayRows(2026, 3, employees, attendances, '2026-03-20')
-    expect(rows).toHaveLength(31)
+    // March has 31 days but today is 03/20, so only 20 days returned
+    expect(rows).toHaveLength(20)
+    expect(rows.every(r => r.date <= '2026-03-20')).toBe(true)
   })
 
-  it('returns correct number of days for February (non-leap year = 28)', () => {
-    const rows = buildDayRows(2026, 2, employees, [], '2026-02-15')
+  it('returns all days when today is last day of month', () => {
+    const rows = buildDayRows(2026, 2, employees, [], '2026-02-28')
     expect(rows).toHaveLength(28)
   })
 
   it('rows are sorted newest (latest date) first', () => {
     const rows = buildDayRows(2026, 3, employees, attendances, '2026-03-20')
-    // First row should be March 31
-    expect(rows[0].date).toBe('2026-03-31')
+    // First row should be March 20 (today, no future)
+    expect(rows[0].date).toBe('2026-03-20')
     // Last row should be March 1
     expect(rows[rows.length - 1].date).toBe('2026-03-01')
   })

@@ -176,12 +176,12 @@ export function buildDayRows(
   const daysInMonth = dayjs(`${year}-${String(month).padStart(2, '0')}-01`).daysInMonth()
   const attMap = buildAttendanceMap(attendances)
 
-  // Build rows newest first (descending date order)
+  // Build rows newest first (descending date order), exclude future dates
   return Array.from({ length: daysInMonth }, (_, i) => {
     const day = daysInMonth - i
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     return buildSingleDayRow(dateStr, employees, attMap, todayStr)
-  })
+  }).filter(row => row.date <= todayStr)
 }
 
 /**

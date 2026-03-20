@@ -111,6 +111,9 @@ export const recordsStyles = {
 
   tableWrapperCss: css`
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: calc(100vh - 280px);
+    -webkit-overflow-scrolling: touch;
     border-radius: 12px;
     border: 1px solid ${COLOR_BORDER};
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
