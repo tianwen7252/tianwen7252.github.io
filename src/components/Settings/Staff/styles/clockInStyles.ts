@@ -48,7 +48,7 @@ export const styles = {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    padding: 20px;
+    padding: 20px 10px;
     text-align: center;
     cursor: pointer;
     user-select: none;
@@ -131,17 +131,42 @@ export const styles = {
   `,
 
   timesCss: css`
-    font-size: 12px;
+    font-size: 13px;
     color: ${COLOR_MUTED};
     line-height: 1.6;
     margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  `,
+
+  // Shift time label with #F2D680 border
+  shiftTimeLabelCss: css`
+    display: inline-block;
+    padding: 2px 8px;
+    /* border: 1px solid #dedddd; */
+    background: #fff;
+    border-radius: 6px;
+  `,
+
+  // Total hours label displayed above action buttons
+  totalHoursLabelCss: css`
+    display: inline-block;
+    padding: 2px 12px;
+    border: 1px solid ${COLOR_PRIMARY};
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+    margin-top: 8px;
   `,
 
   actionBtnRowCss: css`
     display: flex;
     gap: 8px;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: 12px;
   `,
 
   emptyTextCss: css`

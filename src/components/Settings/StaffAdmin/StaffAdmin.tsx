@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Table,
   Button,
@@ -22,7 +22,6 @@ import * as API from 'src/libs/api'
 import { ANIMAL_AVATARS } from 'src/constants/defaults/animalAvatars'
 import { SHIFT_TYPES } from 'src/constants/defaults/shiftTypes'
 import type { ShiftType } from 'src/constants/defaults/shiftTypes'
-import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
 import { styles } from './styles'
 
 // Format employee number with labels stacked below the number
@@ -57,28 +56,6 @@ function getShiftLabel(shiftType?: string): string {
   return found?.label ?? '常日班'
 }
 
-// Derive today status tag configuration from attendance record
-export function deriveStatusTag(
-  record: RestaDB.Table.Attendance | undefined,
-): { text: string; color: string } {
-  if (!record) {
-    return { text: '未打卡', color: 'default' }
-  }
-  if (record.type === 'vacation') {
-    return { text: '休假', color: 'red' }
-  }
-  if (record.clockIn && record.clockOut) {
-    const inTime = dayjs(record.clockIn).format('HH:mm')
-    const outTime = dayjs(record.clockOut).format('HH:mm')
-    return { text: `已下班 ${inTime}\u2013${outTime}`, color: 'purple' }
-  }
-  if (record.clockIn) {
-    const inTime = dayjs(record.clockIn).format('HH:mm')
-    return { text: `已上班 ${inTime}`, color: 'green' }
-  }
-  return { text: '未打卡', color: 'default' }
-}
-
 interface EmployeeFormValues {
   name: string
   avatar?: string
@@ -90,32 +67,6 @@ interface EmployeeFormValues {
 
 export const StaffAdmin: React.FC = () => {
   const employees = useLiveQuery(() => API.employees.get()) || []
-
-  // Reactive attendance query for today's date (auto-refreshes at midnight)
-  const [today, setToday] = useState(() => dayjs().format('YYYY-MM-DD'))
-  useEffect(() => {
-    const msUntilMidnight =
-      dayjs().endOf('day').valueOf() - dayjs().valueOf() + 1000
-    const timer = setTimeout(
-      () => setToday(dayjs().format('YYYY-MM-DD')),
-      msUntilMidnight,
-    )
-    return () => clearTimeout(timer)
-  }, [today])
-  const todayAttendances = useLiveQuery(
-    () => API.attendances.getByDate(today),
-    [today],
-  )
-
-  // Build O(1) lookup map from employeeId to attendance record (immutable reduce)
-  const attendanceMap = useMemo(
-    () =>
-      (todayAttendances ?? []).reduce(
-        (map, r) => ({ ...map, [r.employeeId as number]: r }),
-        {} as Record<number, RestaDB.Table.Attendance>,
-      ),
-    [todayAttendances],
-  )
 
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] =
@@ -212,70 +163,6 @@ export const StaffAdmin: React.FC = () => {
     }
   }
 
-  // Set vacation for an employee with no attendance record today
-  const handleSetVacation = async (employeeId: number) => {
-    try {
-      await API.attendances.add({
-        employeeId,
-        date: today,
-        type: ATTENDANCE_TYPES.VACATION,
-      })
-      message.success('已設定休假')
-    } catch (err) {
-      message.error('設定休假失敗，請再試一次')
-      console.error('[StaffAdmin] set vacation failed', err)
-    }
-  }
-
-  // Cancel vacation by deleting the attendance record
-  const handleCancelVacation = async (recordId: number) => {
-    try {
-      await API.attendances.delete(recordId)
-      message.success('已取消休假')
-    } catch (err) {
-      message.error('取消休假失敗，請再試一次')
-      console.error('[StaffAdmin] cancel vacation failed', err)
-    }
-  }
-
-  // Render vacation quick-action button based on attendance state
-  const renderVacationAction = (employee: RestaDB.Table.Employee) => {
-    const record = attendanceMap[employee.id!]
-
-    // No attendance record: show "設定休假"
-    if (!record) {
-      return (
-        <Popconfirm
-          title={`確定要將「${employee.name}」設定為休假嗎？`}
-          onConfirm={() => handleSetVacation(employee.id!)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <Button size="small" danger>
-            設定休假
-          </Button>
-        </Popconfirm>
-      )
-    }
-
-    // On vacation: show "取消休假"
-    if (record.type === ATTENDANCE_TYPES.VACATION) {
-      return (
-        <Popconfirm
-          title={`確定要取消「${employee.name}」的休假嗎？`}
-          onConfirm={() => handleCancelVacation(record.id!)}
-          okText="確定"
-          cancelText="取消"
-        >
-          <Button size="small">取消休假</Button>
-        </Popconfirm>
-      )
-    }
-
-    // Already clocked in (regular attendance): no vacation action
-    return null
-  }
-
   const columns = [
     {
       title: '員工編號',
@@ -319,16 +206,6 @@ export const StaffAdmin: React.FC = () => {
       },
     },
     {
-      title: '今日狀態',
-      key: 'todayStatus',
-      width: 180,
-      render: (_: any, employee: RestaDB.Table.Employee) => {
-        const record = attendanceMap[employee.id!]
-        const { text, color } = deriveStatusTag(record)
-        return <Tag color={color}>{text}</Tag>
-      },
-    },
-    {
       title: '操作',
       key: 'actions',
       width: 220,
@@ -354,7 +231,6 @@ export const StaffAdmin: React.FC = () => {
               icon={<DeleteOutlined style={{ fontSize: 20 }} />}
             />
           </Popconfirm>
-          {renderVacationAction(employee)}
         </div>
       ),
     },

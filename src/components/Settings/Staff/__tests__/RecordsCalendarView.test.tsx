@@ -209,7 +209,7 @@ describe('RecordsCalendarView', () => {
   // 5. Normal attendance shows employee name and clock times
   // --------------------------------------------------------
   describe('employee card display types', () => {
-    it('shows employee name and clock-in/clock-out for normal attendance', () => {
+    it('shows employee name and clock-in/clock-out as a time label for normal attendance', () => {
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
       const clockOut = dayjs('2026-03-20 18:00').valueOf()
       const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
@@ -230,8 +230,8 @@ describe('RecordsCalendarView', () => {
       )
 
       expect(screen.getByText('Ryan')).toBeInTheDocument()
-      expect(screen.getByText('08:30')).toBeInTheDocument()
-      expect(screen.getByText('18:00')).toBeInTheDocument()
+      // Time is now displayed as a compact label "HH:mm - HH:mm"
+      expect(screen.getByText('08:30 - 18:00')).toBeInTheDocument()
     })
 
     // --------------------------------------------------------
@@ -257,8 +257,8 @@ describe('RecordsCalendarView', () => {
       )
 
       expect(screen.getByText('Ryan')).toBeInTheDocument()
-      expect(screen.getByText('09:05')).toBeInTheDocument()
-      expect(screen.getByText('??:??')).toBeInTheDocument()
+      // Time label format: "HH:mm - ??:??"
+      expect(screen.getByText('09:05 - ??:??')).toBeInTheDocument()
     })
 
     // --------------------------------------------------------
@@ -314,7 +314,7 @@ describe('RecordsCalendarView', () => {
   // 9. Card click interactions — onEditRecord vs onAddRecord
   // --------------------------------------------------------
   describe('cell click interactions', () => {
-    it('calls onEditRecord with correct employee, date, and attendance when clicking a record card', () => {
+    it('calls onEditRecord when clicking a time label inside the employee card', () => {
       const onEditRecord = vi.fn()
       const onAddRecord = vi.fn()
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
@@ -336,13 +336,12 @@ describe('RecordsCalendarView', () => {
         />,
       )
 
-      // Click the employee card (find by role="button")
-      const card = screen.getByText('Ryan').closest('[role="button"]')!
-      fireEvent.click(card)
+      // Click the time label (not the employee card wrapper)
+      const timeLabel = screen.getByText('08:30 - 18:00')
+      fireEvent.click(timeLabel)
 
       expect(onEditRecord).toHaveBeenCalledTimes(1)
       expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
-      expect(onAddRecord).not.toHaveBeenCalled()
     })
 
     it('calls onAddRecord with employee and date for no-record card click', () => {
@@ -460,7 +459,7 @@ describe('RecordsCalendarView', () => {
       expect(onAddRecord).toHaveBeenCalledWith(emp1, '2026-03-20')
     })
 
-    it('calls onEditRecord when pressing Space on a record card', () => {
+    it('calls onEditRecord when pressing Space on a time label', () => {
       const onEditRecord = vi.fn()
       const onAddRecord = vi.fn()
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
@@ -482,8 +481,9 @@ describe('RecordsCalendarView', () => {
         />,
       )
 
-      const card = screen.getByText('Ryan').closest('[role="button"]')!
-      fireEvent.keyDown(card, { key: ' ' })
+      // Press Space on the time label to trigger onEditRecord
+      const timeLabel = screen.getByText('08:30 - 18:00')
+      fireEvent.keyDown(timeLabel, { key: ' ' })
 
       expect(onEditRecord).toHaveBeenCalledTimes(1)
       expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
@@ -544,15 +544,14 @@ describe('RecordsCalendarView', () => {
         />,
       )
 
-      // Multi-shift: each card shows "name (\u73ed1)", "name (\u73ed2)"
-      expect(screen.getByText('Ryan (\u73ed1)')).toBeInTheDocument()
-      expect(screen.getByText('Ryan (\u73ed2)')).toBeInTheDocument()
+      // Multi-shift: employee name shown once, no shift numbering
+      expect(screen.getByText('Ryan')).toBeInTheDocument()
+      expect(screen.queryByText(/\u73ed1/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/\u73ed2/)).not.toBeInTheDocument()
 
-      // Both shift times should be displayed
-      expect(screen.getByText('08:00')).toBeInTheDocument()
-      expect(screen.getByText('12:00')).toBeInTheDocument()
-      expect(screen.getByText('14:00')).toBeInTheDocument()
-      expect(screen.getByText('18:00')).toBeInTheDocument()
+      // Both shift time labels should be displayed
+      expect(screen.getByText('08:00 - 12:00')).toBeInTheDocument()
+      expect(screen.getByText('14:00 - 18:00')).toBeInTheDocument()
     })
 
     it('does not show shift label for single-shift employee', () => {
@@ -605,9 +604,9 @@ describe('RecordsCalendarView', () => {
         />,
       )
 
-      // Click the second shift card
-      const secondShiftCard = screen.getByText('Ryan (\u73ed2)').closest('[role="button"]')!
-      fireEvent.click(secondShiftCard)
+      // Click the second shift's time label
+      const secondTimeLabel = screen.getByText('14:00 - 18:00')
+      fireEvent.click(secondTimeLabel)
 
       expect(onEditRecord).toHaveBeenCalledTimes(1)
       expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att2)
@@ -637,13 +636,14 @@ describe('RecordsCalendarView', () => {
         />,
       )
 
-      // Should have two buttons for this one employee
-      const buttons = screen.getAllByRole('button')
-      // Filter to only the shift card buttons (not header buttons etc.)
-      const shiftButtons = buttons.filter(
-        btn => btn.textContent?.includes('Ryan'),
-      )
-      expect(shiftButtons).toHaveLength(2)
+      // Should have two clickable time labels for the two shifts
+      const shift1Label = screen.getByText('08:00 - 12:00')
+      const shift2Label = screen.getByText('14:00 - 18:00')
+      expect(shift1Label).toBeInTheDocument()
+      expect(shift2Label).toBeInTheDocument()
+      // Both time labels should be accessible as buttons
+      expect(shift1Label.getAttribute('role')).toBe('button')
+      expect(shift2Label.getAttribute('role')).toBe('button')
     })
   })
 
@@ -680,13 +680,11 @@ describe('RecordsCalendarView', () => {
       expect(screen.getByText('Ryan')).toBeInTheDocument()
       expect(screen.getByText('\u9673\u5c0f\u660e')).toBeInTheDocument()
 
-      // emp1 has normal attendance
-      expect(screen.getByText('08:30')).toBeInTheDocument()
-      expect(screen.getByText('18:00')).toBeInTheDocument()
+      // emp1 has normal attendance — time label format
+      expect(screen.getByText('08:30 - 18:00')).toBeInTheDocument()
 
-      // emp2 has clock-in only
-      expect(screen.getByText('09:00')).toBeInTheDocument()
-      expect(screen.getByText('??:??')).toBeInTheDocument()
+      // emp2 has clock-in only — time label format
+      expect(screen.getByText('09:00 - ??:??')).toBeInTheDocument()
     })
 
     it('fires onEditRecord with correct employee when clicking specific card', () => {

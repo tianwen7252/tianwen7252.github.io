@@ -1,6 +1,7 @@
 import React from 'react'
 import { AvatarImage } from 'src/components/AvatarImage'
 import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
+import { calcTotalHours, formatTotalHours } from './attendanceUtils'
 import {
   type DayRow,
   type EmployeeAttendanceCell,
@@ -38,51 +39,62 @@ function renderCellCards(
     return <span className={styles.cellNoRecordCss}>未打卡</span>
   }
 
-  return attendances.map((att, index) => {
-    const isVacation = att.type === ATTENDANCE_TYPES.VACATION
+  const totalHours = calcTotalHours(attendances)
 
-    const handleCardClick = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onEditRecord(employee, date, att)
-    }
+  return (
+    <>
+      {attendances.map((att, index) => {
+        const isVacation = att.type === ATTENDANCE_TYPES.VACATION
 
-    const handleCardKeyDown = (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault()
-        e.stopPropagation()
-        onEditRecord(employee, date, att)
-      }
-    }
+        const handleCardClick = (e: React.MouseEvent) => {
+          e.stopPropagation()
+          onEditRecord(employee, date, att)
+        }
 
-    if (isVacation) {
-      return (
-        <div
-          key={att.id ?? index}
-          className={styles.cellCardVacationCss}
-          onClick={handleCardClick}
-          onKeyDown={handleCardKeyDown}
-          role="button"
-          tabIndex={0}
-        >
-          休假
+        const handleCardKeyDown = (e: React.KeyboardEvent) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            e.stopPropagation()
+            onEditRecord(employee, date, att)
+          }
+        }
+
+        if (isVacation) {
+          return (
+            <div
+              key={att.id ?? index}
+              className={styles.cellCardVacationCss}
+              onClick={handleCardClick}
+              onKeyDown={handleCardKeyDown}
+              role="button"
+              tabIndex={0}
+            >
+              休假
+            </div>
+          )
+        }
+
+        return (
+          <div
+            key={att.id ?? index}
+            className={styles.cellCardCss}
+            onClick={handleCardClick}
+            onKeyDown={handleCardKeyDown}
+            role="button"
+            tabIndex={0}
+          >
+            {formatClockTime(att.clockIn)} -{' '}
+            {att.clockOut !== undefined ? formatClockTime(att.clockOut) : '??:??'}
+          </div>
+        )
+      })}
+      {totalHours > 0 && (
+        <div className={styles.cellTotalHoursLabelCss}>
+          總工時: {formatTotalHours(totalHours)}
         </div>
-      )
-    }
-
-    return (
-      <div
-        key={att.id ?? index}
-        className={styles.cellCardCss}
-        onClick={handleCardClick}
-        onKeyDown={handleCardKeyDown}
-        role="button"
-        tabIndex={0}
-      >
-        {formatClockTime(att.clockIn)} -{' '}
-        {att.clockOut !== undefined ? formatClockTime(att.clockOut) : '??:??'}
-      </div>
-    )
-  })
+      )}
+    </>
+  )
 }
 
 // ---- Component ----

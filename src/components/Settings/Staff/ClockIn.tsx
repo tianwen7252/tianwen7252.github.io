@@ -294,18 +294,13 @@ export const ClockIn: React.FC = () => {
                 {employee.isAdmin ? '管理員' : ''}
               </div>
 
-              {/* Status badge and hours display */}
+              {/* Status badge */}
               <div className={styles.statusCss}>
                 <Badge color={badgeColor} text={badgeText} />
-                {totalHours > 0 && (
-                  <span className={styles.hoursCss}>
-                    {formatTotalHours(totalHours)}
-                  </span>
-                )}
               </div>
 
               {/* Clock-in / clock-out times — vacation shows differently */}
-              {/* Multi-shift: render each shift, label with shift number when >1 */}
+              {/* Multi-shift: each shift as a labelled tag with #F2D680 border */}
               {isVacation ? (
                 <div className={styles.timesCss}>
                   <div>休假：{formatTime(lastRecord?.clockIn)}</div>
@@ -314,12 +309,10 @@ export const ClockIn: React.FC = () => {
               ) : (
                 <div className={styles.timesCss}>
                   {records.map((shift, index) => (
-                    <div key={shift.id ?? index}>
-                      {records.length > 1 && (
-                        <span style={{ fontWeight: 600 }}>
-                          班{index + 1}:{' '}
-                        </span>
-                      )}
+                    <div
+                      key={shift.id ?? index}
+                      className={styles.shiftTimeLabelCss}
+                    >
                       上班：{formatTime(shift.clockIn)} 下班：
                       {formatTime(shift.clockOut)}
                     </div>
@@ -330,6 +323,13 @@ export const ClockIn: React.FC = () => {
                       <div>下班：{formatTime(undefined)}</div>
                     </>
                   )}
+                </div>
+              )}
+
+              {/* Total hours label — displayed above action buttons */}
+              {totalHours > 0 && (
+                <div className={styles.totalHoursLabelCss}>
+                  總工時: {formatTotalHours(totalHours)}
                 </div>
               )}
 
@@ -347,6 +347,7 @@ export const ClockIn: React.FC = () => {
                       打卡上班
                     </Button>
                     <Button
+                      type="primary"
                       danger
                       size="small"
                       onClick={e =>

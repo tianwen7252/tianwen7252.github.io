@@ -776,9 +776,12 @@ describe('ClockIn Component', () => {
         ]
         const { container } = render(<ClockIn />)
         const fullText = container.textContent ?? ''
-        // Should show shift labels "班1:" and "班2:" when multiple shifts
-        expect(fullText).toContain('班1:')
-        expect(fullText).toContain('班2:')
+        // Should NOT show shift labels — removed per UI redesign
+        expect(fullText).not.toContain('班1:')
+        expect(fullText).not.toContain('班2:')
+        // Both shift times should still be displayed
+        expect(fullText).toContain('09:00')
+        expect(fullText).toContain('14:00')
       })
 
       it('does NOT show shift labels when only one shift exists', () => {

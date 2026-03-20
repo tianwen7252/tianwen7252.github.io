@@ -122,6 +122,18 @@ export const Records: React.FC = () => {
     })
   }
 
+  // Calendar cell click handler — pick first employee without records for this date
+  const handleCalendarCellClick = (date: string) => {
+    if (filteredEmployees.length === 0) return
+    const empWithoutRecord = filteredEmployees.find(emp => {
+      return !(allAttendances ?? []).some(
+        a => a.employeeId === emp.id && a.date === date,
+      )
+    })
+    const targetEmp = empWithoutRecord ?? filteredEmployees[0]
+    setModalTarget({ mode: 'add', employee: targetEmp, date })
+  }
+
   // Close modal
   const handleModalClose = () => {
     setModalTarget(null)
@@ -235,6 +247,7 @@ export const Records: React.FC = () => {
           calendarGrid={calendarGrid}
           onEditRecord={handleEditRecord}
           onAddRecord={handleAddRecord}
+          onCellClick={handleCalendarCellClick}
         />
       )}
 

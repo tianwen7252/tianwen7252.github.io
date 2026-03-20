@@ -51,19 +51,13 @@ const mockEmployees: RestaDB.Table.Employee[] = [
   },
 ]
 
-// Configurable attendance data for today status tests
-let mockAttendances: RestaDB.Table.Attendance[] = []
-
-// Mock dexie-react-hooks — route callback to employees or attendances based on source
+// Mock dexie-react-hooks — route callback to employees
 vi.mock('dexie-react-hooks', () => ({
   useLiveQuery: (callback: Function) => {
     callback()
     const src = callback.toString()
     if (src.includes('employees')) {
       return mockEmployees
-    }
-    if (src.includes('attendances')) {
-      return mockAttendances
     }
     return []
   },
@@ -72,7 +66,6 @@ vi.mock('dexie-react-hooks', () => ({
 describe('StaffAdmin Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockAttendances = []
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       value: vi.fn().mockImplementation(query => ({
@@ -341,11 +334,11 @@ describe('StaffAdmin Component', () => {
 
   // -- Column order verification --
 
-  it('renders columns in the correct order including today status', () => {
+  it('renders columns in the correct order', () => {
     renderWithContext(<StaffAdmin />)
     const columnHeaders = screen.getAllByRole('columnheader')
     const headerTexts = columnHeaders.map(h => h.textContent?.trim())
-    expect(headerTexts).toEqual(['員工編號', '員工', '入職日期', '離職日期', '班別', '今日狀態', '操作'])
+    expect(headerTexts).toEqual(['員工編號', '員工', '入職日期', '離職日期', '班別', '操作'])
   })
 
   // -- Story 4: Avatar grid 9 columns --
@@ -512,238 +505,4 @@ describe('StaffAdmin Component', () => {
     })
   })
 
-  // -- Today status column tests --
-
-  describe('today status column', () => {
-    it('renders the column header "今日狀態"', () => {
-      renderWithContext(<StaffAdmin />)
-      expect(screen.getByText('今日狀態')).toBeInTheDocument()
-    })
-
-    it('shows "未打卡" tag when employee has no attendance record', () => {
-      mockAttendances = []
-      renderWithContext(<StaffAdmin />)
-      // Both Alice and Bob have no attendance, so two "未打卡" tags should appear
-      const tags = screen.getAllByText('未打卡')
-      expect(tags.length).toBe(2)
-    })
-
-    it('shows "已上班 HH:mm" tag when employee has clockIn but no clockOut', () => {
-      const clockInTime = dayjs('2024-05-20T09:15:00').valueOf()
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 1,
-          date: '2024-05-20',
-          clockIn: clockInTime,
-          type: 'regular',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Alice should show clocked-in status with time
-      expect(screen.getByText('已上班 09:15')).toBeInTheDocument()
-      // Bob still has no attendance
-      expect(screen.getByText('未打卡')).toBeInTheDocument()
-    })
-
-    it('shows "已下班 HH:mm–HH:mm" tag when employee has both clockIn and clockOut', () => {
-      const clockInTime = dayjs('2024-05-20T09:00:00').valueOf()
-      const clockOutTime = dayjs('2024-05-20T18:30:00').valueOf()
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 1,
-          date: '2024-05-20',
-          clockIn: clockInTime,
-          clockOut: clockOutTime,
-          type: 'regular',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      expect(screen.getByText('已下班 09:00–18:30')).toBeInTheDocument()
-    })
-
-    it('shows "休假" tag when attendance type is vacation', () => {
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 2,
-          date: '2024-05-20',
-          type: 'vacation',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Bob is on vacation
-      expect(screen.getByText('休假')).toBeInTheDocument()
-      // Alice has no attendance
-      expect(screen.getByText('未打卡')).toBeInTheDocument()
-    })
-
-    it('renders correct status for multiple employees with different states', () => {
-      const clockInTime = dayjs('2024-05-20T08:45:00').valueOf()
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 1,
-          date: '2024-05-20',
-          clockIn: clockInTime,
-          type: 'regular',
-        },
-        {
-          id: 102,
-          employeeId: 2,
-          date: '2024-05-20',
-          type: 'vacation',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Alice clocked in
-      expect(screen.getByText('已上班 08:45')).toBeInTheDocument()
-      // Bob on vacation
-      expect(screen.getByText('休假')).toBeInTheDocument()
-    })
-  })
-
-  // -- Vacation quick-action button tests --
-
-  describe('vacation quick-action buttons', () => {
-    it('shows "設定休假" button when employee has no attendance record', () => {
-      mockAttendances = []
-      renderWithContext(<StaffAdmin />)
-      // Both employees have no attendance, so both should show "設定休假"
-      const vacationBtns = screen.getAllByText('設定休假')
-      expect(vacationBtns.length).toBe(2)
-    })
-
-    it('hides vacation button when employee has clocked in (clockIn only)', () => {
-      const clockInTime = dayjs('2024-05-20T09:00:00').valueOf()
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 1,
-          date: '2024-05-20',
-          clockIn: clockInTime,
-          type: 'regular',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Alice clocked in — should NOT see "設定休假" for her
-      // Bob has no attendance — should see "設定休假" for him
-      const vacationBtns = screen.getAllByText('設定休假')
-      expect(vacationBtns.length).toBe(1)
-      // Should not see "取消休假" for Alice either
-      expect(screen.queryByText('取消休假')).not.toBeInTheDocument()
-    })
-
-    it('hides vacation button when employee has clocked in and out', () => {
-      const clockInTime = dayjs('2024-05-20T09:00:00').valueOf()
-      const clockOutTime = dayjs('2024-05-20T18:00:00').valueOf()
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 1,
-          date: '2024-05-20',
-          clockIn: clockInTime,
-          clockOut: clockOutTime,
-          type: 'regular',
-        },
-        {
-          id: 102,
-          employeeId: 2,
-          date: '2024-05-20',
-          clockIn: dayjs('2024-05-20T10:00:00').valueOf(),
-          clockOut: dayjs('2024-05-20T19:00:00').valueOf(),
-          type: 'regular',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Both employees clocked in and out — no vacation buttons at all
-      expect(screen.queryByText('設定休假')).not.toBeInTheDocument()
-      expect(screen.queryByText('取消休假')).not.toBeInTheDocument()
-    })
-
-    it('shows "取消休假" button when employee is on vacation', () => {
-      mockAttendances = [
-        {
-          id: 101,
-          employeeId: 2,
-          date: '2024-05-20',
-          type: 'vacation',
-        },
-      ]
-      renderWithContext(<StaffAdmin />)
-      // Bob is on vacation — should see "取消休假"
-      expect(screen.getByText('取消休假')).toBeInTheDocument()
-      // Alice has no attendance — should see "設定休假"
-      expect(screen.getByText('設定休假')).toBeInTheDocument()
-    })
-
-    it('calls API.attendances.add with correct params when setting vacation', async () => {
-      mockAttendances = []
-      ;(API.attendances.add as ReturnType<typeof vi.fn>).mockResolvedValue(201)
-      renderWithContext(<StaffAdmin />)
-
-      // Click "設定休假" for Alice (first button)
-      const vacationBtns = screen.getAllByText('設定休假')
-      fireEvent.click(vacationBtns[0])
-
-      // Popconfirm should appear with Alice's name
-      const popconfirmTitle = await screen.findByText(
-        '確定要將「Alice」設定為休假嗎？',
-      )
-      expect(popconfirmTitle).toBeInTheDocument()
-
-      // Find the OK button inside the popconfirm popup container
-      const popoverContainer = popconfirmTitle.closest('.ant-popover')!
-      const okBtn = popoverContainer.querySelector(
-        '.ant-btn-primary',
-      ) as HTMLElement
-      fireEvent.click(okBtn)
-
-      await waitFor(() => {
-        expect(API.attendances.add).toHaveBeenCalledWith(
-          expect.objectContaining({
-            employeeId: 1,
-            type: 'vacation',
-          }),
-        )
-      })
-    })
-
-    it('calls API.attendances.delete with record id when cancelling vacation', async () => {
-      mockAttendances = [
-        {
-          id: 201,
-          employeeId: 2,
-          date: '2024-05-20',
-          type: 'vacation',
-        },
-      ]
-      ;(API.attendances.delete as ReturnType<typeof vi.fn>).mockResolvedValue(
-        undefined,
-      )
-      renderWithContext(<StaffAdmin />)
-
-      // Click "取消休假" for Bob
-      const cancelBtn = screen.getByText('取消休假')
-      fireEvent.click(cancelBtn)
-
-      // Popconfirm should appear with Bob's name
-      const popconfirmTitle = await screen.findByText(
-        '確定要取消「Bob」的休假嗎？',
-      )
-      expect(popconfirmTitle).toBeInTheDocument()
-
-      // Find the OK button inside the popconfirm popup container
-      const popoverContainer = popconfirmTitle.closest('.ant-popover')!
-      const okBtn = popoverContainer.querySelector(
-        '.ant-btn-primary',
-      ) as HTMLElement
-      fireEvent.click(okBtn)
-
-      await waitFor(() => {
-        expect(API.attendances.delete).toHaveBeenCalledWith(201)
-      })
-    })
-  })
 })

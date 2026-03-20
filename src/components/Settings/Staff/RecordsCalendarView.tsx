@@ -1,5 +1,6 @@
 import React from 'react'
 import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
+import { calcTotalHours, formatTotalHours } from './attendanceUtils'
 import {
   type CalendarDay,
   type EmployeeAttendanceCell,
@@ -21,6 +22,7 @@ interface RecordsCalendarViewProps {
     employee: RestaDB.Table.Employee,
     date: string,
   ) => void
+  readonly onCellClick?: (date: string) => void
 }
 
 // ---- Helper: keyboard handler factory ----
@@ -61,65 +63,96 @@ function renderEmployeeCards(
     )
   }
 
-  // Has records — render each shift as a separate clickable card
-  return attendances.map((att, index) => {
-    const isVacation = att.type === ATTENDANCE_TYPES.VACATION
-    const handleClick = (e: React.MouseEvent) => {
-      e.stopPropagation()
-      onEditRecord(employee, date, att)
-    }
+  // Check if all records are vacation
+  const isAllVacation = attendances.every(
+    a => a.type === ATTENDANCE_TYPES.VACATION,
+  )
 
-    if (isVacation) {
-      return (
-        <div
-          key={att.id ?? index}
-          className={styles.employeeCardVacationCss}
-          onClick={handleClick}
-          onKeyDown={makeKeyHandler(() => onEditRecord(employee, date, att))}
-          role="button"
-          tabIndex={0}
-        >
-          <span className={styles.employeeCardNameCss}>{employee.name}</span>
-          <span className={styles.employeeCardVacationLabelCss}>休假</span>
-        </div>
-      )
-    }
-
+  if (isAllVacation) {
+    const firstVacation = attendances[0]
     return (
       <div
-        key={att.id ?? index}
-        className={styles.employeeCardCss}
-        onClick={handleClick}
-        onKeyDown={makeKeyHandler(() => onEditRecord(employee, date, att))}
+        key={employee.id}
+        className={styles.employeeCardVacationCss}
+        onClick={e => {
+          e.stopPropagation()
+          onEditRecord(employee, date, firstVacation)
+        }}
+        onKeyDown={makeKeyHandler(() =>
+          onEditRecord(employee, date, firstVacation),
+        )}
         role="button"
         tabIndex={0}
       >
-        <div className={styles.employeeCardNameCss}>
-          {attendances.length > 1 ? `${employee.name} (班${index + 1})` : employee.name}
-        </div>
-        <div className={styles.employeeCardTimeCss}>
-          <span>
-            上{' '}
-            <span className={styles.employeeCardClockInCss}>
-              {formatClockTime(att.clockIn)}
-            </span>
-          </span>
-          <span>
-            下{' '}
-            <span
-              className={
-                att.clockOut !== undefined
-                  ? styles.employeeCardClockOutCss
-                  : styles.employeeCardClockMissingCss
-              }
-            >
-              {att.clockOut !== undefined ? formatClockTime(att.clockOut) : '??:??'}
-            </span>
-          </span>
-        </div>
+        <span className={styles.employeeCardNameCss}>{employee.name}</span>
+        <span className={styles.employeeCardVacationLabelCss}>休假</span>
       </div>
     )
-  })
+  }
+
+  // Has records — render employee card with time labels (no shift numbering)
+  const totalHours = calcTotalHours(attendances)
+
+  return (
+    <div
+      key={employee.id}
+      className={styles.employeeCardCss}
+      onClick={e => { e.stopPropagation(); onAddRecord(employee, date) }}
+      onKeyDown={makeKeyHandler(() => onAddRecord(employee, date))}
+      role="button"
+      tabIndex={0}
+    >
+      <div className={styles.employeeCardNameCss}>{employee.name}</div>
+      <div className={styles.employeeCardShiftsCss}>
+        {attendances.map((att, index) => {
+          if (att.type === ATTENDANCE_TYPES.VACATION) {
+            return (
+              <span
+                key={att.id ?? index}
+                className={styles.employeeCardVacationLabelCss}
+                onClick={e => {
+                  e.stopPropagation()
+                  onEditRecord(employee, date, att)
+                }}
+                onKeyDown={makeKeyHandler(() =>
+                  onEditRecord(employee, date, att),
+                )}
+                role="button"
+                tabIndex={0}
+              >
+                休假
+              </span>
+            )
+          }
+          return (
+            <span
+              key={att.id ?? index}
+              className={styles.employeeCardTimeLabelCss}
+              onClick={e => {
+                e.stopPropagation()
+                onEditRecord(employee, date, att)
+              }}
+              onKeyDown={makeKeyHandler(() =>
+                onEditRecord(employee, date, att),
+              )}
+              role="button"
+              tabIndex={0}
+            >
+              {formatClockTime(att.clockIn)} -{' '}
+              {att.clockOut !== undefined
+                ? formatClockTime(att.clockOut)
+                : '??:??'}
+            </span>
+          )
+        })}
+      </div>
+      {totalHours > 0 && (
+        <div className={styles.employeeCardTotalHoursCss}>
+          總工時: {formatTotalHours(totalHours)}
+        </div>
+      )}
+    </div>
+  )
 }
 
 // ---- Helper: render a single day cell ----
@@ -128,6 +161,7 @@ function renderDayCell(
   day: CalendarDay,
   onEditRecord: RecordsCalendarViewProps['onEditRecord'],
   onAddRecord: RecordsCalendarViewProps['onAddRecord'],
+  onCellClick?: RecordsCalendarViewProps['onCellClick'],
 ): React.ReactNode {
   // Build CSS class string based on day state
   const cellClasses = [styles.calendarDayCellCss]
@@ -141,6 +175,13 @@ function renderDayCell(
   // Format display date as "MM/DD"
   const displayMmDd = day.date.slice(5).replace('-', '/') // "2026-03-20" -> "03/20"
 
+  // Cell click handler — triggers add record for the date
+  const handleCellClick = () => {
+    if (day.isCurrentMonth && !day.isWeekend && onCellClick) {
+      onCellClick(day.date)
+    }
+  }
+
   // Weekend cell for current month — show "休"
   if (day.isWeekend && day.isCurrentMonth) {
     return (
@@ -151,9 +192,16 @@ function renderDayCell(
     )
   }
 
-  // Regular day cell
+  // Regular day cell — clicking the cell (including date) triggers add
   return (
-    <div key={day.date} className={className} {...(day.isToday ? { 'data-today': 'true' } : {})}>
+    <div
+      key={day.date}
+      className={className}
+      {...(day.isToday ? { 'data-today': 'true' } : {})}
+      onClick={handleCellClick}
+      role="button"
+      tabIndex={day.isCurrentMonth ? 0 : -1}
+    >
       {/* Date header */}
       {day.isToday ? (
         <div className={styles.calendarTodayHeaderCss}>
@@ -190,6 +238,7 @@ export const RecordsCalendarView: React.FC<RecordsCalendarViewProps> = ({
   calendarGrid,
   onEditRecord,
   onAddRecord,
+  onCellClick,
 }) => {
   return (
     <div className={styles.calendarWrapperCss}>
@@ -207,7 +256,9 @@ export const RecordsCalendarView: React.FC<RecordsCalendarViewProps> = ({
       {/* Calendar body grid */}
       <div className={styles.calendarBodyGridCss}>
         {calendarGrid.map(week =>
-          week.map(day => renderDayCell(day, onEditRecord, onAddRecord)),
+          week.map(day =>
+            renderDayCell(day, onEditRecord, onAddRecord, onCellClick),
+          ),
         )}
       </div>
     </div>

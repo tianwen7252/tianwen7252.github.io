@@ -221,11 +221,11 @@ export const recordsStyles = {
     padding: 2px 10px;
   `,
 
-  // Card-styled cells for table view
+  // Card-styled cells for table view — time labels with #F2D680 border
   cellCardCss: css`
     display: inline-block;
     padding: 4px 10px;
-    border: 1px solid ${COLOR_BORDER};
+    border: 1px solid #f2d680;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 500;
@@ -234,27 +234,45 @@ export const recordsStyles = {
     cursor: pointer;
     margin: 2px 0;
     transition: all 0.15s ease;
+    min-width: 88px;
     &:hover {
-      border-color: rgba(127, 149, 106, 0.3);
-      background: rgba(127, 149, 106, 0.05);
+      border-color: #e6c45a;
+      background: rgba(242, 214, 128, 0.08);
     }
   `,
 
+  // Vacation card with #f88181 border
   cellCardVacationCss: css`
     display: inline-block;
     padding: 4px 10px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    border: 1px solid #f88181;
     border-radius: 6px;
     font-size: 14px;
     font-weight: 700;
-    color: #3b82f6;
-    background: #eff6ff;
+    color: #f88181;
+    background: #fff5f5;
     cursor: pointer;
     margin: 2px 0;
     transition: all 0.15s ease;
+    min-width: 88px;
+    text-align: center;
     &:hover {
-      border-color: rgba(59, 130, 246, 0.4);
+      border-color: #e06060;
     }
+  `,
+
+  // Total hours label for table cells
+  cellTotalHoursLabelCss: css`
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid ${COLOR_PRIMARY};
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+    margin-top: 4px;
+    min-width: 93px;
+    text-align: center;
   `,
 
   tableWeekendRowCss: css`
@@ -414,6 +432,10 @@ export const recordsStyles = {
     padding: 8px;
     border-radius: 4px;
     border: 1px solid ${COLOR_BORDER};
+    cursor: pointer;
+    &:hover {
+      background: #f1f5f9;
+    }
   `,
 
   employeeCardNameCss: css`
@@ -422,40 +444,62 @@ export const recordsStyles = {
     color: ${COLOR_TEXT};
   `,
 
-  employeeCardTimeCss: css`
+  // Container for shift time labels inside calendar employee card
+  employeeCardShiftsCss: css`
     display: flex;
-    gap: 8px;
-    color: #64748b;
-    margin-top: 2px;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 4px;
   `,
 
-  employeeCardClockInCss: css`
-    color: ${COLOR_PRIMARY};
-    font-weight: 700;
-  `,
-
-  employeeCardClockOutCss: css`
+  // Time label with #F2D680 border for calendar view
+  employeeCardTimeLabelCss: css`
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid #f2d680;
+    border-radius: 4px;
+    font-size: 12px;
     color: #334155;
-    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    min-width: 76px;
+    &:hover {
+      border-color: #e6c45a;
+      background: rgba(242, 214, 128, 0.1);
+    }
   `,
 
-  employeeCardClockMissingCss: css`
-    color: #cbd5e1;
+  // Total hours label for calendar employee card
+  employeeCardTotalHoursCss: css`
+    display: inline-block;
+    padding: 1px 6px;
+    border: 1px solid ${COLOR_PRIMARY};
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+    margin-top: 4px;
+    text-align: center;
+    min-width: 76px;
   `,
 
   employeeCardVacationCss: css`
     font-size: 13px;
-    background: rgba(59, 130, 246, 0.05);
+    background: #fff5f5;
     padding: 8px;
     border-radius: 4px;
-    border: 1px solid rgba(59, 130, 246, 0.2);
+    border: 1px solid #f88181;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    cursor: pointer;
+    &:hover {
+      background: #fee2e2;
+    }
   `,
 
   employeeCardVacationLabelCss: css`
-    color: ${COLOR_BLUE};
+    color: #f88181;
     font-size: 12px;
     font-weight: 700;
   `,
