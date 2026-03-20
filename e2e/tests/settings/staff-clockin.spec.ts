@@ -29,15 +29,15 @@ test.describe('Settings - Staff Clock-In Tab', () => {
 
     // The seeded data has:
     // Employee 1 (小明): clockIn + clockOut -> "已下班"
-    // Employee 2 (小華): clockIn only -> "已上班"
+    // Employee 2 (小華): clockIn only -> "正在上班"
     const page = seededPage
 
     // 小明 should show "已下班" badge
     const card1 = page.locator('[data-testid="employee-card"]', { hasText: '小明' })
     await expect(card1.locator('.ant-badge', { hasText: '已下班' })).toBeVisible()
 
-    // 小華 should show "已上班" badge
+    // 小華 should show "正在上班" badge
     const card2 = page.locator('[data-testid="employee-card"]', { hasText: '小華' })
-    await expect(card2.locator('.ant-badge', { hasText: '已上班' })).toBeVisible()
+    await expect(card2.locator('.ant-badge', { hasText: '正在上班' })).toBeVisible()
   })
 })
