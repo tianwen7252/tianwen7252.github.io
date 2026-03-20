@@ -73,7 +73,7 @@ function deriveStatus(records: readonly RestaDB.Table.Attendance[]): {
   if (lastRecord.clockOut) {
     return { badgeColor: BADGE_COLOR_CLOCKED_OUT, badgeText: '已下班' }
   }
-  return { badgeColor: BADGE_COLOR_CLOCKED_IN, badgeText: '已上班' }
+  return { badgeColor: BADGE_COLOR_CLOCKED_IN, badgeText: '正在上班' }
 }
 
 // Choose the avatar border style class based on attendance state
@@ -266,10 +266,23 @@ export const ClockIn: React.FC = () => {
           const totalHours = calcTotalHours(records)
           const action = deriveCardAction(records)
 
+          // Derive card background modifier based on attendance state
+          const isClockedIn =
+            records.length > 0 && !isVacation && action === 'clockOut'
+          const isClockedOut =
+            records.length > 0 && !isVacation && action === 'clockIn'
+          const cardBgCss = isVacation
+            ? styles.cardVacationBgCss
+            : isClockedIn
+              ? styles.cardClockedInBgCss
+              : isClockedOut
+                ? styles.cardClockedOutBgCss
+                : ''
+
           return (
             <div
               key={employee.id}
-              className={`${styles.cardCss}${isVacation ? ` ${styles.cardVacationBgCss}` : ''}`}
+              className={`${styles.cardCss}${cardBgCss ? ` ${cardBgCss}` : ''}`}
               data-testid="employee-card"
               role="button"
               tabIndex={0}

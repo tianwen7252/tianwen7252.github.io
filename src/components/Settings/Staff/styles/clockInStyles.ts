@@ -52,6 +52,8 @@ export const styles = {
     text-align: center;
     cursor: pointer;
     user-select: none;
+    display: flex;
+    flex-direction: column;
     transition:
       transform 0.15s ease,
       box-shadow 0.15s ease;
@@ -63,9 +65,17 @@ export const styles = {
     }
   `,
 
-  // Vacation card background modifier — applied alongside cardCss
+  // Background modifiers — applied alongside cardCss
   cardVacationBgCss: css`
     background: ${COLOR_VACATION}26;
+  `,
+
+  cardClockedInBgCss: css`
+    background: #e6f0de;
+  `,
+
+  cardClockedOutBgCss: css`
+    background: #e7e0f3;
   `,
 
   avatarWrapCss: css`
@@ -134,7 +144,7 @@ export const styles = {
     font-size: 13px;
     color: ${COLOR_MUTED};
     line-height: 1.6;
-    margin-top: 4px;
+    margin-top: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -154,9 +164,8 @@ export const styles = {
   totalHoursLabelCss: css`
     display: inline-block;
     padding: 2px 12px;
-    border: 1px solid ${COLOR_PRIMARY};
     border-radius: 6px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
     color: ${COLOR_PRIMARY};
     margin-top: 8px;
@@ -166,7 +175,8 @@ export const styles = {
     display: flex;
     gap: 8px;
     justify-content: center;
-    margin-top: 12px;
+    margin-top: auto;
+    padding-top: 12px;
   `,
 
   emptyTextCss: css`

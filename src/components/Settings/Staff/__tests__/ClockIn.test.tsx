@@ -197,13 +197,13 @@ describe('ClockIn Component', () => {
       expect(screen.getByText('未打卡')).toBeInTheDocument()
     })
 
-    it('shows "已上班" when employee has clocked in but not out', () => {
+    it('shows "正在上班" when employee has clocked in but not out', () => {
       mockEmployees = [makeEmployee({ id: 1 })]
       mockAttendances = [
         makeAttendance({ employeeId: 1, clockIn: 1716170400000 }),
       ]
       render(<ClockIn />)
-      expect(screen.getByText('已上班')).toBeInTheDocument()
+      expect(screen.getByText('正在上班')).toBeInTheDocument()
     })
 
     it('shows "已下班" when employee has clocked in AND out', () => {
@@ -470,8 +470,8 @@ describe('ClockIn Component', () => {
 
       // Alice: no attendance -> 未打卡
       expect(cards[0].textContent).toContain('未打卡')
-      // Bob: clocked in -> 已上班
-      expect(cards[1].textContent).toContain('已上班')
+      // Bob: clocked in -> 正在上班
+      expect(cards[1].textContent).toContain('正在上班')
       // Carol: clocked in and out -> 已下班
       expect(cards[2].textContent).toContain('已下班')
       // Dave: vacation -> 休假
@@ -911,8 +911,8 @@ describe('ClockIn Component', () => {
         render(<ClockIn />)
         const cards = screen.getAllByTestId('employee-card')
         expect(cards.length).toBe(2)
-        // Alice: clocked in only -> 已上班
-        expect(cards[0].textContent).toContain('已上班')
+        // Alice: clocked in only -> 正在上班
+        expect(cards[0].textContent).toContain('正在上班')
         // Bob: clocked in and out -> 已下班
         expect(cards[1].textContent).toContain('已下班')
       })
@@ -933,7 +933,7 @@ describe('ClockIn Component', () => {
         expect(screen.getByText('已下班')).toBeInTheDocument()
       })
 
-      it('shows "已上班" when last shift is incomplete', () => {
+      it('shows "正在上班" when last shift is incomplete', () => {
         mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
         mockAttendances = [
           makeAttendance({
@@ -949,7 +949,7 @@ describe('ClockIn Component', () => {
           }),
         ]
         render(<ClockIn />)
-        expect(screen.getByText('已上班')).toBeInTheDocument()
+        expect(screen.getByText('正在上班')).toBeInTheDocument()
       })
     })
   })

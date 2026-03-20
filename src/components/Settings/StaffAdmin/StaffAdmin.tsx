@@ -208,7 +208,7 @@ export const StaffAdmin: React.FC = () => {
     {
       title: '操作',
       key: 'actions',
-      width: 220,
+      width: 100,
       render: (_: any, employee: RestaDB.Table.Employee) => (
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <Button

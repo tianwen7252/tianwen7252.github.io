@@ -184,6 +184,7 @@ export const recordsStyles = {
   tableBodyCellCss: css`
     padding: 20px 24px;
     cursor: pointer;
+    text-align: center;
   `,
 
   cellClickableCss: css`
