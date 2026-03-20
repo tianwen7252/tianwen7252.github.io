@@ -99,9 +99,18 @@ export const RecordsTableView: React.FC<RecordsTableViewProps> = ({
                     <td
                       key={cell.employee.id}
                       className={styles.tableBodyCellCss}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${cell.employee.name} ${row.displayDate}`}
                       onClick={() =>
                         onCellClick(cell.employee, row.date, cell.attendance)
                       }
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onCellClick(cell.employee, row.date, cell.attendance)
+                        }
+                      }}
                     >
                       <div className={styles.cellClickableCss}>
                         {renderCellContent(displayType, cell.attendance)}

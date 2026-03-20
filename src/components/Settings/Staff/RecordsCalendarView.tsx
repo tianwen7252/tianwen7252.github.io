@@ -34,6 +34,14 @@ function renderEmployeeCard(
     onCellClick(cell.employee, date, cell.attendance)
   }
 
+  // Keyboard handler for accessibility
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onCellClick(cell.employee, date, cell.attendance)
+    }
+  }
+
   switch (displayType) {
     case 'normal':
       return (
@@ -41,6 +49,7 @@ function renderEmployeeCard(
           key={cell.employee.id}
           className={styles.employeeCardCss}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           role="button"
           tabIndex={0}
         >
@@ -68,6 +77,7 @@ function renderEmployeeCard(
           key={cell.employee.id}
           className={styles.employeeCardCss}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           role="button"
           tabIndex={0}
         >
@@ -93,6 +103,7 @@ function renderEmployeeCard(
           key={cell.employee.id}
           className={styles.employeeCardVacationCss}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           role="button"
           tabIndex={0}
         >
@@ -107,6 +118,7 @@ function renderEmployeeCard(
           key={cell.employee.id}
           className={styles.employeeCardCss}
           onClick={handleClick}
+          onKeyDown={handleKeyDown}
           role="button"
           tabIndex={0}
         >

@@ -76,7 +76,7 @@ export function getCellDisplayType(
   if (attendance.type === ATTENDANCE_TYPES.VACATION) {
     return 'vacation'
   }
-  if (attendance.clockIn && !attendance.clockOut) {
+  if (attendance.clockIn !== undefined && attendance.clockOut === undefined) {
     return 'clockInOnly'
   }
   return 'normal'

@@ -214,7 +214,11 @@ export const Records: React.FC = () => {
         onSuccess={handleModalClose}
         employees={activeEmployees}
         defaultDate={editTarget?.date ?? dayjs().format('YYYY-MM-DD')}
-        defaultEmployeeId={editTarget?.employee?.id as number | undefined}
+        defaultEmployeeId={
+          typeof editTarget?.employee?.id === 'number'
+            ? editTarget.employee.id
+            : undefined
+        }
       />
     </div>
   )
