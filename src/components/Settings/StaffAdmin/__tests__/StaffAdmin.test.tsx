@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import React from 'react'
 import { render, fireEvent, screen, waitFor } from '@testing-library/react'
 import { StaffAdmin } from '../StaffAdmin'
+import dayjs from 'dayjs'
 import * as API from 'src/libs/api'
 import { AppContext } from 'src/pages/App/context'
 import { ANIMAL_AVATARS } from 'src/constants/defaults/animalAvatars'
@@ -156,13 +157,16 @@ describe('StaffAdmin Component', () => {
     if (confirmBtn) fireEvent.click(confirmBtn)
 
     await waitFor(() => {
-      expect(API.employees.add).toHaveBeenCalledWith({
-        name: 'Charlie',
-        avatar: '',
-        status: 'active',
-        shiftType: 'regular',
-        isAdmin: false,
-      })
+      expect(API.employees.add).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Charlie',
+          avatar: '',
+          status: 'active',
+          shiftType: 'regular',
+          isAdmin: false,
+          hireDate: dayjs().format('YYYY-MM-DD'),
+        }),
+      )
     })
   })
 
@@ -328,7 +332,7 @@ describe('StaffAdmin Component', () => {
     renderWithContext(<StaffAdmin />)
     const columnHeaders = screen.getAllByRole('columnheader')
     const headerTexts = columnHeaders.map(h => h.textContent?.trim())
-    expect(headerTexts).toEqual(['員工編號', '員工', '班別', '操作'])
+    expect(headerTexts).toEqual(['員工編號', '員工', '入職日期', '離職日期', '班別', '操作'])
   })
 
   // -- Story 4: Avatar grid 9 columns --
@@ -364,15 +368,27 @@ describe('StaffAdmin Component', () => {
 
   // -- Story 4: DatePicker fields for hireDate and resignationDate --
 
-  it('renders hireDate and resignationDate DatePicker fields in modal', async () => {
+  it('renders hireDate field in add modal but not resignationDate', async () => {
     renderWithContext(<StaffAdmin />)
 
     fireEvent.click(screen.getByText('新增員工'))
     await screen.findByPlaceholderText('請輸入員工姓名')
 
-    // Both date labels should be in the modal
-    expect(screen.getByText('入職日期')).toBeInTheDocument()
-    expect(screen.getByText('離職日期')).toBeInTheDocument()
+    // hireDate should be in the modal, resignationDate should NOT (new employee)
+    expect(screen.getByPlaceholderText('選擇入職日期')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('選擇離職日期')).not.toBeInTheDocument()
+  })
+
+  it('renders both date fields in edit modal', async () => {
+    renderWithContext(<StaffAdmin />)
+
+    const editBtns = screen.getAllByLabelText('edit')
+    fireEvent.click(editBtns[0])
+    await screen.findByPlaceholderText('請輸入員工姓名')
+
+    // Both date fields should be visible when editing
+    expect(screen.getByPlaceholderText('選擇入職日期')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('選擇離職日期')).toBeInTheDocument()
   })
 
   it('pre-populates hireDate in edit modal when employee has hireDate', async () => {
@@ -458,7 +474,7 @@ describe('StaffAdmin Component', () => {
     })
   })
 
-  it('submits add form without date fields when not set', async () => {
+  it('submits add form with default hireDate and no resignationDate', async () => {
     renderWithContext(<StaffAdmin />)
 
     fireEvent.click(screen.getByText('新增員工'))
@@ -474,11 +490,11 @@ describe('StaffAdmin Component', () => {
       expect(API.employees.add).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Frank',
+          hireDate: dayjs().format('YYYY-MM-DD'),
         }),
       )
-      // Should not include undefined date fields as non-undefined values
+      // resignationDate should not be included for new employees
       const callArgs = (API.employees.add as ReturnType<typeof vi.fn>).mock.calls[0][0]
-      expect(callArgs.hireDate).toBeUndefined()
       expect(callArgs.resignationDate).toBeUndefined()
     })
   })
