@@ -10,10 +10,10 @@ export const styles = {
     align-items: center;
     gap: 8px;
   `,
-  // Animal image grid in modal (7 columns)
+  // Animal image grid in modal (9 columns)
   imageGridCss: css`
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(9, 1fr);
     gap: 8px;
     max-height: 360px;
     overflow-y: auto;
@@ -34,8 +34,8 @@ export const styles = {
     }
 
     img {
-      width: 74px;
-      height: 74px;
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
       object-fit: cover;
     }

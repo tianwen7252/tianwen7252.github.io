@@ -9,8 +9,11 @@ import {
   Popconfirm,
   Radio,
   Checkbox,
+  DatePicker,
   message,
 } from 'antd'
+import dayjs from 'dayjs'
+import type { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { AuthGuard } from 'src/components/AuthGuard'
@@ -21,14 +24,20 @@ import { SHIFT_TYPES } from 'src/constants/defaults/shiftTypes'
 import type { ShiftType } from 'src/constants/defaults/shiftTypes'
 import { styles } from './styles'
 
-// Format employee number with optional admin label
+// Format employee number with optional admin and resigned labels
 function formatEmployeeNo(employee: RestaDB.Table.Employee): React.ReactNode {
-  const { employeeNo, isAdmin } = employee
+  const { employeeNo, isAdmin, resignationDate } = employee
   if (!employeeNo) return '—'
-  if (isAdmin) {
+
+  const tags = [
+    isAdmin ? <Tag key="admin" color="gold">管理員</Tag> : null,
+    resignationDate ? <Tag key="resigned" color="red">已離職</Tag> : null,
+  ].filter(Boolean)
+
+  if (tags.length > 0) {
     return (
       <span>
-        {employeeNo} <Tag color="gold">管理員</Tag>
+        {employeeNo} {tags}
       </span>
     )
   }
@@ -46,6 +55,8 @@ interface EmployeeFormValues {
   avatar?: string
   shiftType: ShiftType
   isAdmin?: boolean
+  hireDate?: Dayjs
+  resignationDate?: Dayjs
 }
 
 export const StaffAdmin: React.FC = () => {
@@ -66,8 +77,10 @@ export const StaffAdmin: React.FC = () => {
               avatar: editingEmployee.avatar ?? '',
               shiftType: editingEmployee.shiftType ?? 'regular',
               isAdmin: editingEmployee.isAdmin ?? false,
+              hireDate: editingEmployee.hireDate ? dayjs(editingEmployee.hireDate) : undefined,
+              resignationDate: editingEmployee.resignationDate ? dayjs(editingEmployee.resignationDate) : undefined,
             }
-          : { name: '', avatar: '', shiftType: 'regular', isAdmin: false },
+          : { name: '', avatar: '', shiftType: 'regular', isAdmin: false, hireDate: undefined, resignationDate: undefined },
       )
     }
   }, [isModalOpen, editingEmployee, form])
@@ -89,12 +102,19 @@ export const StaffAdmin: React.FC = () => {
 
   const handleSaveEmployee = async (values: EmployeeFormValues) => {
     try {
+      // Convert Dayjs to ISO date string, omit if not set
+      const hireDate = values.hireDate?.format('YYYY-MM-DD')
+      const resignationDate = values.resignationDate?.format('YYYY-MM-DD')
+
       if (editingEmployee) {
+        // Always include date fields so clearing a DatePicker removes the value
         await API.employees.set(editingEmployee.id!, {
           name: values.name,
           avatar: values.avatar,
           shiftType: values.shiftType,
           isAdmin: values.isAdmin ?? false,
+          hireDate,
+          resignationDate,
         })
         message.success('已更新員工資料')
       } else {
@@ -104,6 +124,8 @@ export const StaffAdmin: React.FC = () => {
           status: 'active',
           shiftType: values.shiftType,
           isAdmin: values.isAdmin ?? false,
+          ...(hireDate !== undefined && { hireDate }),
+          ...(resignationDate !== undefined && { resignationDate }),
         })
         message.success('新增員工成功')
       }
@@ -196,11 +218,12 @@ export const StaffAdmin: React.FC = () => {
         />
 
         <Modal
+          key={editingEmployee?.id ?? 'new'}
           title={editingEmployee ? '編輯員工' : '新增員工'}
           open={isModalOpen}
           onCancel={handleClose}
           footer={null}
-          width={700}
+          width={900}
           centered
           destroyOnHidden
         >
@@ -226,6 +249,23 @@ export const StaffAdmin: React.FC = () => {
             <Form.Item name="isAdmin" valuePropName="checked" initialValue={false}>
               <Checkbox>管理員權限</Checkbox>
             </Form.Item>
+
+            <div style={{ display: 'flex', gap: 16 }}>
+              <Form.Item name="hireDate" label="入職日期" style={{ flex: 1 }}>
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  placeholder="選擇入職日期"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+              <Form.Item name="resignationDate" label="離職日期" style={{ flex: 1 }}>
+                <DatePicker
+                  format="YYYY-MM-DD"
+                  placeholder="選擇離職日期"
+                  style={{ width: '100%' }}
+                />
+              </Form.Item>
+            </div>
 
             <Form.Item name="avatar" label="頭像">
               <div className={styles.imageGridCss}>
