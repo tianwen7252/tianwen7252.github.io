@@ -1,394 +1,290 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import React from 'react'
-import { render, screen, waitFor, within, fireEvent } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import dayjs from 'dayjs'
-import { Records } from '../Records'
-import * as API from 'src/libs/api'
 
-// Use dates in the current month so calendar view renders them
-const today = dayjs()
-const regularDate = today.date(10).format('YYYY-MM-DD')
-const vacationDate = today.date(11).format('YYYY-MM-DD')
-const noTypeDate = today.date(12).format('YYYY-MM-DD')
-const bobDate = today.date(13).format('YYYY-MM-DD')
+// Mock useLiveQuery from dexie-react-hooks
+vi.mock('dexie-react-hooks', () => ({
+  useLiveQuery: vi.fn(),
+}))
+import { useLiveQuery } from 'dexie-react-hooks'
 
-// Mock API calls
+// Mock API module
 vi.mock('src/libs/api', () => ({
+  attendances: {
+    getByMonth: vi.fn(),
+    getByDate: vi.fn(),
+    add: vi.fn(),
+    set: vi.fn(),
+    delete: vi.fn(),
+  },
   employees: {
     get: vi.fn(),
   },
-  attendances: {
-    getByMonth: vi.fn(),
-  },
+}))
+
+// Mock child components to isolate container logic
+vi.mock('../RecordsTableView', () => ({
+  RecordsTableView: (props: any) => (
+    <div data-testid="table-view">
+      {/* Expose onCellClick for testing with existing attendance */}
+      <button
+        data-testid="table-cell-click"
+        onClick={() =>
+          props.onCellClick(
+            { id: 1, name: 'Ryan' },
+            '2026-03-20',
+            {
+              id: 100,
+              employeeId: 1,
+              date: '2026-03-20',
+              clockIn: dayjs('2026-03-20 08:30').valueOf(),
+              clockOut: dayjs('2026-03-20 18:00').valueOf(),
+              type: 'regular',
+            },
+          )
+        }
+      >
+        click-existing
+      </button>
+      {/* Expose onCellClick for testing with empty cell (no attendance) */}
+      <button
+        data-testid="table-empty-cell-click"
+        onClick={() =>
+          props.onCellClick(
+            { id: 2, name: '\u9673\u5c0f\u660e' },
+            '2026-03-20',
+            undefined,
+          )
+        }
+      >
+        click-empty
+      </button>
+    </div>
+  ),
+  default: (props: any) => <div data-testid="table-view" />,
+}))
+
+vi.mock('../RecordsCalendarView', () => ({
+  RecordsCalendarView: (props: any) => <div data-testid="calendar-view" />,
+  default: (props: any) => <div data-testid="calendar-view" />,
 }))
 
 vi.mock('../EditRecordModal', () => ({
-  default: ({ empName }: { empName: string }) => (
-    <div data-testid="edit-modal">Edit Modal for {empName}</div>
+  EditRecordModal: (props: any) => (
+    <div data-testid="edit-modal">
+      <span>{props.empName}</span>
+      <button data-testid="edit-modal-cancel" onClick={props.onCancel}>
+        Cancel
+      </button>
+    </div>
   ),
+  default: (props: any) => <div data-testid="edit-modal" />,
 }))
 
 vi.mock('../AddRecordModal', () => ({
-  AddRecordModal: ({
-    open,
-    onCancel,
-  }: {
-    open: boolean
-    onCancel: () => void
-  }) =>
-    open ? (
-      <div data-testid="add-record-modal">
-        Add Record Modal
-        <button onClick={onCancel}>Cancel</button>
+  AddRecordModal: (props: any) =>
+    props.open ? (
+      <div data-testid="add-modal">
+        <span>{props.defaultDate}</span>
+        <button data-testid="add-modal-cancel" onClick={props.onCancel}>
+          Cancel
+        </button>
       </div>
     ) : null,
+  default: (props: any) => null,
 }))
 
-// Mock employee list with multiple employees for filter testing
-const mockEmployees = [
-  { id: 1, name: 'Alice', status: 'active' },
-  { id: 2, name: 'Bob', status: 'active' },
+// --- Mock data ---
+
+const mockEmployees: RestaDB.Table.Employee[] = [
+  { id: 1, name: 'Ryan' },
+  { id: 2, name: '\u9673\u5c0f\u660e' },
 ]
 
-// Build mock attendance records using current-month dates (multi-employee)
-const buildMockAttendances = () => [
+const mockAttendances: RestaDB.Table.Attendance[] = [
   {
-    id: 101,
+    id: 100,
     employeeId: 1,
-    date: regularDate,
-    clockIn: dayjs(`${regularDate}T09:00:00`).valueOf(),
-    clockOut: dayjs(`${regularDate}T18:00:00`).valueOf(),
-    type: 'regular' as const,
-  },
-  {
-    id: 102,
-    employeeId: 1,
-    date: vacationDate,
-    clockIn: dayjs(`${vacationDate}T09:00:00`).valueOf(),
-    clockOut: undefined,
-    type: 'vacation' as const,
-  },
-  {
-    id: 103,
-    employeeId: 1,
-    date: noTypeDate,
-    clockIn: dayjs(`${noTypeDate}T08:00:00`).valueOf(),
-    clockOut: dayjs(`${noTypeDate}T17:00:00`).valueOf(),
-  },
-  {
-    id: 104,
-    employeeId: 2,
-    date: bobDate,
-    clockIn: dayjs(`${bobDate}T10:00:00`).valueOf(),
-    clockOut: dayjs(`${bobDate}T19:00:00`).valueOf(),
-    type: 'regular' as const,
+    date: '2026-03-20',
+    clockIn: dayjs('2026-03-20 08:30').valueOf(),
+    clockOut: dayjs('2026-03-20 18:00').valueOf(),
+    type: 'regular',
   },
 ]
 
-// Mock dexie-react-hooks with both record types
-vi.mock('dexie-react-hooks', () => ({
-  useLiveQuery: (callback: Function, _deps: any[]) => {
-    callback()
-    if (callback.toString().includes('employees')) {
-      return mockEmployees
-    }
-    if (callback.toString().includes('attendances')) {
-      return buildMockAttendances()
-    }
-    return []
-  },
-}))
+// --- Helper to configure useLiveQuery mock ---
 
-describe('Records Component', () => {
+function setupUseLiveQueryMock(
+  attendances: RestaDB.Table.Attendance[] | undefined = mockAttendances,
+  employees: RestaDB.Table.Employee[] | undefined = mockEmployees,
+) {
+  const mockedUseLiveQuery = useLiveQuery as ReturnType<typeof vi.fn>
+  mockedUseLiveQuery.mockReset()
+  let callIndex = 0
+  mockedUseLiveQuery.mockImplementation((_fn: any, deps?: any[]) => {
+    callIndex++
+    // First call in component: attendances (has deps), second call: employees (no deps)
+    if (callIndex % 2 === 1) return attendances
+    return employees
+  })
+}
+
+// --- Import component under test AFTER mocks are set up ---
+import { Records } from '../Records'
+
+describe('Records container component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    setupUseLiveQueryMock()
   })
 
-  it('renders table mode correctly and opens edit modal', async () => {
-    const user = userEvent.setup()
+  // 1. Renders page title
+  it('renders the page title', () => {
+    render(<Records />)
+    expect(screen.getByText('\u54e1\u5de5\u8003\u52e4\u72c0\u6cc1')).toBeInTheDocument()
+  })
+
+  // 2. Renders toggle buttons
+  it('renders toggle buttons for table and calendar views', () => {
+    render(<Records />)
+    expect(screen.getByText('\u8868\u683c')).toBeInTheDocument()
+    expect(screen.getByText('\u6708\u66c6')).toBeInTheDocument()
+  })
+
+  // 3. Default view is table
+  it('defaults to table view', () => {
+    render(<Records />)
+    expect(screen.getByTestId('table-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('calendar-view')).not.toBeInTheDocument()
+  })
+
+  // 4. Switch to calendar view
+  it('switches to calendar view when calendar toggle is clicked', () => {
     render(<Records />)
 
-    // Switch to table mode using userEvent for reliable Ant Design Radio interaction
-    await user.click(screen.getByText('表格'))
+    // Click the calendar toggle button
+    fireEvent.click(screen.getByText('\u6708\u66c6'))
 
-    // Check if records exist in the table (multiple Alice records now)
+    expect(screen.getByTestId('calendar-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('table-view')).not.toBeInTheDocument()
+  })
+
+  // 5. Search input is present
+  it('renders the search input with correct placeholder', () => {
+    render(<Records />)
+    expect(
+      screen.getByPlaceholderText('\u641c\u5c0b\u54e1\u5de5\u59d3\u540d'),
+    ).toBeInTheDocument()
+  })
+
+  // 6. Year and month selects are present
+  it('renders year and month select dropdowns', () => {
+    render(<Records />)
+    // The year select should show the current year
+    const currentYear = dayjs().year()
+    expect(screen.getByText(`${currentYear} \u5e74`)).toBeInTheDocument()
+    // The month select should show the current month
+    const currentMonth = dayjs().month() + 1
+    expect(screen.getByText(`${currentMonth} \u6708`)).toBeInTheDocument()
+  })
+
+  // 7. Click cell with attendance opens EditRecordModal
+  it('opens EditRecordModal when clicking a cell with existing attendance', async () => {
+    render(<Records />)
+
+    // Click the mock table cell that has attendance data
+    fireEvent.click(screen.getByTestId('table-cell-click'))
+
     await waitFor(() => {
-      expect(screen.getAllByText('Alice').length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText(regularDate)).toBeInTheDocument()
+      expect(screen.getByTestId('edit-modal')).toBeInTheDocument()
+      expect(screen.getByTestId('edit-modal')).toHaveTextContent('Ryan')
     })
+  })
 
-    // Click on the first Edit Action
-    await user.click(screen.getAllByText('修改')[0])
+  // 8. Click empty cell opens AddRecordModal
+  it('opens AddRecordModal when clicking an empty cell', async () => {
+    render(<Records />)
+
+    // Click the mock table cell with no attendance (empty)
+    fireEvent.click(screen.getByTestId('table-empty-cell-click'))
 
     await waitFor(() => {
-      expect(screen.getByTestId('edit-modal')).toHaveTextContent(
-        'Edit Modal for Alice',
-      )
+      expect(screen.getByTestId('add-modal')).toBeInTheDocument()
+      expect(screen.getByTestId('add-modal')).toHaveTextContent('2026-03-20')
     })
   })
 
-  describe('Table view - Type column', () => {
-    it('displays a Type column header', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
+  // 9. EditRecordModal cancel closes it
+  it('closes EditRecordModal when cancel is clicked', async () => {
+    render(<Records />)
 
-      await user.click(screen.getByText('表格'))
-
-      await waitFor(() => {
-        // The table should have a column header for type
-        expect(screen.getByText('類型')).toBeInTheDocument()
-      })
+    // Open edit modal
+    fireEvent.click(screen.getByTestId('table-cell-click'))
+    await waitFor(() => {
+      expect(screen.getByTestId('edit-modal')).toBeInTheDocument()
     })
 
-    it('shows "一般" for regular type records', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      await user.click(screen.getByText('表格'))
-
-      await waitFor(() => {
-        // Regular records should display as "一般" (at least one)
-        const regularLabels = screen.getAllByText('一般')
-        expect(regularLabels.length).toBeGreaterThanOrEqual(1)
-      })
-    })
-
-    it('shows "休假" for vacation type records', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      await user.click(screen.getByText('表格'))
-
-      await waitFor(() => {
-        // Vacation records should display as "休假"
-        expect(screen.getByText('休假')).toBeInTheDocument()
-      })
-    })
-
-    it('shows "一般" for records without type field (backward compatibility)', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      await user.click(screen.getByText('表格'))
-
-      await waitFor(() => {
-        // Records without a type should default to "一般"
-        // We expect at least 2 "一般" entries (regular + no-type records)
-        const regularLabels = screen.getAllByText('一般')
-        expect(regularLabels.length).toBeGreaterThanOrEqual(2)
-      })
-    })
-
-    it('shows dash for clockOut on vacation records in table', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      await user.click(screen.getByText('表格'))
-
-      await waitFor(() => {
-        // Find the row with the vacation date and check clockOut column
-        const rows = screen.getAllByRole('row')
-        const vacationRow = rows.find(row =>
-          row.textContent?.includes(vacationDate),
-        )
-        expect(vacationRow).toBeDefined()
-        // Vacation clockOut should display as em-dash, not a time
-        expect(vacationRow!.textContent).toContain('\u2014')
-      })
+    // Cancel the modal
+    fireEvent.click(screen.getByTestId('edit-modal-cancel'))
+    await waitFor(() => {
+      expect(screen.queryByTestId('edit-modal')).not.toBeInTheDocument()
     })
   })
 
-  describe('Calendar view - Vacation badges', () => {
-    it('shows "休假" text for vacation records in calendar cells', async () => {
-      render(<Records />)
+  // 10. AddRecordModal cancel closes it
+  it('closes AddRecordModal when cancel is clicked', async () => {
+    render(<Records />)
 
-      // Calendar is the default view; vacation record date is in current month
-      await waitFor(() => {
-        // Vacation record should show badge text containing "休假"
-        expect(screen.getByText(/休假/)).toBeInTheDocument()
-      })
+    // Open add modal via empty cell click
+    fireEvent.click(screen.getByTestId('table-empty-cell-click'))
+    await waitFor(() => {
+      expect(screen.getByTestId('add-modal')).toBeInTheDocument()
+    })
+
+    // Cancel the modal
+    fireEvent.click(screen.getByTestId('add-modal-cancel'))
+    await waitFor(() => {
+      expect(screen.queryByTestId('add-modal')).not.toBeInTheDocument()
     })
   })
 
-  // --- Add Record Button Tests ---
-
-  describe('Add Record button', () => {
-    it('renders "新增打卡紀錄" button in the toolbar', () => {
-      render(<Records />)
-
-      expect(screen.getByRole('button', { name: /新增打卡紀錄/ })).toBeInTheDocument()
-    })
-
-    it('opens AddRecordModal when clicked', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      // Modal should not be visible initially
-      expect(screen.queryByTestId('add-record-modal')).not.toBeInTheDocument()
-
-      // Click the add record button
-      await user.click(screen.getByRole('button', { name: /新增打卡紀錄/ }))
-
-      // Modal should now be visible
-      await waitFor(() => {
-        expect(screen.getByTestId('add-record-modal')).toBeInTheDocument()
-      })
-    })
-
-    it('closes AddRecordModal when modal cancel is triggered', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      // Open the modal
-      await user.click(screen.getByRole('button', { name: /新增打卡紀錄/ }))
-
-      await waitFor(() => {
-        expect(screen.getByTestId('add-record-modal')).toBeInTheDocument()
-      })
-
-      // Click cancel in the modal
-      await user.click(screen.getByText('Cancel'))
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('add-record-modal')).not.toBeInTheDocument()
-      })
-    })
+  // 11. Bottom hint text displayed
+  it('displays the bottom hint text', () => {
+    render(<Records />)
+    expect(
+      screen.getByText('\u9ede\u64ca\u5132\u5b58\u683c\u5373\u53ef\u76f4\u63a5\u7de8\u8f2f\u6253\u5361\u6642\u9593'),
+    ).toBeInTheDocument()
   })
 
-  // --- Employee Filter Tests ---
+  // 12. Loading spinner when data is undefined
+  it('shows a loading spinner when data is not yet loaded', () => {
+    // Override the mock to always return undefined (loading state)
+    const mockedUseLiveQuery = useLiveQuery as ReturnType<typeof vi.fn>
+    mockedUseLiveQuery.mockReset()
+    mockedUseLiveQuery.mockReturnValue(undefined)
 
-  describe('Employee filter', () => {
-    // Helper to open Ant Design Select dropdown via mouseDown on the selector
-    const openFilterDropdown = () => {
-      const selector = document.querySelector(
-        '.ant-select-selector',
-      ) as HTMLElement
-      fireEvent.mouseDown(selector)
-    }
+    const { container } = render(<Records />)
 
-    // Helper to select an option from the opened Ant Design Select dropdown
-    const selectOption = (name: string) => {
-      const option = Array.from(
-        document.querySelectorAll('.ant-select-item-option'),
-      ).find(el => el.textContent?.includes(name)) as HTMLElement
-      fireEvent.click(option)
-    }
+    // Should NOT show the toggle buttons (page content is not rendered in loading state)
+    expect(screen.queryByText('\u8868\u683c')).not.toBeInTheDocument()
+    expect(screen.queryByText('\u6708\u66c6')).not.toBeInTheDocument()
+    // Should NOT show the table or calendar view
+    expect(screen.queryByTestId('table-view')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('calendar-view')).not.toBeInTheDocument()
+  })
 
-    it('renders an employee filter Select dropdown', () => {
-      render(<Records />)
+  // 13. Switch back to table view from calendar
+  it('switches back to table view from calendar view', () => {
+    render(<Records />)
 
-      // The filter select should have a placeholder "所有員工"
-      expect(screen.getByText('所有員工')).toBeInTheDocument()
-    })
+    // Switch to calendar
+    fireEvent.click(screen.getByText('\u6708\u66c6'))
+    expect(screen.getByTestId('calendar-view')).toBeInTheDocument()
 
-    it('shows all employees as options in the filter dropdown', async () => {
-      render(<Records />)
-
-      // Open the employee filter dropdown via mouseDown on the selector
-      openFilterDropdown()
-
-      // Both employees should appear as options
-      await waitFor(() => {
-        const options = document.querySelectorAll('.ant-select-item-option')
-        const optionTexts = Array.from(options).map(el => el.textContent)
-        expect(optionTexts).toContain('Alice')
-        expect(optionTexts).toContain('Bob')
-      })
-    })
-
-    it('filters table records by selected employee', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      // Switch to table view
-      await user.click(screen.getByText('表格'))
-
-      // Verify both Alice and Bob records are visible in the table initially
-      await waitFor(() => {
-        const table = document.querySelector('.ant-table-tbody') as HTMLElement
-        expect(within(table).getAllByText('Alice').length).toBeGreaterThanOrEqual(1)
-        expect(within(table).getAllByText('Bob').length).toBeGreaterThanOrEqual(1)
-      })
-
-      // Open the filter dropdown and select Bob
-      openFilterDropdown()
-
-      await waitFor(() => {
-        const options = document.querySelectorAll('.ant-select-item-option')
-        expect(options.length).toBeGreaterThan(0)
-      })
-
-      selectOption('Bob')
-
-      // After filtering, only Bob records should be in the table body
-      await waitFor(() => {
-        const table = document.querySelector('.ant-table-tbody') as HTMLElement
-        expect(within(table).getAllByText('Bob').length).toBeGreaterThanOrEqual(1)
-        expect(within(table).queryByText('Alice')).not.toBeInTheDocument()
-      })
-    })
-
-    it('shows all records when filter is cleared', async () => {
-      const user = userEvent.setup()
-      render(<Records />)
-
-      // Switch to table view
-      await user.click(screen.getByText('表格'))
-
-      // Open the filter and select Bob first
-      openFilterDropdown()
-
-      await waitFor(() => {
-        const options = document.querySelectorAll('.ant-select-item-option')
-        expect(options.length).toBeGreaterThan(0)
-      })
-
-      selectOption('Bob')
-
-      // Verify filtered state: only Bob visible in table body
-      await waitFor(() => {
-        const table = document.querySelector('.ant-table-tbody') as HTMLElement
-        expect(within(table).queryByText('Alice')).not.toBeInTheDocument()
-      })
-
-      // Clear the filter using the allowClear X button
-      const clearBtn = document.querySelector('.ant-select-clear') as HTMLElement
-      expect(clearBtn).toBeTruthy()
-      fireEvent.mouseDown(clearBtn)
-      fireEvent.click(clearBtn)
-
-      // After clearing, all records should reappear in the table
-      await waitFor(() => {
-        const table = document.querySelector('.ant-table-tbody') as HTMLElement
-        expect(within(table).getAllByText('Alice').length).toBeGreaterThanOrEqual(1)
-        expect(within(table).getAllByText('Bob').length).toBeGreaterThanOrEqual(1)
-      })
-    })
-
-    it('filters calendar view records by selected employee', async () => {
-      render(<Records />)
-
-      // Calendar is the default view; both employees should have records
-      await waitFor(() => {
-        // Alice has a vacation record with "休假" badge text
-        expect(screen.getByText(/Alice 休假/)).toBeInTheDocument()
-      })
-
-      // Open the filter and select Bob
-      openFilterDropdown()
-
-      await waitFor(() => {
-        const options = document.querySelectorAll('.ant-select-item-option')
-        expect(options.length).toBeGreaterThan(0)
-      })
-
-      selectOption('Bob')
-
-      // After filtering for Bob, Alice's vacation badge should not appear
-      await waitFor(() => {
-        expect(screen.queryByText(/Alice 休假/)).not.toBeInTheDocument()
-      })
-    })
+    // Switch back to table
+    fireEvent.click(screen.getByText('\u8868\u683c'))
+    expect(screen.getByTestId('table-view')).toBeInTheDocument()
+    expect(screen.queryByTestId('calendar-view')).not.toBeInTheDocument()
   })
 })
