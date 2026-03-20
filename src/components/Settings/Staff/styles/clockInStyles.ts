@@ -11,6 +11,7 @@ const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
 const COLOR_CLOCKED_OUT = '#cab3f3'
 const COLOR_VACATION = '#f88181'
+const COLOR_LEAVE_BTN = '#ee8e8f'
 const COLOR_DEFAULT = '#dbe3d2'
 
 export const styles = {
@@ -177,6 +178,20 @@ export const styles = {
     justify-content: center;
     margin-top: auto;
     padding-top: 12px;
+  `,
+
+  leaveBtnCss: css`
+    background: ${COLOR_LEAVE_BTN};
+    border-color: ${COLOR_LEAVE_BTN};
+    &:hover,
+    &:focus {
+      background: ${COLOR_LEAVE_BTN}dd;
+      border-color: ${COLOR_LEAVE_BTN}dd;
+    }
+    &:active {
+      background: ${COLOR_LEAVE_BTN}bb;
+      border-color: ${COLOR_LEAVE_BTN}bb;
+    }
   `,
 
   emptyTextCss: css`

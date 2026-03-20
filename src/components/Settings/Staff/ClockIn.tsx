@@ -361,8 +361,8 @@ export const ClockIn: React.FC = () => {
                     </Button>
                     <Button
                       type="primary"
-                      danger
                       size="small"
+                      className={styles.leaveBtnCss}
                       onClick={e =>
                         handleButtonAction(e, employee, 'vacation', undefined)
                       }
