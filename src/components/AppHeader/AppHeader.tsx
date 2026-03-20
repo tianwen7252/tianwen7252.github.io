@@ -9,6 +9,7 @@ import {
   SettingOutlined,
   MenuOutlined,
   ReloadOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons'
 
 import { useObserverDom } from 'src/hooks'
@@ -80,6 +81,11 @@ export const AppHeader: React.FC<{}> = memo(() => {
         <FloatButton
           data-url="/"
           icon={<FormOutlined />}
+          onClick={onClickMenu}
+        />
+        <FloatButton
+          data-url="/clock-in"
+          icon={<ClockCircleOutlined />}
           onClick={onClickMenu}
         />
         <FloatButton
