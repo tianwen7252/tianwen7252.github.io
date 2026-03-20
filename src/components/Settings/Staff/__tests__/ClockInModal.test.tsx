@@ -227,10 +227,17 @@ describe('ClockInModal Component', () => {
   // --------------------------------------------------------
 
   describe('real-time clock', () => {
-    it('shows "目前時間" label', () => {
-      const props = defaultProps()
+    it('shows "目前時間" label for clockIn action', () => {
+      const props = defaultProps({ action: 'clockIn' })
       render(<ClockInModal {...props} />)
       expect(screen.getByText('目前時間')).toBeInTheDocument()
+    })
+
+    it('shows "休假時間" label for vacation action', () => {
+      const props = defaultProps({ action: 'vacation' })
+      render(<ClockInModal {...props} />)
+      expect(screen.getByText('休假時間')).toBeInTheDocument()
+      expect(screen.queryByText('目前時間')).not.toBeInTheDocument()
     })
 
     it('displays current time in HH:mm AM/PM format', () => {

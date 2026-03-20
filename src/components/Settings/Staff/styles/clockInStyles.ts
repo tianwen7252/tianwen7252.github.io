@@ -5,19 +5,18 @@ import { css } from '@emotion/css'
 // Primary color: #7f956a (sage green)
 // Background: #f8fafc
 
-const FONT_FAMILY = '"Public Sans", "Noto Sans TC", "PingFang TC", sans-serif'
 const COLOR_PRIMARY = '#7f956a'
 const COLOR_BG = '#f8fafc'
 const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
 const COLOR_ORANGE = '#ed8936'
 const COLOR_RED = '#e53e3e'
+const COLOR_DEFAULT = '#dbe3d2'
 
 export const styles = {
   containerCss: css`
     padding: 16px;
     background: ${COLOR_BG};
-    font-family: ${FONT_FAMILY};
     min-height: 100%;
   `,
 
@@ -30,7 +29,7 @@ export const styles = {
 
   headerTitleCss: css`
     font-size: 20px;
-    font-weight: 700;
+    font-weight: 500;
     color: ${COLOR_TEXT};
   `,
 
@@ -71,6 +70,13 @@ export const styles = {
   `,
 
   // Avatar border color variants — applied to the wrapper div around AvatarImage
+  avatarBorderDefaultCss: css`
+    display: inline-flex;
+    border-radius: 50%;
+    border: 3px solid ${COLOR_DEFAULT};
+    overflow: hidden;
+  `,
+
   avatarBorderGreenCss: css`
     display: inline-flex;
     border-radius: 50%;
@@ -104,6 +110,7 @@ export const styles = {
     font-weight: 500;
     color: ${COLOR_PRIMARY};
     margin-top: 2px;
+    min-height: 21px;
   `,
 
   statusCss: css`
@@ -117,7 +124,10 @@ export const styles = {
     margin-top: 4px;
   `,
 
-  vacationBtnCss: css`
+  actionBtnRowCss: css`
+    display: flex;
+    gap: 8px;
+    justify-content: center;
     margin-top: 8px;
   `,
 

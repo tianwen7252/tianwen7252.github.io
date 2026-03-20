@@ -285,18 +285,67 @@ describe('ClockIn Component', () => {
   // Vacation button
   // --------------------------------------------------------
 
-  describe('vacation button', () => {
-    it('shows vacation button when employee has no attendance', () => {
+  describe('action buttons', () => {
+    it('shows "打卡上班" and "申請休假" buttons when no attendance', () => {
       mockEmployees = [makeEmployee({ id: 1 })]
       mockAttendances = []
       render(<ClockIn />)
-      // Ant Design may insert spaces in Chinese button text ("休 假")
-      // Use a role query to find the button reliably
       const buttons = screen.getAllByRole('button')
-      const vacationBtn = buttons.find(btn =>
-        btn.textContent?.includes('休'),
+      const clockInBtn = buttons.find(btn =>
+        btn.textContent?.includes('打卡上班'),
       )
+      const vacationBtn = buttons.find(btn =>
+        btn.textContent?.includes('申請休假'),
+      )
+      expect(clockInBtn).toBeTruthy()
       expect(vacationBtn).toBeTruthy()
+    })
+
+    it('shows "打卡下班" button when employee has clocked in', () => {
+      mockEmployees = [makeEmployee({ id: 1 })]
+      mockAttendances = [
+        makeAttendance({ employeeId: 1, clockIn: 1716170400000 }),
+      ]
+      render(<ClockIn />)
+      const buttons = screen.getAllByRole('button')
+      const clockOutBtn = buttons.find(btn =>
+        btn.textContent?.includes('打卡下班'),
+      )
+      expect(clockOutBtn).toBeTruthy()
+    })
+
+    it('shows "打卡下班" button when employee has clocked out (re-clock-out)', () => {
+      mockEmployees = [makeEmployee({ id: 1 })]
+      mockAttendances = [
+        makeAttendance({
+          employeeId: 1,
+          clockIn: 1716170400000,
+          clockOut: 1716202800000,
+        }),
+      ]
+      render(<ClockIn />)
+      const buttons = screen.getAllByRole('button')
+      const clockOutBtn = buttons.find(btn =>
+        btn.textContent?.includes('打卡下班'),
+      )
+      expect(clockOutBtn).toBeTruthy()
+    })
+
+    it('shows "取消休假" button when employee is on vacation', () => {
+      mockEmployees = [makeEmployee({ id: 1 })]
+      mockAttendances = [
+        makeAttendance({
+          employeeId: 1,
+          type: 'vacation',
+          clockIn: 1716170400000,
+        }),
+      ]
+      render(<ClockIn />)
+      const buttons = screen.getAllByRole('button')
+      const cancelBtn = buttons.find(btn =>
+        btn.textContent?.includes('取消休假'),
+      )
+      expect(cancelBtn).toBeTruthy()
     })
 
     it('hides vacation button when employee already has attendance', () => {
@@ -307,7 +356,7 @@ describe('ClockIn Component', () => {
       render(<ClockIn />)
       const buttons = screen.queryAllByRole('button')
       const vacationBtn = buttons.find(btn =>
-        btn.textContent?.includes('休'),
+        btn.textContent?.includes('申請休假'),
       )
       expect(vacationBtn).toBeUndefined()
     })
@@ -369,14 +418,13 @@ describe('ClockIn Component', () => {
       fireEvent.click(card)
     })
 
-    it('sets vacation action when clicking vacation button', () => {
+    it('sets vacation action when clicking "申請休假" button', () => {
       mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
       mockAttendances = []
       render(<ClockIn />)
-      // Find vacation button by role then text content
       const buttons = screen.getAllByRole('button')
       const vacationBtn = buttons.find(btn =>
-        btn.textContent?.includes('休'),
+        btn.textContent?.includes('申請休假'),
       )
       expect(vacationBtn).toBeTruthy()
       fireEvent.click(vacationBtn!)
@@ -437,19 +485,44 @@ describe('ClockIn Component', () => {
       render(<ClockIn />)
 
       const cards = screen.getAllByTestId('employee-card')
-      // Alice (no attendance) should have a vacation button
+      // Alice (no attendance) should have "申請休假" button
       const aliceButtons = cards[0].querySelectorAll('button')
       const aliceVacBtn = Array.from(aliceButtons).find(btn =>
-        btn.textContent?.includes('休'),
+        btn.textContent?.includes('申請休假'),
       )
       expect(aliceVacBtn).toBeTruthy()
 
-      // Bob (has attendance) should NOT have a vacation button
+      // Bob (has attendance) should NOT have "申請休假" button
       const bobButtons = cards[1].querySelectorAll('button')
       const bobVacBtn = Array.from(bobButtons).find(btn =>
-        btn.textContent?.includes('休'),
+        btn.textContent?.includes('申請休假'),
       )
       expect(bobVacBtn).toBeUndefined()
+    })
+  })
+
+  // --------------------------------------------------------
+  // Vacation time display
+  // --------------------------------------------------------
+
+  describe('vacation time display', () => {
+    it('shows "休假：" time text instead of "上班/下班" for vacation records', () => {
+      mockEmployees = [makeEmployee({ id: 1 })]
+      const vacTime = dayjs('2024-05-20T08:30:00').valueOf()
+      mockAttendances = [
+        makeAttendance({
+          employeeId: 1,
+          type: 'vacation',
+          clockIn: vacTime,
+          clockOut: undefined,
+        }),
+      ]
+      const { container } = render(<ClockIn />)
+      const fullText = container.textContent ?? ''
+      expect(fullText).toContain('休假：')
+      expect(fullText).toContain('08:30')
+      expect(fullText).not.toContain('上班：')
+      expect(fullText).not.toContain('下班：')
     })
   })
 

@@ -6,7 +6,7 @@ import { SHIFT_TYPES } from 'src/constants/defaults/shiftTypes'
 import type { ClockInAction } from './ClockIn'
 import {
   styles,
-  GRADIENT_MAP,
+  GRADIENT_ROOT_MAP,
   CONFIRM_COLOR_MAP,
 } from './styles/clockInModalStyles'
 
@@ -56,7 +56,7 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
 
   // Update time every second — only when modal is open to avoid wasting CPU
   useEffect(() => {
-    if (!open) return
+    if (!open) return undefined
     setCurrentTime(dayjs())
     const intervalId = setInterval(() => {
       setCurrentTime(dayjs())
@@ -72,8 +72,8 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
   // Derive display values from action
   const title = TITLE_MAP[action](employee.name)
   const confirmText = CONFIRM_TEXT_MAP[action]
-  const gradientCss = GRADIENT_MAP[action] ?? GRADIENT_MAP.clockIn
-  const confirmColorCss = CONFIRM_COLOR_MAP[action] ?? CONFIRM_COLOR_MAP.clockIn
+  const gradientRootCss = GRADIENT_ROOT_MAP[action]
+  const confirmColorCss = CONFIRM_COLOR_MAP[action]
 
   // Get shift type label with fallback to first entry
   const shiftTypeEntry = SHIFT_TYPES.find(s => s.key === employee.shiftType)
@@ -83,14 +83,26 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
   const showReClockOutHint =
     action === 'clockOut' && attendance?.clockOut != null
 
-  // Determine time display: for cancelVacation show original vacation time
+  // Determine time display based on action type
   const isCancelVacation = action === 'cancelVacation'
-  const timeLabel = isCancelVacation ? '休假打卡時間' : '目前時間'
-  const timeValue = isCancelVacation
-    ? attendance?.clockIn != null
-      ? formatTimeAmPm(dayjs(attendance.clockIn))
-      : '--:--'
-    : formatTimeAmPm(currentTime)
+  const isVacation = action === 'vacation'
+
+  let timeLabel: string
+  let timeValue: string
+
+  if (isCancelVacation) {
+    timeLabel = '休假打卡時間'
+    timeValue =
+      attendance?.clockIn != null
+        ? formatTimeAmPm(dayjs(attendance.clockIn))
+        : '--:--'
+  } else if (isVacation) {
+    timeLabel = '休假時間'
+    timeValue = formatTimeAmPm(currentTime)
+  } else {
+    timeLabel = '目前時間'
+    timeValue = formatTimeAmPm(currentTime)
+  }
 
   return (
     <Modal
@@ -98,17 +110,9 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
       onCancel={onCancel}
       footer={null}
       closable={false}
-      width="100vw"
+      width={500}
       centered
-      className={gradientCss}
-      styles={{
-        mask: { background: 'rgba(0, 0, 0, 0.3)' },
-        content: {
-          background: 'transparent',
-          boxShadow: 'none',
-          padding: 0,
-        },
-      }}
+      rootClassName={gradientRootCss}
     >
       <div className={styles.modalContainerCss}>
         {/* System label */}

@@ -68,7 +68,7 @@ function deriveStatus(record: RestaDB.Table.Attendance | undefined): {
 function deriveAvatarBorderCss(
   record: RestaDB.Table.Attendance | undefined,
 ): string {
-  if (!record) return styles.avatarBorderGreenCss
+  if (!record) return styles.avatarBorderDefaultCss
   if (record.type === 'vacation') return styles.avatarBorderRedCss
   if (record.clockOut) return styles.avatarBorderOrangeCss
   return styles.avatarBorderGreenCss
@@ -112,9 +112,10 @@ export const ClockIn: React.FC = () => {
   })
   const [loading, setLoading] = useState(false)
 
-  // Section header date string
-  const weekday = WEEKDAYS[dayjs().day()]
-  const dateString = `今天日期: ${dayjs().format('YYYY年M月D日')} ${weekday}`
+  // Section header date string — derive from `today` state (single source of truth)
+  const todayDayjs = dayjs(today)
+  const weekday = WEEKDAYS[todayDayjs.day()]
+  const dateString = `今天日期: ${todayDayjs.format('YYYY年M月D日')} ${weekday}`
 
   // Handle card click — derive action from attendance and open modal state
   const handleCardClick = (
@@ -130,17 +131,19 @@ export const ClockIn: React.FC = () => {
     })
   }
 
-  // Handle vacation button click
-  const handleVacationClick = (
+  // Handle explicit action button click (stopPropagation to avoid card click)
+  const handleButtonAction = (
     e: React.MouseEvent,
     employee: RestaDB.Table.Employee,
+    action: ClockInAction,
+    record?: RestaDB.Table.Attendance,
   ) => {
-    // Prevent the card click from also firing
     e.stopPropagation()
     setModalState({
       visible: true,
       employee,
-      action: 'vacation',
+      action,
+      attendance: record,
     })
   }
 
@@ -229,7 +232,6 @@ export const ClockIn: React.FC = () => {
           const record = attendanceMap[employee.id!]
           const { badgeStatus, badgeText } = deriveStatus(record)
           const avatarBorderCss = deriveAvatarBorderCss(record)
-          const showVacationBtn = !record
 
           return (
             <div
@@ -254,37 +256,79 @@ export const ClockIn: React.FC = () => {
               {/* Name */}
               <div className={styles.nameCss}>{employee.name}</div>
 
-              {/* Admin role label — only for admins */}
-              {employee.isAdmin && (
-                <div className={styles.roleCss}>管理員</div>
-              )}
+              {/* Admin role label — always rendered for consistent card height */}
+              <div className={styles.roleCss}>
+                {employee.isAdmin ? '管理員' : ''}
+              </div>
 
               {/* Status badge */}
               <div className={styles.statusCss}>
                 <Badge status={badgeStatus} text={badgeText} />
               </div>
 
-              {/* Clock-in / clock-out times */}
-              <div className={styles.timesCss}>
-                <div>
-                  上班：{formatTime(record?.clockIn)}
+              {/* Clock-in / clock-out times — vacation shows differently */}
+              {record?.type === 'vacation' ? (
+                <div className={styles.timesCss}>
+                  <div>休假：{formatTime(record?.clockIn)}</div>
                 </div>
-                <div>
-                  下班：{formatTime(record?.clockOut)}
-                </div>
-              </div>
-
-              {/* Vacation button — only when no attendance record exists */}
-              {showVacationBtn && (
-                <div className={styles.vacationBtnCss}>
-                  <Button
-                    danger
-                    onClick={e => handleVacationClick(e, employee)}
-                  >
-                    休假
-                  </Button>
+              ) : (
+                <div className={styles.timesCss}>
+                  <div>上班：{formatTime(record?.clockIn)}</div>
+                  <div>下班：{formatTime(record?.clockOut)}</div>
                 </div>
               )}
+
+              {/* Action buttons — layout depends on attendance state */}
+              <div className={styles.actionBtnRowCss}>
+                {!record && (
+                  <>
+                    <Button
+                      type="primary"
+                      size="small"
+                      onClick={e =>
+                        handleButtonAction(e, employee, 'clockIn', record)
+                      }
+                    >
+                      打卡上班
+                    </Button>
+                    <Button
+                      danger
+                      size="small"
+                      onClick={e =>
+                        handleButtonAction(e, employee, 'vacation', record)
+                      }
+                    >
+                      申請休假
+                    </Button>
+                  </>
+                )}
+                {record && record.type !== 'vacation' && (
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={e =>
+                      handleButtonAction(e, employee, 'clockOut', record)
+                    }
+                  >
+                    打卡下班
+                  </Button>
+                )}
+                {record?.type === 'vacation' && (
+                  <Button
+                    size="small"
+                    onClick={e =>
+                      handleButtonAction(
+                        e,
+                        employee,
+                        'cancelVacation',
+                        record,
+                      )
+                    }
+                  >
+                    取消休假
+                  </Button>
+                )}
+              </div>
             </div>
           )
         })}

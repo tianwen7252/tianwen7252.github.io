@@ -1,60 +1,68 @@
 import { css } from '@emotion/css'
+import type { ClockInAction } from '../ClockIn'
 
 // ClockInModal glassmorphism styles
-// Scoped font-family: "Public Sans", "Noto Sans TC", "PingFang TC", sans-serif
 // Design: full-screen modal with mesh gradient backgrounds and glass card
 
-const FONT_FAMILY = '"Public Sans", "Noto Sans TC", "PingFang TC", sans-serif'
 const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
 const COLOR_PRIMARY = '#7f956a'
 const COLOR_RED = '#e53e3e'
-const COLOR_GRAY = '#718096'
+const COLOR_DIVIDER = '#e2e8f0'
 
-// ── Mesh gradient background variants ──
+// ── Gradient background strings ──
 
-export const gradientClockInCss = css`
-  background:
-    radial-gradient(ellipse at 20% 50%, #f1f7ed 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, #eff6e9 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, #f1f5f9 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, #f8fafc 0%, transparent 50%),
-    #f8fafc;
-`
+const GRADIENT_CLOCK_IN = `
+  radial-gradient(ellipse at 20% 50%, #f1f7ed 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 20%, #eff6e9 0%, transparent 50%),
+  radial-gradient(ellipse at 50% 80%, #f1f5f9 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 80%, #f8fafc 0%, transparent 50%), #f8fafc`
 
-export const gradientClockOutCss = css`
-  background:
-    radial-gradient(ellipse at 20% 50%, #fff7ed 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, #f5f3ff 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, #fff1f2 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, #fdf4ff 0%, transparent 50%),
-    #fdf4ff;
-`
+const GRADIENT_CLOCK_OUT = `
+  radial-gradient(ellipse at 20% 50%, #fff7ed 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 20%, #f5f3ff 0%, transparent 50%),
+  radial-gradient(ellipse at 50% 80%, #fff1f2 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 80%, #fdf4ff 0%, transparent 50%), #fdf4ff`
 
-export const gradientVacationCss = css`
-  background:
-    radial-gradient(ellipse at 20% 50%, #fff1f2 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, #ffe4e6 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, #fce7f3 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, #fef2f2 0%, transparent 50%),
-    #fef2f2;
-`
+const GRADIENT_VACATION = `
+  radial-gradient(ellipse at 20% 50%, #fff1f2 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 20%, #ffe4e6 0%, transparent 50%),
+  radial-gradient(ellipse at 50% 80%, #fce7f3 0%, transparent 50%),
+  radial-gradient(ellipse at 80% 80%, #fef2f2 0%, transparent 50%), #fef2f2`
 
-export const gradientCancelVacationCss = css`
-  background:
-    radial-gradient(ellipse at 20% 50%, #f1f5f9 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 20%, #f7fafc 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 80%, #edf2f7 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 80%, #f0f4f8 0%, transparent 50%),
-    #f0f4f8;
-`
+// Helper: create a rootClassName CSS that applies gradient to the full-screen
+// wrapper and hides the default mask/content backgrounds.
+function createGradientRootCss(gradientBg: string): string {
+  return css`
+    .ant-modal-mask {
+      background: transparent !important;
+    }
+    .ant-modal-wrap {
+      background: ${gradientBg};
+    }
+    .ant-modal-content {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+  `
+}
+
+// ── Root-level gradient classes (applied via rootClassName) ──
+
+export const gradientClockInRootCss = createGradientRootCss(GRADIENT_CLOCK_IN)
+export const gradientClockOutRootCss =
+  createGradientRootCss(GRADIENT_CLOCK_OUT)
+export const gradientVacationRootCss = createGradientRootCss(GRADIENT_VACATION)
+// Cancel vacation uses the same red gradient as vacation
+export const gradientCancelVacationRootCss =
+  createGradientRootCss(GRADIENT_VACATION)
 
 // ── Modal container (glassmorphism) ──
 
 export const styles = {
   // Glass modal container
   modalContainerCss: css`
-    font-family: ${FONT_FAMILY};
     background: rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -65,22 +73,24 @@ export const styles = {
     margin: 0 auto;
   `,
 
-  // System confirm label
+  // System confirm label — centered, slightly larger
   systemLabelCss: css`
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: ${COLOR_MUTED};
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
+    text-align: center;
   `,
 
-  // Title
+  // Title — centered
   titleCss: css`
     font-size: 20px;
     font-weight: 700;
     color: ${COLOR_TEXT};
     margin-bottom: 24px;
+    text-align: center;
   `,
 
   // Glass card
@@ -119,16 +129,18 @@ export const styles = {
     margin-bottom: 8px;
   `,
 
-  // Info grid (2 columns)
+  // Info grid (2 columns) — with top divider line
   infoGridCss: css`
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px;
     width: 100%;
     margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid ${COLOR_DIVIDER};
   `,
 
-  // Info grid label
+  // Info grid label — centered
   infoLabelCss: css`
     font-size: 12px;
     font-weight: 500;
@@ -136,13 +148,15 @@ export const styles = {
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 4px;
+    text-align: center;
   `,
 
-  // Info grid value
+  // Info grid value — centered
   infoValueCss: css`
     font-size: 16px;
     font-weight: 600;
     color: ${COLOR_TEXT};
+    text-align: center;
   `,
 
   // Re-clock-out hint
@@ -174,7 +188,6 @@ export const styles = {
     cursor: pointer;
     transition: transform 0.15s ease;
     flex: 1;
-    font-family: ${FONT_FAMILY};
 
     &:hover {
       transform: translateY(-2px);
@@ -194,7 +207,6 @@ export const styles = {
       transform 0.15s ease,
       box-shadow 0.15s ease;
     flex: 1;
-    font-family: ${FONT_FAMILY};
 
     &:hover {
       transform: translateY(-2px);
@@ -223,20 +235,20 @@ export const styles = {
   `,
 
   confirmCancelVacationCss: css`
-    background: ${COLOR_GRAY};
+    background: ${COLOR_RED};
   `,
 }
 
-// Map action to gradient CSS class
-export const GRADIENT_MAP: Record<string, string> = {
-  clockIn: gradientClockInCss,
-  clockOut: gradientClockOutCss,
-  vacation: gradientVacationCss,
-  cancelVacation: gradientCancelVacationCss,
+// Map action to root-level gradient CSS class (for rootClassName)
+export const GRADIENT_ROOT_MAP: Record<ClockInAction, string> = {
+  clockIn: gradientClockInRootCss,
+  clockOut: gradientClockOutRootCss,
+  vacation: gradientVacationRootCss,
+  cancelVacation: gradientCancelVacationRootCss,
 }
 
 // Map action to confirm button color CSS class
-export const CONFIRM_COLOR_MAP: Record<string, string> = {
+export const CONFIRM_COLOR_MAP: Record<ClockInAction, string> = {
   clockIn: styles.confirmClockInCss,
   clockOut: styles.confirmClockOutCss,
   vacation: styles.confirmVacationCss,

@@ -9,7 +9,10 @@ interface AvatarImageProps {
 }
 
 // Render an avatar based on stored value: image path, http URL, or fallback icon
-export const AvatarImage: React.FC<AvatarImageProps> = ({ avatar, size = 36 }) => {
+export const AvatarImage: React.FC<AvatarImageProps> = ({
+  avatar,
+  size = 36,
+}) => {
   if (avatar && (avatar.startsWith('images/') || avatar.startsWith('http'))) {
     return (
       <img
