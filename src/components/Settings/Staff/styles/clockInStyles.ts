@@ -63,6 +63,11 @@ export const styles = {
     }
   `,
 
+  // Vacation card background modifier — applied alongside cardCss
+  cardVacationBgCss: css`
+    background: ${COLOR_VACATION}26;
+  `,
+
   avatarWrapCss: css`
     display: flex;
     justify-content: center;
