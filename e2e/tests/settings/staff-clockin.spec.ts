@@ -16,8 +16,8 @@ test.describe('Settings - Staff Clock-In Tab', () => {
 
     // Verify employee names are visible
     const page = seededPage
-    await expect(page.locator('.ant-card', { hasText: '小明' })).toBeVisible()
-    await expect(page.locator('.ant-card', { hasText: '小華' })).toBeVisible()
+    await expect(page.locator('[data-testid="employee-card"]', { hasText: '小明' })).toBeVisible()
+    await expect(page.locator('[data-testid="employee-card"]', { hasText: '小華' })).toBeVisible()
   })
 
   test('should show attendance badge status for employees', async ({ seededPage }) => {
@@ -33,11 +33,11 @@ test.describe('Settings - Staff Clock-In Tab', () => {
     const page = seededPage
 
     // 小明 should show "已下班" badge
-    const card1 = page.locator('.ant-card', { hasText: '小明' })
+    const card1 = page.locator('[data-testid="employee-card"]', { hasText: '小明' })
     await expect(card1.locator('.ant-badge', { hasText: '已下班' })).toBeVisible()
 
     // 小華 should show "已上班" badge
-    const card2 = page.locator('.ant-card', { hasText: '小華' })
+    const card2 = page.locator('[data-testid="employee-card"]', { hasText: '小華' })
     await expect(card2.locator('.ant-badge', { hasText: '已上班' })).toBeVisible()
   })
 })

@@ -64,8 +64,8 @@ beforeAll(async () => {
 describe('ClockInModal Component', () => {
   beforeEach(() => {
     vi.useFakeTimers()
-    // Fix time to 09:41 AM on Monday 2024-05-20 (Taipei timezone)
-    vi.setSystemTime(new Date('2024-05-20T09:41:00+08:00'))
+    // Fix time to 09:41 AM on Monday 2024-05-20 (local time, timezone-agnostic)
+    vi.setSystemTime(new Date(2024, 4, 20, 9, 41, 0))
   })
 
   afterEach(() => {

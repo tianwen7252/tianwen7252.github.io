@@ -108,7 +108,7 @@ export class SettingsPage extends BasePage {
    */
   async getStaffClockInCards(): Promise<number> {
     const activePane = this.getActiveTabContent()
-    const cards = activePane.locator('.ant-card')
+    const cards = activePane.locator('[data-testid="employee-card"]')
     return cards.count()
   }
 
