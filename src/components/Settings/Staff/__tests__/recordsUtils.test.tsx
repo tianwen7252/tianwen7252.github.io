@@ -100,7 +100,7 @@ describe('buildAttendanceMap', () => {
   it('creates correct lookup keys in employeeId-date format', () => {
     const att = makeAttendance({ employeeId: 5, date: '2026-03-20' })
     const map = buildAttendanceMap([att])
-    expect(map.get('5-2026-03-20')).toEqual(att)
+    expect(map.get('5-2026-03-20')).toEqual([att])
   })
 
   it('returns empty map for empty array', () => {
@@ -114,9 +114,17 @@ describe('buildAttendanceMap', () => {
     const att3 = makeAttendance({ id: 3, employeeId: 1, date: '2026-03-21' })
     const map = buildAttendanceMap([att1, att2, att3])
     expect(map.size).toBe(3)
-    expect(map.get('1-2026-03-20')).toEqual(att1)
-    expect(map.get('2-2026-03-20')).toEqual(att2)
-    expect(map.get('1-2026-03-21')).toEqual(att3)
+    expect(map.get('1-2026-03-20')).toEqual([att1])
+    expect(map.get('2-2026-03-20')).toEqual([att2])
+    expect(map.get('1-2026-03-21')).toEqual([att3])
+  })
+
+  it('groups multiple records under same key (multi-shift)', () => {
+    const att1 = makeAttendance({ id: 1, employeeId: 1, date: '2026-03-20' })
+    const att2 = makeAttendance({ id: 2, employeeId: 1, date: '2026-03-20' })
+    const map = buildAttendanceMap([att1, att2])
+    expect(map.size).toBe(1)
+    expect(map.get('1-2026-03-20')).toEqual([att1, att2])
   })
 })
 
@@ -201,6 +209,18 @@ describe('getMonthOptions', () => {
     const options = getMonthOptions()
     expect(options[0].label).toBe('1 月')
     expect(options[11].label).toBe('12 月')
+  })
+
+  it('filters out future months when selectedYear equals currentYear', () => {
+    const options = getMonthOptions(2026, 2026, 3)
+    expect(options).toHaveLength(3)
+    const values = options.map(o => o.value)
+    expect(values).toEqual([1, 2, 3])
+  })
+
+  it('returns all 12 months when selectedYear is before currentYear', () => {
+    const options = getMonthOptions(2025, 2026, 3)
+    expect(options).toHaveLength(12)
   })
 })
 
@@ -292,23 +312,23 @@ describe('buildDayRows', () => {
 
     expect(march20.cells).toHaveLength(2)
 
-    // Alice (id=1) should have attendance
+    // Alice (id=1) should have attendances array with one record
     expect(march20.cells[0].employee.name).toBe('Alice')
-    expect(march20.cells[0].attendance).toBeDefined()
-    expect(march20.cells[0].attendance?.employeeId).toBe(1)
+    expect(march20.cells[0].attendances).toHaveLength(1)
+    expect(march20.cells[0].attendances[0].employeeId).toBe(1)
 
     // Bob (id=2) should have vacation attendance
     expect(march20.cells[1].employee.name).toBe('Bob')
-    expect(march20.cells[1].attendance).toBeDefined()
-    expect(march20.cells[1].attendance?.type).toBe('vacation')
+    expect(march20.cells[1].attendances).toHaveLength(1)
+    expect(march20.cells[1].attendances[0].type).toBe('vacation')
   })
 
-  it('cells have undefined attendance when no record exists', () => {
+  it('cells have empty attendances array when no record exists', () => {
     const rows = buildDayRows(2026, 3, employees, attendances, '2026-03-20')
     // March 15 has no attendance records
     const march15 = rows.find(r => r.date === '2026-03-15')!
-    expect(march15.cells[0].attendance).toBeUndefined()
-    expect(march15.cells[1].attendance).toBeUndefined()
+    expect(march15.cells[0].attendances).toHaveLength(0)
+    expect(march15.cells[1].attendances).toHaveLength(0)
   })
 })
 
@@ -377,7 +397,7 @@ describe('buildCalendarGrid', () => {
     expect(march20.isCurrentMonth).toBe(true)
     expect(march20.cells).toHaveLength(1)
     expect(march20.cells[0].employee.name).toBe('Alice')
-    expect(march20.cells[0].attendance).toBeDefined()
+    expect(march20.cells[0].attendances).toHaveLength(1)
   })
 
   it('today is marked correctly', () => {

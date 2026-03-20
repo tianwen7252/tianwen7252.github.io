@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, within } from '@testing-library/react'
+import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi, beforeAll } from 'vitest'
 import dayjs from 'dayjs'
 import React from 'react'
@@ -25,8 +25,9 @@ const mockAttendance = (
   clockIn?: number,
   clockOut?: number,
   type?: string,
+  id?: number,
 ): RestaDB.Table.Attendance => ({
-  id: employeeId * 100,
+  id: id ?? employeeId * 100,
   employeeId,
   date,
   clockIn,
@@ -35,7 +36,7 @@ const mockAttendance = (
 })
 
 const emp1 = mockEmployee(1, 'Ryan')
-const emp2 = mockEmployee(2, '陳小明')
+const emp2 = mockEmployee(2, '\u9673\u5c0f\u660e')
 
 // Helper to create a CalendarDay with sensible defaults
 function createCalendarDay(
@@ -43,7 +44,7 @@ function createCalendarDay(
 ): CalendarDay {
   const d = dayjs(overrides.date)
   return {
-    displayDate: `${d.format('MM/DD')} (${['日', '一', '二', '三', '四', '五', '六'][d.day()]})`,
+    displayDate: `${d.format('MM/DD')} (${['\u65e5', '\u4e00', '\u4e8c', '\u4e09', '\u56db', '\u4e94', '\u516d'][d.day()]})`,
     dayOfWeek: d.day(),
     isWeekend: d.day() === 0 || d.day() === 6,
     isToday: false,
@@ -77,11 +78,12 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={[]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      const expectedLabels = ['週日', '週一', '週二', '週三', '週四', '週五', '週六']
+      const expectedLabels = ['\u9031\u65e5', '\u9031\u4e00', '\u9031\u4e8c', '\u9031\u4e09', '\u9031\u56db', '\u9031\u4e94', '\u9031\u516d']
       for (const label of expectedLabels) {
         expect(screen.getByText(label)).toBeInTheDocument()
       }
@@ -89,10 +91,10 @@ describe('RecordsCalendarView', () => {
   })
 
   // --------------------------------------------------------
-  // 2. Weekend cells show "休" text
+  // 2. Weekend cells show "\u4f11" text
   // --------------------------------------------------------
   describe('weekend cells', () => {
-    it('shows "休" text for Saturday in current month', () => {
+    it('shows "\u4f11" text for Saturday in current month', () => {
       // 2026-03-21 is Saturday
       const saturday = createCalendarDay({
         date: '2026-03-21',
@@ -104,14 +106,15 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([saturday])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.getByText('休')).toBeInTheDocument()
+      expect(screen.getByText('\u4f11')).toBeInTheDocument()
     })
 
-    it('shows "休" text for Sunday in current month', () => {
+    it('shows "\u4f11" text for Sunday in current month', () => {
       // 2026-03-22 is Sunday
       const sunday = createCalendarDay({
         date: '2026-03-22',
@@ -123,19 +126,20 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([sunday])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.getByText('休')).toBeInTheDocument()
+      expect(screen.getByText('\u4f11')).toBeInTheDocument()
     })
   })
 
   // --------------------------------------------------------
-  // 3. Today cell shows "今日" badge
+  // 3. Today cell shows "\u4eca\u65e5" badge
   // --------------------------------------------------------
   describe('today badge', () => {
-    it('shows "今日" badge for today cell', () => {
+    it('shows "\u4eca\u65e5" badge for today cell', () => {
       const todayDay = createCalendarDay({
         date: '2026-03-20',
         isToday: true,
@@ -147,14 +151,15 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([todayDay])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.getByText('今日')).toBeInTheDocument()
+      expect(screen.getByText('\u4eca\u65e5')).toBeInTheDocument()
     })
 
-    it('does not show "今日" badge for non-today cell', () => {
+    it('does not show "\u4eca\u65e5" badge for non-today cell', () => {
       const normalDay = createCalendarDay({
         date: '2026-03-18',
         isToday: false,
@@ -166,11 +171,12 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([normalDay])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.queryByText('今日')).not.toBeInTheDocument()
+      expect(screen.queryByText('\u4eca\u65e5')).not.toBeInTheDocument()
     })
   })
 
@@ -186,10 +192,11 @@ describe('RecordsCalendarView', () => {
         cells: [],
       })
 
-      const { container } = render(
+      render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([outsideDay])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -211,13 +218,14 @@ describe('RecordsCalendarView', () => {
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: att }],
+        cells: [{ employee: emp1, attendances: [att] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -237,13 +245,14 @@ describe('RecordsCalendarView', () => {
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: att }],
+        cells: [{ employee: emp1, attendances: [att] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -253,58 +262,61 @@ describe('RecordsCalendarView', () => {
     })
 
     // --------------------------------------------------------
-    // 7. Vacation shows "休假" label
+    // 7. Vacation shows "\u4f11\u5047" label
     // --------------------------------------------------------
-    it('shows "休假" label for vacation attendance', () => {
+    it('shows "\u4f11\u5047" label for vacation attendance', () => {
       const att = mockAttendance(1, '2026-03-20', undefined, undefined, 'vacation')
 
       const day = createCalendarDay({
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: att }],
+        cells: [{ employee: emp1, attendances: [att] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('Ryan')).toBeInTheDocument()
-      expect(screen.getByText('休假')).toBeInTheDocument()
+      expect(screen.getByText('\u4f11\u5047')).toBeInTheDocument()
     })
 
     // --------------------------------------------------------
-    // 8. No record shows "未打卡" text
+    // 8. No record shows "\u672a\u6253\u5361" text
     // --------------------------------------------------------
-    it('shows "未打卡" text when no attendance record', () => {
+    it('shows "\u672a\u6253\u5361" text when no attendance record', () => {
       const day = createCalendarDay({
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: undefined }],
+        cells: [{ employee: emp1, attendances: [] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('Ryan')).toBeInTheDocument()
-      expect(screen.getByText('未打卡')).toBeInTheDocument()
+      expect(screen.getByText('\u672a\u6253\u5361')).toBeInTheDocument()
     })
   })
 
   // --------------------------------------------------------
-  // 9. Employee card click fires onCellClick
+  // 9. Card click interactions — onEditRecord vs onAddRecord
   // --------------------------------------------------------
   describe('cell click interactions', () => {
-    it('calls onCellClick with correct employee, date, and attendance', () => {
-      const onCellClick = vi.fn()
+    it('calls onEditRecord with correct employee, date, and attendance when clicking a record card', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
       const clockOut = dayjs('2026-03-20 18:00').valueOf()
       const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
@@ -313,13 +325,14 @@ describe('RecordsCalendarView', () => {
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: att }],
+        cells: [{ employee: emp1, attendances: [att] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={onCellClick}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
         />,
       )
 
@@ -327,50 +340,84 @@ describe('RecordsCalendarView', () => {
       const card = screen.getByText('Ryan').closest('[role="button"]')!
       fireEvent.click(card)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
-      expect(onCellClick).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+      expect(onAddRecord).not.toHaveBeenCalled()
     })
 
-    it('calls onCellClick with undefined attendance for no-record card', () => {
-      const onCellClick = vi.fn()
+    it('calls onAddRecord with employee and date for no-record card click', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
 
       const day = createCalendarDay({
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: undefined }],
+        cells: [{ employee: emp1, attendances: [] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={onCellClick}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
         />,
       )
 
       const card = screen.getByText('Ryan').closest('[role="button"]')!
       fireEvent.click(card)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
-      expect(onCellClick).toHaveBeenCalledWith(emp1, '2026-03-20', undefined)
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
+      expect(onAddRecord).toHaveBeenCalledWith(emp1, '2026-03-20')
+      expect(onEditRecord).not.toHaveBeenCalled()
+    })
+
+    it('calls onEditRecord for vacation card click', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
+      const att = mockAttendance(1, '2026-03-20', undefined, undefined, 'vacation')
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
+        />,
+      )
+
+      const card = screen.getByText('Ryan').closest('[role="button"]')!
+      fireEvent.click(card)
+
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+      expect(onAddRecord).not.toHaveBeenCalled()
     })
 
     it('stopPropagation prevents parent click handlers from firing', () => {
-      const onCellClick = vi.fn()
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
       const parentClick = vi.fn()
 
       const day = createCalendarDay({
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: undefined }],
+        cells: [{ employee: emp1, attendances: [] }],
       })
 
-      const { container } = render(
+      render(
         <div onClick={parentClick}>
           <RecordsCalendarView
             calendarGrid={createTestGrid([day])}
-            onCellClick={onCellClick}
+            onEditRecord={onEditRecord}
+            onAddRecord={onAddRecord}
           />
         </div>,
       )
@@ -378,13 +425,230 @@ describe('RecordsCalendarView', () => {
       const card = screen.getByText('Ryan').closest('[role="button"]')!
       fireEvent.click(card)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
       expect(parentClick).not.toHaveBeenCalled()
     })
   })
 
   // --------------------------------------------------------
-  // 10. Multiple employees in same day cell
+  // 10. Keyboard accessibility
+  // --------------------------------------------------------
+  describe('keyboard accessibility', () => {
+    it('calls onAddRecord when pressing Enter on no-record card', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
+        />,
+      )
+
+      const card = screen.getByText('Ryan').closest('[role="button"]')!
+      fireEvent.keyDown(card, { key: 'Enter' })
+
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
+      expect(onAddRecord).toHaveBeenCalledWith(emp1, '2026-03-20')
+    })
+
+    it('calls onEditRecord when pressing Space on a record card', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
+      const clockIn = dayjs('2026-03-20 08:30').valueOf()
+      const clockOut = dayjs('2026-03-20 18:00').valueOf()
+      const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
+        />,
+      )
+
+      const card = screen.getByText('Ryan').closest('[role="button"]')!
+      fireEvent.keyDown(card, { key: ' ' })
+
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+    })
+
+    it('does not trigger on non-Enter/Space keys', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
+        />,
+      )
+
+      const card = screen.getByText('Ryan').closest('[role="button"]')!
+      fireEvent.keyDown(card, { key: 'Tab' })
+
+      expect(onAddRecord).not.toHaveBeenCalled()
+      expect(onEditRecord).not.toHaveBeenCalled()
+    })
+  })
+
+  // --------------------------------------------------------
+  // 11. Multi-shift support
+  // --------------------------------------------------------
+  describe('multi-shift rendering', () => {
+    it('renders multiple shift cards for one employee with shift labels', () => {
+      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
+      const clockOut1 = dayjs('2026-03-20 12:00').valueOf()
+      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1, 'regular', 101)
+
+      const clockIn2 = dayjs('2026-03-20 14:00').valueOf()
+      const clockOut2 = dayjs('2026-03-20 18:00').valueOf()
+      const att2 = mockAttendance(1, '2026-03-20', clockIn2, clockOut2, 'regular', 102)
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att1, att2] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Multi-shift: each card shows "name (\u73ed1)", "name (\u73ed2)"
+      expect(screen.getByText('Ryan (\u73ed1)')).toBeInTheDocument()
+      expect(screen.getByText('Ryan (\u73ed2)')).toBeInTheDocument()
+
+      // Both shift times should be displayed
+      expect(screen.getByText('08:00')).toBeInTheDocument()
+      expect(screen.getByText('12:00')).toBeInTheDocument()
+      expect(screen.getByText('14:00')).toBeInTheDocument()
+      expect(screen.getByText('18:00')).toBeInTheDocument()
+    })
+
+    it('does not show shift label for single-shift employee', () => {
+      const clockIn = dayjs('2026-03-20 08:30').valueOf()
+      const clockOut = dayjs('2026-03-20 18:00').valueOf()
+      const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Single shift: just "Ryan", no shift number
+      expect(screen.getByText('Ryan')).toBeInTheDocument()
+      expect(screen.queryByText('Ryan (\u73ed1)')).not.toBeInTheDocument()
+    })
+
+    it('calls onEditRecord with the correct shift record when clicking a specific shift card', () => {
+      const onEditRecord = vi.fn()
+      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
+      const clockOut1 = dayjs('2026-03-20 12:00').valueOf()
+      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1, 'regular', 101)
+
+      const clockIn2 = dayjs('2026-03-20 14:00').valueOf()
+      const clockOut2 = dayjs('2026-03-20 18:00').valueOf()
+      const att2 = mockAttendance(1, '2026-03-20', clockIn2, clockOut2, 'regular', 102)
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att1, att2] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={onEditRecord}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Click the second shift card
+      const secondShiftCard = screen.getByText('Ryan (\u73ed2)').closest('[role="button"]')!
+      fireEvent.click(secondShiftCard)
+
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att2)
+    })
+
+    it('renders two separate clickable buttons for multi-shift', () => {
+      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
+      const clockOut1 = dayjs('2026-03-20 12:00').valueOf()
+      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1, 'regular', 101)
+
+      const clockIn2 = dayjs('2026-03-20 14:00').valueOf()
+      const clockOut2 = dayjs('2026-03-20 18:00').valueOf()
+      const att2 = mockAttendance(1, '2026-03-20', clockIn2, clockOut2, 'regular', 102)
+
+      const day = createCalendarDay({
+        date: '2026-03-20',
+        isCurrentMonth: true,
+        isWeekend: false,
+        cells: [{ employee: emp1, attendances: [att1, att2] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([day])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Should have two buttons for this one employee
+      const buttons = screen.getAllByRole('button')
+      // Filter to only the shift card buttons (not header buttons etc.)
+      const shiftButtons = buttons.filter(
+        btn => btn.textContent?.includes('Ryan'),
+      )
+      expect(shiftButtons).toHaveLength(2)
+    })
+  })
+
+  // --------------------------------------------------------
+  // 12. Multiple employees in same day cell
   // --------------------------------------------------------
   describe('multiple employees', () => {
     it('renders multiple employee cards in the same day cell', () => {
@@ -400,20 +664,21 @@ describe('RecordsCalendarView', () => {
         isCurrentMonth: true,
         isWeekend: false,
         cells: [
-          { employee: emp1, attendance: att1 },
-          { employee: emp2, attendance: att2 },
+          { employee: emp1, attendances: [att1] },
+          { employee: emp2, attendances: [att2] },
         ],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('Ryan')).toBeInTheDocument()
-      expect(screen.getByText('陳小明')).toBeInTheDocument()
+      expect(screen.getByText('\u9673\u5c0f\u660e')).toBeInTheDocument()
 
       // emp1 has normal attendance
       expect(screen.getByText('08:30')).toBeInTheDocument()
@@ -424,8 +689,9 @@ describe('RecordsCalendarView', () => {
       expect(screen.getByText('??:??')).toBeInTheDocument()
     })
 
-    it('fires onCellClick with correct employee when clicking specific card', () => {
-      const onCellClick = vi.fn()
+    it('fires onEditRecord with correct employee when clicking specific card', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
       const att1 = mockAttendance(1, '2026-03-20', undefined, undefined, 'vacation')
 
       const day = createCalendarDay({
@@ -433,29 +699,31 @@ describe('RecordsCalendarView', () => {
         isCurrentMonth: true,
         isWeekend: false,
         cells: [
-          { employee: emp1, attendance: att1 },
-          { employee: emp2, attendance: undefined },
+          { employee: emp1, attendances: [att1] },
+          { employee: emp2, attendances: [] },
         ],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={onCellClick}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
         />,
       )
 
-      // Click the second employee card (陳小明)
-      const card = screen.getByText('陳小明').closest('[role="button"]')!
+      // Click the second employee card (\u9673\u5c0f\u660e) - no record, should call onAddRecord
+      const card = screen.getByText('\u9673\u5c0f\u660e').closest('[role="button"]')!
       fireEvent.click(card)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
-      expect(onCellClick).toHaveBeenCalledWith(emp2, '2026-03-20', undefined)
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
+      expect(onAddRecord).toHaveBeenCalledWith(emp2, '2026-03-20')
+      expect(onEditRecord).not.toHaveBeenCalled()
     })
   })
 
   // --------------------------------------------------------
-  // 11. Outside-month days don't render employee cards
+  // 13. Outside-month days don't render employee cards
   // --------------------------------------------------------
   describe('outside-month cards', () => {
     it('does not render employee cards for outside-month days', () => {
@@ -463,13 +731,14 @@ describe('RecordsCalendarView', () => {
         date: '2026-02-28',
         isCurrentMonth: false,
         isWeekend: false,
-        cells: [{ employee: emp1, attendance: undefined }],
+        cells: [{ employee: emp1, attendances: [] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([outsideDay])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -481,7 +750,7 @@ describe('RecordsCalendarView', () => {
   })
 
   // --------------------------------------------------------
-  // 12. Date labels show MM/DD format
+  // 14. Date labels show MM/DD format
   // --------------------------------------------------------
   describe('date label formatting', () => {
     it('displays date as MM/DD format', () => {
@@ -495,7 +764,8 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -513,7 +783,8 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -526,37 +797,39 @@ describe('RecordsCalendarView', () => {
   // --------------------------------------------------------
   describe('edge cases', () => {
     it('renders empty calendar body when calendarGrid is empty', () => {
-      const { container } = render(
+      render(
         <RecordsCalendarView
           calendarGrid={[]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       // Headers should still be present
-      expect(screen.getByText('週一')).toBeInTheDocument()
-      // But no day cells rendered — no date labels
+      expect(screen.getByText('\u9031\u4e00')).toBeInTheDocument()
+      // But no day cells rendered - no date labels
       expect(screen.queryByText(/\d{2}\/\d{2}/)).not.toBeInTheDocument()
     })
 
     it('renders Chinese characters in employee names correctly', () => {
-      const chineseEmp = mockEmployee(10, '李大華')
+      const chineseEmp = mockEmployee(10, '\u674e\u5927\u83ef')
 
       const day = createCalendarDay({
         date: '2026-03-20',
         isCurrentMonth: true,
         isWeekend: false,
-        cells: [{ employee: chineseEmp, attendance: undefined }],
+        cells: [{ employee: chineseEmp, attendances: [] }],
       })
 
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([day])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.getByText('李大華')).toBeInTheDocument()
+      expect(screen.getByText('\u674e\u5927\u83ef')).toBeInTheDocument()
     })
 
     it('renders multiple weeks in the grid', () => {
@@ -582,7 +855,8 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={[week1, week2]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -594,7 +868,7 @@ describe('RecordsCalendarView', () => {
     })
 
     it('today cell on a weekend shows weekend style, not today badge', () => {
-      // 2026-03-21 is Saturday — isWeekend=true, isToday=true
+      // 2026-03-21 is Saturday - isWeekend=true, isToday=true
       const todayWeekend = createCalendarDay({
         date: '2026-03-21',
         isCurrentMonth: true,
@@ -606,12 +880,13 @@ describe('RecordsCalendarView', () => {
       render(
         <RecordsCalendarView
           calendarGrid={createTestGrid([todayWeekend])}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      // Weekend takes precedence for current month weekends — shows "休"
-      expect(screen.getByText('休')).toBeInTheDocument()
+      // Weekend takes precedence for current month weekends - shows "\u4f11"
+      expect(screen.getByText('\u4f11')).toBeInTheDocument()
     })
   })
 })

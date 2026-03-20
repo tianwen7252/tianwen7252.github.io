@@ -1,10 +1,10 @@
 import React from 'react'
 import { AvatarImage } from 'src/components/AvatarImage'
+import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
 import {
-  type CellDisplayType,
   type DayRow,
+  type EmployeeAttendanceCell,
   formatClockTime,
-  getCellDisplayType,
 } from './recordsUtils'
 import { recordsStyles as styles } from './styles/recordsStyles'
 
@@ -13,38 +13,76 @@ import { recordsStyles as styles } from './styles/recordsStyles'
 interface RecordsTableViewProps {
   readonly dayRows: readonly DayRow[]
   readonly employees: readonly RestaDB.Table.Employee[]
-  readonly onCellClick: (
+  readonly onEditRecord: (
     employee: RestaDB.Table.Employee,
     date: string,
-    attendance: RestaDB.Table.Attendance | undefined,
+    record: RestaDB.Table.Attendance,
   ) => void
+  readonly onAddRecord: (
+    employee: RestaDB.Table.Employee,
+    date: string,
+  ) => void
+  readonly todayDate?: string
 }
 
-// ---- Helper: render cell content based on display type ----
+// ---- Helper: render attendance cards inside a cell ----
 
-function renderCellContent(
-  displayType: CellDisplayType,
-  attendance: RestaDB.Table.Attendance | undefined,
+function renderCellCards(
+  cell: EmployeeAttendanceCell,
+  date: string,
+  onEditRecord: RecordsTableViewProps['onEditRecord'],
 ): React.ReactNode {
-  switch (displayType) {
-    case 'normal':
-      return (
-        <span className={styles.cellTimeCss}>
-          {formatClockTime(attendance?.clockIn)} -{' '}
-          {formatClockTime(attendance?.clockOut)}
-        </span>
-      )
-    case 'clockInOnly':
-      return (
-        <span className={styles.cellTimeCss}>
-          {formatClockTime(attendance?.clockIn)} - ??:??
-        </span>
-      )
-    case 'vacation':
-      return <span className={styles.cellVacationCss}>休假</span>
-    case 'noRecord':
-      return <span className={styles.cellNoRecordCss}>未打卡</span>
+  const { attendances, employee } = cell
+
+  if (attendances.length === 0) {
+    return <span className={styles.cellNoRecordCss}>未打卡</span>
   }
+
+  return attendances.map((att, index) => {
+    const isVacation = att.type === ATTENDANCE_TYPES.VACATION
+
+    const handleCardClick = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onEditRecord(employee, date, att)
+    }
+
+    const handleCardKeyDown = (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault()
+        e.stopPropagation()
+        onEditRecord(employee, date, att)
+      }
+    }
+
+    if (isVacation) {
+      return (
+        <div
+          key={att.id ?? index}
+          className={styles.cellCardVacationCss}
+          onClick={handleCardClick}
+          onKeyDown={handleCardKeyDown}
+          role="button"
+          tabIndex={0}
+        >
+          休假
+        </div>
+      )
+    }
+
+    return (
+      <div
+        key={att.id ?? index}
+        className={styles.cellCardCss}
+        onClick={handleCardClick}
+        onKeyDown={handleCardKeyDown}
+        role="button"
+        tabIndex={0}
+      >
+        {formatClockTime(att.clockIn)} -{' '}
+        {att.clockOut !== undefined ? formatClockTime(att.clockOut) : '??:??'}
+      </div>
+    )
+  })
 }
 
 // ---- Component ----
@@ -52,7 +90,9 @@ function renderCellContent(
 export const RecordsTableView: React.FC<RecordsTableViewProps> = ({
   dayRows,
   employees,
-  onCellClick,
+  onEditRecord,
+  onAddRecord,
+  todayDate,
 }) => {
   return (
     <div className={styles.tableWrapperCss}>
@@ -82,42 +122,41 @@ export const RecordsTableView: React.FC<RecordsTableViewProps> = ({
                     colSpan={employees.length}
                     className={styles.tableWeekendContentCss}
                   >
-                    非工作日
+                    休
                   </td>
                 </tr>
               )
             }
 
             return (
-              <tr key={row.date} className={styles.tableRowCss}>
+              <tr
+                key={row.date}
+                className={styles.tableRowCss}
+                {...(row.date === todayDate
+                  ? { 'data-today': 'true' }
+                  : {})}
+              >
                 <td className={styles.tableDateCellCss}>
                   {row.displayDate}
                 </td>
-                {row.cells.map(cell => {
-                  const displayType = getCellDisplayType(cell.attendance)
-                  return (
-                    <td
-                      key={cell.employee.id}
-                      className={styles.tableBodyCellCss}
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`${cell.employee.name} ${row.displayDate}`}
-                      onClick={() =>
-                        onCellClick(cell.employee, row.date, cell.attendance)
+                {row.cells.map(cell => (
+                  <td
+                    key={cell.employee.id}
+                    className={styles.tableBodyCellCss}
+                    onClick={() => onAddRecord(cell.employee, row.date)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`${cell.employee.name} ${row.displayDate} 新增`}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        onAddRecord(cell.employee, row.date)
                       }
-                      onKeyDown={e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          onCellClick(cell.employee, row.date, cell.attendance)
-                        }
-                      }}
-                    >
-                      <div className={styles.cellClickableCss}>
-                        {renderCellContent(displayType, cell.attendance)}
-                      </div>
-                    </td>
-                  )
-                })}
+                    }}
+                  >
+                    {renderCellCards(cell, row.date, onEditRecord)}
+                  </td>
+                ))}
               </tr>
             )
           })}

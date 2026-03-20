@@ -17,15 +17,16 @@ import {
 } from './recordsUtils'
 import { RecordsTableView } from './RecordsTableView'
 import { RecordsCalendarView } from './RecordsCalendarView'
-import { EditRecordModal } from './EditRecordModal'
-import { AddRecordModal } from './AddRecordModal'
+import { RecordModal } from './RecordModal'
 import { recordsStyles as styles } from './styles/recordsStyles'
 
-// Immutable type for edit target state
-interface EditTarget {
+// Immutable type for modal target state
+interface ModalTarget {
+  readonly mode: 'add' | 'edit'
   readonly employee: RestaDB.Table.Employee
   readonly date: string
-  readonly attendance: RestaDB.Table.Attendance | undefined
+  readonly record?: RestaDB.Table.Attendance
+  readonly shiftNumber?: number
 }
 
 export const Records: React.FC = () => {
@@ -35,9 +36,8 @@ export const Records: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState(() => dayjs().month() + 1)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Modal state
-  const [editTarget, setEditTarget] = useState<EditTarget | null>(null)
-  const [addModalOpen, setAddModalOpen] = useState(false)
+  // Modal state (unified for add/edit)
+  const [modalTarget, setModalTarget] = useState<ModalTarget | null>(null)
 
   // Data fetching via Dexie live queries
   const yearMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
@@ -82,23 +82,61 @@ export const Records: React.FC = () => {
     [selectedYear, selectedMonth, filteredEmployees, allAttendances, todayStr],
   )
 
-  // Options for selects
+  // Options for selects (with future month filtering)
   const yearOptions = useMemo(() => getYearOptions(dayjs().year()), [])
-  const monthOptions = useMemo(() => getMonthOptions(), [])
+  const monthOptions = useMemo(
+    () => getMonthOptions(selectedYear, dayjs().year(), dayjs().month() + 1),
+    [selectedYear],
+  )
 
-  // Cell click handler — opens EditRecordModal or AddRecordModal
-  const handleCellClick = (
+  // Edit record handler — card click in table view
+  const handleEditRecord = (
     employee: RestaDB.Table.Employee,
     date: string,
-    attendance: RestaDB.Table.Attendance | undefined,
+    record: RestaDB.Table.Attendance,
   ) => {
-    setEditTarget({ employee, date, attendance })
+    // Calculate shift number from all attendances for this employee+date
+    const key = `${employee.id}-${date}`
+    const allShifts = (allAttendances ?? []).filter(
+      a => `${a.employeeId}-${a.date}` === key,
+    )
+    const shiftIndex = allShifts.findIndex(a => a.id === record.id)
+    setModalTarget({
+      mode: 'edit',
+      employee,
+      date,
+      record,
+      shiftNumber: shiftIndex >= 0 ? shiftIndex + 1 : undefined,
+    })
   }
 
-  // Close all modals
+  // Add record handler — empty area click in table view
+  const handleAddRecord = (
+    employee: RestaDB.Table.Employee,
+    date: string,
+  ) => {
+    setModalTarget({
+      mode: 'add',
+      employee,
+      date,
+    })
+  }
+
+  // Close modal
   const handleModalClose = () => {
-    setEditTarget(null)
-    setAddModalOpen(false)
+    setModalTarget(null)
+  }
+
+  // Scroll to today row
+  const handleScrollToToday = () => {
+    const now = dayjs()
+    setSelectedYear(now.year())
+    setSelectedMonth(now.month() + 1)
+    // Scroll after state update
+    setTimeout(() => {
+      const todayRow = document.querySelector('[data-today="true"]')
+      todayRow?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
   }
 
   // Loading state — show spinner while data is fetching
@@ -112,13 +150,6 @@ export const Records: React.FC = () => {
       </div>
     )
   }
-
-  // Determine which modal to show
-  const showEditModal =
-    editTarget !== null && editTarget.attendance !== undefined
-  const showAddModal =
-    addModalOpen ||
-    (editTarget !== null && editTarget.attendance === undefined)
 
   return (
     <div className={styles.containerCss}>
@@ -175,6 +206,19 @@ export const Records: React.FC = () => {
           onChange={setSelectedMonth}
           className={styles.selectCss}
         />
+        <button
+          type="button"
+          className={styles.todayBtnCss}
+          onClick={handleScrollToToday}
+        >
+          今天
+        </button>
+      </div>
+
+      {/* Hint text above the view */}
+      <div className={styles.hintCss}>
+        <InfoCircleOutlined />
+        <span>點擊儲存格即可直接編輯打卡時間</span>
       </div>
 
       {/* View content */}
@@ -182,43 +226,28 @@ export const Records: React.FC = () => {
         <RecordsTableView
           dayRows={dayRows}
           employees={filteredEmployees}
-          onCellClick={handleCellClick}
+          onEditRecord={handleEditRecord}
+          onAddRecord={handleAddRecord}
+          todayDate={todayStr}
         />
       ) : (
         <RecordsCalendarView
           calendarGrid={calendarGrid}
-          onCellClick={handleCellClick}
+          onEditRecord={handleEditRecord}
+          onAddRecord={handleAddRecord}
         />
       )}
 
-      {/* Bottom hint */}
-      <div className={styles.hintCss}>
-        <InfoCircleOutlined />
-        <span>點擊儲存格即可直接編輯打卡時間</span>
-      </div>
-
-      {/* Edit modal — existing record */}
-      {showEditModal && editTarget?.attendance && (
-        <EditRecordModal
-          record={editTarget.attendance}
-          empName={editTarget.employee.name}
-          onCancel={handleModalClose}
-          onSuccess={handleModalClose}
-        />
-      )}
-
-      {/* Add modal — empty cell click or add button */}
-      <AddRecordModal
-        open={showAddModal}
+      {/* Record modal (unified add/edit) */}
+      <RecordModal
+        open={modalTarget !== null}
+        mode={modalTarget?.mode ?? 'add'}
+        employee={modalTarget?.employee ?? null}
+        date={modalTarget?.date ?? dayjs().format('YYYY-MM-DD')}
+        record={modalTarget?.record}
+        shiftNumber={modalTarget?.shiftNumber}
         onCancel={handleModalClose}
         onSuccess={handleModalClose}
-        employees={activeEmployees}
-        defaultDate={editTarget?.date ?? dayjs().format('YYYY-MM-DD')}
-        defaultEmployeeId={
-          typeof editTarget?.employee?.id === 'number'
-            ? editTarget.employee.id
-            : undefined
-        }
       />
     </div>
   )

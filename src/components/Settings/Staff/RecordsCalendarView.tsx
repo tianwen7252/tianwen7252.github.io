@@ -1,10 +1,10 @@
 import React from 'react'
+import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
 import {
   type CalendarDay,
   type EmployeeAttendanceCell,
   WEEKDAY_LABELS,
   formatClockTime,
-  getCellDisplayType,
 } from './recordsUtils'
 import { recordsStyles as styles } from './styles/recordsStyles'
 
@@ -12,128 +12,122 @@ import { recordsStyles as styles } from './styles/recordsStyles'
 
 interface RecordsCalendarViewProps {
   readonly calendarGrid: readonly (readonly CalendarDay[])[]
-  readonly onCellClick: (
+  readonly onEditRecord: (
     employee: RestaDB.Table.Employee,
     date: string,
-    attendance: RestaDB.Table.Attendance | undefined,
+    record: RestaDB.Table.Attendance,
+  ) => void
+  readonly onAddRecord: (
+    employee: RestaDB.Table.Employee,
+    date: string,
   ) => void
 }
 
-// ---- Helper: render a single employee card ----
+// ---- Helper: keyboard handler factory ----
 
-function renderEmployeeCard(
-  cell: EmployeeAttendanceCell,
-  date: string,
-  onCellClick: RecordsCalendarViewProps['onCellClick'],
-): React.ReactNode {
-  const displayType = getCellDisplayType(cell.attendance)
-
-  // Wrap click to stop propagation from bubbling to parent day cell
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onCellClick(cell.employee, date, cell.attendance)
-  }
-
-  // Keyboard handler for accessibility
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+function makeKeyHandler(handler: () => void) {
+  return (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault()
-      onCellClick(cell.employee, date, cell.attendance)
+      handler()
     }
   }
+}
 
-  switch (displayType) {
-    case 'normal':
+// ---- Helper: render employee cards (supports multi-shift) ----
+
+function renderEmployeeCards(
+  cell: EmployeeAttendanceCell,
+  date: string,
+  onEditRecord: RecordsCalendarViewProps['onEditRecord'],
+  onAddRecord: RecordsCalendarViewProps['onAddRecord'],
+): React.ReactNode {
+  const { attendances, employee } = cell
+
+  // No records — show "未打卡", click to add
+  if (attendances.length === 0) {
+    return (
+      <div
+        key={employee.id}
+        className={styles.employeeCardCss}
+        onClick={e => { e.stopPropagation(); onAddRecord(employee, date) }}
+        onKeyDown={makeKeyHandler(() => onAddRecord(employee, date))}
+        role="button"
+        tabIndex={0}
+      >
+        <span className={styles.employeeCardNameCss}>{employee.name}</span>
+        <span className={styles.employeeCardNoRecordCss}>未打卡</span>
+      </div>
+    )
+  }
+
+  // Has records — render each shift as a separate clickable card
+  return attendances.map((att, index) => {
+    const isVacation = att.type === ATTENDANCE_TYPES.VACATION
+    const handleClick = (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onEditRecord(employee, date, att)
+    }
+
+    if (isVacation) {
       return (
         <div
-          key={cell.employee.id}
-          className={styles.employeeCardCss}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          role="button"
-          tabIndex={0}
-        >
-          <div className={styles.employeeCardNameCss}>{cell.employee.name}</div>
-          <div className={styles.employeeCardTimeCss}>
-            <span>
-              上{' '}
-              <span className={styles.employeeCardClockInCss}>
-                {formatClockTime(cell.attendance?.clockIn)}
-              </span>
-            </span>
-            <span>
-              下{' '}
-              <span className={styles.employeeCardClockOutCss}>
-                {formatClockTime(cell.attendance?.clockOut)}
-              </span>
-            </span>
-          </div>
-        </div>
-      )
-
-    case 'clockInOnly':
-      return (
-        <div
-          key={cell.employee.id}
-          className={styles.employeeCardCss}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          role="button"
-          tabIndex={0}
-        >
-          <div className={styles.employeeCardNameCss}>{cell.employee.name}</div>
-          <div className={styles.employeeCardTimeCss}>
-            <span>
-              上{' '}
-              <span className={styles.employeeCardClockInCss}>
-                {formatClockTime(cell.attendance?.clockIn)}
-              </span>
-            </span>
-            <span>
-              下{' '}
-              <span className={styles.employeeCardClockMissingCss}>??:??</span>
-            </span>
-          </div>
-        </div>
-      )
-
-    case 'vacation':
-      return (
-        <div
-          key={cell.employee.id}
+          key={att.id ?? index}
           className={styles.employeeCardVacationCss}
           onClick={handleClick}
-          onKeyDown={handleKeyDown}
+          onKeyDown={makeKeyHandler(() => onEditRecord(employee, date, att))}
           role="button"
           tabIndex={0}
         >
-          <span className={styles.employeeCardNameCss}>{cell.employee.name}</span>
+          <span className={styles.employeeCardNameCss}>{employee.name}</span>
           <span className={styles.employeeCardVacationLabelCss}>休假</span>
         </div>
       )
+    }
 
-    case 'noRecord':
-      return (
-        <div
-          key={cell.employee.id}
-          className={styles.employeeCardCss}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          role="button"
-          tabIndex={0}
-        >
-          <span className={styles.employeeCardNameCss}>{cell.employee.name}</span>
-          <span className={styles.employeeCardNoRecordCss}>未打卡</span>
+    return (
+      <div
+        key={att.id ?? index}
+        className={styles.employeeCardCss}
+        onClick={handleClick}
+        onKeyDown={makeKeyHandler(() => onEditRecord(employee, date, att))}
+        role="button"
+        tabIndex={0}
+      >
+        <div className={styles.employeeCardNameCss}>
+          {attendances.length > 1 ? `${employee.name} (班${index + 1})` : employee.name}
         </div>
-      )
-  }
+        <div className={styles.employeeCardTimeCss}>
+          <span>
+            上{' '}
+            <span className={styles.employeeCardClockInCss}>
+              {formatClockTime(att.clockIn)}
+            </span>
+          </span>
+          <span>
+            下{' '}
+            <span
+              className={
+                att.clockOut !== undefined
+                  ? styles.employeeCardClockOutCss
+                  : styles.employeeCardClockMissingCss
+              }
+            >
+              {att.clockOut !== undefined ? formatClockTime(att.clockOut) : '??:??'}
+            </span>
+          </span>
+        </div>
+      </div>
+    )
+  })
 }
 
 // ---- Helper: render a single day cell ----
 
 function renderDayCell(
   day: CalendarDay,
-  onCellClick: RecordsCalendarViewProps['onCellClick'],
+  onEditRecord: RecordsCalendarViewProps['onEditRecord'],
+  onAddRecord: RecordsCalendarViewProps['onAddRecord'],
 ): React.ReactNode {
   // Build CSS class string based on day state
   const cellClasses = [styles.calendarDayCellCss]
@@ -182,7 +176,7 @@ function renderDayCell(
       {day.isCurrentMonth && !day.isWeekend && (
         <div className={styles.calendarCardsContainerCss}>
           {day.cells.map(cell =>
-            renderEmployeeCard(cell, day.date, onCellClick),
+            renderEmployeeCards(cell, day.date, onEditRecord, onAddRecord),
           )}
         </div>
       )}
@@ -194,7 +188,8 @@ function renderDayCell(
 
 export const RecordsCalendarView: React.FC<RecordsCalendarViewProps> = ({
   calendarGrid,
-  onCellClick,
+  onEditRecord,
+  onAddRecord,
 }) => {
   return (
     <div className={styles.calendarWrapperCss}>
@@ -212,7 +207,7 @@ export const RecordsCalendarView: React.FC<RecordsCalendarViewProps> = ({
       {/* Calendar body grid */}
       <div className={styles.calendarBodyGridCss}>
         {calendarGrid.map(week =>
-          week.map(day => renderDayCell(day, onCellClick)),
+          week.map(day => renderDayCell(day, onEditRecord, onAddRecord)),
         )}
       </div>
     </div>

@@ -7,7 +7,7 @@ export type CellDisplayType = 'normal' | 'clockInOnly' | 'noRecord' | 'vacation'
 
 export interface EmployeeAttendanceCell {
   readonly employee: RestaDB.Table.Employee
-  readonly attendance: RestaDB.Table.Attendance | undefined
+  readonly attendances: readonly RestaDB.Table.Attendance[]
 }
 
 export interface DayRow {
@@ -40,17 +40,23 @@ const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六'] as const
 // ---- Functions ----
 
 /**
- * Build attendance lookup map.
+ * Build attendance lookup map (multi-shift: one key maps to an array).
  * Key format: `${employeeId}-${date}`
  */
 export function buildAttendanceMap(
   attendances: readonly RestaDB.Table.Attendance[],
-): ReadonlyMap<string, RestaDB.Table.Attendance> {
-  const entries: [string, RestaDB.Table.Attendance][] = attendances.map(att => [
-    `${att.employeeId}-${att.date}`,
-    att,
-  ])
-  return new Map(entries)
+): ReadonlyMap<string, readonly RestaDB.Table.Attendance[]> {
+  const map = new Map<string, RestaDB.Table.Attendance[]>()
+  for (const att of attendances) {
+    const key = `${att.employeeId}-${att.date}`
+    const existing = map.get(key)
+    if (existing !== undefined) {
+      existing.push(att)
+    } else {
+      map.set(key, [att])
+    }
+  }
+  return map
 }
 
 /**
@@ -110,9 +116,21 @@ export function getYearOptions(
 
 /**
  * Generate month options: 1-12.
+ * When selectedYear equals currentYear, filter out future months.
  */
-export function getMonthOptions(): readonly { value: number; label: string }[] {
-  return Array.from({ length: 12 }, (_, i) => ({
+export function getMonthOptions(
+  selectedYear?: number,
+  currentYear?: number,
+  currentMonth?: number,
+): readonly { value: number; label: string }[] {
+  const maxMonth =
+    selectedYear != null &&
+    currentYear != null &&
+    currentMonth != null &&
+    selectedYear === currentYear
+      ? currentMonth
+      : 12
+  return Array.from({ length: maxMonth }, (_, i) => ({
     value: i + 1,
     label: `${i + 1} 月`,
   }))
@@ -124,7 +142,7 @@ export function getMonthOptions(): readonly { value: number; label: string }[] {
 function buildSingleDayRow(
   dateStr: string,
   employees: readonly RestaDB.Table.Employee[],
-  attMap: ReadonlyMap<string, RestaDB.Table.Attendance>,
+  attMap: ReadonlyMap<string, readonly RestaDB.Table.Attendance[]>,
   todayStr: string,
 ): DayRow {
   const d = dayjs(dateStr)
@@ -132,7 +150,7 @@ function buildSingleDayRow(
 
   const cells: readonly EmployeeAttendanceCell[] = employees.map(emp => ({
     employee: emp,
-    attendance: attMap.get(`${emp.id}-${dateStr}`),
+    attendances: attMap.get(`${emp.id}-${dateStr}`) ?? [],
   }))
 
   return {
@@ -197,7 +215,7 @@ export function buildCalendarGrid(
     const cells: readonly EmployeeAttendanceCell[] = isCurrentMonth
       ? employees.map(emp => ({
           employee: emp,
-          attendance: attMap.get(`${emp.id}-${dateStr}`),
+          attendances: attMap.get(`${emp.id}-${dateStr}`) ?? [],
         }))
       : []
 

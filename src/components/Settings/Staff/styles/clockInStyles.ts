@@ -122,6 +122,14 @@ export const styles = {
     margin-top: 8px;
   `,
 
+  hoursCss: css`
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+  `,
+
   timesCss: css`
     font-size: 12px;
     color: ${COLOR_MUTED};

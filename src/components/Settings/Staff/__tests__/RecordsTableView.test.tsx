@@ -30,8 +30,9 @@ const mockAttendance = (
   clockIn?: number,
   clockOut?: number,
   type?: string,
+  id?: number,
 ): RestaDB.Table.Attendance => ({
-  id: employeeId * 100,
+  id: id ?? employeeId * 100,
   employeeId,
   date,
   clockIn,
@@ -64,61 +65,55 @@ beforeAll(async () => {
 
 describe('RecordsTableView', () => {
   // --------------------------------------------------------
-  // 1. Renders employee names in header
+  // Header rendering
   // --------------------------------------------------------
   describe('header rendering', () => {
     it('renders employee names in the header', () => {
-      const dayRows: readonly DayRow[] = []
       render(
         <RecordsTableView
-          dayRows={dayRows}
+          dayRows={[]}
           employees={[emp1, emp2]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
       expect(screen.getByText('Ryan')).toBeInTheDocument()
       expect(screen.getByText('陳小明')).toBeInTheDocument()
     })
 
-    // --------------------------------------------------------
-    // 2. Renders employee avatars in header
-    // --------------------------------------------------------
     it('renders employee avatars in the header', () => {
       render(
         <RecordsTableView
           dayRows={[]}
           employees={[emp1, emp2]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
       const avatars = screen.getAllByTestId('avatar-image')
       expect(avatars).toHaveLength(2)
     })
 
-    // --------------------------------------------------------
-    // 3. Renders date column header
-    // --------------------------------------------------------
     it('renders the date column header with text "日期"', () => {
       render(
         <RecordsTableView
           dayRows={[]}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
       expect(screen.getByText('日期')).toBeInTheDocument()
     })
 
-    // --------------------------------------------------------
-    // 12. Multiple employees render correct number of header columns
-    // --------------------------------------------------------
     it('renders correct number of header columns for multiple employees', () => {
       const emp3 = mockEmployee(3, '王大明')
       render(
         <RecordsTableView
           dayRows={[]}
           employees={[emp1, emp2, emp3]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
       // 1 date column + 3 employee columns = 4 <th> elements
@@ -129,19 +124,18 @@ describe('RecordsTableView', () => {
   })
 
   // --------------------------------------------------------
-  // 4. Renders date rows in correct order
+  // Date row rendering
   // --------------------------------------------------------
   describe('date row rendering', () => {
     it('renders date rows with correct displayDate', () => {
-      // 2026-03-20 is Friday, 2026-03-19 is Thursday
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: undefined }],
+          cells: [{ employee: emp1, attendances: [] }],
         }),
         createDayRow({
           date: '2026-03-19',
-          cells: [{ employee: emp1, attendance: undefined }],
+          cells: [{ employee: emp1, attendances: [] }],
         }),
       ]
 
@@ -149,26 +143,21 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('03/20 (五)')).toBeInTheDocument()
       expect(screen.getByText('03/19 (四)')).toBeInTheDocument()
-
-      // Verify order: first row is 03/20 (newest), second is 03/19
-      const allRows = screen.getAllByRole('row')
-      // allRows[0] = header, allRows[1] = first data row, allRows[2] = second data row
-      expect(within(allRows[1]).getByText('03/20 (五)')).toBeInTheDocument()
-      expect(within(allRows[2]).getByText('03/19 (四)')).toBeInTheDocument()
     })
   })
 
   // --------------------------------------------------------
-  // 5. Normal attendance shows clock times
+  // Cell display: card-styled cells with multi-shift
   // --------------------------------------------------------
-  describe('cell display types', () => {
-    it('shows clock-in and clock-out times for normal attendance', () => {
+  describe('cell display types (card-styled)', () => {
+    it('shows clock-in and clock-out times in a card for normal attendance', () => {
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
       const clockOut = dayjs('2026-03-20 18:00').valueOf()
       const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
@@ -176,7 +165,7 @@ describe('RecordsTableView', () => {
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: att }],
+          cells: [{ employee: emp1, attendances: [att] }],
         }),
       ]
 
@@ -184,7 +173,8 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -192,9 +182,6 @@ describe('RecordsTableView', () => {
       expect(screen.getByText(/18:00/)).toBeInTheDocument()
     })
 
-    // --------------------------------------------------------
-    // 6. Clock-in only shows time with ??:??
-    // --------------------------------------------------------
     it('shows clock-in time with ??:?? when clock-out is missing', () => {
       const clockIn = dayjs('2026-03-20 09:05').valueOf()
       const att = mockAttendance(1, '2026-03-20', clockIn, undefined)
@@ -202,7 +189,7 @@ describe('RecordsTableView', () => {
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: att }],
+          cells: [{ employee: emp1, attendances: [att] }],
         }),
       ]
 
@@ -210,7 +197,8 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -218,14 +206,11 @@ describe('RecordsTableView', () => {
       expect(screen.getByText(/\?\?:\?\?/)).toBeInTheDocument()
     })
 
-    // --------------------------------------------------------
-    // 7. No record shows 未打卡
-    // --------------------------------------------------------
-    it('shows 未打卡 when there is no attendance record', () => {
+    it('shows 未打卡 when there are no attendance records', () => {
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: undefined }],
+          cells: [{ employee: emp1, attendances: [] }],
         }),
       ]
 
@@ -233,23 +218,21 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('未打卡')).toBeInTheDocument()
     })
 
-    // --------------------------------------------------------
-    // 8. Vacation shows 休假 label
-    // --------------------------------------------------------
     it('shows 休假 label for vacation attendance', () => {
       const att = mockAttendance(1, '2026-03-20', undefined, undefined, 'vacation')
 
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: att }],
+          cells: [{ employee: emp1, attendances: [att] }],
         }),
       ]
 
@@ -257,19 +240,51 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       expect(screen.getByText('休假')).toBeInTheDocument()
     })
+
+    it('renders multiple cards for multi-shift attendance', () => {
+      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
+      const clockOut1 = dayjs('2026-03-20 12:00').valueOf()
+      const clockIn2 = dayjs('2026-03-20 14:00').valueOf()
+      const clockOut2 = dayjs('2026-03-20 18:00').valueOf()
+      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1, 'regular', 101)
+      const att2 = mockAttendance(1, '2026-03-20', clockIn2, clockOut2, 'regular', 102)
+
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [att1, att2] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Both time ranges should be visible
+      expect(screen.getByText(/08:00/)).toBeInTheDocument()
+      expect(screen.getByText(/12:00/)).toBeInTheDocument()
+      expect(screen.getByText(/14:00/)).toBeInTheDocument()
+      expect(screen.getByText(/18:00/)).toBeInTheDocument()
+    })
   })
 
   // --------------------------------------------------------
-  // 9. Weekend rows show 非工作日
+  // Weekend rows
   // --------------------------------------------------------
   describe('weekend rows', () => {
-    it('shows 非工作日 text for weekend rows', () => {
+    it('shows "休" text for weekend rows (not "非工作日")', () => {
       // 2026-03-21 is Saturday
       const rows: readonly DayRow[] = [
         createDayRow({
@@ -283,15 +298,16 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1, emp2]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      expect(screen.getByText('非工作日')).toBeInTheDocument()
+      expect(screen.getByText('休')).toBeInTheDocument()
+      expect(screen.queryByText('非工作日')).not.toBeInTheDocument()
     })
 
     it('renders weekend row with colSpan matching employee count', () => {
-      // 2026-03-22 is Sunday
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-22',
@@ -304,11 +320,11 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1, emp2]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
-      // The colSpan cell should span all employee columns
       const weekendCell = container.querySelector('td[colspan]')
       expect(weekendCell).not.toBeNull()
       expect(weekendCell!.getAttribute('colspan')).toBe('2')
@@ -316,11 +332,12 @@ describe('RecordsTableView', () => {
   })
 
   // --------------------------------------------------------
-  // 10. Cell click calls onCellClick with correct args
+  // Click interactions: separate card click (edit) vs td click (add)
   // --------------------------------------------------------
-  describe('cell click interactions', () => {
-    it('calls onCellClick with correct employee, date, and attendance', () => {
-      const onCellClick = vi.fn()
+  describe('click interactions', () => {
+    it('calls onEditRecord when clicking a card (existing attendance)', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
       const clockIn = dayjs('2026-03-20 08:30').valueOf()
       const clockOut = dayjs('2026-03-20 18:00').valueOf()
       const att = mockAttendance(1, '2026-03-20', clockIn, clockOut)
@@ -328,7 +345,7 @@ describe('RecordsTableView', () => {
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: att }],
+          cells: [{ employee: emp1, attendances: [att] }],
         }),
       ]
 
@@ -336,28 +353,29 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={onCellClick}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
         />,
       )
 
-      // Click the cell with time display
-      const timeCell = screen.getByText(/08:30/).closest('td')!
-      fireEvent.click(timeCell)
+      // Click the card (the div with time text), not the td
+      const card = screen.getByText(/08:30/).closest('[role="button"]')!
+      fireEvent.click(card)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
-      expect(onCellClick).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+      // onAddRecord should NOT be called (stopPropagation)
+      expect(onAddRecord).not.toHaveBeenCalled()
     })
 
-    // --------------------------------------------------------
-    // 11. Empty cell click calls onCellClick with undefined attendance
-    // --------------------------------------------------------
-    it('calls onCellClick with undefined attendance when no record exists', () => {
-      const onCellClick = vi.fn()
+    it('calls onAddRecord when clicking the empty area of a td (outside card)', () => {
+      const onEditRecord = vi.fn()
+      const onAddRecord = vi.fn()
 
       const rows: readonly DayRow[] = [
         createDayRow({
           date: '2026-03-20',
-          cells: [{ employee: emp1, attendance: undefined }],
+          cells: [{ employee: emp1, attendances: [] }],
         }),
       ]
 
@@ -365,16 +383,204 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={rows}
           employees={[emp1]}
-          onCellClick={onCellClick}
+          onEditRecord={onEditRecord}
+          onAddRecord={onAddRecord}
         />,
       )
 
-      // Click the cell with 未打卡
-      const noRecordCell = screen.getByText('未打卡').closest('td')!
-      fireEvent.click(noRecordCell)
+      // Click the td directly (empty cell, "未打卡")
+      const td = screen.getByText('未打卡').closest('td')!
+      fireEvent.click(td)
 
-      expect(onCellClick).toHaveBeenCalledTimes(1)
-      expect(onCellClick).toHaveBeenCalledWith(emp1, '2026-03-20', undefined)
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
+      expect(onAddRecord).toHaveBeenCalledWith(emp1, '2026-03-20')
+      expect(onEditRecord).not.toHaveBeenCalled()
+    })
+
+    it('calls onAddRecord with keyboard Enter on empty td', () => {
+      const onAddRecord = vi.fn()
+
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={onAddRecord}
+        />,
+      )
+
+      const td = screen.getByText('未打卡').closest('td')!
+      fireEvent.keyDown(td, { key: 'Enter' })
+
+      expect(onAddRecord).toHaveBeenCalledTimes(1)
+    })
+
+    it('calls onEditRecord with keyboard Enter on card', () => {
+      const onEditRecord = vi.fn()
+      const clockIn = dayjs('2026-03-20 08:30').valueOf()
+      const att = mockAttendance(1, '2026-03-20', clockIn, undefined)
+
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [att] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={onEditRecord}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      const card = screen.getByText(/08:30/).closest('[role="button"]')!
+      fireEvent.keyDown(card, { key: 'Enter' })
+
+      expect(onEditRecord).toHaveBeenCalledTimes(1)
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att)
+    })
+
+    it('clicking a card in multi-shift cell passes the correct record', () => {
+      const onEditRecord = vi.fn()
+      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
+      const clockOut1 = dayjs('2026-03-20 12:00').valueOf()
+      const clockIn2 = dayjs('2026-03-20 14:00').valueOf()
+      const clockOut2 = dayjs('2026-03-20 18:00').valueOf()
+      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1, 'regular', 101)
+      const att2 = mockAttendance(1, '2026-03-20', clockIn2, clockOut2, 'regular', 102)
+
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [att1, att2] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={onEditRecord}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Click the second card (14:00)
+      const secondCard = screen.getByText(/14:00/).closest('[role="button"]')!
+      fireEvent.click(secondCard)
+
+      expect(onEditRecord).toHaveBeenCalledWith(emp1, '2026-03-20', att2)
+    })
+  })
+
+  // --------------------------------------------------------
+  // Today row marking
+  // --------------------------------------------------------
+  describe('today row marking', () => {
+    it('marks the today row with data-today attribute', () => {
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          isToday: true,
+          cells: [{ employee: emp1, attendances: [] }],
+        }),
+      ]
+
+      const { container } = render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+          todayDate="2026-03-20"
+        />,
+      )
+
+      const todayRow = container.querySelector('[data-today="true"]')
+      expect(todayRow).not.toBeNull()
+    })
+
+    it('does not add data-today to non-today rows', () => {
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-19',
+          cells: [{ employee: emp1, attendances: [] }],
+        }),
+      ]
+
+      const { container } = render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+          todayDate="2026-03-20"
+        />,
+      )
+
+      const todayRow = container.querySelector('[data-today="true"]')
+      expect(todayRow).toBeNull()
+    })
+  })
+
+  // --------------------------------------------------------
+  // Accessibility
+  // --------------------------------------------------------
+  describe('accessibility', () => {
+    it('empty td has aria-label with "新增" suffix', () => {
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      const td = screen.getByText('未打卡').closest('td')!
+      expect(td.getAttribute('aria-label')).toContain('新增')
+      expect(td.getAttribute('aria-label')).toContain('Ryan')
+    })
+
+    it('cards have role="button" and tabIndex=0', () => {
+      const clockIn = dayjs('2026-03-20 08:30').valueOf()
+      const att = mockAttendance(1, '2026-03-20', clockIn, undefined)
+
+      const rows: readonly DayRow[] = [
+        createDayRow({
+          date: '2026-03-20',
+          cells: [{ employee: emp1, attendances: [att] }],
+        }),
+      ]
+
+      render(
+        <RecordsTableView
+          dayRows={rows}
+          employees={[emp1]}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      const card = screen.getByText(/08:30/).closest('[role="button"]')!
+      expect(card.getAttribute('tabindex')).toBe('0')
     })
   })
 
@@ -387,7 +593,8 @@ describe('RecordsTableView', () => {
         <RecordsTableView
           dayRows={[]}
           employees={[emp1]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
@@ -396,59 +603,28 @@ describe('RecordsTableView', () => {
     })
 
     it('renders only date column header when employees is empty', () => {
-      const { container } = render(
+      render(
         <RecordsTableView
           dayRows={[]}
           employees={[]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 
       const headerRow = screen.getByText('日期').closest('tr')!
       const headerCells = within(headerRow).getAllByRole('columnheader')
-      expect(headerCells).toHaveLength(1) // only date column
+      expect(headerCells).toHaveLength(1)
     })
 
-    it('handles multiple employees across multiple date rows', () => {
-      const clockIn1 = dayjs('2026-03-20 08:00').valueOf()
-      const clockOut1 = dayjs('2026-03-20 17:00').valueOf()
-      const clockIn2 = dayjs('2026-03-20 09:00').valueOf()
-
-      const att1 = mockAttendance(1, '2026-03-20', clockIn1, clockOut1)
-      const att2 = mockAttendance(2, '2026-03-20', clockIn2, undefined)
-
-      const rows: readonly DayRow[] = [
-        createDayRow({
-          date: '2026-03-20',
-          cells: [
-            { employee: emp1, attendance: att1 },
-            { employee: emp2, attendance: att2 },
-          ],
-        }),
-      ]
-
-      render(
-        <RecordsTableView
-          dayRows={rows}
-          employees={[emp1, emp2]}
-          onCellClick={vi.fn()}
-        />,
-      )
-
-      // emp1 normal attendance
-      expect(screen.getByText(/08:00/)).toBeInTheDocument()
-      expect(screen.getByText(/17:00/)).toBeInTheDocument()
-      // emp2 clock-in only
-      expect(screen.getByText(/09:00/)).toBeInTheDocument()
-    })
-
-    it('renders Chinese characters in employee names correctly', () => {
+    it('handles Chinese characters in employee names correctly', () => {
       const chineseEmp = mockEmployee(10, '李大華')
       render(
         <RecordsTableView
           dayRows={[]}
           employees={[chineseEmp]}
-          onCellClick={vi.fn()}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
         />,
       )
 

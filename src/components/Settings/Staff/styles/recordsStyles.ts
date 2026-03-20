@@ -9,7 +9,6 @@ const COLOR_BLUE = '#3b82f6' // blue, for "休假" label and today
 const COLOR_BLUE_LIGHT = '#eff6ff' // light blue bg
 const COLOR_BORDER = '#f1f5f9' // slate-100, borders
 const COLOR_WEEKEND_BG = '#f8fafc50' // weekend row bg (semi-transparent)
-const COLOR_HOVER_BG = 'rgba(127, 149, 106, 0.1)' // primary/10 hover
 const COLOR_WHITE = '#ffffff'
 const COLOR_HEADER_BG = '#f8fafc' // header bg
 
@@ -78,9 +77,10 @@ export const recordsStyles = {
 
   filterBarCss: css`
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 2fr 1fr 1fr auto;
     gap: 12px;
     margin-bottom: 24px;
+    align-items: center;
   `,
 
   searchInputCss: css`
@@ -89,6 +89,22 @@ export const recordsStyles = {
 
   selectCss: css`
     width: 100%;
+  `,
+
+  todayBtnCss: css`
+    padding: 6px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid ${COLOR_PRIMARY};
+    background: transparent;
+    color: ${COLOR_PRIMARY};
+    transition: all 0.15s ease;
+    &:hover {
+      background: ${COLOR_PRIMARY};
+      color: #fff;
+    }
   `,
 
   // ---- Table View ----
@@ -110,24 +126,32 @@ export const recordsStyles = {
   tableHeadRowCss: css`
     background: ${COLOR_HEADER_BG};
     border-bottom: 1px solid ${COLOR_BORDER};
+    position: sticky;
+    top: 0;
+    z-index: 10;
   `,
 
   tableHeadCellCss: css`
     padding: 16px 24px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #475569;
     min-width: 160px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: ${COLOR_HEADER_BG};
   `,
 
   tableDateHeadCellCss: css`
     padding: 16px 24px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #475569;
     position: sticky;
+    top: 0;
     left: 0;
-    z-index: 2;
+    z-index: 20;
     background: ${COLOR_HEADER_BG};
     width: 120px;
     min-width: 120px;
@@ -144,7 +168,7 @@ export const recordsStyles = {
 
   tableDateCellCss: css`
     padding: 20px 24px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: ${COLOR_TEXT};
     position: sticky;
@@ -156,6 +180,7 @@ export const recordsStyles = {
 
   tableBodyCellCss: css`
     padding: 20px 24px;
+    cursor: pointer;
   `,
 
   cellClickableCss: css`
@@ -166,31 +191,67 @@ export const recordsStyles = {
     transition: all 0.15s ease;
 
     &:hover {
-      background: ${COLOR_HOVER_BG};
+      background: rgba(127, 149, 106, 0.1);
       border-color: rgba(127, 149, 106, 0.2);
     }
   `,
 
   cellTimeCss: css`
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
     color: #334155;
   `,
 
   cellNoRecordCss: css`
-    font-size: 13px;
+    font-size: 15px;
     font-style: italic;
     color: ${COLOR_MUTED};
   `,
 
   cellVacationCss: css`
     display: inline-block;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 700;
     color: ${COLOR_BLUE};
     background: ${COLOR_BLUE_LIGHT};
     border-radius: 4px;
     padding: 2px 10px;
+  `,
+
+  // Card-styled cells for table view
+  cellCardCss: css`
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid ${COLOR_BORDER};
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #334155;
+    background: ${COLOR_WHITE};
+    cursor: pointer;
+    margin: 2px 0;
+    transition: all 0.15s ease;
+    &:hover {
+      border-color: rgba(127, 149, 106, 0.3);
+      background: rgba(127, 149, 106, 0.05);
+    }
+  `,
+
+  cellCardVacationCss: css`
+    display: inline-block;
+    padding: 4px 10px;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #3b82f6;
+    background: #eff6ff;
+    cursor: pointer;
+    margin: 2px 0;
+    transition: all 0.15s ease;
+    &:hover {
+      border-color: rgba(59, 130, 246, 0.4);
+    }
   `,
 
   tableWeekendRowCss: css`
@@ -199,7 +260,7 @@ export const recordsStyles = {
 
   tableWeekendDateCellCss: css`
     padding: 20px 24px;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: ${COLOR_MUTED};
     position: sticky;
@@ -211,7 +272,7 @@ export const recordsStyles = {
 
   tableWeekendContentCss: css`
     text-align: center;
-    font-size: 12px;
+    font-size: 14px;
     color: ${COLOR_MUTED};
     letter-spacing: 2px;
     font-weight: 700;
@@ -247,7 +308,7 @@ export const recordsStyles = {
   calendarHeaderCellCss: css`
     padding: 16px 0;
     text-align: center;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
     color: #64748b;
     border-right: 1px solid #e2e8f0;
@@ -309,9 +370,9 @@ export const recordsStyles = {
   `,
 
   calendarDateLabelCss: css`
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 700;
-    color: ${COLOR_TEXT};
+    color: #4c71bc;
     margin-bottom: 8px;
   `,
 
@@ -345,7 +406,7 @@ export const recordsStyles = {
   `,
 
   employeeCardCss: css`
-    font-size: 11px;
+    font-size: 13px;
     background: #f8fafc;
     padding: 8px;
     border-radius: 4px;
@@ -353,6 +414,7 @@ export const recordsStyles = {
   `,
 
   employeeCardNameCss: css`
+    font-size: 13px;
     font-weight: 700;
     color: ${COLOR_TEXT};
   `,
@@ -379,7 +441,7 @@ export const recordsStyles = {
   `,
 
   employeeCardVacationCss: css`
-    font-size: 11px;
+    font-size: 13px;
     background: rgba(59, 130, 246, 0.05);
     padding: 8px;
     border-radius: 4px;
@@ -391,7 +453,7 @@ export const recordsStyles = {
 
   employeeCardVacationLabelCss: css`
     color: ${COLOR_BLUE};
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 700;
   `,
 
@@ -400,7 +462,7 @@ export const recordsStyles = {
     color: ${COLOR_MUTED};
   `,
 
-  // ---- Bottom Hint ----
+  // ---- Hint ----
 
   hintCss: css`
     display: flex;
@@ -408,6 +470,6 @@ export const recordsStyles = {
     gap: 8px;
     color: ${COLOR_MUTED};
     font-size: 13px;
-    margin-top: 16px;
+    margin-bottom: 16px;
   `,
 }

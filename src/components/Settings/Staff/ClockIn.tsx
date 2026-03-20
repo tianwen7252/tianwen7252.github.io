@@ -4,6 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 import * as API from 'src/libs/api'
 import { AvatarImage } from 'src/components/AvatarImage'
+import { calcTotalHours, formatTotalHours } from './attendanceUtils'
 import { ClockInModal } from './ClockInModal'
 import { styles } from './styles/clockInStyles'
 
@@ -37,13 +38,17 @@ export interface ModalState {
   attendance?: RestaDB.Table.Attendance
 }
 
-// Derive the correct action from an employee's current attendance record
+// Derive the correct action from an employee's attendance records array
 function deriveCardAction(
-  record: RestaDB.Table.Attendance | undefined,
+  records: readonly RestaDB.Table.Attendance[],
 ): ClockInAction {
-  if (!record) return 'clockIn'
-  if (record.type === 'vacation') return 'cancelVacation'
-  // Has clockIn (may or may not have clockOut) -> clock out / re-clock-out
+  if (records.length === 0) return 'clockIn'
+  const lastRecord = records[records.length - 1]
+  if (lastRecord.type === 'vacation') return 'cancelVacation'
+  // Last shift is complete (has both clockIn and clockOut) -> start new shift
+  if (lastRecord.clockIn !== undefined && lastRecord.clockOut !== undefined)
+    return 'clockIn'
+  // Last shift only has clockIn -> clock out
   return 'clockOut'
 }
 
@@ -53,18 +58,19 @@ const BADGE_COLOR_CLOCKED_IN = '#7f956a'
 const BADGE_COLOR_CLOCKED_OUT = '#cab3f3'
 const BADGE_COLOR_VACATION = '#f88181'
 
-// Determine status badge configuration from attendance record
-function deriveStatus(record: RestaDB.Table.Attendance | undefined): {
+// Determine status badge configuration from attendance records array
+function deriveStatus(records: readonly RestaDB.Table.Attendance[]): {
   badgeColor: string
   badgeText: string
 } {
-  if (!record) {
+  if (records.length === 0) {
     return { badgeColor: BADGE_COLOR_DEFAULT, badgeText: '未打卡' }
   }
-  if (record.type === 'vacation') {
+  const lastRecord = records[records.length - 1]
+  if (lastRecord.type === 'vacation') {
     return { badgeColor: BADGE_COLOR_VACATION, badgeText: '休假' }
   }
-  if (record.clockOut) {
+  if (lastRecord.clockOut) {
     return { badgeColor: BADGE_COLOR_CLOCKED_OUT, badgeText: '已下班' }
   }
   return { badgeColor: BADGE_COLOR_CLOCKED_IN, badgeText: '已上班' }
@@ -72,11 +78,12 @@ function deriveStatus(record: RestaDB.Table.Attendance | undefined): {
 
 // Choose the avatar border style class based on attendance state
 function deriveAvatarBorderCss(
-  record: RestaDB.Table.Attendance | undefined,
+  records: readonly RestaDB.Table.Attendance[],
 ): string {
-  if (!record) return styles.avatarBorderDefaultCss
-  if (record.type === 'vacation') return styles.avatarBorderVacationCss
-  if (record.clockOut) return styles.avatarBorderClockedOutCss
+  if (records.length === 0) return styles.avatarBorderDefaultCss
+  const lastRecord = records[records.length - 1]
+  if (lastRecord.type === 'vacation') return styles.avatarBorderVacationCss
+  if (lastRecord.clockOut) return styles.avatarBorderClockedOutCss
   return styles.avatarBorderGreenCss
 }
 
@@ -106,12 +113,16 @@ export const ClockIn: React.FC = () => {
     [today],
   )
 
-  // Build an O(1) lookup map from employeeId to attendance record (immutable reduce)
+  // Build an O(1) lookup map from employeeId to attendance records array (immutable reduce)
   const attendanceMap = useMemo(
     () =>
       (todayAttendances ?? []).reduce(
-        (map, r) => ({ ...map, [r.employeeId as number]: r }),
-        {} as Record<number, RestaDB.Table.Attendance>,
+        (map, r) => {
+          const empId = r.employeeId as number
+          const existing = map[empId] ?? []
+          return { ...map, [empId]: [...existing, r] }
+        },
+        {} as Record<number, readonly RestaDB.Table.Attendance[]>,
       ),
     [todayAttendances],
   )
@@ -129,17 +140,22 @@ export const ClockIn: React.FC = () => {
   const weekday = WEEKDAYS[todayDayjs.day()]
   const dateString = `今天日期: ${todayDayjs.format('YYYY年M月D日')} ${weekday}`
 
-  // Handle card click — derive action from attendance and open modal state
+  // Handle card click — derive action from attendance records and open modal state
   const handleCardClick = (
     employee: RestaDB.Table.Employee,
-    record: RestaDB.Table.Attendance | undefined,
+    records: readonly RestaDB.Table.Attendance[],
   ) => {
-    const action = deriveCardAction(record)
+    const action = deriveCardAction(records)
+    const lastRecord =
+      records.length > 0 ? records[records.length - 1] : undefined
     setModalState({
       visible: true,
       employee,
       action,
-      attendance: record,
+      attendance:
+        action === 'clockOut' || action === 'cancelVacation'
+          ? lastRecord
+          : undefined,
     })
   }
 
@@ -241,10 +257,14 @@ export const ClockIn: React.FC = () => {
       {/* Card grid */}
       <div className={styles.gridCss}>
         {employees.map(employee => {
-          const record = attendanceMap[employee.id!]
-          const { badgeColor, badgeText } = deriveStatus(record)
-          const avatarBorderCss = deriveAvatarBorderCss(record)
-          const isVacation = record?.type === 'vacation'
+          const records = attendanceMap[employee.id!] ?? []
+          const { badgeColor, badgeText } = deriveStatus(records)
+          const avatarBorderCss = deriveAvatarBorderCss(records)
+          const lastRecord =
+            records.length > 0 ? records[records.length - 1] : undefined
+          const isVacation = lastRecord?.type === 'vacation'
+          const totalHours = calcTotalHours(records)
+          const action = deriveCardAction(records)
 
           return (
             <div
@@ -254,9 +274,9 @@ export const ClockIn: React.FC = () => {
               role="button"
               tabIndex={0}
               aria-label={`${employee.name} 打卡 — ${badgeText}`}
-              onClick={() => handleCardClick(employee, record)}
+              onClick={() => handleCardClick(employee, records)}
               onKeyDown={e =>
-                e.key === 'Enter' && handleCardClick(employee, record)
+                e.key === 'Enter' && handleCardClick(employee, records)
               }
             >
               {/* Avatar with colored border */}
@@ -274,34 +294,54 @@ export const ClockIn: React.FC = () => {
                 {employee.isAdmin ? '管理員' : ''}
               </div>
 
-              {/* Status badge */}
+              {/* Status badge and hours display */}
               <div className={styles.statusCss}>
                 <Badge color={badgeColor} text={badgeText} />
+                {totalHours > 0 && (
+                  <span className={styles.hoursCss}>
+                    {formatTotalHours(totalHours)}
+                  </span>
+                )}
               </div>
 
               {/* Clock-in / clock-out times — vacation shows differently */}
-              {/* Always render two lines to keep consistent card height */}
-              {record?.type === 'vacation' ? (
+              {/* Multi-shift: render each shift, label with shift number when >1 */}
+              {isVacation ? (
                 <div className={styles.timesCss}>
-                  <div>休假：{formatTime(record?.clockIn)}</div>
+                  <div>休假：{formatTime(lastRecord?.clockIn)}</div>
                   <div>&nbsp;</div>
                 </div>
               ) : (
                 <div className={styles.timesCss}>
-                  <div>上班：{formatTime(record?.clockIn)}</div>
-                  <div>下班：{formatTime(record?.clockOut)}</div>
+                  {records.map((shift, index) => (
+                    <div key={shift.id ?? index}>
+                      {records.length > 1 && (
+                        <span style={{ fontWeight: 600 }}>
+                          班{index + 1}:{' '}
+                        </span>
+                      )}
+                      上班：{formatTime(shift.clockIn)} 下班：
+                      {formatTime(shift.clockOut)}
+                    </div>
+                  ))}
+                  {records.length === 0 && (
+                    <>
+                      <div>上班：{formatTime(undefined)}</div>
+                      <div>下班：{formatTime(undefined)}</div>
+                    </>
+                  )}
                 </div>
               )}
 
               {/* Action buttons — layout depends on attendance state */}
               <div className={styles.actionBtnRowCss}>
-                {!record && (
+                {records.length === 0 && (
                   <>
                     <Button
                       type="primary"
                       size="small"
                       onClick={e =>
-                        handleButtonAction(e, employee, 'clockIn', record)
+                        handleButtonAction(e, employee, 'clockIn', undefined)
                       }
                     >
                       打卡上班
@@ -310,25 +350,36 @@ export const ClockIn: React.FC = () => {
                       danger
                       size="small"
                       onClick={e =>
-                        handleButtonAction(e, employee, 'vacation', record)
+                        handleButtonAction(e, employee, 'vacation', undefined)
                       }
                     >
                       申請休假
                     </Button>
                   </>
                 )}
-                {record && record.type !== 'vacation' && (
+                {records.length > 0 && !isVacation && action === 'clockOut' && (
                   <Button
                     type="primary"
                     size="small"
                     onClick={e =>
-                      handleButtonAction(e, employee, 'clockOut', record)
+                      handleButtonAction(e, employee, 'clockOut', lastRecord)
                     }
                   >
                     打卡下班
                   </Button>
                 )}
-                {record?.type === 'vacation' && (
+                {records.length > 0 && !isVacation && action === 'clockIn' && (
+                  <Button
+                    type="primary"
+                    size="small"
+                    onClick={e =>
+                      handleButtonAction(e, employee, 'clockIn', undefined)
+                    }
+                  >
+                    打卡上班
+                  </Button>
+                )}
+                {isVacation && (
                   <Button
                     size="small"
                     onClick={e =>
@@ -336,7 +387,7 @@ export const ClockIn: React.FC = () => {
                         e,
                         employee,
                         'cancelVacation',
-                        record,
+                        lastRecord,
                       )
                     }
                   >
