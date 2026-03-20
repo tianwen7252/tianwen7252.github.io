@@ -8,13 +8,15 @@ import {
   Table,
   Badge,
   Spin,
+  Select,
 } from 'antd'
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
+import { LeftOutlined, RightOutlined, PlusOutlined } from '@ant-design/icons'
 import dayjs, { Dayjs } from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { ATTENDANCE_TYPES } from 'src/constants/defaults/attendanceTypes'
 import * as API from 'src/libs/api'
 import EditRecordModal from './EditRecordModal'
+import { AddRecordModal } from './AddRecordModal'
 
 /** Check whether an attendance record is a vacation type */
 const isVacation = (record: RestaDB.Table.Attendance): boolean =>
@@ -29,6 +31,10 @@ export const Records: React.FC = () => {
   const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
   const [selectedRecord, setSelectedRecord] =
     useState<RestaDB.Table.Attendance | null>(null)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [filterEmployeeId, setFilterEmployeeId] = useState<
+    number | undefined
+  >()
 
   const yearMonthStr = currentMonth.format('YYYY-MM')
   const attendances =
@@ -47,6 +53,23 @@ export const Records: React.FC = () => {
     )
   }, [employeesList])
 
+  // Filter attendances by selected employee (undefined = show all)
+  const filteredAttendances = useMemo(() => {
+    if (filterEmployeeId === undefined) return attendances
+    return attendances.filter(
+      record => record.employeeId === filterEmployeeId,
+    )
+  }, [attendances, filterEmployeeId])
+
+  // Build employee options for the filter dropdown
+  const employeeFilterOptions = useMemo(
+    () =>
+      employeesList
+        .filter(emp => emp.id !== undefined)
+        .map(emp => ({ value: emp.id as number, label: emp.name })),
+    [employeesList],
+  )
+
   const handleMonthChange = (date: Dayjs | null) => {
     if (date) setCurrentMonth(date)
   }
@@ -57,7 +80,9 @@ export const Records: React.FC = () => {
 
   const dateCellRender = (value: Dayjs) => {
     const dateStr = value.format('YYYY-MM-DD')
-    const dayRecords = attendances.filter(record => record.date === dateStr)
+    const dayRecords = filteredAttendances.filter(
+      record => record.date === dateStr,
+    )
 
     return (
       <ul
@@ -165,14 +190,30 @@ export const Records: React.FC = () => {
             allowClear={false}
           />
           <Button icon={<RightOutlined />} onClick={handleNextMonth} />
+          <Button
+            icon={<PlusOutlined />}
+            onClick={() => setAddModalOpen(true)}
+          >
+            新增打卡紀錄
+          </Button>
         </Space>
-        <Radio.Group
-          value={viewMode}
-          onChange={e => setViewMode(e.target.value)}
-        >
-          <Radio.Button value="calendar">日曆</Radio.Button>
-          <Radio.Button value="table">表格</Radio.Button>
-        </Radio.Group>
+        <Space>
+          <Select
+            placeholder="所有員工"
+            allowClear
+            value={filterEmployeeId}
+            onChange={value => setFilterEmployeeId(value)}
+            options={employeeFilterOptions}
+            style={{ minWidth: 120 }}
+          />
+          <Radio.Group
+            value={viewMode}
+            onChange={e => setViewMode(e.target.value)}
+          >
+            <Radio.Button value="calendar">日曆</Radio.Button>
+            <Radio.Button value="table">表格</Radio.Button>
+          </Radio.Group>
+        </Space>
       </div>
 
       {!attendances && <Spin />}
@@ -189,7 +230,7 @@ export const Records: React.FC = () => {
         />
       ) : (
         <Table
-          dataSource={attendances}
+          dataSource={filteredAttendances}
           columns={tableColumns}
           rowKey="id"
           pagination={{ pageSize: 20 }}
@@ -204,6 +245,14 @@ export const Records: React.FC = () => {
           onSuccess={() => setSelectedRecord(null)}
         />
       )}
+
+      <AddRecordModal
+        open={addModalOpen}
+        onCancel={() => setAddModalOpen(false)}
+        onSuccess={() => setAddModalOpen(false)}
+        employees={employeesList}
+        defaultDate={dayjs().format('YYYY-MM-DD')}
+      />
     </div>
   )
 }
