@@ -8,7 +8,8 @@ const { testDb } = vi.hoisted(() => {
   const testDb = new Dexie('TestEmployeesDB')
 
   testDb.version(1).stores({
-    employees: '++id, name, avatar, status, shiftType, employeeNo',
+    employees:
+      '++id, name, avatar, status, shiftType, employeeNo, isAdmin, hireDate, resignationDate',
   })
 
   return { testDb }
@@ -134,6 +135,43 @@ describe('employees API', () => {
       // Original input should not have been mutated
       expect(input).toEqual(inputCopy)
     })
+
+    it('should preserve hireDate when provided', async () => {
+      const id = await employees.add({
+        name: 'NewHire',
+        avatar: '',
+        status: 'active',
+        hireDate: '2025-06-15',
+      })
+
+      const record = await testDb.employees.get(id)
+      expect(record!.hireDate).toBe('2025-06-15')
+    })
+
+    it('should preserve resignationDate when provided', async () => {
+      const id = await employees.add({
+        name: 'Resigned',
+        avatar: '',
+        status: 'inactive',
+        hireDate: '2024-01-10',
+        resignationDate: '2025-12-31',
+      })
+
+      const record = await testDb.employees.get(id)
+      expect(record!.resignationDate).toBe('2025-12-31')
+    })
+
+    it('should allow hireDate and resignationDate to be undefined (optional)', async () => {
+      const id = await employees.add({
+        name: 'NoDateFields',
+        avatar: '',
+        status: 'active',
+      })
+
+      const record = await testDb.employees.get(id)
+      expect(record!.hireDate).toBeUndefined()
+      expect(record!.resignationDate).toBeUndefined()
+    })
   })
 
   describe('get()', () => {
@@ -181,6 +219,39 @@ describe('employees API', () => {
       const record = await testDb.employees.get(id)
       expect(record!.updatedAt).toBeGreaterThanOrEqual(beforeUpdate)
       expect(record!.updatedAt).toBeLessThanOrEqual(afterUpdate)
+    })
+
+    it('should update hireDate via set()', async () => {
+      const id = await employees.add({
+        name: 'DateUpdate',
+        avatar: '',
+        status: 'active',
+      })
+
+      await employees.set(id as number, { hireDate: '2025-03-01' })
+
+      const record = await testDb.employees.get(id)
+      expect(record!.hireDate).toBe('2025-03-01')
+    })
+
+    it('should update resignationDate via set()', async () => {
+      const id = await employees.add({
+        name: 'Leaving',
+        avatar: '',
+        status: 'active',
+        hireDate: '2024-01-01',
+      })
+
+      await employees.set(id as number, {
+        resignationDate: '2026-03-20',
+        status: 'inactive',
+      })
+
+      const record = await testDb.employees.get(id)
+      expect(record!.resignationDate).toBe('2026-03-20')
+      expect(record!.status).toBe('inactive')
+      // hireDate should remain unchanged
+      expect(record!.hireDate).toBe('2024-01-01')
     })
   })
 

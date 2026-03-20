@@ -373,7 +373,7 @@ export const employees = {
         employeeNo,
         createdAt: now,
         updatedAt: now,
-      } as RestaDB.Table.Employee)
+      })
     })
   },
   async set(id: number, record: Partial<Omit<RestaDB.Table.Employee, 'id'>>) {

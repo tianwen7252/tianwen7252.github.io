@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { ANIMAL_AVATARS } from '../animalAvatars'
 
 // Expected IDs based on actual files in public/images/aminals/
+// 1326401 was deleted from filesystem and removed from constant
 const EXPECTED_IDS = [
   '414686',
   '780258',
@@ -11,7 +12,6 @@ const EXPECTED_IDS = [
   '1308845',
   '1326387',
   '1326390',
-  '1326401',
   '1326405',
   '1810917',
   '1862418',
@@ -34,8 +34,13 @@ const EXPECTED_IDS = [
 ]
 
 describe('ANIMAL_AVATARS', () => {
-  it('should contain exactly 28 animal avatars', () => {
-    expect(ANIMAL_AVATARS).toHaveLength(28)
+  it('should contain exactly 27 animal avatars', () => {
+    expect(ANIMAL_AVATARS).toHaveLength(27)
+  })
+
+  it('should NOT contain deleted avatar 1326401', () => {
+    const ids = ANIMAL_AVATARS.map(a => a.id)
+    expect(ids).not.toContain('1326401')
   })
 
   it('should have unique IDs for all entries', () => {

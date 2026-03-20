@@ -10,7 +10,6 @@ export const ANIMAL_AVATARS = [
   { id: '1326390', path: 'images/aminals/1326390.png' },
   { id: '840492', path: 'images/aminals/840492.png' },
   { id: '1049013', path: 'images/aminals/1049013.png' },
-  { id: '1326401', path: 'images/aminals/1326401.png' },
   { id: '414686', path: 'images/aminals/414686.png' },
   { id: '1810917', path: 'images/aminals/1810917.png' },
   { id: '1862418', path: 'images/aminals/1862418.png' },
