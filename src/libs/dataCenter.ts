@@ -9,7 +9,7 @@ import { getDeviceStorageInfo } from './common'
 
 export const DB_NAME = 'TianwenDB'
 
-const DB_VERSION = 8
+const DB_VERSION = 11
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -23,25 +23,57 @@ export const db = new Dexie(DB_NAME) as Dexie & {
   attendances: EntityTable<RestaDB.Table.Attendance, 'id'>
 }
 
-// Schema declaration:
-const dbSchema = db.version(DB_VERSION)
-dbSchema.stores({
-  orders: '++id, createdAt', // primary key "id" (for the runtime!),
-  dailyData: '++id, date, createdAt, total',
-  commondityType: '++id, type',
-  commondity: '++id, name, typeID, onMarket',
-  orderTypes: '++id, name',
-  employees: '++id, name, avatar, status',
-  attendances: '++id, employeeId, date, clockIn, clockOut'
-})
-// .upgrade(trans => {
-//   return trans
-//     .table('orders')
-//     .toCollection()
-//     .modify(record => {
-//       // do something
-//     })
-// })
+// Schema declaration — each version must be chained independently:
+
+// v10: add isAdmin field to employees
+db.version(10)
+  .stores({
+    orders: '++id, createdAt',
+    dailyData: '++id, date, createdAt, total',
+    commondityType: '++id, type',
+    commondity: '++id, name, typeID, onMarket',
+    orderTypes: '++id, name',
+    employees: '++id, name, avatar, status, shiftType, employeeNo, isAdmin',
+    attendances: '++id, employeeId, date, clockIn, clockOut',
+  })
+  .upgrade(async trans => {
+    // v9→v10: add isAdmin field, default to false, first employee (001) is admin
+    const employees = await trans.table('employees').orderBy('id').toArray()
+    await Promise.all(
+      employees.map(employee =>
+        trans.table('employees').update(employee.id, {
+          isAdmin: employee.employeeNo === '001',
+        }),
+      ),
+    )
+  })
+
+// v11: add type field to attendances for vacation tracking
+db.version(DB_VERSION)
+  .stores({
+    orders: '++id, createdAt',
+    dailyData: '++id, date, createdAt, total',
+    commondityType: '++id, type',
+    commondity: '++id, name, typeID, onMarket',
+    orderTypes: '++id, name',
+    employees: '++id, name, avatar, status, shiftType, employeeNo, isAdmin',
+    attendances: '++id, employeeId, date, clockIn, clockOut, type',
+  })
+  .upgrade(async trans => {
+    // v10→v11: add type field to existing attendance records, default to 'regular'
+    const attendanceRecords = await trans
+      .table('attendances')
+      .toArray()
+    await Promise.all(
+      attendanceRecords
+        .filter(record => !record.type)
+        .map(record =>
+          trans.table('attendances').update(record.id, {
+            type: 'regular',
+          }),
+        ),
+    )
+  })
 
 export function init() {
   initDB()

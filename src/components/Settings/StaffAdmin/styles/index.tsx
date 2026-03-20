@@ -4,30 +4,45 @@ export const styles = {
   wrapCss: css`
     padding: 0 24px;
   `,
-  avatarCss: css`
-    font-size: 28px;
-    line-height: 1;
-  `,
-  emojiGridCss: css`
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
+  // Flex layout for merged avatar + name column
+  employeeInfoCss: css`
+    display: flex;
+    align-items: center;
     gap: 8px;
   `,
-  emojiItemCss: css`
-    font-size: 28px;
-    text-align: center;
+  // Animal image grid in modal (7 columns)
+  imageGridCss: css`
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    max-height: 360px;
+    overflow-y: auto;
+  `,
+  // Individual animal image item in the grid picker
+  imageItemCss: css`
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     border: 2px solid transparent;
-    padding: 4px;
+    padding: 2px;
     transition: border-color 0.15s;
 
     &:hover {
       border-color: #d9d9d9;
     }
+
+    img {
+      width: 74px;
+      height: 74px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
   `,
-  emojiItemSelectedCss: css`
-    border-color: #1677ff !important;
-    background: #e6f4ff;
+  // Selected state for image item in grid picker
+  imageItemSelectedCss: css`
+    border-color: #afbea5 !important;
+    background: #f3faef;
   `,
 }
