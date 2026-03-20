@@ -81,7 +81,13 @@ function deriveAvatarBorderCss(
 }
 
 export const ClockIn: React.FC = () => {
-  const employees = useLiveQuery(() => API.employees.get()) || []
+  const allEmployees = useLiveQuery(() => API.employees.get()) || []
+
+  // Filter out resigned employees — client-side only so StaffAdmin still shows all
+  const employees = useMemo(
+    () => allEmployees.filter(e => !e.resignationDate),
+    [allEmployees],
+  )
 
   // Auto-update date at midnight for POS iPad left running overnight
   const [today, setToday] = useState(() => dayjs().format('YYYY-MM-DD'))
@@ -238,11 +244,12 @@ export const ClockIn: React.FC = () => {
           const record = attendanceMap[employee.id!]
           const { badgeColor, badgeText } = deriveStatus(record)
           const avatarBorderCss = deriveAvatarBorderCss(record)
+          const isVacation = record?.type === 'vacation'
 
           return (
             <div
               key={employee.id}
-              className={styles.cardCss}
+              className={`${styles.cardCss}${isVacation ? ` ${styles.cardVacationBgCss}` : ''}`}
               data-testid="employee-card"
               role="button"
               tabIndex={0}

@@ -3,6 +3,7 @@ import React from 'react'
 import { render, screen, fireEvent } from '@testing-library/react'
 import dayjs from 'dayjs'
 import { ClockIn } from '../ClockIn'
+import { styles } from '../styles/clockInStyles'
 
 // Mock API calls
 vi.mock('src/libs/api', () => ({
@@ -523,6 +524,108 @@ describe('ClockIn Component', () => {
       expect(fullText).toContain('08:30')
       expect(fullText).not.toContain('上班：')
       expect(fullText).not.toContain('下班：')
+    })
+  })
+
+  // --------------------------------------------------------
+  // Vacation card background color
+  // --------------------------------------------------------
+
+  describe('vacation card background', () => {
+    it('applies vacation background CSS class when employee is on vacation', () => {
+      mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+      mockAttendances = [
+        makeAttendance({
+          employeeId: 1,
+          type: 'vacation',
+          clockIn: dayjs('2024-05-20T08:00:00').valueOf(),
+        }),
+      ]
+      render(<ClockIn />)
+      const card = screen.getByTestId('employee-card')
+      // Vacation card should have the vacation background Emotion class applied
+      expect(card.className).toContain(styles.cardVacationBgCss)
+    })
+
+    it('does NOT apply vacation background CSS class when employee has regular attendance', () => {
+      mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+      mockAttendances = [
+        makeAttendance({
+          employeeId: 1,
+          clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+        }),
+      ]
+      render(<ClockIn />)
+      const card = screen.getByTestId('employee-card')
+      expect(card.className).not.toContain(styles.cardVacationBgCss)
+    })
+
+    it('does NOT apply vacation background CSS class when employee has no attendance', () => {
+      mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+      mockAttendances = []
+      render(<ClockIn />)
+      const card = screen.getByTestId('employee-card')
+      expect(card.className).not.toContain(styles.cardVacationBgCss)
+    })
+  })
+
+  // --------------------------------------------------------
+  // Resigned employee filtering
+  // --------------------------------------------------------
+
+  describe('resigned employee filtering', () => {
+    it('does NOT render employees with a resignationDate', () => {
+      mockEmployees = [
+        makeEmployee({ id: 1, name: 'Alice', resignationDate: '2024-04-01' }),
+      ]
+      render(<ClockIn />)
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+    })
+
+    it('renders employees without a resignationDate', () => {
+      mockEmployees = [
+        makeEmployee({ id: 1, name: 'Bob', resignationDate: undefined }),
+      ]
+      render(<ClockIn />)
+      expect(screen.getByText('Bob')).toBeInTheDocument()
+    })
+
+    it('filters out resigned employees while keeping active ones', () => {
+      mockEmployees = [
+        makeEmployee({ id: 1, name: 'Alice', resignationDate: '2024-04-01' }),
+        makeEmployee({ id: 2, name: 'Bob' }),
+        makeEmployee({ id: 3, name: 'Carol', resignationDate: '2024-03-15' }),
+        makeEmployee({ id: 4, name: 'Dave' }),
+      ]
+      render(<ClockIn />)
+      // Active employees should be visible
+      expect(screen.getByText('Bob')).toBeInTheDocument()
+      expect(screen.getByText('Dave')).toBeInTheDocument()
+      // Resigned employees should NOT be visible
+      expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+      expect(screen.queryByText('Carol')).not.toBeInTheDocument()
+    })
+
+    it('renders only active employee cards in the grid', () => {
+      mockEmployees = [
+        makeEmployee({ id: 1, name: 'Alice', resignationDate: '2024-04-01' }),
+        makeEmployee({ id: 2, name: 'Bob' }),
+        makeEmployee({ id: 3, name: 'Carol' }),
+      ]
+      render(<ClockIn />)
+      const cards = screen.getAllByTestId('employee-card')
+      expect(cards.length).toBe(2)
+    })
+
+    it('shows empty message when all employees are resigned', () => {
+      mockEmployees = [
+        makeEmployee({ id: 1, name: 'Alice', resignationDate: '2024-04-01' }),
+        makeEmployee({ id: 2, name: 'Bob', resignationDate: '2024-03-15' }),
+      ]
+      render(<ClockIn />)
+      expect(
+        screen.getByText(/目前無員工資料，請前往「員工管理」頁面新增員工/),
+      ).toBeInTheDocument()
     })
   })
 

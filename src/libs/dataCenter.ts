@@ -9,7 +9,7 @@ import { getDeviceStorageInfo } from './common'
 
 export const DB_NAME = 'TianwenDB'
 
-const DB_VERSION = 11
+const DB_VERSION = 12
 export const db = new Dexie(DB_NAME) as Dexie & {
   orders: EntityTable<
     RestaDB.Table.Order,
@@ -49,7 +49,7 @@ db.version(10)
   })
 
 // v11: add type field to attendances for vacation tracking
-db.version(DB_VERSION)
+db.version(11)
   .stores({
     orders: '++id, createdAt',
     dailyData: '++id, date, createdAt, total',
@@ -73,6 +73,21 @@ db.version(DB_VERSION)
           }),
         ),
     )
+  })
+
+// v12: add hireDate and resignationDate as indexed columns to employees.
+// No .upgrade() needed — both fields are optional and default to undefined
+// for existing rows; Dexie handles index rebuild automatically.
+db.version(DB_VERSION)
+  .stores({
+    orders: '++id, createdAt',
+    dailyData: '++id, date, createdAt, total',
+    commondityType: '++id, type',
+    commondity: '++id, name, typeID, onMarket',
+    orderTypes: '++id, name',
+    employees:
+      '++id, name, avatar, status, shiftType, employeeNo, isAdmin, hireDate, resignationDate',
+    attendances: '++id, employeeId, date, clockIn, clockOut, type',
   })
 
 export function init() {
