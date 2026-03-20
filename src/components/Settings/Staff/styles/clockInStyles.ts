@@ -9,8 +9,8 @@ const COLOR_PRIMARY = '#7f956a'
 const COLOR_BG = '#f8fafc'
 const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
-const COLOR_ORANGE = '#ed8936'
-const COLOR_RED = '#e53e3e'
+const COLOR_CLOCKED_OUT = '#cab3f3'
+const COLOR_VACATION = '#f88181'
 const COLOR_DEFAULT = '#dbe3d2'
 
 export const styles = {
@@ -84,17 +84,17 @@ export const styles = {
     overflow: hidden;
   `,
 
-  avatarBorderOrangeCss: css`
+  avatarBorderClockedOutCss: css`
     display: inline-flex;
     border-radius: 50%;
-    border: 3px solid ${COLOR_ORANGE};
+    border: 3px solid ${COLOR_CLOCKED_OUT};
     overflow: hidden;
   `,
 
-  avatarBorderRedCss: css`
+  avatarBorderVacationCss: css`
     display: inline-flex;
     border-radius: 50%;
-    border: 3px solid ${COLOR_RED};
+    border: 3px solid ${COLOR_VACATION};
     overflow: hidden;
   `,
 

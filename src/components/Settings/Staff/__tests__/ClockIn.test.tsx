@@ -247,8 +247,8 @@ describe('ClockIn Component', () => {
       // Times are rendered inline with labels, so use textContent on the container
       const timesDiv = container.querySelector('[class*="css"]')
       const fullText = container.textContent ?? ''
-      // Should have two instances of --:-- (one for clock-in, one for clock-out)
-      const matches = fullText.match(/--:--/g)
+      // Should have two instances of ?? : ?? (one for clock-in, one for clock-out)
+      const matches = fullText.match(/\?\? : \?\?/g)
       expect(matches).toBeTruthy()
       expect(matches!.length).toBe(2)
     })

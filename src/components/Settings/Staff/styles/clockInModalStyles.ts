@@ -51,8 +51,7 @@ function createGradientRootCss(gradientBg: string): string {
 // ── Root-level gradient classes (applied via rootClassName) ──
 
 export const gradientClockInRootCss = createGradientRootCss(GRADIENT_CLOCK_IN)
-export const gradientClockOutRootCss =
-  createGradientRootCss(GRADIENT_CLOCK_OUT)
+export const gradientClockOutRootCss = createGradientRootCss(GRADIENT_CLOCK_OUT)
 export const gradientVacationRootCss = createGradientRootCss(GRADIENT_VACATION)
 // Cancel vacation uses the same red gradient as vacation
 export const gradientCancelVacationRootCss =
@@ -104,10 +103,9 @@ export const styles = {
     align-items: center;
   `,
 
-  // Avatar in modal (120px, circular, sage green border)
+  // Avatar in modal (120px, circular)
   avatarModalCss: css`
     border-radius: 50%;
-    border: 3px solid ${COLOR_PRIMARY};
     overflow: hidden;
     display: inline-flex;
     margin-bottom: 12px;

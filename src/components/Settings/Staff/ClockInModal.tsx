@@ -95,7 +95,7 @@ export const ClockInModal: React.FC<ClockInModalProps> = ({
     timeValue =
       attendance?.clockIn != null
         ? formatTimeAmPm(dayjs(attendance.clockIn))
-        : '--:--'
+        : '?? : ??'
   } else if (isVacation) {
     timeLabel = '休假時間'
     timeValue = formatTimeAmPm(currentTime)

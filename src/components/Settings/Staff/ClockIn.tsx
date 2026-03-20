@@ -20,7 +20,7 @@ const WEEKDAYS = [
 
 // Format a timestamp to HH:mm, or return placeholder when absent
 function formatTime(ts?: number): string {
-  return ts ? dayjs(ts).format('HH:mm') : '--:--'
+  return ts ? dayjs(ts).format('HH:mm') : '?? : ??'
 }
 
 // Possible actions that the modal (Phase 3) will handle
@@ -47,21 +47,27 @@ function deriveCardAction(
   return 'clockOut'
 }
 
+// Badge colors matching avatar border state colors
+const BADGE_COLOR_DEFAULT = '#dbe3d2'
+const BADGE_COLOR_CLOCKED_IN = '#7f956a'
+const BADGE_COLOR_CLOCKED_OUT = '#cab3f3'
+const BADGE_COLOR_VACATION = '#f88181'
+
 // Determine status badge configuration from attendance record
 function deriveStatus(record: RestaDB.Table.Attendance | undefined): {
-  badgeStatus: 'default' | 'processing' | 'success' | 'error'
+  badgeColor: string
   badgeText: string
 } {
   if (!record) {
-    return { badgeStatus: 'default', badgeText: '未打卡' }
+    return { badgeColor: BADGE_COLOR_DEFAULT, badgeText: '未打卡' }
   }
   if (record.type === 'vacation') {
-    return { badgeStatus: 'error', badgeText: '休假' }
+    return { badgeColor: BADGE_COLOR_VACATION, badgeText: '休假' }
   }
   if (record.clockOut) {
-    return { badgeStatus: 'success', badgeText: '已下班' }
+    return { badgeColor: BADGE_COLOR_CLOCKED_OUT, badgeText: '已下班' }
   }
-  return { badgeStatus: 'processing', badgeText: '已上班' }
+  return { badgeColor: BADGE_COLOR_CLOCKED_IN, badgeText: '已上班' }
 }
 
 // Choose the avatar border style class based on attendance state
@@ -69,8 +75,8 @@ function deriveAvatarBorderCss(
   record: RestaDB.Table.Attendance | undefined,
 ): string {
   if (!record) return styles.avatarBorderDefaultCss
-  if (record.type === 'vacation') return styles.avatarBorderRedCss
-  if (record.clockOut) return styles.avatarBorderOrangeCss
+  if (record.type === 'vacation') return styles.avatarBorderVacationCss
+  if (record.clockOut) return styles.avatarBorderClockedOutCss
   return styles.avatarBorderGreenCss
 }
 
@@ -230,7 +236,7 @@ export const ClockIn: React.FC = () => {
       <div className={styles.gridCss}>
         {employees.map(employee => {
           const record = attendanceMap[employee.id!]
-          const { badgeStatus, badgeText } = deriveStatus(record)
+          const { badgeColor, badgeText } = deriveStatus(record)
           const avatarBorderCss = deriveAvatarBorderCss(record)
 
           return (
@@ -263,13 +269,15 @@ export const ClockIn: React.FC = () => {
 
               {/* Status badge */}
               <div className={styles.statusCss}>
-                <Badge status={badgeStatus} text={badgeText} />
+                <Badge color={badgeColor} text={badgeText} />
               </div>
 
               {/* Clock-in / clock-out times — vacation shows differently */}
+              {/* Always render two lines to keep consistent card height */}
               {record?.type === 'vacation' ? (
                 <div className={styles.timesCss}>
                   <div>休假：{formatTime(record?.clockIn)}</div>
+                  <div>&nbsp;</div>
                 </div>
               ) : (
                 <div className={styles.timesCss}>

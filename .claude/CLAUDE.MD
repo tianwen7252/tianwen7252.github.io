@@ -164,6 +164,7 @@ src/
 - **程式碼注解**：所有程式碼注解（inline comment、JSDoc）一律使用**英文**撰寫
 - **專案管理**: 在這個project所建立的專案計畫都要複製專案內容到./claude/plans裡。
 - **Git 分支規範**：**禁止直接 commit 到主要分支（master/main）**，所有變更必須透過 feature branch + PR 流程進行
+- **即使在--dangerously-skip-permissions的模式下，絕對不能刪除任何檔案或git branch，在刪除前一定要經過使用者同意才行**
 
 ---
 
