@@ -1,0 +1,131 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+/*
+ * Moss Theme from tweakcn.com
+ * https://tweakcn.com/themes/cmmi1gb4a000204jl8c300w9a
+ */
+:root {
+  --background: #fdfdfd;
+  --foreground: #000000;
+  --card: #fdfdfd;
+  --card-foreground: #000000;
+  --popover: #fcfcfc;
+  --popover-foreground: #000000;
+  --primary: #7F956A;
+  --primary-foreground: oklch(0.985 0.001 106.423);
+  --secondary: #D4D9D0;
+  --secondary-foreground: #080808;
+  --muted: #f5f5f5;
+  --muted-foreground: #878787;
+  --accent: #495940;
+  --accent-foreground: #FFFFFF;
+  --destructive: #b3191f;
+  --destructive-foreground: #ffffff;
+  --border: #e7e7ee;
+  --input: #ebebeb;
+  --ring: #AFBEA5;
+  --chart-1: oklch(0.648 0.2 131.684);
+  --chart-2: oklch(0.808 0.114 19.571);
+  --chart-3: #FFDA1A;
+  --chart-4: #0051BA;
+  --chart-5: oklch(0.709 0.01 56.259);
+  --radius: 1.4rem;
+  --sidebar: #f5f8fb;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #000000;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e4eae1;
+  --sidebar-accent-foreground: #000000;
+  --sidebar-border: #ebebeb;
+  --sidebar-ring: #AFBEA5;
+}
+
+.dark {
+  --background: #070503;
+  --foreground: #f9f8f7;
+  --card: #100d08;
+  --card-foreground: #f9f8f7;
+  --popover: #0b0905;
+  --popover-foreground: #f9f8f7;
+  --primary: #AFBEA5;
+  --primary-foreground: #040302;
+  --secondary: #26211a;
+  --secondary-foreground: #e7e4df;
+  --muted: #1e1a14;
+  --muted-foreground: #928f8a;
+  --accent: #495940;
+  --accent-foreground: #FFFFFF;
+  --destructive: #b3191f;
+  --destructive-foreground: #f9f8f7;
+  --border: #2f281b;
+  --input: #1a150e;
+  --ring: #AFBEA5;
+  --chart-1: #408a0f;
+  --chart-2: #59a626;
+  --chart-3: #73bd42;
+  --chart-4: #a9e382;
+  --chart-5: #AFBEA5;
+  --sidebar: #040302;
+  --sidebar-foreground: #f0eeeb;
+  --sidebar-primary: #AFBEA5;
+  --sidebar-primary-foreground: #040302;
+  --sidebar-accent: #495940;
+  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-border: #272117;
+  --sidebar-ring: #AFBEA5;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  /* iPad touch optimization */
+  button, a, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
