@@ -1,47 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "module": "es2020",
-    "lib": ["dom", "esnext"],
-    "allowJs": false,
+    "target": "ES2022",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
     "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": false,
-    "forceConsistentCasingInFileNames": true,
     "moduleResolution": "bundler",
-    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
     "jsx": "react-jsx",
-    "jsxImportSource": "@emotion/react",
-    "outDir": "dist",
-    "sourceMap": true,
-    "noImplicitAny": false,
-    "declaration": false,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "strictNullChecks": false,
-    "noUnusedLocals": false,
-    "newLine": "lf",
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
-    "rootDirs": ["src"],
-    "types": ["vitest/globals", "vite-plugin-svgr/client"],
-    "typeRoots": ["./typings", "./node_modules/@types", "./node_modules"],
     "paths": {
-      "src/*": ["src/*"]
+      "src/*": ["./src/*"]
     }
   },
-  "include": ["src", "src/**/*", "typings/*", "src/test/*"],
-  "exclude": [
-    "build",
-    "scripts",
-    "acceptance-tests",
-    "webpack",
-    "config/**/*",
-    "src/setupTests.ts",
-    "**/__tests__/*",
-    "**/__e2e__/*",
-    "dist/"
-  ]
+  "include": ["src", "vite-env.d.ts"]
 }

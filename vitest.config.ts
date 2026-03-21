@@ -1,42 +1,20 @@
-/// <reference types="vitest" />
-import path from 'path'
-import { configDefaults, defineConfig, type UserConfig } from 'vitest/config'
-import tsconfigPaths from 'vite-tsconfig-paths'
-import react from '@vitejs/plugin-react-swc'
-import svgr from 'vite-plugin-svgr'
+import { defineConfig } from 'vitest/config'
+import { resolve } from 'path'
 
 export default defineConfig({
-  plugins: [
-    react({
-      jsxImportSource: '@emotion/react',
-    }),
-    svgr(),
-    tsconfigPaths(),
-  ],
-  test: {
-    include: ['**/*.test.tsx'],
-    exclude: [
-      ...configDefaults.exclude,
-      '**/node_modules/**',
-      'packages/*',
-      '.fttemplates/*',
-      '.claude/*',
-    ],
-    globals: true,
-    css: true,
-    setupFiles: ['./src/test/setup.ts'],
-    environment: 'happy-dom',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      reportOnFailure: true,
-    },
-    testTimeout: 20000,
-  },
   resolve: {
     alias: {
-      src: path.resolve(__dirname, './src'),
-      public: path.resolve(__dirname, './public'),
+      src: resolve(__dirname, './src'),
     },
   },
-}) as UserConfig
+  test: {
+    environment: 'happy-dom',
+    include: ['src/**/*.test.{ts,tsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/test/**'],
+    },
+  },
+})
