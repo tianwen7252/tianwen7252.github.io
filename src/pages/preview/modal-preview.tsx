@@ -43,7 +43,7 @@ const DEMO_CONFIG: Record<
   },
 }
 
-export function ConfirmModalPreview() {
+export function ModalPreview() {
   const [activeDemo, setActiveDemo] = useState<DemoType>(null)
 
   return (

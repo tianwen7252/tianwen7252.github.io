@@ -7,7 +7,7 @@ import {
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { HomePage } from '@/pages/home'
 import { NotFoundPage } from '@/pages/not-found'
-import { ConfirmModalPreview } from '@/pages/preview'
+import { ModalPreview } from '@/pages/preview'
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -89,8 +89,8 @@ function PreviewIndex() {
       <p className="text-muted-foreground">Select a component to preview:</p>
       <ul className="list-inside list-disc space-y-1">
         <li>
-          <Link to="/preview/confirm-modal" className="text-primary underline">
-            Confirm Modal
+          <Link to="/preview/modal" className="text-primary underline">
+            Modal
           </Link>{' '}
           (V2-16)
         </li>
@@ -99,14 +99,14 @@ function PreviewIndex() {
   )
 }
 
-const previewConfirmModalRoute = createRoute({
+const previewModalRoute = createRoute({
   getParentRoute: () => previewRoute,
-  path: '/confirm-modal',
-  component: ConfirmModalPreview,
+  path: '/modal',
+  component: ModalPreview,
 })
 
 // Build the route tree
 export const routeTree = rootRoute.addChildren([
   indexRoute,
-  previewRoute.addChildren([previewIndexRoute, previewConfirmModalRoute]),
+  previewRoute.addChildren([previewIndexRoute, previewModalRoute]),
 ])

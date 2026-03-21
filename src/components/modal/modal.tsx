@@ -75,11 +75,14 @@ export function GlassModal({
           className={cn('fixed inset-0 z-50', GRADIENT_CLASS[variant])}
         />
 
-        {/* Content — centered, no default bg/border/shadow from shadcn */}
+        {/* Content — centered, click gradient background closes modal */}
         <DialogPrimitive.Content
           aria-describedby={undefined}
           className="fixed inset-0 z-50 flex items-center justify-center outline-none"
-          onPointerDownOutside={onClose}
+          onClick={e => {
+            // Close only when clicking the background, not the glass container
+            if (e.target === e.currentTarget) onClose()
+          }}
           onEscapeKeyDown={onClose}
         >
           {/* Accessible title (sr-only) */}

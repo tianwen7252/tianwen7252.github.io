@@ -1,1 +1,1 @@
-export { ConfirmModalPreview } from './confirm-modal-preview'
+export { ModalPreview } from './modal-preview'
