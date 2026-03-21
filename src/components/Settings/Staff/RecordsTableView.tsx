@@ -5,6 +5,7 @@ import { calcTotalHours, formatTotalHours } from './attendanceUtils'
 import {
   type DayRow,
   type EmployeeAttendanceCell,
+  dayRowHasAttendance,
   formatClockTime,
 } from './recordsUtils'
 import { recordsStyles as styles } from './styles/recordsStyles'
@@ -124,7 +125,7 @@ export const RecordsTableView: React.FC<RecordsTableViewProps> = ({
         </thead>
         <tbody>
           {dayRows.map(row => {
-            if (row.isWeekend) {
+            if (row.isWeekend && !dayRowHasAttendance(row)) {
               return (
                 <tr key={row.date} className={styles.tableWeekendRowCss}>
                   <td className={styles.tableWeekendDateCellCss}>
@@ -143,12 +144,12 @@ export const RecordsTableView: React.FC<RecordsTableViewProps> = ({
             return (
               <tr
                 key={row.date}
-                className={styles.tableRowCss}
+                className={row.isWeekend ? styles.tableWeekendRowCss : styles.tableRowCss}
                 {...(row.date === todayDate
                   ? { 'data-today': 'true' }
                   : {})}
               >
-                <td className={styles.tableDateCellCss}>
+                <td className={row.isWeekend ? styles.tableWeekendDateCellCss : styles.tableDateCellCss}>
                   {row.displayDate}
                 </td>
                 {row.cells.map(cell => (

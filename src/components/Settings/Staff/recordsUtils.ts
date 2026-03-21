@@ -35,9 +35,16 @@ export const WEEKDAY_LABELS = [
   '週六',
 ] as const
 
-const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六'] as const
+export const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六'] as const
 
 // ---- Functions ----
+
+/**
+ * Check whether any cell in the DayRow has at least one attendance record.
+ */
+export function dayRowHasAttendance(row: DayRow): boolean {
+  return row.cells.some(cell => cell.attendances.length > 0)
+}
 
 /**
  * Build attendance lookup map (multi-shift: one key maps to an array).

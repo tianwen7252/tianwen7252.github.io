@@ -5,6 +5,7 @@ import {
   type CalendarDay,
   type EmployeeAttendanceCell,
   WEEKDAY_LABELS,
+  dayRowHasAttendance,
   formatClockTime,
 } from './recordsUtils'
 import { recordsStyles as styles } from './styles/recordsStyles'
@@ -177,13 +178,13 @@ function renderDayCell(
 
   // Cell click handler — triggers add record for the date
   const handleCellClick = () => {
-    if (day.isCurrentMonth && !day.isWeekend && onCellClick) {
+    if (day.isCurrentMonth && (!day.isWeekend || dayRowHasAttendance(day)) && onCellClick) {
       onCellClick(day.date)
     }
   }
 
-  // Weekend cell for current month — show "休"
-  if (day.isWeekend && day.isCurrentMonth) {
+  // Weekend cell for current month without attendance — show "休"
+  if (day.isWeekend && day.isCurrentMonth && !dayRowHasAttendance(day)) {
     return (
       <div key={day.date} className={className}>
         <span className={styles.calendarDateLabelMutedCss}>{displayMmDd}</span>
@@ -220,8 +221,8 @@ function renderDayCell(
         </span>
       )}
 
-      {/* Employee cards — only for current month non-weekend days */}
-      {day.isCurrentMonth && !day.isWeekend && (
+      {/* Employee cards — for current month weekdays and weekends with attendance */}
+      {day.isCurrentMonth && (!day.isWeekend || dayRowHasAttendance(day)) && (
         <div className={styles.calendarCardsContainerCss}>
           {day.cells.map(cell =>
             renderEmployeeCards(cell, day.date, onEditRecord, onAddRecord),
