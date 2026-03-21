@@ -102,6 +102,20 @@ describe('calcTotalHours', () => {
     ]
     expect(calcTotalHours(shifts)).toBe(0)
   })
+
+  it('returns non-zero for short durations (< 3 minutes)', () => {
+    // 2 minutes = 120000ms
+    const shifts = [
+      makeAttendance({
+        clockIn: dayjs('2026-03-20T09:00:00').valueOf(),
+        clockOut: dayjs('2026-03-20T09:02:00').valueOf(),
+      }),
+    ]
+    const result = calcTotalHours(shifts)
+    expect(result).toBeGreaterThan(0)
+    // formatTotalHours should display "2m"
+    expect(formatTotalHours(result)).toBe('2m')
+  })
 })
 
 // =============================================
