@@ -20,9 +20,9 @@ const COLOR_RED = '#ff6467'
 const COLOR_DIVIDER = '#e2e8f0'
 
 const GRADIENT_CLASS: Record<GradientVariant, string> = {
-  green: 'confirm-modal-green',
-  warm: 'confirm-modal-warm',
-  red: 'confirm-modal-red',
+  green: 'model-green',
+  warm: 'model-warm',
+  red: 'model-red',
 }
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
@@ -38,9 +38,7 @@ const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
   red: ['#ff6467', '#ff9a9e', '#cc4a4a'],
 }
 
-function resolveShineColor(
-  shineColor: ShineColor,
-): string | string[] {
+function resolveShineColor(shineColor: ShineColor): string | string[] {
   if (typeof shineColor === 'string' && shineColor in SHINE_COLOR_PRESETS) {
     return SHINE_COLOR_PRESETS[shineColor as ShineColorPreset]
   }
@@ -135,8 +133,8 @@ export function GlassModal({
             {shineColor && (
               <ShineBorder
                 shineColor={resolveShineColor(shineColor)}
-                borderWidth={2}
-                duration={10}
+                borderWidth={1}
+                duration={20}
               />
             )}
             {/* System label — V1: 14px/500, #718096, uppercase, ls 0.5px, mb 4px */}
