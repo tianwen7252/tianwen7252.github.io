@@ -4,61 +4,53 @@ export type GradientVariant = 'green' | 'warm' | 'red'
 export type ShineColorPreset = 'green' | 'purple' | 'red'
 export type ShineColor = ShineColorPreset | string | string[]
 
-export interface InfoItem {
-  readonly label: string
-  readonly value: string
-}
-
 /**
- * GlassModal — base glassmorphism modal with gradient background.
+ * Modal — base glassmorphism modal with gradient background.
  * Supports any content: confirmation, forms, info display, etc.
  */
-export interface GlassModalProps {
+export interface ModalProps {
   /** Whether the modal is open */
   readonly open: boolean
   /** Gradient background variant */
   readonly variant?: GradientVariant
-  /** System label shown above the title */
-  readonly systemLabel?: string
+  /** Header text shown above the title (e.g. "系統確認") */
+  readonly header?: string
   /** Modal title text */
   readonly title: string
-  /** Modal content — renders inside the glass card */
+  /** Modal content — renders inside the glassmorphism container */
   readonly children: React.ReactNode
-  /** Footer content — renders below the glass card (buttons, etc.) */
+  /** Footer content — renders below children (buttons, etc.) */
   readonly footer?: React.ReactNode
   /** Animated shine border color. Omit for no shine effect. */
   readonly shineColor?: ShineColor
+  /** Show loading spinner overlay */
+  readonly loading?: boolean
   /** Called when modal is dismissed (backdrop click, escape key) */
   readonly onClose: () => void
 }
 
 /**
- * GlassCard — inner card within GlassModal for grouping content.
+ * ModalCard — inner card within Modal for grouping content.
  * Pre-styled with frosted glass effect.
  */
-export interface GlassCardProps {
+export interface ModalCardProps {
   readonly children: React.ReactNode
   readonly className?: string
 }
 
 /**
- * ConfirmModal — specialized GlassModal for confirmation actions.
- * Built on top of GlassModal with avatar, info grid, and confirm/cancel buttons.
+ * ConfirmModal — specialized Modal for confirmation actions.
+ * Content is passed as children (avatar, info, etc.).
  */
 export interface ConfirmModalProps {
   readonly open: boolean
   readonly title: string
   readonly variant?: GradientVariant
-  readonly systemLabel?: string
-  readonly avatar?: string
-  readonly name?: string
-  readonly roleLabel?: string
-  readonly hint?: string
-  readonly infoItems?: readonly InfoItem[]
+  readonly header?: string
+  readonly children?: React.ReactNode
   readonly confirmText?: string
   readonly cancelText?: string
   readonly loading?: boolean
-  /** Animated shine border color. Omit for no shine effect. */
   readonly shineColor?: ShineColor
   readonly onConfirm: () => void
   readonly onCancel: () => void

@@ -1,19 +1,18 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ConfirmModal, GlassModal, GlassCard } from '@/components/modal'
+import { ConfirmModal, Modal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import type { GradientVariant, ShineColor } from '@/components/modal'
 
-type DemoType = 'clockIn' | 'clockOut' | 'vacation' | 'form' | null
+type DemoType = 'clockIn' | 'clockOut' | 'vacation' | 'form' | 'loading' | null
 
-const DEMO_CONFIG: Record<
-  Exclude<DemoType, 'form' | null>,
+const CONFIRM_DEMOS: Record<
+  'clockIn' | 'clockOut' | 'vacation',
   {
     title: string
     variant: GradientVariant
     confirmText: string
     shineColor: ShineColor
-    infoItems: { label: string; value: string }[]
   }
 > = {
   clockIn: {
@@ -21,30 +20,18 @@ const DEMO_CONFIG: Record<
     variant: 'green',
     confirmText: '確認打卡',
     shineColor: 'green',
-    infoItems: [
-      { label: '目前時間', value: '09:30 AM' },
-      { label: '班別類型', value: '正常班' },
-    ],
   },
   clockOut: {
     title: '確認 小明 的下班打卡？',
     variant: 'warm',
     confirmText: '確認下班',
     shineColor: 'purple',
-    infoItems: [
-      { label: '目前時間', value: '06:00 PM' },
-      { label: '班別類型', value: '正常班' },
-    ],
   },
   vacation: {
     title: '確認 小明 的休假打卡？',
     variant: 'red',
     confirmText: '確認休假',
     shineColor: 'red',
-    infoItems: [
-      { label: '休假時間', value: '09:00 AM' },
-      { label: '班別類型', value: '正常班' },
-    ],
   },
 }
 
@@ -54,7 +41,8 @@ export function ModalPreview() {
   return (
     <div className="space-y-6">
       <p className="text-muted-foreground">
-        基於 V1 打卡 Modal 設計，支援 Confirm / Form / 自訂內容三種模式。
+        Modal / ModalCard / ConfirmModal — 支援 Confirm / Form / Loading /
+        自訂內容。
       </p>
 
       {/* ConfirmModal demos */}
@@ -76,38 +64,131 @@ export function ModalPreview() {
         </div>
       </section>
 
-      {/* GlassModal with form demo */}
+      {/* Other demos */}
       <section>
-        <h2 className="mb-3 text-lg font-semibold">
-          GlassModal (自訂內容 / Form 模式)
-        </h2>
+        <h2 className="mb-3 text-lg font-semibold">其他模式</h2>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => setActiveDemo('form')}>
-            Open Form Modal
+            Form Modal
+          </Button>
+          <Button variant="outline" onClick={() => setActiveDemo('loading')}>
+            Loading Modal
           </Button>
         </div>
       </section>
 
-      {/* ConfirmModal instances */}
-      {activeDemo && activeDemo !== 'form' && (
+      {/* ConfirmModal — content as children */}
+      {activeDemo && activeDemo !== 'form' && activeDemo !== 'loading' && (
         <ConfirmModal
           open
-          {...DEMO_CONFIG[activeDemo]}
-          name="小明"
-          avatar="/images/aminals/1049013.png"
-          roleLabel="管理員"
+          {...CONFIRM_DEMOS[activeDemo]}
           onConfirm={() => setActiveDemo(null)}
           onCancel={() => setActiveDemo(null)}
-        />
+        >
+          <ModalCard>
+            <div
+              style={{
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'inline-flex',
+                marginBottom: 12,
+              }}
+            >
+              <AvatarImage avatar="/images/aminals/1326387.png" size={120} />
+            </div>
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 700,
+                color: '#1a202c',
+                marginBottom: 4,
+              }}
+            >
+              小明
+            </div>
+            <div
+              style={{
+                fontSize: 14,
+                fontWeight: 500,
+                color: '#7f956a',
+                marginBottom: 8,
+              }}
+            >
+              管理員
+            </div>
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 16,
+                width: '100%',
+                marginTop: 16,
+                paddingTop: 16,
+                borderTop: '1px solid #e2e8f0',
+              }}
+            >
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#718096',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginBottom: 4,
+                    textAlign: 'center',
+                  }}
+                >
+                  目前時間
+                </div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: '#1a202c',
+                    textAlign: 'center',
+                  }}
+                >
+                  09:30 AM
+                </div>
+              </div>
+              <div>
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: '#718096',
+                    textTransform: 'uppercase',
+                    letterSpacing: 0.5,
+                    marginBottom: 4,
+                    textAlign: 'center',
+                  }}
+                >
+                  班別類型
+                </div>
+                <div
+                  style={{
+                    fontSize: 16,
+                    fontWeight: 600,
+                    color: '#1a202c',
+                    textAlign: 'center',
+                  }}
+                >
+                  正常班
+                </div>
+              </div>
+            </div>
+          </ModalCard>
+        </ConfirmModal>
       )}
 
-      {/* GlassModal form demo */}
+      {/* Form Modal */}
       {activeDemo === 'form' && (
-        <GlassModal
+        <Modal
           open
           variant="green"
           shineColor="green"
-          systemLabel="員工資料"
+          header="員工資料"
           title="編輯員工資訊"
           onClose={() => setActiveDemo(null)}
           footer={
@@ -125,7 +206,7 @@ export function ModalPreview() {
             </div>
           }
         >
-          <GlassCard>
+          <ModalCard>
             <div
               style={{
                 borderRadius: '50%',
@@ -167,8 +248,55 @@ export function ModalPreview() {
                 </select>
               </div>
             </div>
-          </GlassCard>
-        </GlassModal>
+          </ModalCard>
+        </Modal>
+      )}
+
+      {/* Loading Modal */}
+      {activeDemo === 'loading' && (
+        <ConfirmModal
+          open
+          variant="green"
+          shineColor="green"
+          title="處理中..."
+          confirmText="確認"
+          loading
+          onConfirm={() => {}}
+          onCancel={() => setActiveDemo(null)}
+        >
+          <ModalCard>
+            <div
+              style={{
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'inline-flex',
+                marginBottom: 12,
+              }}
+            >
+              <AvatarImage avatar="/images/aminals/1326387.png" size={120} />
+            </div>
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 700,
+                color: '#1a202c',
+                marginBottom: 4,
+              }}
+            >
+              小明
+            </div>
+            <div
+              style={{
+                fontSize: 13,
+                color: '#718096',
+                marginTop: 12,
+                textAlign: 'center',
+              }}
+            >
+              正在處理打卡資料，請稍候...
+            </div>
+          </ModalCard>
+        </ConfirmModal>
       )}
     </div>
   )

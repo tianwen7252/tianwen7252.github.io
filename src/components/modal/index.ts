@@ -1,9 +1,8 @@
-export { GlassModal, GlassCard, ConfirmModal } from './modal'
+export { Modal, ModalCard, ConfirmModal } from './modal'
 export type {
-  GlassModalProps,
-  GlassCardProps,
+  ModalProps,
+  ModalCardProps,
   ConfirmModalProps,
   GradientVariant,
   ShineColor,
-  InfoItem,
 } from './modal.types'

@@ -1,10 +1,10 @@
 import { Dialog as DialogPrimitive } from 'radix-ui'
+import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ShineBorder } from '@/components/ui/shine-border'
-import { AvatarImage } from '@/components/avatar-image'
 import type {
-  GlassModalProps,
-  GlassCardProps,
+  ModalProps,
+  ModalCardProps,
   ConfirmModalProps,
   GradientVariant,
   ShineColor,
@@ -17,7 +17,6 @@ const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
 const COLOR_PRIMARY = '#7f956a'
 const COLOR_RED = '#ff6467'
-const COLOR_DIVIDER = '#e2e8f0'
 
 const GRADIENT_CLASS: Record<GradientVariant, string> = {
   green: 'model-green',
@@ -33,9 +32,9 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
 const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
-  green: ['#a8c896', '#c8deb8', '#8fb87a'],
-  purple: ['#c4a1e0', '#dcc4f0', '#b08dd0'],
-  red: ['#ffa0a3', '#ffc8c9', '#ff8587'],
+  green: ['#a8c896', '#c8deb8', '#e4fad9'],
+  purple: ['#c4a1e0', '#dcc4f0', '#e3d0f5'],
+  red: ['#e39a9d', '#f4b6b7', '#f0c4c4'],
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
@@ -45,13 +44,13 @@ function resolveShineColor(shineColor: ShineColor): string | string[] {
   return shineColor
 }
 
-// ─── GlassCard ───────────────────────────────────────────────────────────────
+// ─── ModalCard ───────────────────────────────────────────────────────────────
 
 /**
- * Frosted glass card — use inside GlassModal for content grouping.
+ * Frosted glass card — use inside Modal for content grouping.
  * V1: bg rgba(255,255,255,0.4), border rgba(255,255,255,0.2), radius 12px, padding 24px
  */
-export function GlassCard({ children, className }: GlassCardProps) {
+export function ModalCard({ children, className }: ModalCardProps) {
   return (
     <div
       className={cn('flex flex-col items-center', className)}
@@ -67,24 +66,23 @@ export function GlassCard({ children, className }: GlassCardProps) {
   )
 }
 
-// ─── GlassModal ──────────────────────────────────────────────────────────────
+// ─── Modal ───────────────────────────────────────────────────────────────────
 
 /**
  * Base glassmorphism modal with mesh gradient background.
- * Uses raw Radix Dialog primitives (not shadcn wrapper) for full control
- * over overlay and content rendering — V1 uses Ant Design Modal with
- * gradient on .ant-modal-wrap (full screen), which we replicate here.
+ * Uses raw Radix Dialog primitives for full control over rendering.
  */
-export function GlassModal({
+export function Modal({
   open,
   variant = 'green',
-  systemLabel,
+  header,
   title,
   children,
   footer,
   shineColor,
+  loading = false,
   onClose,
-}: GlassModalProps) {
+}: ModalProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={o => !o && onClose()}>
       <DialogPrimitive.Portal>
@@ -101,7 +99,6 @@ export function GlassModal({
           aria-describedby={undefined}
           className="glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none"
           onClick={e => {
-            // Close only when clicking the background, not the glass container
             if (e.target === e.currentTarget) onClose()
           }}
           onEscapeKeyDown={onClose}
@@ -111,7 +108,7 @@ export function GlassModal({
             {title}
           </DialogPrimitive.Title>
 
-          {/* Glassmorphism container — V1 exact values */}
+          {/* Glassmorphism container */}
           <div
             className="relative"
             style={{
@@ -137,11 +134,12 @@ export function GlassModal({
                 duration={20}
               />
             )}
-            {/* System label — V1: 14px/500, #718096, uppercase, ls 0.5px, mb 4px */}
-            {systemLabel && (
+
+            {/* Header */}
+            {header && (
               <div
                 style={{
-                  fontSize: 14,
+                  fontSize: 16,
                   fontWeight: 500,
                   color: COLOR_MUTED,
                   textTransform: 'uppercase',
@@ -150,15 +148,15 @@ export function GlassModal({
                   textAlign: 'center',
                 }}
               >
-                {systemLabel}
+                {header}
               </div>
             )}
 
-            {/* Title — V1: 20px/700, #1a202c, mb 24px */}
+            {/* Title */}
             <div
               style={{
-                fontSize: 20,
-                fontWeight: 700,
+                fontSize: 22,
+                fontWeight: 500,
                 color: COLOR_TEXT,
                 marginBottom: 24,
                 textAlign: 'center',
@@ -172,6 +170,30 @@ export function GlassModal({
 
             {/* Footer */}
             {footer && <div style={{ marginTop: 24 }}>{footer}</div>}
+
+            {/* Loading overlay */}
+            {loading && (
+              <div
+                data-testid="modal-loading-overlay"
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  backdropFilter: 'blur(4px)',
+                  borderRadius: 16,
+                  zIndex: 10,
+                }}
+              >
+                <Loader2
+                  size={36}
+                  className="animate-spin"
+                  style={{ color: COLOR_PRIMARY }}
+                />
+              </div>
+            )}
           </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
@@ -182,19 +204,15 @@ export function GlassModal({
 // ─── ConfirmModal ────────────────────────────────────────────────────────────
 
 /**
- * Specialized GlassModal for confirmation actions.
- * Pixel-perfect match to V1 ClockInModal.
+ * Specialized Modal for confirmation actions.
+ * Content is passed as children — avatar, info grid, etc.
  */
 export function ConfirmModal({
   open,
   title,
   variant = 'green',
-  systemLabel = '系統確認',
-  avatar,
-  name,
-  roleLabel,
-  hint,
-  infoItems = [],
+  header = '系統確認',
+  children,
   confirmText = '確認',
   cancelText = '取消',
   loading = false,
@@ -203,15 +221,15 @@ export function ConfirmModal({
   onCancel,
 }: ConfirmModalProps) {
   return (
-    <GlassModal
+    <Modal
       open={open}
       variant={variant}
-      systemLabel={systemLabel}
+      header={header}
       title={title}
       shineColor={shineColor}
+      loading={loading}
       onClose={onCancel}
       footer={
-        /* Button row — V1: gap 12px */
         <div
           style={{
             display: 'flex',
@@ -220,10 +238,10 @@ export function ConfirmModal({
             width: '100%',
           }}
         >
-          {/* Cancel button — V1: bg rgba(255,255,255,0.5), #4a5568, radius 8, 14px/600 */}
           <button
             type="button"
             onClick={onCancel}
+            disabled={loading}
             style={{
               background: 'rgba(255, 255, 255, 0.5)',
               color: '#4a5568',
@@ -232,15 +250,15 @@ export function ConfirmModal({
               borderRadius: 8,
               fontSize: 14,
               fontWeight: 600,
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.6 : 1,
               transition: 'transform 0.15s ease',
               flex: 1,
             }}
-            className="hover:-translate-y-0.5"
+            className={cn(!loading && 'hover:-translate-y-0.5')}
           >
             {cancelText}
           </button>
-          {/* Confirm button — V1: #fff, radius 8, 14px/600 */}
           <button
             type="button"
             onClick={onConfirm}
@@ -268,106 +286,7 @@ export function ConfirmModal({
         </div>
       }
     >
-      <GlassCard>
-        {/* Avatar — V1: rounded 50%, overflow hidden, inline-flex, mb 12px */}
-        {(avatar !== undefined || name) && (
-          <div
-            style={{
-              borderRadius: '50%',
-              overflow: 'hidden',
-              display: 'inline-flex',
-              marginBottom: 12,
-            }}
-          >
-            <AvatarImage avatar={avatar} size={120} />
-          </div>
-        )}
-
-        {/* Name — V1: 24px/700, #1a202c, mb 4px */}
-        {name && (
-          <div
-            style={{
-              fontSize: 24,
-              fontWeight: 700,
-              color: COLOR_TEXT,
-              marginBottom: 4,
-            }}
-          >
-            {name}
-          </div>
-        )}
-
-        {/* Role label — V1: 14px/500, #7f956a, mb 8px */}
-        {roleLabel && (
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 500,
-              color: COLOR_PRIMARY,
-              marginBottom: 8,
-            }}
-          >
-            {roleLabel}
-          </div>
-        )}
-
-        {/* Hint — V1: 13px, #718096, mt 12px */}
-        {hint && (
-          <div
-            style={{
-              fontSize: 13,
-              color: COLOR_MUTED,
-              marginTop: 12,
-              textAlign: 'center',
-            }}
-          >
-            {hint}
-          </div>
-        )}
-
-        {/* Info grid — V1: 2 cols, gap 16px, mt/pt 16px, border-top #e2e8f0 */}
-        {infoItems.length > 0 && (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: 16,
-              width: '100%',
-              marginTop: 16,
-              paddingTop: 16,
-              borderTop: `1px solid ${COLOR_DIVIDER}`,
-            }}
-          >
-            {infoItems.map(item => (
-              <div key={item.label}>
-                <div
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: COLOR_MUTED,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.5,
-                    marginBottom: 4,
-                    textAlign: 'center',
-                  }}
-                >
-                  {item.label}
-                </div>
-                <div
-                  style={{
-                    fontSize: 16,
-                    fontWeight: 600,
-                    color: COLOR_TEXT,
-                    textAlign: 'center',
-                  }}
-                >
-                  {item.value}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </GlassCard>
-    </GlassModal>
+      {children}
+    </Modal>
   )
 }
