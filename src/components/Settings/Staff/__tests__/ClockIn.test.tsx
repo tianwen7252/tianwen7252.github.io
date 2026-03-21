@@ -93,17 +93,25 @@ describe('ClockIn Component', () => {
   // --------------------------------------------------------
 
   describe('section header', () => {
-    it('renders the title text', () => {
+    it('renders the title text with today date and short weekday', () => {
       render(<ClockIn />)
-      expect(screen.getByText('員工考勤狀況')).toBeInTheDocument()
+      // Fake time is 2024-05-20 (Monday) -> WEEKDAY_SHORT[1] = '一'
+      expect(screen.getByText('今天: 2024/5/20 (一)')).toBeInTheDocument()
     })
 
-    it('renders today date in Chinese format with weekday', () => {
+    it('renders hint text with InfoCircleOutlined icon', () => {
       render(<ClockIn />)
-      // Should contain year, month, day, and weekday in the same element
+      // Should show hint text instead of the old date string
       expect(
-        screen.getByText(/2024年5月20日.*星期一/),
+        screen.getByText(/點選員工即可打卡/),
       ).toBeInTheDocument()
+    })
+
+    it('renders InfoCircleOutlined icon in header hint', () => {
+      render(<ClockIn />)
+      // Ant Design InfoCircleOutlined renders an SVG with role="img" and aria-label="info-circle"
+      const icon = document.querySelector('[aria-label="info-circle"]')
+      expect(icon).toBeTruthy()
     })
   })
 
