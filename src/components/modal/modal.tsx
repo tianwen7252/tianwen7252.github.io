@@ -70,15 +70,18 @@ export function GlassModal({
   return (
     <DialogPrimitive.Root open={open} onOpenChange={o => !o && onClose()}>
       <DialogPrimitive.Portal>
-        {/* Full-screen gradient overlay — replaces V1's .ant-modal-wrap background */}
+        {/* Full-screen gradient overlay with fade animation */}
         <DialogPrimitive.Overlay
-          className={cn('fixed inset-0 z-50', GRADIENT_CLASS[variant])}
+          className={cn(
+            'glass-modal-overlay fixed inset-0 z-50',
+            GRADIENT_CLASS[variant],
+          )}
         />
 
-        {/* Content — centered, click gradient background closes modal */}
+        {/* Content — centered, with zoom animation (antd style) */}
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="fixed inset-0 z-50 flex items-center justify-center outline-none"
+          className="glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none"
           onClick={e => {
             // Close only when clicking the background, not the glass container
             if (e.target === e.currentTarget) onClose()

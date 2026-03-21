@@ -1,4 +1,4 @@
-/* Mesh gradient backgrounds for ConfirmModal */
+/* Mesh gradient backgrounds for GlassModal */
 
 @scope (.confirm-modal-green) {
   :scope {
@@ -27,5 +27,65 @@
       radial-gradient(ellipse at 80% 20%, #ffe4e6 0%, transparent 50%),
       radial-gradient(ellipse at 50% 80%, #fce7f3 0%, transparent 50%),
       radial-gradient(ellipse at 80% 80%, #fef2f2 0%, transparent 50%), #fef2f2;
+  }
+}
+
+/* ─── Modal animations (Ant Design style) ─────────────────────────────────── */
+
+/* Overlay: fade in/out */
+.glass-modal-overlay[data-state='open'] {
+  animation: overlay-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-modal-overlay[data-state='closed'] {
+  animation: overlay-fade-out 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Content: zoom + fade (like antd Modal) */
+.glass-modal-content[data-state='open'] {
+  animation: modal-zoom-in 0.3s cubic-bezier(0.08, 0.82, 0.17, 1);
+}
+
+.glass-modal-content[data-state='closed'] {
+  animation: modal-zoom-out 0.25s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+}
+
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes modal-zoom-out {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.8);
   }
 }
