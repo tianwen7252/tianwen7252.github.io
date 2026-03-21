@@ -30,8 +30,12 @@ export const calcTotalHours = (
   return Math.round((totalMs / (1000 * 60 * 60)) * 10) / 10
 }
 
-/** Format total hours as a display string, e.g. "5.5h" or "0h" */
+/** Format total hours as a display string. Uses minutes when < 1h. */
 export const formatTotalHours = (hours: number): string => {
   if (hours <= 0) return '0h'
+  if (hours < 1) {
+    const minutes = Math.round(hours * 60)
+    return `${Math.max(minutes, 1)}m`
+  }
   return `${hours}h`
 }
