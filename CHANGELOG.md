@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.31](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.30...v0.0.31) (2026-03-21)
+
+
+### Features
+
+* 週末考勤顯示修正、打卡頁面標題更新、總工時分鐘顯示 ([#15](https://github.com/tianwen7252/tianwen7252.github.io/issues/15)) ([1223fb5](https://github.com/tianwen7252/tianwen7252.github.io/commit/1223fb5ceecaa8ab56f84a959bd9db23adfd4669))
+
 ## [0.0.30](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.29...v0.0.30) (2026-03-21)
 
 
