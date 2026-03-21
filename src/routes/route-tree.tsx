@@ -13,6 +13,7 @@ import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
+import { AppErrorBoundary } from '@/components/app-error-boundary'
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -41,11 +42,13 @@ function RootLayout() {
         </nav>
       </header>
 
-      {/* Page content with transition animation */}
+      {/* Page content with global error boundary */}
       <main>
-        <PageTransition key={pathname}>
-          <Outlet />
-        </PageTransition>
+        <AppErrorBoundary title="應用程式發生錯誤">
+          <PageTransition key={pathname}>
+            <Outlet />
+          </PageTransition>
+        </AppErrorBoundary>
       </main>
 
       {/* SW update prompt */}
