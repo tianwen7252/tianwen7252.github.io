@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 
 export interface ErrorFallbackProps {
@@ -8,15 +9,16 @@ export interface ErrorFallbackProps {
 
 /**
  * Extract a displayable message from an unknown thrown value.
+ * Falls back to translated "unknown error" string.
  */
-function getErrorMessage(error: unknown): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof Error) {
-    return error.message || '未知錯誤'
+    return error.message || fallback
   }
   if (typeof error === 'string') {
-    return error || '未知錯誤'
+    return error || fallback
   }
-  return '未知錯誤'
+  return fallback
 }
 
 /**
@@ -26,19 +28,23 @@ function getErrorMessage(error: unknown): string {
 export function ErrorFallback({
   error,
   resetErrorBoundary,
-  title = '發生錯誤',
+  title,
 }: ErrorFallbackProps) {
+  const { t } = useTranslation()
+
+  const displayTitle = title ?? t('error.title')
+
   return (
     <div
       className="flex min-h-[200px] flex-col items-center justify-center gap-4 p-6 text-center"
       role="alert"
     >
-      <h2 className="text-lg font-semibold text-destructive">{title}</h2>
+      <h2 className="text-lg font-semibold text-destructive">{displayTitle}</h2>
       <p className="max-w-md text-sm text-muted-foreground">
-        {getErrorMessage(error)}
+        {getErrorMessage(error, t('error.unknown'))}
       </p>
       <Button variant="outline" onClick={resetErrorBoundary}>
-        重試
+        {t('common.retry')}
       </Button>
     </div>
   )

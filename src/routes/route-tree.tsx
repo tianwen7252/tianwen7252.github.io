@@ -5,6 +5,7 @@ import {
   Link,
   useRouterState,
 } from '@tanstack/react-router'
+import { useTranslation } from 'react-i18next'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { HomePage } from '@/pages/home'
 import { NotFoundPage } from '@/pages/not-found'
@@ -22,6 +23,7 @@ const rootRoute = createRootRoute({
 })
 
 function RootLayout() {
+  const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
   const pathname = useRouterState({ select: s => s.location.pathname })
 
@@ -31,12 +33,12 @@ function RootLayout() {
       <header className="border-b border-border bg-card px-6 py-3">
         <nav className="flex items-center gap-4">
           <Link to="/" className="text-lg font-bold text-primary">
-            天文 V2
+            {t('nav.appTitle')}
           </Link>
           <div className="flex gap-2">
-            <NavLink to="/">首頁</NavLink>
-            <NavLink to="/clock-in">打卡</NavLink>
-            <NavLink to="/settings">設定</NavLink>
+            <NavLink to="/">{t('nav.home')}</NavLink>
+            <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
+            <NavLink to="/settings">{t('nav.settings')}</NavLink>
             <NavLink to="/preview">Preview</NavLink>
           </div>
         </nav>
@@ -44,7 +46,7 @@ function RootLayout() {
 
       {/* Page content with global error boundary */}
       <main>
-        <AppErrorBoundary title="應用程式發生錯誤">
+        <AppErrorBoundary title={t('error.appError')}>
           <PageTransition key={pathname}>
             <Outlet />
           </PageTransition>

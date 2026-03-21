@@ -1,4 +1,5 @@
 import { Dialog as DialogPrimitive } from 'radix-ui'
+import { useTranslation } from 'react-i18next'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -219,20 +220,24 @@ export function ConfirmModal({
   open,
   title,
   variant = 'green',
-  header = '系統確認',
+  header,
   children,
-  confirmText = '確認',
-  cancelText = '取消',
+  confirmText,
+  cancelText,
   loading = false,
   shineColor,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
+  const { t } = useTranslation()
+  const resolvedHeader = header ?? t('common.systemConfirm')
+  const resolvedConfirmText = confirmText ?? t('common.confirm')
+  const resolvedCancelText = cancelText ?? t('common.cancel')
   return (
     <Modal
       open={open}
       variant={variant}
-      header={header}
+      header={resolvedHeader}
       title={title}
       shineColor={shineColor}
       loading={loading}
@@ -265,7 +270,7 @@ export function ConfirmModal({
             }}
             className={cn(!loading && 'hover:-translate-y-0.5')}
           >
-            {cancelText}
+            {resolvedCancelText}
           </button>
           <button
             type="button"
@@ -289,7 +294,7 @@ export function ConfirmModal({
                 'hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]',
             )}
           >
-            {confirmText}
+            {resolvedConfirmText}
           </button>
         </div>
       }

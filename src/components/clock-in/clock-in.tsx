@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { motion } from 'framer-motion'
 import { toast } from 'sonner'
@@ -57,19 +58,19 @@ function deriveCardAction(records: readonly Attendance[]): ClockInAction {
 /** Determine status badge configuration from attendance records. */
 function deriveStatus(records: readonly Attendance[]): {
   badgeColor: string
-  badgeText: string
+  badgeTextKey: string
 } {
   if (records.length === 0) {
-    return { badgeColor: BADGE_COLORS.default, badgeText: '未打卡' }
+    return { badgeColor: BADGE_COLORS.default, badgeTextKey: 'clockIn.notClockedIn' }
   }
   const lastRecord = records[records.length - 1]!
   if (lastRecord.type !== 'regular') {
-    return { badgeColor: BADGE_COLORS.vacation, badgeText: '休假' }
+    return { badgeColor: BADGE_COLORS.vacation, badgeTextKey: 'clockIn.onVacation' }
   }
   if (lastRecord.clockOut) {
-    return { badgeColor: BADGE_COLORS.clockedOut, badgeText: '已下班' }
+    return { badgeColor: BADGE_COLORS.clockedOut, badgeTextKey: 'clockIn.clockedOut' }
   }
-  return { badgeColor: BADGE_COLORS.clockedIn, badgeText: '正在上班' }
+  return { badgeColor: BADGE_COLORS.clockedIn, badgeTextKey: 'clockIn.clockedIn' }
 }
 
 /** Determine avatar border color from attendance state. */
@@ -116,7 +117,9 @@ function EmployeeCard({
   onCardClick,
   onButtonAction,
 }: EmployeeCardProps) {
-  const { badgeColor, badgeText } = deriveStatus(records)
+  const { t } = useTranslation()
+  const { badgeColor, badgeTextKey } = deriveStatus(records)
+  const badgeText = t(badgeTextKey)
   const borderColor = deriveBorderColor(records)
   const cardBgClass = deriveCardBgClass(records)
   const lastRecord =
@@ -136,7 +139,7 @@ function EmployeeCard({
       data-testid="employee-card"
       role="button"
       tabIndex={0}
-      aria-label={`${employee.name} 打卡 — ${badgeText}`}
+      aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
       onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
       whileHover={{ scale: 1.02 }}
@@ -164,7 +167,7 @@ function EmployeeCard({
         className="h-5 text-sm text-muted-foreground"
         style={{ color: '#7f956a' }}
       >
-        {employee.isAdmin ? '管理員' : ''}
+        {employee.isAdmin ? t('staff.admin') : ''}
       </div>
 
       {/* Status badge */}
@@ -179,20 +182,20 @@ function EmployeeCard({
       {/* Clock times */}
       {isVacation ? (
         <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
-          <div>休假：{formatTime(lastRecord?.clockIn)}</div>
+          <div>{t('clockIn.vacationLabel')}：{formatTime(lastRecord?.clockIn)}</div>
         </div>
       ) : (
         <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
           {records.map((shift, index) => (
             <div key={shift.id ?? index}>
-              上班：{formatTime(shift.clockIn)} 下班：
+              {t('clockIn.arrival')}：{formatTime(shift.clockIn)} {t('clockIn.departure')}：
               {formatTime(shift.clockOut)}
             </div>
           ))}
           {records.length === 0 && (
             <>
-              <div>上班：{formatTime(undefined)}</div>
-              <div>下班：{formatTime(undefined)}</div>
+              <div>{t('clockIn.arrival')}：{formatTime(undefined)}</div>
+              <div>{t('clockIn.departure')}：{formatTime(undefined)}</div>
             </>
           )}
         </div>
@@ -204,7 +207,7 @@ function EmployeeCard({
           className="mt-2 text-sm font-semibold"
           style={{ color: '#7f956a' }}
         >
-          總工時: {formatTotalHours(totalHours)}
+          {t('clockIn.totalHours')}: {formatTotalHours(totalHours)}
         </div>
       )}
 
@@ -217,14 +220,14 @@ function EmployeeCard({
               className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
               onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
             >
-              打卡上班
+              {t('clockIn.clockIn')}
             </button>
             <button
               type="button"
               className="rounded-lg bg-[#f88181] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#e06868]"
               onClick={e => onButtonAction(e, employee, 'vacation', undefined)}
             >
-              申請休假
+              {t('clockIn.applyVacation')}
             </button>
           </>
         )}
@@ -234,7 +237,7 @@ function EmployeeCard({
             className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
             onClick={e => onButtonAction(e, employee, 'clockOut', lastRecord)}
           >
-            打卡下班
+            {t('clockIn.clockOut')}
           </button>
         )}
         {isClockedOut && (
@@ -243,7 +246,7 @@ function EmployeeCard({
             className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
             onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
           >
-            打卡上班
+            {t('clockIn.clockIn')}
           </button>
         )}
         {isVacation && (
@@ -254,7 +257,7 @@ function EmployeeCard({
               onButtonAction(e, employee, 'cancelVacation', lastRecord)
             }
           >
-            取消休假
+            {t('clockIn.cancelVacation')}
           </button>
         )}
       </div>
@@ -265,6 +268,7 @@ function EmployeeCard({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export function ClockIn() {
+  const { t } = useTranslation()
   // Auto-update date at midnight
   const [today, setToday] = useState(() => dayjs().format('YYYY-MM-DD'))
 
@@ -316,7 +320,10 @@ export function ClockIn() {
 
   // Header title
   const todayDayjs = dayjs(today)
-  const headerTitle = `今天: ${todayDayjs.format('YYYY/M/D')} (${WEEKDAY_SHORT[todayDayjs.day()]})`
+  const headerTitle = t('clockIn.todayTitle', {
+    date: todayDayjs.format('YYYY/M/D'),
+    weekday: WEEKDAY_SHORT[todayDayjs.day()],
+  })
 
   // Handlers
   const handleCardClick = useCallback(
@@ -380,7 +387,7 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'regular',
           })
-          toast.success('打卡上班成功')
+          toast.success(t('clockIn.toastClockIn'))
           break
 
         case 'clockOut':
@@ -389,7 +396,7 @@ export function ClockIn() {
               clockOut: now.valueOf(),
             })
           }
-          toast.success('打卡下班成功')
+          toast.success(t('clockIn.toastClockOut'))
           break
 
         case 'vacation':
@@ -399,14 +406,14 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'paid_leave',
           })
-          toast.success('休假申請成功')
+          toast.success(t('clockIn.toastVacation'))
           break
 
         case 'cancelVacation':
           if (record?.id != null) {
             api.attendances.remove(record.id)
           }
-          toast.success('已取消休假')
+          toast.success(t('clockIn.toastCancelVacation'))
           break
       }
       setRefreshKey(k => k + 1)
@@ -414,7 +421,7 @@ export function ClockIn() {
     } finally {
       setLoading(false)
     }
-  }, [modalState, handleModalClose])
+  }, [modalState, handleModalClose, t])
 
   return (
     <div className="p-4">
@@ -422,7 +429,7 @@ export function ClockIn() {
       <div className="mb-4 flex items-center justify-between">
         <span className="text-xl font-medium">{headerTitle}</span>
         <span className="flex items-center gap-1 text-sm text-muted-foreground">
-          <Info size={14} /> 點選員工即可打卡
+          <Info size={14} /> {t('clockIn.hint')}
         </span>
       </div>
 
@@ -448,7 +455,7 @@ export function ClockIn() {
 
         {employees.length === 0 && (
           <div className="col-span-full py-12 text-center text-muted-foreground">
-            目前無員工資料，請前往「員工管理」頁面新增員工
+            {t('clockIn.noEmployees')}
           </div>
         )}
       </div>

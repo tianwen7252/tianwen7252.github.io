@@ -3,6 +3,7 @@
  * Sticky date column on the left, employee headers with avatar + name.
  */
 
+import { useTranslation } from 'react-i18next'
 import { AvatarImage } from '@/components/avatar-image'
 import {
   formatClockTime,
@@ -46,6 +47,7 @@ function AttendanceCard({
     record: Attendance,
   ) => void
 }) {
+  const { t } = useTranslation()
   const displayType = getCellDisplayType(attendance)
   const clockIn = formatClockTime(attendance.clockIn)
   const clockOut = formatClockTime(attendance.clockOut)
@@ -60,7 +62,7 @@ function AttendanceCard({
           onEdit(employee, date, attendance)
         }}
       >
-        休假
+        {t('records.vacation')}
       </button>
     )
   }
@@ -100,6 +102,8 @@ function CellContent({
 }) {
   const { employee, attendances } = cell
 
+  const { t } = useTranslation()
+
   if (attendances.length === 0) {
     return (
       <button
@@ -107,7 +111,7 @@ function CellContent({
         className="text-[15px] italic text-[#94a3b8] cursor-pointer"
         onClick={() => onAdd(employee, date)}
       >
-        未打卡
+        {t('records.notClockedIn')}
       </button>
     )
   }
@@ -127,7 +131,7 @@ function CellContent({
       ))}
       {totalHours > 0 && (
         <span className="rounded-md border border-[#7f956a] px-1.5 py-0.5 text-sm font-semibold text-[#7f956a]">
-          總工時: {formatTotalHours(totalHours)}
+          {t('records.totalHours')}: {formatTotalHours(totalHours)}
         </span>
       )}
     </div>
@@ -143,6 +147,7 @@ export function RecordsTableView({
   onAddRecord,
   todayDate: _todayDate,
 }: RecordsTableViewProps) {
+  const { t } = useTranslation()
   return (
     <div
       className="overflow-auto rounded-xl border border-[#f1f5f9] shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
@@ -153,7 +158,7 @@ export function RecordsTableView({
           <tr className="sticky top-0 z-10">
             {/* Date column header */}
             <th className="sticky left-0 top-0 z-20 w-[140px] min-w-[140px] border-b border-[#f1f5f9] border-r border-r-[#f1f5f9] bg-card px-6 py-4 text-left text-[15px] font-bold text-[#475569]">
-              日期
+              {t('records.dateColumn')}
             </th>
             {/* Employee column headers */}
             {employees.map(emp => (
@@ -195,7 +200,7 @@ export function RecordsTableView({
                     colSpan={employees.length}
                     className="border-b border-[#f1f5f9] px-6 py-5 text-center text-[15px] text-[#94a3b8]"
                   >
-                    休
+                    {t('records.weekendLabel')}
                   </td>
                 ) : (
                   // Normal cells for each employee

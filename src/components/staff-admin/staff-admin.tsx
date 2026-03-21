@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { useForm, type UseFormReturn } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
@@ -51,6 +52,7 @@ function employeeToFormValues(employee: Employee): EmployeeFormValues {
  * Uses React Hook Form + Zod for form validation.
  */
 export function StaffAdmin() {
+  const { t } = useTranslation()
   const [employees, setEmployees] = useState<readonly Employee[]>(() =>
     api.employees.getAll(),
   )
@@ -99,7 +101,7 @@ export function StaffAdmin() {
       if (!trimmedName) {
         form.setError('name', {
           type: 'manual',
-          message: '請輸入員工姓名',
+          message: t('staff.nameRequired'),
         })
         return
       }
@@ -115,7 +117,7 @@ export function StaffAdmin() {
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
         })
-        toast.success('員工資料已更新')
+        toast.success(t('staff.toastUpdated'))
       } else {
         // Generate next employee number
         const allEmployees = api.employees.getAll()
@@ -135,13 +137,13 @@ export function StaffAdmin() {
           status: 'active',
         }
         api.employees.add(newEmployee)
-        toast.success('員工已新增')
+        toast.success(t('staff.toastAdded'))
       }
 
       refreshEmployees()
       handleClose()
     },
-    [editingEmployee, refreshEmployees, handleClose, form],
+    [editingEmployee, refreshEmployees, handleClose, form, t],
   )
 
   // Trigger form validation and submit
@@ -159,10 +161,10 @@ export function StaffAdmin() {
     if (deleteTarget) {
       api.employees.remove(deleteTarget.id)
       refreshEmployees()
-      toast.success('員工已刪除')
+      toast.success(t('staff.toastDeleted'))
     }
     setDeleteTarget(null)
-  }, [deleteTarget, refreshEmployees])
+  }, [deleteTarget, refreshEmployees, t])
 
   // Cancel deletion
   const handleDeleteCancel = useCallback(() => {
@@ -173,14 +175,16 @@ export function StaffAdmin() {
     <div className="p-6">
       {/* Header with add button */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">員工管理</h2>
+        <h2 className="text-lg font-semibold text-foreground">
+          {t('staff.title')}
+        </h2>
         <button
           type="button"
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           onClick={handleAdd}
         >
           <Plus size={16} />
-          新增員工
+          {t('staff.addEmployee')}
         </button>
       </div>
 
@@ -190,22 +194,22 @@ export function StaffAdmin() {
           <thead>
             <tr className="border-b border-border bg-muted/50">
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                員工編號
+                {t('staff.employeeNo')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                員工
+                {t('staff.employee')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                入職日期
+                {t('staff.hireDate')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                離職日期
+                {t('staff.resignationDate')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                班別
+                {t('staff.shiftType')}
               </th>
               <th className="px-4 py-3 text-left text-sm font-bold text-[#475569]">
-                操作
+                {t('staff.actions')}
               </th>
             </tr>
           </thead>
@@ -225,7 +229,7 @@ export function StaffAdmin() {
       {/* Add/Edit Modal */}
       <Modal
         open={isModalOpen}
-        title={editingEmployee ? '編輯員工' : '新增員工'}
+        title={editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')}
         variant={editingEmployee ? 'warm' : 'green'}
         shineColor={editingEmployee ? 'purple' : 'green'}
         onClose={handleClose}
@@ -236,14 +240,14 @@ export function StaffAdmin() {
               className="rounded-lg border border-border px-6 py-2 text-sm font-semibold text-muted-foreground hover:bg-accent"
               onClick={handleClose}
             >
-              取消
+              {t('common.cancel')}
             </button>
             <button
               type="button"
               className="rounded-lg bg-primary px-6 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
               onClick={handleSubmit}
             >
-              確認
+              {t('common.confirm')}
             </button>
           </div>
         }
@@ -257,10 +261,10 @@ export function StaffAdmin() {
       {/* Delete Confirmation Modal */}
       <ConfirmModal
         open={!!deleteTarget}
-        title="確認刪除員工"
+        title={t('staff.confirmDeleteTitle')}
         variant="red"
         shineColor="red"
-        confirmText="確認刪除"
+        confirmText={t('staff.confirmDelete')}
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
       >
@@ -268,7 +272,7 @@ export function StaffAdmin() {
           <div className="flex flex-col items-center gap-2">
             <AvatarImage avatar={deleteTarget.avatar} size={48} />
             <p className="text-sm text-foreground">
-              確定要刪除員工「{deleteTarget.name}」嗎？
+              {t('staff.confirmDeleteMessage', { name: deleteTarget.name })}
             </p>
           </div>
         )}
@@ -290,6 +294,7 @@ interface EmployeeRowProps {
  * Shows employee number with status tags, avatar+name, dates, shift, and actions.
  */
 function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
+  const { t } = useTranslation()
   const shiftLabel =
     SHIFT_LABEL_MAP.get(employee.shiftType) ?? employee.shiftType
 
@@ -302,12 +307,12 @@ function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
           <div className="flex gap-1">
             {employee.isAdmin && (
               <span className="rounded-md bg-amber-100 px-1.5 py-0.5 text-sm font-medium text-amber-800">
-                管理員
+                {t('staff.admin')}
               </span>
             )}
             {employee.status === 'inactive' && (
               <span className="rounded-md bg-red-100 px-1.5 py-0.5 text-sm font-medium text-red-800">
-                已離職
+                {t('staff.resigned')}
               </span>
             )}
           </div>
@@ -346,7 +351,7 @@ function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
         <div className="flex gap-2">
           <button
             type="button"
-            aria-label="編輯"
+            aria-label={t('common.edit')}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
             onClick={() => onEdit(employee)}
           >
@@ -354,7 +359,7 @@ function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
           </button>
           <button
             type="button"
-            aria-label="刪除"
+            aria-label={t('common.delete')}
             className="rounded-lg p-1.5 text-muted-foreground hover:bg-red-50 hover:text-red-600"
             onClick={() => onDelete(employee)}
           >
@@ -379,6 +384,7 @@ interface EmployeeFormProps {
  * Includes name input, shift type radio, admin checkbox, date inputs, and avatar picker.
  */
 function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
+  const { t } = useTranslation()
   const { register, watch, setValue, formState: { errors } } = form
   const currentAvatar = watch('avatar')
 
@@ -387,11 +393,11 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
       {/* Name input */}
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
-          姓名 <span className="text-red-500">*</span>
+          {t('staff.name')} <span className="text-red-500">*</span>
         </label>
         <input
           type="text"
-          placeholder="請輸入員工姓名"
+          placeholder={t('staff.namePlaceholder')}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           {...register('name')}
         />
@@ -403,7 +409,7 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
       {/* Shift type radio */}
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
-          班別
+          {t('staff.shiftType')}
         </label>
         <div className="flex gap-4">
           {SHIFT_TYPES.map(shift => (
@@ -427,7 +433,7 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
             {...register('isAdmin')}
           />
           <span className="text-sm font-medium text-foreground">
-            管理員權限
+            {t('staff.adminPermission')}
           </span>
         </label>
       </div>
@@ -438,7 +444,7 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
           htmlFor="hire-date"
           className="mb-1 block text-sm font-medium text-foreground"
         >
-          入職日期
+          {t('staff.hireDate')}
         </label>
         <input
           id="hire-date"
@@ -455,7 +461,7 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
             htmlFor="resignation-date"
             className="mb-1 block text-sm font-medium text-foreground"
           >
-            離職日期
+            {t('staff.resignationDate')}
           </label>
           <input
             id="resignation-date"
@@ -469,7 +475,7 @@ function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
       {/* Avatar picker grid */}
       <div>
         <label className="mb-1 block text-sm font-medium text-foreground">
-          頭像
+          {t('staff.avatar')}
         </label>
         <div className="grid grid-cols-9 gap-1.5">
           {ANIMAL_AVATARS.map(animal => (

@@ -1,10 +1,5 @@
 import { useState } from 'react'
-
-// Variant-specific subtitle messages
-const SUBTITLES: Record<AuthGuardVariant, string> = {
-  staffAdmin: '此頁面僅限管理員使用，請以管理員帳號登入',
-  backup: '此功能僅限管理員使用，請以管理員帳號登入',
-}
+import { useTranslation } from 'react-i18next'
 
 // Mock admin credentials for development
 const MOCK_ADMIN = {
@@ -13,6 +8,12 @@ const MOCK_ADMIN = {
 } as const
 
 type AuthGuardVariant = 'staffAdmin' | 'backup'
+
+// Translation key mapping for variant-specific subtitles
+const SUBTITLE_KEYS: Record<AuthGuardVariant, string> = {
+  staffAdmin: 'auth.staffAdminSubtitle',
+  backup: 'auth.backupSubtitle',
+}
 
 interface AdminInfo {
   readonly name: string
@@ -33,6 +34,7 @@ export function AuthGuard({
   children,
   variant = 'staffAdmin',
 }: AuthGuardProps) {
+  const { t } = useTranslation()
   const [admin, setAdmin] = useState<AdminInfo | null>(null)
 
   // TODO: Replace with real Google OAuth before production
@@ -51,14 +53,16 @@ export function AuthGuard({
         <div className="text-6xl" aria-hidden="true">
           &#x1F512;
         </div>
-        <h2 className="text-2xl font-semibold text-foreground">權限不足</h2>
-        <p className="text-muted-foreground">{SUBTITLES[variant]}</p>
+        <h2 className="text-2xl font-semibold text-foreground">
+          {t('auth.title')}
+        </h2>
+        <p className="text-muted-foreground">{t(SUBTITLE_KEYS[variant])}</p>
         <button
           type="button"
           className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
           onClick={handleLogin}
         >
-          管理員登入
+          {t('auth.login')}
         </button>
       </div>
     )
@@ -76,7 +80,7 @@ export function AuthGuard({
           className="rounded-lg px-3 py-1 text-sm font-semibold text-muted-foreground hover:bg-accent"
           onClick={handleLogout}
         >
-          登出
+          {t('auth.logout')}
         </button>
       </div>
       {children}
