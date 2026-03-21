@@ -1,5 +1,5 @@
-// Animal avatar definitions for employee profile pictures
-// Images located in public/images/aminals/, paths are relative to public/ (compatible with Vite base: './')
+// Animal avatar definitions for employee profile pictures.
+// Images located in public/images/aminals/, paths are relative to public/
 export const ANIMAL_AVATARS = [
   { id: '1308845', path: 'images/aminals/1308845.png' },
   { id: '780258', path: 'images/aminals/780258.png' },

@@ -8,6 +8,9 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { HomePage } from '@/pages/home'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview } from '@/pages/preview'
+import { ClockInPage } from '@/pages/clock-in'
+import { SettingsPage } from '@/pages/settings'
+import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -26,6 +29,8 @@ function RootLayout() {
           </Link>
           <div className="flex gap-2">
             <NavLink to="/">首頁</NavLink>
+            <NavLink to="/clock-in">打卡</NavLink>
+            <NavLink to="/settings">設定</NavLink>
             <NavLink to="/preview">Preview</NavLink>
           </div>
         </nav>
@@ -35,6 +40,9 @@ function RootLayout() {
       <main>
         <Outlet />
       </main>
+
+      {/* SW update prompt */}
+      <SwUpdatePrompt />
 
       {/* Dev tools — only in development */}
       <TanStackRouterDevtools position="bottom-right" />
@@ -105,8 +113,24 @@ const previewModalRoute = createRoute({
   component: ModalPreview,
 })
 
+// Clock-in standalone page
+const clockInRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/clock-in',
+  component: ClockInPage,
+})
+
+// Settings page with tabs (ClockIn, Records, StaffAdmin)
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  component: SettingsPage,
+})
+
 // Build the route tree
 export const routeTree = rootRoute.addChildren([
   indexRoute,
+  clockInRoute,
+  settingsRoute,
   previewRoute.addChildren([previewIndexRoute, previewModalRoute]),
 ])
