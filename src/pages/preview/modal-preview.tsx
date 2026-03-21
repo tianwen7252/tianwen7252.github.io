@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal, GlassModal, GlassCard } from '@/components/modal'
+import { AvatarImage } from '@/components/avatar-image'
 import type { GradientVariant } from '@/components/modal'
 
 type DemoType = 'clockIn' | 'clockOut' | 'vacation' | 'form' | null
@@ -89,7 +90,7 @@ export function ModalPreview() {
           open
           {...DEMO_CONFIG[activeDemo]}
           name="小明"
-          avatar="images/aminals/1049013.png"
+          avatar="/images/aminals/1049013.png"
           roleLabel="管理員"
           onConfirm={() => setActiveDemo(null)}
           onCancel={() => setActiveDemo(null)}
@@ -120,6 +121,16 @@ export function ModalPreview() {
           }
         >
           <GlassCard>
+            <div
+              style={{
+                borderRadius: '50%',
+                overflow: 'hidden',
+                display: 'inline-flex',
+                marginBottom: 12,
+              }}
+            >
+              <AvatarImage avatar="/images/aminals/780258.png" size={120} />
+            </div>
             <div className="w-full space-y-4">
               <div>
                 <label className="mb-1 block text-sm font-medium text-foreground">

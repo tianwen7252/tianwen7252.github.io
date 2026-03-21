@@ -8,7 +8,10 @@ export function AvatarImage({
   className,
 }: AvatarImageProps) {
   const hasImage =
-    avatar && (avatar.startsWith('images/') || avatar.startsWith('http'))
+    avatar &&
+    (avatar.startsWith('images/') ||
+      avatar.startsWith('/images/') ||
+      avatar.startsWith('http'))
 
   if (hasImage) {
     return (
