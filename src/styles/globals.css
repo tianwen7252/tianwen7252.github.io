@@ -1,13 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
-
-@font-face {
-  font-family: 'jf-openhuninn';
-  src: url('/fonts/jf-openhuninn-2.1.ttf') format('truetype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -143,7 +136,8 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'jf-openhuninn', sans-serif;
+    font-family: 'Huninn', sans-serif;
+    font-style: normal;
   }
   /* iPad touch optimization */
   button,
