@@ -7,6 +7,7 @@ import {
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { HomePage } from '@/pages/home'
 import { NotFoundPage } from '@/pages/not-found'
+import { ConfirmModalPreview } from '@/pages/preview'
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -98,15 +99,10 @@ function PreviewIndex() {
   )
 }
 
-// Placeholder for confirm-modal preview (V2-16 will implement)
 const previewConfirmModalRoute = createRoute({
   getParentRoute: () => previewRoute,
   path: '/confirm-modal',
-  component: () => (
-    <div className="text-muted-foreground">
-      Confirm Modal preview — coming in V2-16
-    </div>
-  ),
+  component: ConfirmModalPreview,
 })
 
 // Build the route tree
