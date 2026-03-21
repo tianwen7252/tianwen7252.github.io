@@ -26,9 +26,7 @@ export const buildTimestamp = (
  * Calculate total worked hours from an array of attendance records.
  * Only 'regular' type records with both clockIn and clockOut are counted.
  */
-export const calcTotalHours = (
-  shifts: readonly Attendance[],
-): number => {
+export const calcTotalHours = (shifts: readonly Attendance[]): number => {
   const totalMs = shifts.reduce((sum, shift) => {
     if (shift.type !== 'regular') return sum
     if (shift.clockIn == null || shift.clockOut == null) return sum

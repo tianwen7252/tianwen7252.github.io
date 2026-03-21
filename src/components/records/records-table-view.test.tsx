@@ -58,7 +58,7 @@ function makeDayRow(overrides: Partial<DayRow> = {}): DayRow {
     dayOfWeek: 5,
     isWeekend: false,
     isToday: false,
-    cells: employees.map((emp) => ({
+    cells: employees.map(emp => ({
       employee: emp,
       attendances: [],
     })),
@@ -91,7 +91,7 @@ function makeCellsWithAttendance(
   emps: readonly Employee[],
   attMap: Record<string, Attendance[]>,
 ): readonly EmployeeAttendanceCell[] {
-  return emps.map((emp) => ({
+  return emps.map(emp => ({
     employee: emp,
     attendances: attMap[emp.id] ?? [],
   }))
@@ -154,9 +154,7 @@ describe('RecordsTableView', () => {
 
   it('should show normal cells for weekend rows with attendance', () => {
     const cells = makeCellsWithAttendance(employees, {
-      'emp-001': [
-        { ...regularAttendance, date: '2026-03-22' },
-      ],
+      'emp-001': [{ ...regularAttendance, date: '2026-03-22' }],
     })
     const dayRows = [makeWeekendRow({ cells })]
     render(<RecordsTableView {...defaultProps} dayRows={dayRows} />)
@@ -204,9 +202,7 @@ describe('RecordsTableView', () => {
   it('should call onAddRecord when empty cell is clicked', async () => {
     const user = userEvent.setup()
     const onAddRecord = vi.fn()
-    render(
-      <RecordsTableView {...defaultProps} onAddRecord={onAddRecord} />,
-    )
+    render(<RecordsTableView {...defaultProps} onAddRecord={onAddRecord} />)
 
     // Click on the first "未打卡" cell
     const noCells = screen.getAllByText('未打卡')

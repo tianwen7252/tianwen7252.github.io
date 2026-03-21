@@ -17,7 +17,11 @@ import type { CalendarDay } from '@/lib/records-utils'
 
 export interface RecordsCalendarViewProps {
   readonly calendarGrid: readonly (readonly CalendarDay[])[]
-  readonly onEditRecord: (employee: Employee, date: string, record: Attendance) => void
+  readonly onEditRecord: (
+    employee: Employee,
+    date: string,
+    record: Attendance,
+  ) => void
   readonly onAddRecord: (employee: Employee, date: string) => void
   readonly onCellClick?: (date: string) => void
 }
@@ -31,7 +35,11 @@ function DayCellContent({
   onAddRecord: _onAddRecord,
 }: {
   readonly day: CalendarDay
-  readonly onEditRecord: (employee: Employee, date: string, record: Attendance) => void
+  readonly onEditRecord: (
+    employee: Employee,
+    date: string,
+    record: Attendance,
+  ) => void
   readonly onAddRecord: (employee: Employee, date: string) => void
 }) {
   if (!day.isCurrentMonth) return null
@@ -40,9 +48,7 @@ function DayCellContent({
 
   // Weekend with no attendance shows "休"
   if (day.isWeekend && !hasAttendance) {
-    return (
-      <div className="mt-1 text-[#cbd5e1] font-medium">休</div>
-    )
+    return <div className="mt-1 text-[#cbd5e1] font-medium">休</div>
   }
 
   // No cells or empty cells
@@ -50,12 +56,12 @@ function DayCellContent({
 
   return (
     <div className="mt-1 flex flex-col gap-0.5">
-      {day.cells.map((cell) => {
+      {day.cells.map(cell => {
         const { employee, attendances } = cell
 
         if (attendances.length === 0) return null
 
-        return attendances.map((att) => {
+        return attendances.map(att => {
           const displayType = getCellDisplayType(att)
 
           if (displayType === 'vacation') {
@@ -64,7 +70,7 @@ function DayCellContent({
                 key={att.id}
                 type="button"
                 className="rounded border border-[#f88181] bg-[#fff5f5] px-1.5 py-1 text-sm text-[#f88181] cursor-pointer text-left"
-                onClick={(e) => {
+                onClick={e => {
                   e.stopPropagation()
                   onEditRecord(employee, day.date, att)
                 }}
@@ -86,7 +92,7 @@ function DayCellContent({
               key={att.id}
               type="button"
               className="rounded border border-[#f2d680] px-1.5 py-1 text-sm text-[#334155] cursor-pointer hover:border-[#e6c45a] text-left"
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 onEditRecord(employee, day.date, att)
               }}
@@ -128,7 +134,7 @@ export function RecordsCalendarView({
       {/* Calendar grid */}
       <div className="grid grid-cols-7 gap-px bg-border">
         {calendarGrid.map((week, _weekIdx) =>
-          week.map((day) => {
+          week.map(day => {
             const dateNum = parseInt(day.date.split('-')[2] ?? '0', 10)
 
             return (
@@ -145,10 +151,12 @@ export function RecordsCalendarView({
               >
                 {/* Date label */}
                 <div className="flex items-center gap-1">
-                  <span className={cn(
-                    'text-[15px] font-bold',
-                    day.isCurrentMonth ? 'text-[#4c71bc]' : 'text-[#94a3b8]',
-                  )}>
+                  <span
+                    className={cn(
+                      'text-[15px] font-bold',
+                      day.isCurrentMonth ? 'text-[#4c71bc]' : 'text-[#94a3b8]',
+                    )}
+                  >
                     {dateNum}
                   </span>
                   {day.isToday && (

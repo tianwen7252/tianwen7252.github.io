@@ -19,7 +19,11 @@ import type { DayRow, EmployeeAttendanceCell } from '@/lib/records-utils'
 export interface RecordsTableViewProps {
   readonly dayRows: readonly DayRow[]
   readonly employees: readonly Employee[]
-  readonly onEditRecord: (employee: Employee, date: string, record: Attendance) => void
+  readonly onEditRecord: (
+    employee: Employee,
+    date: string,
+    record: Attendance,
+  ) => void
   readonly onAddRecord: (employee: Employee, date: string) => void
   readonly todayDate?: string
 }
@@ -36,7 +40,11 @@ function AttendanceCard({
   readonly attendance: Attendance
   readonly employee: Employee
   readonly date: string
-  readonly onEdit: (employee: Employee, date: string, record: Attendance) => void
+  readonly onEdit: (
+    employee: Employee,
+    date: string,
+    record: Attendance,
+  ) => void
 }) {
   const displayType = getCellDisplayType(attendance)
   const clockIn = formatClockTime(attendance.clockIn)
@@ -47,7 +55,7 @@ function AttendanceCard({
       <button
         type="button"
         className="rounded-md border border-[#f88181] bg-[#fff5f5] px-2 py-1 text-sm font-bold text-[#f88181] cursor-pointer"
-        onClick={(e) => {
+        onClick={e => {
           e.stopPropagation()
           onEdit(employee, date, attendance)
         }}
@@ -64,7 +72,7 @@ function AttendanceCard({
     <button
       type="button"
       className="rounded-md border border-[#f2d680] px-2 py-1 text-sm font-medium text-[#334155] cursor-pointer hover:border-[#e6c45a]"
-      onClick={(e) => {
+      onClick={e => {
         e.stopPropagation()
         onEdit(employee, date, attendance)
       }}
@@ -83,7 +91,11 @@ function CellContent({
 }: {
   readonly cell: EmployeeAttendanceCell
   readonly date: string
-  readonly onEdit: (employee: Employee, date: string, record: Attendance) => void
+  readonly onEdit: (
+    employee: Employee,
+    date: string,
+    record: Attendance,
+  ) => void
   readonly onAdd: (employee: Employee, date: string) => void
 }) {
   const { employee, attendances } = cell
@@ -104,7 +116,7 @@ function CellContent({
 
   return (
     <div className="flex flex-col gap-1">
-      {attendances.map((att) => (
+      {attendances.map(att => (
         <AttendanceCard
           key={att.id}
           attendance={att}
@@ -132,7 +144,10 @@ export function RecordsTableView({
   todayDate: _todayDate,
 }: RecordsTableViewProps) {
   return (
-    <div className="overflow-auto rounded-xl border border-[#f1f5f9] shadow-[0_1px_3px_rgba(0,0,0,0.05)]" style={{ maxHeight: 'calc(100vh - 280px)' }}>
+    <div
+      className="overflow-auto rounded-xl border border-[#f1f5f9] shadow-[0_1px_3px_rgba(0,0,0,0.05)]"
+      style={{ maxHeight: 'calc(100vh - 280px)' }}
+    >
       <table className="border-collapse" style={{ minWidth: '100%' }}>
         <thead>
           <tr className="sticky top-0 z-10">
@@ -141,7 +156,7 @@ export function RecordsTableView({
               日期
             </th>
             {/* Employee column headers */}
-            {employees.map((emp) => (
+            {employees.map(emp => (
               <th
                 key={emp.id}
                 className="sticky top-0 z-10 min-w-[160px] border-b border-[#f1f5f9] bg-card px-6 py-4 text-[15px] font-bold text-[#475569]"
@@ -155,7 +170,7 @@ export function RecordsTableView({
           </tr>
         </thead>
         <tbody>
-          {dayRows.map((row) => {
+          {dayRows.map(row => {
             const hasAttendance = dayRowHasAttendance(row)
             const isWeekendNoAttendance = row.isWeekend && !hasAttendance
 
@@ -184,7 +199,7 @@ export function RecordsTableView({
                   </td>
                 ) : (
                   // Normal cells for each employee
-                  row.cells.map((cell) => (
+                  row.cells.map(cell => (
                     <td
                       key={cell.employee.id}
                       className="border-b border-[#f1f5f9] px-6 py-5 text-center cursor-pointer"

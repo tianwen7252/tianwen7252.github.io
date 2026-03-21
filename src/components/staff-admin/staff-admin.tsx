@@ -283,7 +283,8 @@ interface EmployeeRowProps {
  * Shows employee number with status tags, avatar+name, dates, shift, and actions.
  */
 function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
-  const shiftLabel = SHIFT_LABEL_MAP.get(employee.shiftType) ?? employee.shiftType
+  const shiftLabel =
+    SHIFT_LABEL_MAP.get(employee.shiftType) ?? employee.shiftType
 
   return (
     <tr className="border-b border-border last:border-b-0 hover:bg-muted/30">
@@ -394,9 +395,7 @@ function EmployeeForm({
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
           onChange={e => onFieldChange('name', e.target.value)}
         />
-        {nameError && (
-          <p className="mt-1 text-sm text-red-500">{nameError}</p>
-        )}
+        {nameError && <p className="mt-1 text-sm text-red-500">{nameError}</p>}
       </div>
 
       {/* Shift type radio */}

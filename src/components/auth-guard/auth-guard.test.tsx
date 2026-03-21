@@ -79,9 +79,7 @@ describe('AuthGuard', () => {
         </AuthGuard>,
       )
       await user.click(screen.getByRole('button', { name: '管理員登入' }))
-      expect(
-        screen.getByText('管理員 / admin@tianwen.app'),
-      ).toBeTruthy()
+      expect(screen.getByText('管理員 / admin@tianwen.app')).toBeTruthy()
       expect(screen.getByRole('button', { name: '登出' })).toBeTruthy()
     })
 

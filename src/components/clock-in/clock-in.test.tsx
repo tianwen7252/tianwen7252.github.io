@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { mockEmployeeService, mockAttendanceService } from '@/services/mock-data'
+import {
+  mockEmployeeService,
+  mockAttendanceService,
+} from '@/services/mock-data'
 import { ClockIn } from './clock-in'
 
 // ─── Test Setup ─────────────────────────────────────────────────────────────
@@ -165,9 +168,7 @@ describe('ClockIn', () => {
     }
 
     render(<ClockIn />)
-    expect(
-      screen.getByText(/目前無員工資料/),
-    ).toBeTruthy()
+    expect(screen.getByText(/目前無員工資料/)).toBeTruthy()
   })
 
   it('should show hint text about clicking employee to clock in', () => {

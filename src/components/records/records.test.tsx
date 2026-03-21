@@ -103,9 +103,7 @@ describe('Records', () => {
 
   it('should render search input', () => {
     render(<Records />)
-    expect(
-      screen.getByPlaceholderText('搜尋員工姓名'),
-    ).toBeTruthy()
+    expect(screen.getByPlaceholderText('搜尋員工姓名')).toBeTruthy()
   })
 
   it('should filter employees by search', async () => {
@@ -164,9 +162,7 @@ describe('Records', () => {
 
   it('should show hint text about editing', () => {
     render(<Records />)
-    expect(
-      screen.getByText('點擊儲存格即可直接編輯打卡時間'),
-    ).toBeTruthy()
+    expect(screen.getByText('點擊儲存格即可直接編輯打卡時間')).toBeTruthy()
   })
 
   it('should open RecordModal when cell interaction triggers add', async () => {

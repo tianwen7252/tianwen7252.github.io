@@ -136,9 +136,7 @@ describe('RecordModal', () => {
     })
 
     it('should pre-fill vacation type when record is not regular', () => {
-      render(
-        <RecordModal {...defaultEditProps} record={vacationAttendance} />,
-      )
+      render(<RecordModal {...defaultEditProps} record={vacationAttendance} />)
       const vacationBtn = screen.getByRole('button', { name: '休假' })
       expect(vacationBtn.className).toContain('bg-red-500')
     })

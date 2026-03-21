@@ -14,9 +14,7 @@ import {
   buildDayRows,
   buildCalendarGrid,
 } from './records-utils'
-import type {
-  DayRow,
-} from './records-utils'
+import type { DayRow } from './records-utils'
 
 // ─── Test Fixtures ──────────────────────────────────────────────────────────
 
@@ -378,9 +376,9 @@ describe('buildDayRows', () => {
   it('should detect weekends correctly', () => {
     // 2025-06-15 is a Sunday, 2025-06-14 is a Saturday
     const rows = buildDayRows(2025, 6, employees, [], '2025-06-15')
-    const sunday = rows.find((r) => r.date === '2025-06-15')
-    const saturday = rows.find((r) => r.date === '2025-06-14')
-    const friday = rows.find((r) => r.date === '2025-06-13')
+    const sunday = rows.find(r => r.date === '2025-06-15')
+    const saturday = rows.find(r => r.date === '2025-06-14')
+    const friday = rows.find(r => r.date === '2025-06-13')
     expect(sunday!.isWeekend).toBe(true)
     expect(saturday!.isWeekend).toBe(true)
     expect(friday!.isWeekend).toBe(false)
@@ -389,8 +387,8 @@ describe('buildDayRows', () => {
   it('should mark isToday correctly', () => {
     const todayStr = '2025-06-15'
     const rows = buildDayRows(2025, 6, employees, [], todayStr)
-    const today = rows.find((r) => r.date === todayStr)
-    const notToday = rows.find((r) => r.date === '2025-06-14')
+    const today = rows.find(r => r.date === todayStr)
+    const notToday = rows.find(r => r.date === '2025-06-14')
     expect(today!.isToday).toBe(true)
     expect(notToday!.isToday).toBe(false)
   })
@@ -404,7 +402,7 @@ describe('buildDayRows', () => {
       }),
     ]
     const rows = buildDayRows(2025, 6, employees, attendances, '2025-06-15')
-    const row = rows.find((r) => r.date === '2025-06-15')
+    const row = rows.find(r => r.date === '2025-06-15')
     expect(row!.cells).toHaveLength(1)
     expect(row!.cells[0]!.attendances).toHaveLength(1)
     expect(row!.cells[0]!.employee.id).toBe('emp-1')
@@ -412,13 +410,13 @@ describe('buildDayRows', () => {
 
   it('should have empty attendances for cells with no matching records', () => {
     const rows = buildDayRows(2025, 6, employees, [], '2025-06-15')
-    const row = rows.find((r) => r.date === '2025-06-15')
+    const row = rows.find(r => r.date === '2025-06-15')
     expect(row!.cells[0]!.attendances).toHaveLength(0)
   })
 
   it('should format displayDate correctly', () => {
     const rows = buildDayRows(2025, 6, employees, [], '2025-06-15')
-    const row = rows.find((r) => r.date === '2025-06-15')
+    const row = rows.find(r => r.date === '2025-06-15')
     // 2025-06-15 is a Sunday
     expect(row!.displayDate).toBe('06/15 (日)')
   })
@@ -445,7 +443,7 @@ describe('buildDayRows', () => {
       attendances,
       '2025-06-15',
     )
-    const row = rows.find((r) => r.date === '2025-06-15')
+    const row = rows.find(r => r.date === '2025-06-15')
     expect(row!.cells).toHaveLength(2)
     expect(row!.cells[0]!.attendances).toHaveLength(1)
     expect(row!.cells[1]!.attendances).toHaveLength(1)
@@ -476,7 +474,7 @@ describe('buildCalendarGrid', () => {
   it('should mark isCurrentMonth correctly', () => {
     const grid = buildCalendarGrid(2025, 6, employees, [], '2025-06-30')
     const allDays = grid.flat()
-    const juneDays = allDays.filter((d) => d.isCurrentMonth)
+    const juneDays = allDays.filter(d => d.isCurrentMonth)
     // June has 30 days
     expect(juneDays).toHaveLength(30)
   })
@@ -484,7 +482,7 @@ describe('buildCalendarGrid', () => {
   it('should include days from previous and next month to fill the grid', () => {
     const grid = buildCalendarGrid(2025, 6, employees, [], '2025-06-30')
     const allDays = grid.flat()
-    const outsideMonth = allDays.filter((d) => !d.isCurrentMonth)
+    const outsideMonth = allDays.filter(d => !d.isCurrentMonth)
     // 42 total - 30 June days = 12 outside days
     expect(outsideMonth).toHaveLength(12)
   })
@@ -502,7 +500,7 @@ describe('buildCalendarGrid', () => {
       '2025-07-31',
     )
     const allDays = grid.flat()
-    const june30 = allDays.find((d) => d.date === '2025-06-30')
+    const june30 = allDays.find(d => d.date === '2025-06-30')
     // Outside month days should have empty cells
     expect(june30).toBeDefined()
     expect(june30!.isCurrentMonth).toBe(false)
@@ -521,7 +519,7 @@ describe('buildCalendarGrid', () => {
       '2025-06-30',
     )
     const allDays = grid.flat()
-    const june15 = allDays.find((d) => d.date === '2025-06-15')
+    const june15 = allDays.find(d => d.date === '2025-06-15')
     expect(june15!.isCurrentMonth).toBe(true)
     expect(june15!.cells).toHaveLength(1)
     expect(june15!.cells[0]!.attendances).toHaveLength(1)
@@ -540,10 +538,10 @@ describe('buildCalendarGrid', () => {
     const todayStr = '2025-06-15'
     const grid = buildCalendarGrid(2025, 6, employees, [], todayStr)
     const allDays = grid.flat()
-    const today = allDays.find((d) => d.date === todayStr)
+    const today = allDays.find(d => d.date === todayStr)
     expect(today!.isToday).toBe(true)
-    const notToday = allDays.filter((d) => d.date !== todayStr)
-    notToday.forEach((d) => expect(d.isToday).toBe(false))
+    const notToday = allDays.filter(d => d.date !== todayStr)
+    notToday.forEach(d => expect(d.isToday).toBe(false))
   })
 
   it('should handle a month that starts on a non-Sunday', () => {

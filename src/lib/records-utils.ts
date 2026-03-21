@@ -40,21 +40,13 @@ export const WEEKDAY_LABELS = [
   '週六',
 ] as const
 
-export const WEEKDAY_SHORT = [
-  '日',
-  '一',
-  '二',
-  '三',
-  '四',
-  '五',
-  '六',
-] as const
+export const WEEKDAY_SHORT = ['日', '一', '二', '三', '四', '五', '六'] as const
 
 // ─── Utility Functions ──────────────────────────────────────────────────────
 
 /** Check whether any cell in a DayRow has attendance records. */
 export function dayRowHasAttendance(row: DayRow): boolean {
-  return row.cells.some((cell) => cell.attendances.length > 0)
+  return row.cells.some(cell => cell.attendances.length > 0)
 }
 
 /**
@@ -105,7 +97,7 @@ export function filterEmployeesByName(
 ): readonly Employee[] {
   if (!query) return employees
   const lowerQuery = query.toLowerCase()
-  return employees.filter((emp) => emp.name.toLowerCase().includes(lowerQuery))
+  return employees.filter(emp => emp.name.toLowerCase().includes(lowerQuery))
 }
 
 /** Generate year options: 5 years centered on the given year. */
@@ -151,7 +143,7 @@ function buildSingleDayRow(
 ): DayRow {
   const d = dayjs(dateStr)
   const dayOfWeek = d.day()
-  const cells: readonly EmployeeAttendanceCell[] = employees.map((emp) => ({
+  const cells: readonly EmployeeAttendanceCell[] = employees.map(emp => ({
     employee: emp,
     attendances: attMap.get(`${emp.id}-${dateStr}`) ?? [],
   }))
@@ -184,7 +176,7 @@ export function buildDayRows(
     const day = daysInMonth - i
     const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
     return buildSingleDayRow(dateStr, employees, attMap, todayStr)
-  }).filter((row) => row.date <= todayStr)
+  }).filter(row => row.date <= todayStr)
 }
 
 /**
@@ -198,9 +190,7 @@ export function buildCalendarGrid(
   attendances: readonly Attendance[],
   todayStr: string,
 ): readonly (readonly CalendarDay[])[] {
-  const firstOfMonth = dayjs(
-    `${year}-${String(month).padStart(2, '0')}-01`,
-  )
+  const firstOfMonth = dayjs(`${year}-${String(month).padStart(2, '0')}-01`)
   const startDayOfWeek = firstOfMonth.day()
   const gridStart = firstOfMonth.subtract(startDayOfWeek, 'day')
   const attMap = buildAttendanceMap(attendances)
@@ -213,7 +203,7 @@ export function buildCalendarGrid(
       current.month() + 1 === month && current.year() === year
     const dayOfWeek = current.day()
     const cells: readonly EmployeeAttendanceCell[] = isCurrentMonth
-      ? employees.map((emp) => ({
+      ? employees.map(emp => ({
           employee: emp,
           attendances: attMap.get(`${emp.id}-${dateStr}`) ?? [],
         }))

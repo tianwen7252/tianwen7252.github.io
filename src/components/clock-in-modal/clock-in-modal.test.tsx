@@ -113,7 +113,9 @@ describe('ClockInModal', () => {
     render(<ClockInModal {...defaultProps} />)
     const avatar = screen.getByAltText('avatar')
     expect(avatar).toBeTruthy()
-    expect((avatar as HTMLImageElement).src).toContain('images/aminals/1308845.png')
+    expect((avatar as HTMLImageElement).src).toContain(
+      'images/aminals/1308845.png',
+    )
   })
 
   it('should show admin label when employee.isAdmin is true', () => {

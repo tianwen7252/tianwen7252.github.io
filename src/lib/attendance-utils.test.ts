@@ -9,9 +9,7 @@ import {
 
 // ─── Helper: create an Attendance record for testing ─────────────────────────
 
-const makeAttendance = (
-  overrides: Partial<Attendance> = {},
-): Attendance => ({
+const makeAttendance = (overrides: Partial<Attendance> = {}): Attendance => ({
   id: 'att-1',
   employeeId: 'emp-1',
   date: '2025-06-15',
@@ -34,11 +32,7 @@ describe('buildTimestamp', () => {
     const time = dayjs('2025-06-15T09:30:45')
     const result = buildTimestamp('2025-06-15', time)
 
-    const expected = dayjs('2025-06-15')
-      .hour(9)
-      .minute(30)
-      .second(45)
-      .valueOf()
+    const expected = dayjs('2025-06-15').hour(9).minute(30).second(45).valueOf()
 
     expect(result).toBe(expected)
   })
@@ -48,11 +42,7 @@ describe('buildTimestamp', () => {
     const time = dayjs('2025-01-01T14:15:00')
     const result = buildTimestamp('2025-06-15', time)
 
-    const expected = dayjs('2025-06-15')
-      .hour(14)
-      .minute(15)
-      .second(0)
-      .valueOf()
+    const expected = dayjs('2025-06-15').hour(14).minute(15).second(0).valueOf()
 
     expect(result).toBe(expected)
   })
@@ -61,11 +51,7 @@ describe('buildTimestamp', () => {
     const time = dayjs('2025-06-15T00:00:00')
     const result = buildTimestamp('2025-06-15', time)
 
-    const expected = dayjs('2025-06-15')
-      .hour(0)
-      .minute(0)
-      .second(0)
-      .valueOf()
+    const expected = dayjs('2025-06-15').hour(0).minute(0).second(0).valueOf()
 
     expect(result).toBe(expected)
   })

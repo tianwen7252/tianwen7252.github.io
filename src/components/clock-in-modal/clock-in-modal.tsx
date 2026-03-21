@@ -9,11 +9,18 @@ import { ConfirmModal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { SHIFT_TYPES } from '@/constants/shift-types'
 import type { Employee, Attendance } from '@/lib/schemas'
-import type { GradientVariant, ShineColorPreset } from '@/components/modal/modal.types'
+import type {
+  GradientVariant,
+  ShineColorPreset,
+} from '@/components/modal/modal.types'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
-export type ClockInAction = 'clockIn' | 'clockOut' | 'vacation' | 'cancelVacation'
+export type ClockInAction =
+  | 'clockIn'
+  | 'clockOut'
+  | 'vacation'
+  | 'cancelVacation'
 
 export interface ClockInModalProps {
   readonly open: boolean
@@ -144,15 +151,15 @@ export function ClockInModal({
       <ModalCard>
         <AvatarImage avatar={employee.avatar} size={120} />
 
-        <div
-          className="mt-3 text-xl font-bold"
-          style={{ color: '#1a202c' }}
-        >
+        <div className="mt-3 text-xl font-bold" style={{ color: '#1a202c' }}>
           {employee.name}
         </div>
 
         {employee.isAdmin && (
-          <div className="mt-1 text-sm font-medium" style={{ color: '#7f956a' }}>
+          <div
+            className="mt-1 text-sm font-medium"
+            style={{ color: '#7f956a' }}
+          >
             管理員
           </div>
         )}
@@ -168,10 +175,7 @@ export function ClockInModal({
             <div className="text-sm" style={{ color: '#718096' }}>
               {timeLabel}
             </div>
-            <div
-              className="text-lg font-semibold"
-              style={{ color: '#1a202c' }}
-            >
+            <div className="text-lg font-semibold" style={{ color: '#1a202c' }}>
               {timeValue}
             </div>
           </div>
@@ -179,10 +183,7 @@ export function ClockInModal({
             <div className="text-sm" style={{ color: '#718096' }}>
               班別類型
             </div>
-            <div
-              className="text-lg font-semibold"
-              style={{ color: '#1a202c' }}
-            >
+            <div className="text-lg font-semibold" style={{ color: '#1a202c' }}>
               {shiftTypeLabel}
             </div>
           </div>

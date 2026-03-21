@@ -2,7 +2,10 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
 import { QueryProvider } from './providers/query-provider'
-import { requestStoragePersistence, logStorageEstimate } from '@/lib/storage-persist'
+import {
+  requestStoragePersistence,
+  logStorageEstimate,
+} from '@/lib/storage-persist'
 import './styles/globals.css'
 import { router } from './routes/router'
 

@@ -67,14 +67,14 @@ export function RecordModal({
   onCancel,
   onSuccess,
 }: RecordModalProps) {
-  const [attendanceType, setAttendanceType] = useState<AttendanceType>(
-    () => (open ? resolveAttendanceType(record) : ATTENDANCE_TYPES.REGULAR),
+  const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
+    open ? resolveAttendanceType(record) : ATTENDANCE_TYPES.REGULAR,
   )
-  const [clockInTime, setClockInTime] = useState(
-    () => (open ? timestampToTimeString(record?.clockIn) : ''),
+  const [clockInTime, setClockInTime] = useState(() =>
+    open ? timestampToTimeString(record?.clockIn) : '',
   )
-  const [clockOutTime, setClockOutTime] = useState(
-    () => (open ? timestampToTimeString(record?.clockOut) : ''),
+  const [clockOutTime, setClockOutTime] = useState(() =>
+    open ? timestampToTimeString(record?.clockOut) : '',
   )
   const [validationError, setValidationError] = useState<string | null>(null)
   const [prevOpen, setPrevOpen] = useState(open)
@@ -107,7 +107,11 @@ export function RecordModal({
     if (!isVacation && clockInTime && clockOutTime) {
       const clockInDayjs = timeStringToDayjs(date, clockInTime)
       const clockOutDayjs = timeStringToDayjs(date, clockOutTime)
-      if (clockInDayjs && clockOutDayjs && clockOutDayjs.isBefore(clockInDayjs)) {
+      if (
+        clockInDayjs &&
+        clockOutDayjs &&
+        clockOutDayjs.isBefore(clockInDayjs)
+      ) {
         setValidationError('下班時間必須晚於上班時間')
         return
       }
@@ -244,14 +248,17 @@ export function RecordModal({
         {/* Time inputs */}
         <div className="flex w-full gap-4">
           <div className="flex flex-1 flex-col gap-1">
-            <label htmlFor="clock-in-time" className="text-sm font-medium text-[#718096]">
+            <label
+              htmlFor="clock-in-time"
+              className="text-sm font-medium text-[#718096]"
+            >
               上班時間
             </label>
             <input
               id="clock-in-time"
               type="time"
               value={clockInTime}
-              onChange={(e) => {
+              onChange={e => {
                 setClockInTime(e.target.value)
                 setValidationError(null)
               }}
@@ -259,7 +266,10 @@ export function RecordModal({
             />
           </div>
           <div className="flex flex-1 flex-col gap-1">
-            <label htmlFor="clock-out-time" className="text-sm font-medium text-[#718096]">
+            <label
+              htmlFor="clock-out-time"
+              className="text-sm font-medium text-[#718096]"
+            >
               下班時間
             </label>
             <input
@@ -267,7 +277,7 @@ export function RecordModal({
               type="time"
               value={clockOutTime}
               disabled={isVacation}
-              onChange={(e) => {
+              onChange={e => {
                 setClockOutTime(e.target.value)
                 setValidationError(null)
               }}

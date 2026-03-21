@@ -59,7 +59,7 @@ function makeCalendarDay(overrides: Partial<CalendarDay> = {}): CalendarDay {
     isWeekend: false,
     isToday: false,
     isCurrentMonth: true,
-    cells: employees.map((emp) => ({
+    cells: employees.map(emp => ({
       employee: emp,
       attendances: [],
     })),
@@ -84,7 +84,7 @@ function buildEmptyGrid(): readonly (readonly CalendarDay[])[] {
           isToday: false,
           isCurrentMonth,
           cells: isCurrentMonth
-            ? employees.map((emp) => ({
+            ? employees.map(emp => ({
                 employee: emp,
                 attendances: [],
               }))
@@ -99,8 +99,8 @@ function buildEmptyGrid(): readonly (readonly CalendarDay[])[] {
 
 /** Build a grid where one specific day has attendance data. */
 function buildGridWithAttendance(): readonly (readonly CalendarDay[])[] {
-  const grid = buildEmptyGrid().map((week) =>
-    week.map((day) => {
+  const grid = buildEmptyGrid().map(week =>
+    week.map(day => {
       if (day.date === '2026-03-16') {
         return {
           ...day,
@@ -124,8 +124,8 @@ function buildGridWithAttendance(): readonly (readonly CalendarDay[])[] {
 
 /** Build a grid with a "today" cell. */
 function buildGridWithToday(): readonly (readonly CalendarDay[])[] {
-  return buildEmptyGrid().map((week) =>
-    week.map((day) => {
+  return buildEmptyGrid().map(week =>
+    week.map(day => {
       if (day.date === '2026-03-21') {
         return { ...day, isToday: true }
       }
@@ -156,11 +156,11 @@ describe('RecordsCalendarView', () => {
   })
 
   it('should render 6 rows of 7 days each', () => {
-    const { container } = render(
-      <RecordsCalendarView {...defaultProps} />,
-    )
+    const { container } = render(<RecordsCalendarView {...defaultProps} />)
     // 7 header cells + 42 day cells = 49 grid items
-    const dayCells = container.querySelectorAll('[data-testid^="calendar-cell-"]')
+    const dayCells = container.querySelectorAll(
+      '[data-testid^="calendar-cell-"]',
+    )
     expect(dayCells.length).toBe(42)
   })
 
@@ -186,29 +186,19 @@ describe('RecordsCalendarView', () => {
     // Last row likely has outside-month days (April dates)
     const outsideCells = screen
       .getAllByTestId(/^calendar-cell-/)
-      .filter((el) => el.className.includes('opacity-40'))
+      .filter(el => el.className.includes('opacity-40'))
     expect(outsideCells.length).toBeGreaterThan(0)
   })
 
   it('should show employee clock times in cards', () => {
     const gridWithAtt = buildGridWithAttendance()
-    render(
-      <RecordsCalendarView
-        {...defaultProps}
-        calendarGrid={gridWithAtt}
-      />,
-    )
+    render(<RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />)
     expect(screen.getByText('08:00 - 17:00')).toBeTruthy()
   })
 
   it('should show vacation label on vacation attendance cards', () => {
     const gridWithAtt = buildGridWithAttendance()
-    render(
-      <RecordsCalendarView
-        {...defaultProps}
-        calendarGrid={gridWithAtt}
-      />,
-    )
+    render(<RecordsCalendarView {...defaultProps} calendarGrid={gridWithAtt} />)
     expect(screen.getByText('休假')).toBeTruthy()
   })
 
@@ -222,9 +212,7 @@ describe('RecordsCalendarView', () => {
   it('should call onCellClick when a day cell is clicked', async () => {
     const user = userEvent.setup()
     const onCellClick = vi.fn()
-    render(
-      <RecordsCalendarView {...defaultProps} onCellClick={onCellClick} />,
-    )
+    render(<RecordsCalendarView {...defaultProps} onCellClick={onCellClick} />)
 
     const cell = screen.getByTestId('calendar-cell-2026-03-16')
     await user.click(cell)
@@ -256,7 +244,7 @@ describe('RecordsCalendarView', () => {
     // Sunday (day 0) cells should have weekend class
     const sundayCells = screen
       .getAllByTestId(/^calendar-cell-/)
-      .filter((el) => el.className.includes('bg-[#f8fafc50]'))
+      .filter(el => el.className.includes('bg-[#f8fafc50]'))
     expect(sundayCells.length).toBeGreaterThan(0)
   })
 })

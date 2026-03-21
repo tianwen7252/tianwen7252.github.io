@@ -25,7 +25,7 @@ describe('SHIFT_TYPES', () => {
   })
 
   it('should have unique keys across all entries', () => {
-    const keys = SHIFT_TYPES.map((entry) => entry.key)
+    const keys = SHIFT_TYPES.map(entry => entry.key)
     expect(new Set(keys).size).toBe(keys.length)
   })
 
@@ -39,7 +39,7 @@ describe('ShiftType', () => {
   it('should accept valid shift type key values at runtime', () => {
     // Runtime check that the type union matches the keys in SHIFT_TYPES
     const validKeys: ShiftType[] = ['regular', 'shift']
-    const allKeys = SHIFT_TYPES.map((entry) => entry.key)
+    const allKeys = SHIFT_TYPES.map(entry => entry.key)
 
     expect(validKeys).toEqual(expect.arrayContaining(allKeys))
     expect(allKeys).toEqual(expect.arrayContaining(validKeys))

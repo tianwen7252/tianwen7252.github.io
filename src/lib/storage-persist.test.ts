@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { requestStoragePersistence, logStorageEstimate } from './storage-persist'
+import {
+  requestStoragePersistence,
+  logStorageEstimate,
+} from './storage-persist'
 
 describe('requestStoragePersistence', () => {
   let consoleWarnSpy: ReturnType<typeof vi.spyOn>
