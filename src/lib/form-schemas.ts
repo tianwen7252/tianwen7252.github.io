@@ -16,7 +16,7 @@ export const employeeFormSchema = z.object({
   resignationDate: z.string().default(''),
 })
 
-export type EmployeeFormValues = z.infer<typeof employeeFormSchema>
+export type EmployeeFormValues = z.input<typeof employeeFormSchema>
 
 // ─── Record (Attendance) Form ───────────────────────────────────────────────
 
