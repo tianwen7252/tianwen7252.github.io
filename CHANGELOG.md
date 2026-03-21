@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.30](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.29...v0.0.30) (2026-03-21)
+
+
+### Features
+
+* develop → master 員工管理與考勤系統重新設計 ([#11](https://github.com/tianwen7252/tianwen7252.github.io/issues/11)) ([1e48def](https://github.com/tianwen7252/tianwen7252.github.io/commit/1e48defe98ab349e337ef5c95cfe35f6957aecc8))
+
 ## [0.0.29](https://github.com/tianwen7252/tianwen7252.github.io/compare/v0.0.28...v0.0.29) (2026-03-18)
 
 
