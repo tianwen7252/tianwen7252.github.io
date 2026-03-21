@@ -129,6 +129,26 @@ export const Info: React.FC<{}> = React.memo(() => {
           </Card>
         </Col>
       </Row>
+      <div style={{ marginTop: 16 }}>
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '4px 12px',
+            borderRadius: 20,
+            background: 'linear-gradient(135deg, #e8f5e9, #f1f8e9)',
+            border: '1px solid #c8e6c9',
+            fontSize: 12,
+            fontFamily: '"SF Mono", "Fira Code", monospace',
+            color: '#2e7d32',
+            letterSpacing: 0.3,
+          }}
+        >
+          <span style={{ fontSize: 10, opacity: 0.7 }}>●</span>
+          Local DEV IP: {window.location.hostname}
+        </div>
+      </div>
     </div>
   )
 })

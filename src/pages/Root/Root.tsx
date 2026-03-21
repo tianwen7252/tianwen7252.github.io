@@ -22,6 +22,10 @@ export const Root: React.FC<{}> = memo(() => {
         <Route path="/" element={orderPageElement} />
         <Route path="order" element={orderPageElement} />
         <Route
+          path="clock-in"
+          element={lazyLoad(() => import('../ClockInPage'))}
+        />
+        <Route
           path="order-list"
           // this is a bug not working in react-router 6
           // lazy={async () => {

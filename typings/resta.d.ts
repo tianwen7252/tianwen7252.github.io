@@ -315,7 +315,12 @@ declare global {
         id?: ID
         name: string
         avatar?: string
-        status?: string
+        status?: 'active' | 'inactive'
+        shiftType?: 'regular' | 'shift'
+        employeeNo?: string // '001', '002', ...
+        isAdmin?: boolean
+        hireDate?: string // ISO date 'YYYY-MM-DD'
+        resignationDate?: string // ISO date 'YYYY-MM-DD', undefined = active
         createdAt?: number
         updatedAt?: number
       }
@@ -325,6 +330,7 @@ declare global {
         date: string
         clockIn?: number
         clockOut?: number
+        type?: import('src/constants/defaults/attendanceTypes').AttendanceType
       }
     }
 

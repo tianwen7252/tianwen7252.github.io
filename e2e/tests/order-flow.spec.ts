@@ -109,6 +109,7 @@ test.describe('Order Flow — E2E Tests', () => {
     const tag = seededPage
       .locator('.ant-tag-checkable')
       .filter({ hasText: '外送' })
+      .first()
     await expect(tag).toHaveClass(/ant-tag-checkable-checked/)
 
     // Submit with the order type

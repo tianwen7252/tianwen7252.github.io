@@ -1,182 +1,267 @@
 import React, { useState, useMemo } from 'react'
+import { Input, Select, Spin } from 'antd'
 import {
-  DatePicker,
-  Radio,
-  Button,
-  Space,
-  Calendar,
-  Table,
-  Badge,
-  Spin,
-} from 'antd'
-import { LeftOutlined, RightOutlined } from '@ant-design/icons'
-import dayjs, { Dayjs } from 'dayjs'
+  InfoCircleOutlined,
+  TableOutlined,
+  CalendarOutlined,
+} from '@ant-design/icons'
+import dayjs from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import * as API from 'src/libs/api'
-import EditRecordModal from './EditRecordModal'
+import {
+  buildDayRows,
+  buildCalendarGrid,
+  filterEmployeesByName,
+  getYearOptions,
+  getMonthOptions,
+} from './recordsUtils'
+import { RecordsTableView } from './RecordsTableView'
+import { RecordsCalendarView } from './RecordsCalendarView'
+import { RecordModal } from './RecordModal'
+import { recordsStyles as styles } from './styles/recordsStyles'
+
+// Immutable type for modal target state
+interface ModalTarget {
+  readonly mode: 'add' | 'edit'
+  readonly employee: RestaDB.Table.Employee
+  readonly date: string
+  readonly record?: RestaDB.Table.Attendance
+  readonly shiftNumber?: number
+}
 
 export const Records: React.FC = () => {
-  const [currentMonth, setCurrentMonth] = useState<Dayjs>(dayjs())
-  const [viewMode, setViewMode] = useState<'calendar' | 'table'>('calendar')
-  const [selectedRecord, setSelectedRecord] =
-    useState<RestaDB.Table.Attendance | null>(null)
+  // View state
+  const [viewMode, setViewMode] = useState<'table' | 'calendar'>('table')
+  const [selectedYear, setSelectedYear] = useState(() => dayjs().year())
+  const [selectedMonth, setSelectedMonth] = useState(() => dayjs().month() + 1)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  const yearMonthStr = currentMonth.format('YYYY-MM')
-  const attendances =
-    useLiveQuery(
-      () => API.attendances.getByMonth(yearMonthStr),
-      [yearMonthStr],
-    ) || []
-  const employeesList = useLiveQuery(() => API.employees.get()) || []
-  const employeesMap = useMemo(() => {
-    return employeesList.reduce(
-      (acc, emp) => {
-        acc[emp.id!] = emp.name
-        return acc
-      },
-      {} as Record<number | string, string>,
-    )
-  }, [employeesList])
+  // Modal state (unified for add/edit)
+  const [modalTarget, setModalTarget] = useState<ModalTarget | null>(null)
 
-  const handleMonthChange = (date: Dayjs | null) => {
-    if (date) setCurrentMonth(date)
-  }
+  // Data fetching via Dexie live queries
+  const yearMonthStr = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`
+  const allAttendances = useLiveQuery(
+    () => API.attendances.getByMonth(yearMonthStr),
+    [yearMonthStr],
+  )
+  const allEmployees = useLiveQuery(() => API.employees.get())
 
-  const handlePrevMonth = () =>
-    setCurrentMonth(prev => prev.subtract(1, 'month'))
-  const handleNextMonth = () => setCurrentMonth(prev => prev.add(1, 'month'))
+  // Filter active employees (exclude resigned), then apply search
+  const activeEmployees = useMemo(
+    () => (allEmployees ?? []).filter(e => !e.resignationDate),
+    [allEmployees],
+  )
+  const filteredEmployees = useMemo(
+    () => filterEmployeesByName(activeEmployees, searchQuery),
+    [activeEmployees, searchQuery],
+  )
 
-  const dateCellRender = (value: Dayjs) => {
-    const dateStr = value.format('YYYY-MM-DD')
-    const dayRecords = attendances.filter(record => record.date === dateStr)
-
-    return (
-      <ul
-        style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '12px' }}
-      >
-        {dayRecords.map(item => {
-          const empName = employeesMap[item.employeeId] || 'Unknown'
-          const inTime = item.clockIn
-            ? dayjs(item.clockIn).format('HH:mm')
-            : '??'
-          const outTime = item.clockOut
-            ? dayjs(item.clockOut).format('HH:mm')
-            : '??'
-          return (
-            <li
-              key={item.id}
-              style={{
-                cursor: 'pointer',
-                marginBottom: 2,
-                padding: 2,
-                background: '#f0f0f0',
-                borderRadius: 4,
-              }}
-              onClick={() => setSelectedRecord(item)}
-            >
-              <Badge
-                status={item.clockOut ? 'success' : 'processing'}
-                text={`${empName} ${inTime} - ${outTime}`}
-              />
-            </li>
-          )
-        })}
-      </ul>
-    )
-  }
-
-  const tableColumns = [
-    { title: '日期', dataIndex: 'date', key: 'date' },
-    {
-      title: '員工姓名',
-      key: 'employeeName',
-      render: (_: any, record: RestaDB.Table.Attendance) =>
-        employeesMap[record.employeeId] || 'Unknown',
-    },
-    {
-      title: '上班時間',
-      key: 'clockIn',
-      render: (_: any, record: RestaDB.Table.Attendance) =>
-        record.clockIn ? dayjs(record.clockIn).format('HH:mm:ss') : '--',
-    },
-    {
-      title: '下班時間',
-      key: 'clockOut',
-      render: (_: any, record: RestaDB.Table.Attendance) =>
-        record.clockOut ? dayjs(record.clockOut).format('HH:mm:ss') : '--',
-    },
-    {
-      title: '操作',
-      key: 'action',
-      render: (_: any, record: RestaDB.Table.Attendance) => (
-        <Button
-          type="link"
-          size="small"
-          onClick={() => setSelectedRecord(record)}
-        >
-          修改
-        </Button>
+  // Build view data
+  const todayStr = dayjs().format('YYYY-MM-DD')
+  const dayRows = useMemo(
+    () =>
+      buildDayRows(
+        selectedYear,
+        selectedMonth,
+        filteredEmployees,
+        allAttendances ?? [],
+        todayStr,
       ),
-    },
-  ]
+    [selectedYear, selectedMonth, filteredEmployees, allAttendances, todayStr],
+  )
+  const calendarGrid = useMemo(
+    () =>
+      buildCalendarGrid(
+        selectedYear,
+        selectedMonth,
+        filteredEmployees,
+        allAttendances ?? [],
+        todayStr,
+      ),
+    [selectedYear, selectedMonth, filteredEmployees, allAttendances, todayStr],
+  )
+
+  // Options for selects (with future month filtering)
+  const yearOptions = useMemo(() => getYearOptions(dayjs().year()), [])
+  const monthOptions = useMemo(
+    () => getMonthOptions(selectedYear, dayjs().year(), dayjs().month() + 1),
+    [selectedYear],
+  )
+
+  // Edit record handler — card click in table view
+  const handleEditRecord = (
+    employee: RestaDB.Table.Employee,
+    date: string,
+    record: RestaDB.Table.Attendance,
+  ) => {
+    // Calculate shift number from all attendances for this employee+date
+    const key = `${employee.id}-${date}`
+    const allShifts = (allAttendances ?? []).filter(
+      a => `${a.employeeId}-${a.date}` === key,
+    )
+    const shiftIndex = allShifts.findIndex(a => a.id === record.id)
+    setModalTarget({
+      mode: 'edit',
+      employee,
+      date,
+      record,
+      shiftNumber: shiftIndex >= 0 ? shiftIndex + 1 : undefined,
+    })
+  }
+
+  // Add record handler — empty area click in table view
+  const handleAddRecord = (
+    employee: RestaDB.Table.Employee,
+    date: string,
+  ) => {
+    setModalTarget({
+      mode: 'add',
+      employee,
+      date,
+    })
+  }
+
+  // Calendar cell click handler — pick first employee without records for this date
+  const handleCalendarCellClick = (date: string) => {
+    if (filteredEmployees.length === 0) return
+    const empWithoutRecord = filteredEmployees.find(emp => {
+      return !(allAttendances ?? []).some(
+        a => a.employeeId === emp.id && a.date === date,
+      )
+    })
+    const targetEmp = empWithoutRecord ?? filteredEmployees[0]
+    setModalTarget({ mode: 'add', employee: targetEmp, date })
+  }
+
+  // Close modal
+  const handleModalClose = () => {
+    setModalTarget(null)
+  }
+
+  // Scroll to today row
+  const handleScrollToToday = () => {
+    const now = dayjs()
+    setSelectedYear(now.year())
+    setSelectedMonth(now.month() + 1)
+    // Scroll after state update
+    setTimeout(() => {
+      const todayRow = document.querySelector('[data-today="true"]')
+      todayRow?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 100)
+  }
+
+  // Loading state — show spinner while data is fetching
+  if (allAttendances === undefined || allEmployees === undefined) {
+    return (
+      <div
+        className={styles.containerCss}
+        style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}
+      >
+        <Spin size="large" />
+      </div>
+    )
+  }
 
   return (
-    <div>
-      <div
-        style={{
-          marginBottom: 16,
-          display: 'flex',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Space>
-          <Button icon={<LeftOutlined />} onClick={handlePrevMonth} />
-          <DatePicker
-            picker="month"
-            value={currentMonth}
-            onChange={handleMonthChange}
-            allowClear={false}
-          />
-          <Button icon={<RightOutlined />} onClick={handleNextMonth} />
-        </Space>
-        <Radio.Group
-          value={viewMode}
-          onChange={e => setViewMode(e.target.value)}
-        >
-          <Radio.Button value="calendar">日曆</Radio.Button>
-          <Radio.Button value="table">表格</Radio.Button>
-        </Radio.Group>
+    <div className={styles.containerCss}>
+      {/* Header: title + view toggle */}
+      <div className={styles.headerCss}>
+        <span className={styles.titleCss}>員工考勤狀況</span>
+        <div className={styles.toggleGroupCss}>
+          <button
+            type="button"
+            className={
+              viewMode === 'table'
+                ? styles.toggleBtnActiveCss
+                : styles.toggleBtnCss
+            }
+            onClick={() => setViewMode('table')}
+          >
+            <TableOutlined />
+            表格
+          </button>
+          <button
+            type="button"
+            className={
+              viewMode === 'calendar'
+                ? styles.toggleBtnActiveCss
+                : styles.toggleBtnCss
+            }
+            onClick={() => setViewMode('calendar')}
+          >
+            <CalendarOutlined />
+            月曆
+          </button>
+        </div>
       </div>
 
-      {!attendances && <Spin />}
+      {/* Filter bar */}
+      <div className={styles.filterBarCss}>
+        <Input
+          placeholder="搜尋員工姓名"
+          allowClear
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          prefix={<span style={{ color: '#94a3b8' }}>&#x1F50D;</span>}
+          className={styles.searchInputCss}
+        />
+        <Select
+          value={selectedYear}
+          options={yearOptions as { value: number; label: string }[]}
+          onChange={setSelectedYear}
+          className={styles.selectCss}
+        />
+        <Select
+          value={selectedMonth}
+          options={monthOptions as { value: number; label: string }[]}
+          onChange={setSelectedMonth}
+          className={styles.selectCss}
+        />
+        <button
+          type="button"
+          className={styles.todayBtnCss}
+          onClick={handleScrollToToday}
+        >
+          今天
+        </button>
+      </div>
 
-      {viewMode === 'calendar' ? (
-        <Calendar
-          value={currentMonth}
-          onChange={date => setCurrentMonth(date)}
-          cellRender={(current, info) => {
-            if (info.type === 'date') return dateCellRender(current)
-            return info.originNode
-          }}
-          headerRender={() => null}
+      {/* Hint text above the view */}
+      <div className={styles.hintCss}>
+        <InfoCircleOutlined />
+        <span>點擊儲存格即可直接編輯打卡時間</span>
+      </div>
+
+      {/* View content */}
+      {viewMode === 'table' ? (
+        <RecordsTableView
+          dayRows={dayRows}
+          employees={filteredEmployees}
+          onEditRecord={handleEditRecord}
+          onAddRecord={handleAddRecord}
+          todayDate={todayStr}
         />
       ) : (
-        <Table
-          dataSource={attendances}
-          columns={tableColumns}
-          rowKey="id"
-          pagination={{ pageSize: 20 }}
+        <RecordsCalendarView
+          calendarGrid={calendarGrid}
+          onEditRecord={handleEditRecord}
+          onAddRecord={handleAddRecord}
+          onCellClick={handleCalendarCellClick}
         />
       )}
 
-      {selectedRecord && (
-        <EditRecordModal
-          record={selectedRecord}
-          empName={employeesMap[selectedRecord.employeeId] || 'Unknown'}
-          onCancel={() => setSelectedRecord(null)}
-          onSuccess={() => setSelectedRecord(null)}
-        />
-      )}
+      {/* Record modal (unified add/edit) */}
+      <RecordModal
+        open={modalTarget !== null}
+        mode={modalTarget?.mode ?? 'add'}
+        employee={modalTarget?.employee ?? null}
+        date={modalTarget?.date ?? dayjs().format('YYYY-MM-DD')}
+        record={modalTarget?.record}
+        shiftNumber={modalTarget?.shiftNumber}
+        onCancel={handleModalClose}
+        onSuccess={handleModalClose}
+      />
     </div>
   )
 }

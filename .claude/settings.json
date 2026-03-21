@@ -1,5 +1,7 @@
 {
+  "claudeCode.allowDangerouslySkipPermissions": true,
   "env": {
+    "ENABLE_TOOL_SEARCH": "true",
     "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "60"
   }
 }
