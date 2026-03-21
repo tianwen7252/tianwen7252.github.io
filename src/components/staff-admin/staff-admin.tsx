@@ -4,7 +4,7 @@ import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ANIMAL_AVATARS } from '@/constants/animal-avatars'
 import { SHIFT_TYPES } from '@/constants/shift-types'
-import { mockEmployeeService } from '@/services/mock-data'
+import { api } from '@/api'
 import type { Employee, CreateEmployee } from '@/lib/schemas'
 import type { ShiftType } from '@/constants/shift-types'
 
@@ -42,7 +42,7 @@ const SHIFT_LABEL_MAP = buildShiftLabelMap()
  */
 export function StaffAdmin() {
   const [employees, setEmployees] = useState<readonly Employee[]>(() =>
-    mockEmployeeService.getAll(),
+    api.employees.getAll(),
   )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
@@ -52,7 +52,7 @@ export function StaffAdmin() {
 
   // Refresh employee list from mock service
   const refreshEmployees = useCallback(() => {
-    setEmployees(mockEmployeeService.getAll())
+    setEmployees(api.employees.getAll())
   }, [])
 
   // Update a single form field (immutable)
@@ -107,7 +107,7 @@ export function StaffAdmin() {
 
     if (editingEmployee) {
       // Update existing employee
-      mockEmployeeService.update(editingEmployee.id, {
+      api.employees.update(editingEmployee.id, {
         name: trimmedName,
         avatar: form.avatar || undefined,
         shiftType: form.shiftType,
@@ -118,7 +118,7 @@ export function StaffAdmin() {
       })
     } else {
       // Generate next employee number
-      const allEmployees = mockEmployeeService.getAll()
+      const allEmployees = api.employees.getAll()
       const maxNo = allEmployees.reduce((max, e) => {
         const num = parseInt(e.employeeNo?.replace('E', '') ?? '0', 10)
         return num > max ? num : max
@@ -134,7 +134,7 @@ export function StaffAdmin() {
         employeeNo,
         status: 'active',
       }
-      mockEmployeeService.add(newEmployee)
+      api.employees.add(newEmployee)
     }
 
     refreshEmployees()
@@ -149,7 +149,7 @@ export function StaffAdmin() {
   // Confirm deletion
   const handleDeleteConfirm = useCallback(() => {
     if (deleteTarget) {
-      mockEmployeeService.remove(deleteTarget.id)
+      api.employees.remove(deleteTarget.id)
       refreshEmployees()
     }
     setDeleteTarget(null)

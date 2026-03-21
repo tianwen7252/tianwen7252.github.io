@@ -43,21 +43,23 @@ const mockAttendances: Attendance[] = [
   },
 ]
 
-vi.mock('@/services/mock-data', () => ({
-  mockEmployeeService: {
-    getActive: vi.fn(() => mockEmployees),
-  },
-  mockAttendanceService: {
-    getByMonth: vi.fn(() => mockAttendances),
-    add: vi.fn(() => ({
-      id: 'att-new',
-      employeeId: 'emp-001',
-      date: '2026-03-21',
-      clockIn: 1742536800000,
-      type: 'regular',
-    })),
-    update: vi.fn(),
-    remove: vi.fn(() => true),
+vi.mock('@/api', () => ({
+  api: {
+    employees: {
+      getActive: vi.fn(() => mockEmployees),
+    },
+    attendances: {
+      getByMonth: vi.fn(() => mockAttendances),
+      add: vi.fn(() => ({
+        id: 'att-new',
+        employeeId: 'emp-001',
+        date: '2026-03-21',
+        clockIn: 1742536800000,
+        type: 'regular',
+      })),
+      update: vi.fn(),
+      remove: vi.fn(() => true),
+    },
   },
 }))
 
@@ -140,8 +142,8 @@ describe('Records', () => {
     await user.selectOptions(yearSelect, '2025')
 
     // Data should refresh (service is called)
-    const { mockAttendanceService } = await import('@/services/mock-data')
-    expect(mockAttendanceService.getByMonth).toHaveBeenCalled()
+    const { api } = await import('@/api')
+    expect(api.attendances.getByMonth).toHaveBeenCalled()
   })
 
   it('should update data when month select changes', async () => {
@@ -151,8 +153,8 @@ describe('Records', () => {
     const monthSelect = screen.getByDisplayValue(/月/)
     await user.selectOptions(monthSelect, '1')
 
-    const { mockAttendanceService } = await import('@/services/mock-data')
-    expect(mockAttendanceService.getByMonth).toHaveBeenCalled()
+    const { api } = await import('@/api')
+    expect(api.attendances.getByMonth).toHaveBeenCalled()
   })
 
   it('should render "今天" button', () => {

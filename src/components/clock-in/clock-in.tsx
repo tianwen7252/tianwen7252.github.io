@@ -10,10 +10,7 @@ import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
 import { calcTotalHours, formatTotalHours } from '@/lib/attendance-utils'
 import { WEEKDAY_SHORT } from '@/lib/records-utils'
-import {
-  mockEmployeeService,
-  mockAttendanceService,
-} from '@/services/mock-data'
+import { api } from '@/api'
 import { ClockInModal } from '@/components/clock-in-modal'
 import type { ClockInAction } from '@/components/clock-in-modal'
 import type { Employee, Attendance } from '@/lib/schemas'
@@ -279,14 +276,14 @@ export function ClockIn() {
   const [refreshKey, setRefreshKey] = useState(0)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allEmployees = useMemo(() => mockEmployeeService.getAll(), [refreshKey])
+  const allEmployees = useMemo(() => api.employees.getAll(), [refreshKey])
   const employees = useMemo(
     () => allEmployees.filter(e => !e.resignationDate),
     [allEmployees],
   )
 
   const todayAttendances = useMemo(
-    () => mockAttendanceService.getByDate(today),
+    () => api.attendances.getByDate(today),
     [today, refreshKey],
   )
 
@@ -371,7 +368,7 @@ export function ClockIn() {
 
       switch (action) {
         case 'clockIn':
-          mockAttendanceService.add({
+          api.attendances.add({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -381,14 +378,14 @@ export function ClockIn() {
 
         case 'clockOut':
           if (record?.id != null) {
-            mockAttendanceService.update(record.id, {
+            api.attendances.update(record.id, {
               clockOut: now.valueOf(),
             })
           }
           break
 
         case 'vacation':
-          mockAttendanceService.add({
+          api.attendances.add({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -398,7 +395,7 @@ export function ClockIn() {
 
         case 'cancelVacation':
           if (record?.id != null) {
-            mockAttendanceService.remove(record.id)
+            api.attendances.remove(record.id)
           }
           break
       }

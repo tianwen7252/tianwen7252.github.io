@@ -10,7 +10,7 @@ import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
 import type { AttendanceType } from '@/constants/attendance-types'
 import { buildTimestamp } from '@/lib/attendance-utils'
-import { mockAttendanceService } from '@/services/mock-data'
+import { api } from '@/api'
 import { cn } from '@/lib/cn'
 import type { Employee, Attendance } from '@/lib/schemas'
 
@@ -124,7 +124,7 @@ export function RecordModal({
     const dbType = isVacation ? 'paid_leave' : 'regular'
 
     if (mode === 'add') {
-      mockAttendanceService.add({
+      api.attendances.add({
         employeeId: employee.id,
         date,
         clockIn: clockInTs,
@@ -132,7 +132,7 @@ export function RecordModal({
         type: dbType,
       })
     } else if (record) {
-      mockAttendanceService.update(record.id, {
+      api.attendances.update(record.id, {
         clockIn: clockInTs,
         clockOut: clockOutTs,
         type: dbType,
@@ -153,7 +153,7 @@ export function RecordModal({
 
   const handleDelete = useCallback(() => {
     if (record) {
-      mockAttendanceService.remove(record.id)
+      api.attendances.remove(record.id)
     }
     onSuccess()
   }, [record, onSuccess])

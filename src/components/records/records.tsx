@@ -14,10 +14,7 @@ import {
   getYearOptions,
   getMonthOptions,
 } from '@/lib/records-utils'
-import {
-  mockEmployeeService,
-  mockAttendanceService,
-} from '@/services/mock-data'
+import { api } from '@/api'
 import { RecordsTableView } from './records-table-view'
 import { RecordsCalendarView } from './records-calendar-view'
 import { RecordModal } from '@/components/record-modal'
@@ -59,11 +56,11 @@ export function Records() {
 
   // Fetch data — refreshKey forces re-computation after mutations
   const allEmployees = useMemo(
-    () => mockEmployeeService.getActive(),
+    () => api.employees.getActive(),
     [refreshKey],
   )
   const attendances = useMemo(
-    () => mockAttendanceService.getByMonth(selectedYear, selectedMonth),
+    () => api.attendances.getByMonth(selectedYear, selectedMonth),
     [selectedYear, selectedMonth, refreshKey],
   )
 

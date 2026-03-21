@@ -1,10 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import {
-  mockEmployeeService,
-  mockAttendanceService,
-} from '@/services/mock-data'
+import { api, resetApi } from '@/api'
 import { ClockIn } from './clock-in'
 
 // ─── Test Setup ─────────────────────────────────────────────────────────────
@@ -12,12 +9,12 @@ import { ClockIn } from './clock-in'
 beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(new Date('2026-03-21T10:30:00'))
-  mockEmployeeService.reset()
-  mockAttendanceService.reset()
+  resetApi()
 })
 
 afterEach(() => {
   vi.useRealTimers()
+  resetApi()
 })
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -129,6 +126,7 @@ describe('ClockIn', () => {
 
   it('should open ClockInModal when action button is clicked', async () => {
     vi.useRealTimers()
+    resetApi() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -162,9 +160,9 @@ describe('ClockIn', () => {
 
   it('should show empty state message when no employees', () => {
     // Remove all employees to simulate empty state
-    const employees = mockEmployeeService.getAll()
+    const employees = api.employees.getAll()
     for (const emp of employees) {
-      mockEmployeeService.remove(emp.id)
+      api.employees.remove(emp.id)
     }
 
     render(<ClockIn />)
@@ -202,6 +200,7 @@ describe('ClockIn', () => {
 
   it('should handle confirm for clockIn action and close modal', async () => {
     vi.useRealTimers()
+    resetApi() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -219,6 +218,7 @@ describe('ClockIn', () => {
 
   it('should handle confirm for clockOut action', async () => {
     vi.useRealTimers()
+    resetApi() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -234,6 +234,7 @@ describe('ClockIn', () => {
 
   it('should handle confirm for cancelVacation action via button', async () => {
     vi.useRealTimers()
+    resetApi() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -253,6 +254,7 @@ describe('ClockIn', () => {
 
   it('should handle confirm for vacation action via button', async () => {
     vi.useRealTimers()
+    resetApi() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 

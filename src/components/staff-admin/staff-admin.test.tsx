@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffAdmin } from './staff-admin'
-import { mockEmployeeService } from '@/services/mock-data'
+import { api, resetApi } from '@/api'
 
 // Mock the modal component to avoid Radix Portal issues in tests
 vi.mock('@/components/modal', () => ({
@@ -64,7 +64,11 @@ vi.mock('@/components/avatar-image', () => ({
 
 describe('StaffAdmin', () => {
   beforeEach(() => {
-    mockEmployeeService.reset()
+    resetApi()
+  })
+
+  afterEach(() => {
+    resetApi()
   })
 
   describe('employee table rendering', () => {
@@ -144,7 +148,7 @@ describe('StaffAdmin', () => {
     it('should add employee and close modal on valid submit', async () => {
       const user = userEvent.setup()
       render(<StaffAdmin />)
-      const initialCount = mockEmployeeService.getAll().length
+      const initialCount = api.employees.getAll().length
 
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
 
@@ -160,7 +164,7 @@ describe('StaffAdmin', () => {
 
       // New employee should appear in the table
       expect(screen.getByText('新員工')).toBeTruthy()
-      expect(mockEmployeeService.getAll().length).toBe(initialCount + 1)
+      expect(api.employees.getAll().length).toBe(initialCount + 1)
     })
   })
 
@@ -269,7 +273,7 @@ describe('StaffAdmin', () => {
       await user.click(screen.getByRole('button', { name: '確認' }))
 
       // Employee should be updated in mock service
-      const updated = mockEmployeeService.getById('emp-002')
+      const updated = api.employees.getById('emp-002')
       expect(updated?.resignationDate).toBe('2026-12-31')
       expect(updated?.status).toBe('inactive')
     })
@@ -290,7 +294,7 @@ describe('StaffAdmin', () => {
       const user = userEvent.setup()
       render(<StaffAdmin />)
 
-      const initialCount = mockEmployeeService.getAll().length
+      const initialCount = api.employees.getAll().length
       const deleteButtons = screen.getAllByLabelText('刪除')
       await user.click(deleteButtons[0]!)
 
@@ -298,14 +302,14 @@ describe('StaffAdmin', () => {
       const confirmModal = screen.getByTestId('confirm-modal')
       await user.click(within(confirmModal).getByText('確認'))
 
-      expect(mockEmployeeService.getAll().length).toBe(initialCount - 1)
+      expect(api.employees.getAll().length).toBe(initialCount - 1)
     })
 
     it('should cancel delete and keep employee', async () => {
       const user = userEvent.setup()
       render(<StaffAdmin />)
 
-      const initialCount = mockEmployeeService.getAll().length
+      const initialCount = api.employees.getAll().length
       const deleteButtons = screen.getAllByLabelText('刪除')
       await user.click(deleteButtons[0]!)
 
@@ -313,7 +317,7 @@ describe('StaffAdmin', () => {
       const confirmModal = screen.getByTestId('confirm-modal')
       await user.click(within(confirmModal).getByText('取消'))
 
-      expect(mockEmployeeService.getAll().length).toBe(initialCount)
+      expect(api.employees.getAll().length).toBe(initialCount)
       expect(screen.queryByTestId('confirm-modal')).toBeNull()
     })
   })
