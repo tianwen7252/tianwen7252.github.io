@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { ConfirmModal, GlassModal, GlassCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
-import type { GradientVariant } from '@/components/modal'
+import type { GradientVariant, ShineColor } from '@/components/modal'
 
 type DemoType = 'clockIn' | 'clockOut' | 'vacation' | 'form' | null
 
@@ -12,6 +12,7 @@ const DEMO_CONFIG: Record<
     title: string
     variant: GradientVariant
     confirmText: string
+    shineColor: ShineColor
     infoItems: { label: string; value: string }[]
   }
 > = {
@@ -19,6 +20,7 @@ const DEMO_CONFIG: Record<
     title: '確認 小明 的上班打卡？',
     variant: 'green',
     confirmText: '確認打卡',
+    shineColor: 'green',
     infoItems: [
       { label: '目前時間', value: '09:30 AM' },
       { label: '班別類型', value: '正常班' },
@@ -28,6 +30,7 @@ const DEMO_CONFIG: Record<
     title: '確認 小明 的下班打卡？',
     variant: 'warm',
     confirmText: '確認下班',
+    shineColor: 'purple',
     infoItems: [
       { label: '目前時間', value: '06:00 PM' },
       { label: '班別類型', value: '正常班' },
@@ -37,6 +40,7 @@ const DEMO_CONFIG: Record<
     title: '確認 小明 的休假打卡？',
     variant: 'red',
     confirmText: '確認休假',
+    shineColor: 'red',
     infoItems: [
       { label: '休假時間', value: '09:00 AM' },
       { label: '班別類型', value: '正常班' },
@@ -102,6 +106,7 @@ export function ModalPreview() {
         <GlassModal
           open
           variant="green"
+          shineColor="green"
           systemLabel="員工資料"
           title="編輯員工資訊"
           onClose={() => setActiveDemo(null)}

@@ -1,5 +1,9 @@
 export type GradientVariant = 'green' | 'warm' | 'red'
 
+/** Preset shine color names or custom ShineBorder color format */
+export type ShineColorPreset = 'green' | 'purple' | 'red'
+export type ShineColor = ShineColorPreset | string | string[]
+
 export interface InfoItem {
   readonly label: string
   readonly value: string
@@ -22,6 +26,8 @@ export interface GlassModalProps {
   readonly children: React.ReactNode
   /** Footer content — renders below the glass card (buttons, etc.) */
   readonly footer?: React.ReactNode
+  /** Animated shine border color. Omit for no shine effect. */
+  readonly shineColor?: ShineColor
   /** Called when modal is dismissed (backdrop click, escape key) */
   readonly onClose: () => void
 }
@@ -52,6 +58,8 @@ export interface ConfirmModalProps {
   readonly confirmText?: string
   readonly cancelText?: string
   readonly loading?: boolean
+  /** Animated shine border color. Omit for no shine effect. */
+  readonly shineColor?: ShineColor
   readonly onConfirm: () => void
   readonly onCancel: () => void
 }

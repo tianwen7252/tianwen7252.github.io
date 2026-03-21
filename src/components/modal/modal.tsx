@@ -1,11 +1,14 @@
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { cn } from '@/lib/cn'
+import { ShineBorder } from '@/components/ui/shine-border'
 import { AvatarImage } from '@/components/avatar-image'
 import type {
   GlassModalProps,
   GlassCardProps,
   ConfirmModalProps,
   GradientVariant,
+  ShineColor,
+  ShineColorPreset,
 } from './modal.types'
 import './modal.css'
 
@@ -26,6 +29,22 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   green: COLOR_PRIMARY,
   warm: COLOR_PRIMARY,
   red: COLOR_RED,
+}
+
+// Preset shine color combinations (3 colors each for animated gradient shine)
+const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
+  green: ['#7f956a', '#a8c896', '#4a6741'],
+  purple: ['#9b7abf', '#c4a1e0', '#6b4d8a'],
+  red: ['#ff6467', '#ff9a9e', '#cc4a4a'],
+}
+
+function resolveShineColor(
+  shineColor: ShineColor,
+): string | string[] {
+  if (typeof shineColor === 'string' && shineColor in SHINE_COLOR_PRESETS) {
+    return SHINE_COLOR_PRESETS[shineColor as ShineColorPreset]
+  }
+  return shineColor
 }
 
 // ─── GlassCard ───────────────────────────────────────────────────────────────
@@ -65,6 +84,7 @@ export function GlassModal({
   title,
   children,
   footer,
+  shineColor,
   onClose,
 }: GlassModalProps) {
   return (
@@ -95,18 +115,30 @@ export function GlassModal({
 
           {/* Glassmorphism container — V1 exact values */}
           <div
+            className="relative"
             style={{
               background: 'rgba(255, 255, 255, 0.7)',
               backdropFilter: 'blur(20px) saturate(180%)',
               WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
+              border: shineColor
+                ? 'none'
+                : '1px solid rgba(255, 255, 255, 0.3)',
               boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
               borderRadius: 16,
               padding: 40,
               width: 500,
               maxWidth: 'calc(100vw - 32px)',
+              overflow: 'hidden',
             }}
           >
+            {/* Animated shine border */}
+            {shineColor && (
+              <ShineBorder
+                shineColor={resolveShineColor(shineColor)}
+                borderWidth={2}
+                duration={10}
+              />
+            )}
             {/* System label — V1: 14px/500, #718096, uppercase, ls 0.5px, mb 4px */}
             {systemLabel && (
               <div
@@ -168,6 +200,7 @@ export function ConfirmModal({
   confirmText = '確認',
   cancelText = '取消',
   loading = false,
+  shineColor,
   onConfirm,
   onCancel,
 }: ConfirmModalProps) {
@@ -177,6 +210,7 @@ export function ConfirmModal({
       variant={variant}
       systemLabel={systemLabel}
       title={title}
+      shineColor={shineColor}
       onClose={onCancel}
       footer={
         /* Button row — V1: gap 12px */

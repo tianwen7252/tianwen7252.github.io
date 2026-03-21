@@ -4,5 +4,6 @@ export type {
   GlassCardProps,
   ConfirmModalProps,
   GradientVariant,
+  ShineColor,
   InfoItem,
 } from './modal.types'
