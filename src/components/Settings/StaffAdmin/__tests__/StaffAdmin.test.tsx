@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import React from 'react'
 import { render, fireEvent, screen, waitFor } from '@testing-library/react'
-import { StaffAdmin } from '../StaffAdmin'
 import dayjs from 'dayjs'
+import { StaffAdmin } from '../StaffAdmin'
 import * as API from 'src/libs/api'
 import { AppContext } from 'src/pages/App/context'
 import { ANIMAL_AVATARS } from 'src/constants/defaults/animalAvatars'
@@ -13,6 +13,11 @@ vi.mock('src/libs/api', () => ({
     get: vi.fn(),
     add: vi.fn(),
     set: vi.fn(),
+    delete: vi.fn(),
+  },
+  attendances: {
+    getByDate: vi.fn(),
+    add: vi.fn(),
     delete: vi.fn(),
   },
   commondityTypes: { get: vi.fn() },
@@ -46,11 +51,12 @@ const mockEmployees: RestaDB.Table.Employee[] = [
   },
 ]
 
-// Mock dexie-react-hooks
+// Mock dexie-react-hooks — route callback to employees
 vi.mock('dexie-react-hooks', () => ({
   useLiveQuery: (callback: Function) => {
     callback()
-    if (callback.toString().includes('employees')) {
+    const src = callback.toString()
+    if (src.includes('employees')) {
       return mockEmployees
     }
     return []
@@ -498,4 +504,5 @@ describe('StaffAdmin Component', () => {
       expect(callArgs.resignationDate).toBeUndefined()
     })
   })
+
 })

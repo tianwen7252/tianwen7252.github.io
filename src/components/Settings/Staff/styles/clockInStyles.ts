@@ -11,6 +11,7 @@ const COLOR_TEXT = '#1a202c'
 const COLOR_MUTED = '#718096'
 const COLOR_CLOCKED_OUT = '#cab3f3'
 const COLOR_VACATION = '#f88181'
+const COLOR_LEAVE_BTN = '#ee8e8f'
 const COLOR_DEFAULT = '#dbe3d2'
 
 export const styles = {
@@ -48,10 +49,12 @@ export const styles = {
     background: #fff;
     border-radius: 12px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-    padding: 20px;
+    padding: 20px 10px;
     text-align: center;
     cursor: pointer;
     user-select: none;
+    display: flex;
+    flex-direction: column;
     transition:
       transform 0.15s ease,
       box-shadow 0.15s ease;
@@ -63,9 +66,17 @@ export const styles = {
     }
   `,
 
-  // Vacation card background modifier — applied alongside cardCss
+  // Background modifiers — applied alongside cardCss
   cardVacationBgCss: css`
     background: ${COLOR_VACATION}26;
+  `,
+
+  cardClockedInBgCss: css`
+    background: #e6f0de;
+  `,
+
+  cardClockedOutBgCss: css`
+    background: #e7e0f3;
   `,
 
   avatarWrapCss: css`
@@ -122,18 +133,65 @@ export const styles = {
     margin-top: 8px;
   `,
 
+  hoursCss: css`
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+  `,
+
   timesCss: css`
-    font-size: 12px;
+    font-size: 13px;
     color: ${COLOR_MUTED};
     line-height: 1.6;
-    margin-top: 4px;
+    margin-top: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  `,
+
+  // Shift time label with #F2D680 border
+  shiftTimeLabelCss: css`
+    display: inline-block;
+    padding: 2px 8px;
+    /* border: 1px solid #dedddd; */
+    background: #fff;
+    border-radius: 6px;
+  `,
+
+  // Total hours label displayed above action buttons
+  totalHoursLabelCss: css`
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    color: ${COLOR_PRIMARY};
+    margin-top: 8px;
   `,
 
   actionBtnRowCss: css`
     display: flex;
     gap: 8px;
     justify-content: center;
-    margin-top: 8px;
+    margin-top: auto;
+    padding-top: 12px;
+  `,
+
+  leaveBtnCss: css`
+    background: ${COLOR_LEAVE_BTN};
+    border-color: ${COLOR_LEAVE_BTN};
+    &:hover,
+    &:focus {
+      background: ${COLOR_LEAVE_BTN}dd;
+      border-color: ${COLOR_LEAVE_BTN}dd;
+    }
+    &:active {
+      background: ${COLOR_LEAVE_BTN}bb;
+      border-color: ${COLOR_LEAVE_BTN}bb;
+    }
   `,
 
   emptyTextCss: css`

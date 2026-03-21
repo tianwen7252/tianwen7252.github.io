@@ -210,7 +210,7 @@ export const StaffAdmin: React.FC = () => {
       key: 'actions',
       width: 100,
       render: (_: any, employee: RestaDB.Table.Employee) => (
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <Button
             type="text"
             aria-label="edit"

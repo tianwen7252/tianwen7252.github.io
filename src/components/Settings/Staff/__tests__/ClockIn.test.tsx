@@ -197,13 +197,13 @@ describe('ClockIn Component', () => {
       expect(screen.getByText('未打卡')).toBeInTheDocument()
     })
 
-    it('shows "已上班" when employee has clocked in but not out', () => {
+    it('shows "正在上班" when employee has clocked in but not out', () => {
       mockEmployees = [makeEmployee({ id: 1 })]
       mockAttendances = [
         makeAttendance({ employeeId: 1, clockIn: 1716170400000 }),
       ]
       render(<ClockIn />)
-      expect(screen.getByText('已上班')).toBeInTheDocument()
+      expect(screen.getByText('正在上班')).toBeInTheDocument()
     })
 
     it('shows "已下班" when employee has clocked in AND out', () => {
@@ -245,8 +245,6 @@ describe('ClockIn Component', () => {
       mockEmployees = [makeEmployee({ id: 1 })]
       mockAttendances = []
       const { container } = render(<ClockIn />)
-      // Times are rendered inline with labels, so use textContent on the container
-      const timesDiv = container.querySelector('[class*="css"]')
       const fullText = container.textContent ?? ''
       // Should have two instances of ?? : ?? (one for clock-in, one for clock-out)
       const matches = fullText.match(/\?\? : \?\?/g)
@@ -283,7 +281,7 @@ describe('ClockIn Component', () => {
   })
 
   // --------------------------------------------------------
-  // Vacation button
+  // Action buttons
   // --------------------------------------------------------
 
   describe('action buttons', () => {
@@ -315,7 +313,7 @@ describe('ClockIn Component', () => {
       expect(clockOutBtn).toBeTruthy()
     })
 
-    it('shows "打卡下班" button when employee has clocked out (re-clock-out)', () => {
+    it('shows "打卡上班" button when last shift is complete (multi-shift)', () => {
       mockEmployees = [makeEmployee({ id: 1 })]
       mockAttendances = [
         makeAttendance({
@@ -326,10 +324,15 @@ describe('ClockIn Component', () => {
       ]
       render(<ClockIn />)
       const buttons = screen.getAllByRole('button')
-      const clockOutBtn = buttons.find(btn =>
-        btn.textContent?.includes('打卡下班'),
+      const clockInBtn = buttons.find(btn =>
+        btn.textContent?.includes('打卡上班'),
       )
-      expect(clockOutBtn).toBeTruthy()
+      const vacationBtn = buttons.find(btn =>
+        btn.textContent?.includes('申請休假'),
+      )
+      // Should show clockIn for new shift, but NOT vacation button
+      expect(clockInBtn).toBeTruthy()
+      expect(vacationBtn).toBeUndefined()
     })
 
     it('shows "取消休假" button when employee is on vacation', () => {
@@ -390,7 +393,7 @@ describe('ClockIn Component', () => {
       fireEvent.click(card)
     })
 
-    it('sets clockOut action when clicking card with both clockIn and clockOut', () => {
+    it('sets clockIn action when clicking card with completed shift (multi-shift)', () => {
       mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
       mockAttendances = [
         makeAttendance({
@@ -467,8 +470,8 @@ describe('ClockIn Component', () => {
 
       // Alice: no attendance -> 未打卡
       expect(cards[0].textContent).toContain('未打卡')
-      // Bob: clocked in -> 已上班
-      expect(cards[1].textContent).toContain('已上班')
+      // Bob: clocked in -> 正在上班
+      expect(cards[1].textContent).toContain('正在上班')
       // Carol: clocked in and out -> 已下班
       expect(cards[2].textContent).toContain('已下班')
       // Dave: vacation -> 休假
@@ -647,6 +650,307 @@ describe('ClockIn Component', () => {
       ]
       render(<ClockIn />)
       expect(screen.queryByText('管理員')).not.toBeInTheDocument()
+    })
+  })
+
+  // --------------------------------------------------------
+  // Multi-shift support
+  // --------------------------------------------------------
+
+  describe('multi-shift support', () => {
+    describe('deriveCardAction with arrays', () => {
+      it('shows clockIn action when employee has completed first shift', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        // With a completed shift, the card should show "打卡上班" for new shift
+        const buttons = screen.getAllByRole('button')
+        const clockInBtn = buttons.find(btn =>
+          btn.textContent?.includes('打卡上班'),
+        )
+        expect(clockInBtn).toBeTruthy()
+      })
+
+      it('shows clockOut action when employee has incomplete second shift', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        // With an incomplete shift, should show "打卡下班"
+        const buttons = screen.getAllByRole('button')
+        const clockOutBtn = buttons.find(btn =>
+          btn.textContent?.includes('打卡下班'),
+        )
+        expect(clockOutBtn).toBeTruthy()
+      })
+
+      it('shows clockIn action when both shifts are complete', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T18:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        // Both shifts complete -> show "打卡上班" for third shift
+        const buttons = screen.getAllByRole('button')
+        const clockInBtn = buttons.find(btn =>
+          btn.textContent?.includes('打卡上班'),
+        )
+        expect(clockInBtn).toBeTruthy()
+      })
+    })
+
+    describe('multiple shifts display', () => {
+      it('displays both shifts when employee has two shifts', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        const shift1In = dayjs('2024-05-20T09:00:00').valueOf()
+        const shift1Out = dayjs('2024-05-20T13:00:00').valueOf()
+        const shift2In = dayjs('2024-05-20T14:00:00').valueOf()
+        const shift2Out = dayjs('2024-05-20T18:30:00').valueOf()
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: shift1In,
+            clockOut: shift1Out,
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: shift2In,
+            clockOut: shift2Out,
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        // Should display both shifts' times
+        expect(fullText).toContain('09:00')
+        expect(fullText).toContain('13:00')
+        expect(fullText).toContain('14:00')
+        expect(fullText).toContain('18:30')
+      })
+
+      it('shows shift labels when multiple shifts exist', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T18:00:00').valueOf(),
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        // Should NOT show shift labels — removed per UI redesign
+        expect(fullText).not.toContain('班1:')
+        expect(fullText).not.toContain('班2:')
+        // Both shift times should still be displayed
+        expect(fullText).toContain('09:00')
+        expect(fullText).toContain('14:00')
+      })
+
+      it('does NOT show shift labels when only one shift exists', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        // Should NOT show shift labels when only one shift
+        expect(fullText).not.toContain('班1:')
+      })
+    })
+
+    describe('total hours display', () => {
+      it('displays total hours when employee has completed shift', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        // 9:00 to 13:00 = 4 hours
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        expect(fullText).toContain('4h')
+      })
+
+      it('displays combined total hours for multiple completed shifts', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        // Shift 1: 9:00 to 13:00 = 4h, Shift 2: 14:00 to 18:00 = 4h, Total = 8h
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T18:00:00').valueOf(),
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        expect(fullText).toContain('8h')
+      })
+
+      it('does NOT display hours when employee has no completed shifts', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        // Only clocked in, not out — totalHours = 0
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+          }),
+        ]
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        expect(fullText).not.toContain('0h')
+      })
+
+      it('does NOT display hours when employee has no attendance', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = []
+        const { container } = render(<ClockIn />)
+        const fullText = container.textContent ?? ''
+        // No "h" suffix for hours display
+        expect(fullText).not.toMatch(/\d+\.?\d*h/)
+      })
+    })
+
+    describe('attendanceMap groups records by employeeId', () => {
+      it('groups multiple records for the same employee', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        // Verify only 1 card rendered (records grouped, not duplicated)
+        const cards = screen.getAllByTestId('employee-card')
+        expect(cards.length).toBe(1)
+        // Verify both shifts are shown
+        const fullText = cards[0].textContent ?? ''
+        expect(fullText).toContain('09:00')
+        expect(fullText).toContain('14:00')
+      })
+
+      it('keeps records separate for different employees', () => {
+        mockEmployees = [
+          makeEmployee({ id: 1, name: 'Alice' }),
+          makeEmployee({ id: 2, name: 'Bob' }),
+        ]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 2,
+            clockIn: dayjs('2024-05-20T10:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T14:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        const cards = screen.getAllByTestId('employee-card')
+        expect(cards.length).toBe(2)
+        // Alice: clocked in only -> 正在上班
+        expect(cards[0].textContent).toContain('正在上班')
+        // Bob: clocked in and out -> 已下班
+        expect(cards[1].textContent).toContain('已下班')
+      })
+    })
+
+    describe('multi-shift status derivation', () => {
+      it('shows "已下班" when last shift is complete', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        expect(screen.getByText('已下班')).toBeInTheDocument()
+      })
+
+      it('shows "正在上班" when last shift is incomplete', () => {
+        mockEmployees = [makeEmployee({ id: 1, name: 'Alice' })]
+        mockAttendances = [
+          makeAttendance({
+            id: 101,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T09:00:00').valueOf(),
+            clockOut: dayjs('2024-05-20T13:00:00').valueOf(),
+          }),
+          makeAttendance({
+            id: 102,
+            employeeId: 1,
+            clockIn: dayjs('2024-05-20T14:00:00').valueOf(),
+          }),
+        ]
+        render(<ClockIn />)
+        expect(screen.getByText('正在上班')).toBeInTheDocument()
+      })
     })
   })
 })

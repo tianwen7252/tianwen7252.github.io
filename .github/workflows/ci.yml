@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - master
+      - develop
 
 jobs:
   ci:
@@ -41,6 +42,9 @@ jobs:
   e2e:
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
 
     steps:
       - uses: actions/checkout@v4
@@ -77,4 +81,152 @@ jobs:
         with:
           name: playwright-results
           path: e2e/test-results/
-          retention-days: 7
+          retention-days: 14
+
+      - name: Post screenshots to PR comment
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            const screenshotDir = 'e2e/test-results/screenshots';
+
+            if (!fs.existsSync(screenshotDir)) {
+              console.log('No screenshots directory found, skipping.');
+              return;
+            }
+
+            const files = fs.readdirSync(screenshotDir)
+              .filter(f => /\.(png|jpg|jpeg)$/i.test(f))
+              .sort();
+
+            if (files.length === 0) {
+              console.log('No screenshot files found, skipping.');
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prNumber = context.issue.number;
+            const sha = context.sha.slice(0, 7);
+            const branch = 'ci-screenshots';
+            const prefix = `pr-${prNumber}/${sha}`;
+
+            // --- Method 1: Upload screenshots to ci-screenshots branch ---
+
+            // Ensure ci-screenshots branch exists
+            let branchSha;
+            try {
+              const { data: ref } = await github.rest.git.getRef({
+                owner, repo, ref: `heads/${branch}`,
+              });
+              branchSha = ref.object.sha;
+            } catch (e) {
+              if (e.status !== 404) throw e;
+              // Create orphan branch with initial README
+              const { data: tree } = await github.rest.git.createTree({
+                owner, repo,
+                tree: [{
+                  path: 'README.md',
+                  mode: '100644',
+                  type: 'blob',
+                  content: '# CI Screenshots\n\nAuto-generated E2E screenshots.\n',
+                }],
+              });
+              const { data: commit } = await github.rest.git.createCommit({
+                owner, repo,
+                message: 'chore: init ci-screenshots branch',
+                tree: tree.sha,
+                parents: [],
+              });
+              await github.rest.git.createRef({
+                owner, repo,
+                ref: `refs/heads/${branch}`,
+                sha: commit.sha,
+              });
+              branchSha = commit.sha;
+              console.log('Created ci-screenshots branch');
+            }
+
+            // Create blobs for all screenshots in parallel
+            const blobResults = await Promise.all(
+              files.map(async (file) => {
+                const content = fs.readFileSync(
+                  path.join(screenshotDir, file),
+                  'base64',
+                );
+                const { data: blob } = await github.rest.git.createBlob({
+                  owner, repo, content, encoding: 'base64',
+                });
+                return {
+                  path: `${prefix}/${file}`,
+                  mode: '100644',
+                  type: 'blob',
+                  sha: blob.sha,
+                };
+              }),
+            );
+
+            // Create tree + commit + update ref (single commit for all files)
+            const { data: newTree } = await github.rest.git.createTree({
+              owner, repo,
+              base_tree: branchSha,
+              tree: blobResults,
+            });
+            const { data: newCommit } = await github.rest.git.createCommit({
+              owner, repo,
+              message: `ci: screenshots for PR #${prNumber} (${sha})`,
+              tree: newTree.sha,
+              parents: [branchSha],
+            });
+            await github.rest.git.updateRef({
+              owner, repo,
+              ref: `heads/${branch}`,
+              sha: newCommit.sha,
+            });
+            console.log(`Uploaded ${files.length} screenshots to ${branch}/${prefix}`);
+
+            // Build image URLs
+            const imageUrls = files.map(file => ({
+              name: path.basename(file, path.extname(file)).replace(/-/g, ' '),
+              url: `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${prefix}/${file}`,
+            }));
+
+            // --- Method 2: Artifact download link ---
+
+            const runUrl = `${context.serverUrl}/${owner}/${repo}/actions/runs/${context.runId}`;
+
+            // --- Build PR comment ---
+
+            let body = '## 📸 E2E Screenshots\n\n';
+            body += `> Commit: \`${sha}\` | Run: [#${context.runNumber}](${runUrl})\n`;
+            body += `> 📦 [Download full artifacts](${runUrl}#artifacts)\n\n`;
+
+            for (const { name, url } of imageUrls) {
+              body += `### ${name}\n\n`;
+              body += `<details><summary>Click to expand</summary>\n\n`;
+              body += `![${name}](${url})\n\n`;
+              body += `</details>\n\n`;
+            }
+
+            // Upsert comment (update existing or create new)
+            const marker = '<!-- e2e-screenshots -->';
+            body = marker + '\n' + body;
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.body?.includes(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+              console.log(`Updated existing comment #${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number: prNumber, body,
+              });
+              console.log('Created new screenshot comment');
+            }

@@ -37,7 +37,8 @@ export default defineConfig({
     {
       name: 'iPad-10-landscape',
       use: {
-        viewport: { width: 2360, height: 1640 },
+        // iPad 10 (2022): 2360×1640 physical, DPR 2 → CSS viewport 1180×820
+        viewport: { width: 1180, height: 820 },
         deviceScaleFactor: 2,
         isMobile: true,
         hasTouch: true,
@@ -46,7 +47,8 @@ export default defineConfig({
     {
       name: 'iPad-11-landscape',
       use: {
-        viewport: { width: 2388, height: 1668 },
+        // iPad 11 (2025): 2388×1668 physical, DPR 2 → CSS viewport 1194×834
+        viewport: { width: 1194, height: 834 },
         deviceScaleFactor: 2,
         isMobile: true,
         hasTouch: true,
