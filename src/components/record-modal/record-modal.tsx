@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
+import { toast } from 'sonner'
 import { Modal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
@@ -149,12 +150,14 @@ export function RecordModal({
         clockOut: clockOutTs,
         type: dbType,
       })
+      toast.success('出勤記錄已新增')
     } else if (record) {
       api.attendances.update(record.id, {
         clockIn: clockInTs,
         clockOut: clockOutTs,
         type: dbType,
       })
+      toast.success('出勤記錄已更新')
     }
 
     onSuccess()
@@ -173,6 +176,7 @@ export function RecordModal({
   const handleDelete = useCallback(() => {
     if (record) {
       api.attendances.remove(record.id)
+      toast.success('出勤記錄已刪除')
     }
     onSuccess()
   }, [record, onSuccess])

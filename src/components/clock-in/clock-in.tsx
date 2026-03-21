@@ -6,6 +6,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { motion } from 'framer-motion'
+import { toast } from 'sonner'
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
@@ -379,6 +380,7 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'regular',
           })
+          toast.success('打卡上班成功')
           break
 
         case 'clockOut':
@@ -387,6 +389,7 @@ export function ClockIn() {
               clockOut: now.valueOf(),
             })
           }
+          toast.success('打卡下班成功')
           break
 
         case 'vacation':
@@ -396,12 +399,14 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'paid_leave',
           })
+          toast.success('休假申請成功')
           break
 
         case 'cancelVacation':
           if (record?.id != null) {
             api.attendances.remove(record.id)
           }
+          toast.success('已取消休假')
           break
       }
       setRefreshKey(k => k + 1)

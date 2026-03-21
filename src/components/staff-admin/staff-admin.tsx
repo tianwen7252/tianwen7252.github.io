@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { toast } from 'sonner'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
@@ -114,6 +115,7 @@ export function StaffAdmin() {
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
         })
+        toast.success('員工資料已更新')
       } else {
         // Generate next employee number
         const allEmployees = api.employees.getAll()
@@ -133,6 +135,7 @@ export function StaffAdmin() {
           status: 'active',
         }
         api.employees.add(newEmployee)
+        toast.success('員工已新增')
       }
 
       refreshEmployees()
@@ -156,6 +159,7 @@ export function StaffAdmin() {
     if (deleteTarget) {
       api.employees.remove(deleteTarget.id)
       refreshEmployees()
+      toast.success('員工已刪除')
     }
     setDeleteTarget(null)
   }, [deleteTarget, refreshEmployees])
