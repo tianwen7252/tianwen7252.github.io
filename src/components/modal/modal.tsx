@@ -33,9 +33,9 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
 const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
-  green: ['#7f956a', '#a8c896', '#4a6741'],
-  purple: ['#9b7abf', '#c4a1e0', '#6b4d8a'],
-  red: ['#ff6467', '#ff9a9e', '#cc4a4a'],
+  green: ['#a8c896', '#c8deb8', '#8fb87a'],
+  purple: ['#c4a1e0', '#dcc4f0', '#b08dd0'],
+  red: ['#ffa0a3', '#ffc8c9', '#ff8587'],
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
