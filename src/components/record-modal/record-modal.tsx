@@ -1,18 +1,22 @@
 /**
  * RecordModal - Modal for adding/editing attendance records.
  * Supports regular and vacation attendance types with time inputs.
+ * Uses React Hook Form + Zod for form validation.
  */
 
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
 import { Modal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
-import type { AttendanceType } from '@/constants/attendance-types'
 import { buildTimestamp } from '@/lib/attendance-utils'
+import { recordFormSchema } from '@/lib/form-schemas'
 import { api } from '@/api'
 import { cn } from '@/lib/cn'
 import type { Employee, Attendance } from '@/lib/schemas'
+import type { RecordFormValues } from '@/lib/form-schemas'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -36,11 +40,11 @@ function timestampToTimeString(ts: number | undefined): string {
 }
 
 /** Determine initial attendance type from a record. */
-function resolveAttendanceType(record: Attendance | undefined): AttendanceType {
-  if (record === undefined) return ATTENDANCE_TYPES.REGULAR
-  return record.type === 'regular'
-    ? ATTENDANCE_TYPES.REGULAR
-    : ATTENDANCE_TYPES.VACATION
+function resolveAttendanceType(
+  record: Attendance | undefined,
+): 'regular' | 'vacation' {
+  if (record === undefined) return 'regular'
+  return record.type === 'regular' ? 'regular' : 'vacation'
 }
 
 /** Convert "HH:mm" string to a dayjs on the given date. */
@@ -55,6 +59,15 @@ function timeStringToDayjs(
   return dayjs(dateStr).hour(hours).minute(minutes).second(0)
 }
 
+/** Build form default values from a record. */
+function buildFormValues(record: Attendance | undefined): RecordFormValues {
+  return {
+    attendanceType: resolveAttendanceType(record),
+    clockInTime: timestampToTimeString(record?.clockIn),
+    clockOutTime: timestampToTimeString(record?.clockOut),
+  }
+}
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function RecordModal({
@@ -67,43 +80,45 @@ export function RecordModal({
   onCancel,
   onSuccess,
 }: RecordModalProps) {
-  const [attendanceType, setAttendanceType] = useState<AttendanceType>(() =>
-    open ? resolveAttendanceType(record) : ATTENDANCE_TYPES.REGULAR,
-  )
-  const [clockInTime, setClockInTime] = useState(() =>
-    open ? timestampToTimeString(record?.clockIn) : '',
-  )
-  const [clockOutTime, setClockOutTime] = useState(() =>
-    open ? timestampToTimeString(record?.clockOut) : '',
-  )
-  const [validationError, setValidationError] = useState<string | null>(null)
-  const [prevOpen, setPrevOpen] = useState(open)
-  const [prevRecord, setPrevRecord] = useState(record)
+  const form = useForm<RecordFormValues>({
+    resolver: zodResolver(recordFormSchema),
+    defaultValues: buildFormValues(record),
+  })
 
-  // Initialize form state when modal opens or record changes
-  if (open !== prevOpen || record !== prevRecord) {
-    setPrevOpen(open)
-    setPrevRecord(record)
-    if (open) {
-      setAttendanceType(resolveAttendanceType(record))
-      setClockInTime(timestampToTimeString(record?.clockIn))
-      setClockOutTime(timestampToTimeString(record?.clockOut))
-      setValidationError(null)
-    }
-  }
+  const { watch, setValue, formState: { errors }, setError, clearErrors } = form
+
+  const attendanceType = watch('attendanceType')
+  const clockInTime = watch('clockInTime') ?? ''
+  const clockOutTime = watch('clockOutTime') ?? ''
 
   const isVacation = attendanceType === ATTENDANCE_TYPES.VACATION
 
-  const handleTypeChange = useCallback((type: AttendanceType) => {
-    setAttendanceType(type)
-    setValidationError(null)
-    if (type === ATTENDANCE_TYPES.VACATION) {
-      setClockOutTime('')
+  // Re-initialize form when modal opens or record changes
+  // Using the "derive state from props" pattern to avoid stale closures
+  const prevOpenRef = { current: open }
+  const prevRecordRef = { current: record }
+
+  if (open !== prevOpenRef.current || record !== prevRecordRef.current) {
+    prevOpenRef.current = open
+    prevRecordRef.current = record
+    if (open) {
+      form.reset(buildFormValues(record))
     }
-  }, [])
+  }
+
+  const handleTypeChange = useCallback(
+    (type: 'regular' | 'vacation') => {
+      setValue('attendanceType', type)
+      clearErrors()
+      if (type === ATTENDANCE_TYPES.VACATION) {
+        setValue('clockOutTime', '')
+      }
+    },
+    [setValue, clearErrors],
+  )
 
   const handleSave = useCallback(() => {
-    // Validate clockOut > clockIn for regular type
+    // Manual cross-field validation for clockOut > clockIn
     if (!isVacation && clockInTime && clockOutTime) {
       const clockInDayjs = timeStringToDayjs(date, clockInTime)
       const clockOutDayjs = timeStringToDayjs(date, clockOutTime)
@@ -112,7 +127,10 @@ export function RecordModal({
         clockOutDayjs &&
         clockOutDayjs.isBefore(clockInDayjs)
       ) {
-        setValidationError('下班時間必須晚於上班時間')
+        setError('clockOutTime', {
+          type: 'manual',
+          message: '下班時間必須晚於上班時間',
+        })
         return
       }
     }
@@ -149,6 +167,7 @@ export function RecordModal({
     employee.id,
     record,
     onSuccess,
+    setError,
   ])
 
   const handleDelete = useCallback(() => {
@@ -227,7 +246,7 @@ export function RecordModal({
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-accent',
             )}
-            onClick={() => handleTypeChange(ATTENDANCE_TYPES.REGULAR)}
+            onClick={() => handleTypeChange('regular')}
           >
             一般
           </button>
@@ -239,7 +258,7 @@ export function RecordModal({
                 ? 'bg-red-500 text-white'
                 : 'bg-muted text-muted-foreground hover:bg-accent',
             )}
-            onClick={() => handleTypeChange(ATTENDANCE_TYPES.VACATION)}
+            onClick={() => handleTypeChange('vacation')}
           >
             休假
           </button>
@@ -259,8 +278,8 @@ export function RecordModal({
               type="time"
               value={clockInTime}
               onChange={e => {
-                setClockInTime(e.target.value)
-                setValidationError(null)
+                setValue('clockInTime', e.target.value)
+                clearErrors('clockOutTime')
               }}
               className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
             />
@@ -278,8 +297,8 @@ export function RecordModal({
               value={clockOutTime}
               disabled={isVacation}
               onChange={e => {
-                setClockOutTime(e.target.value)
-                setValidationError(null)
+                setValue('clockOutTime', e.target.value)
+                clearErrors('clockOutTime')
               }}
               className={cn(
                 'rounded-lg border border-border bg-card px-3 py-1.5 text-sm',
@@ -290,8 +309,10 @@ export function RecordModal({
         </div>
 
         {/* Validation error */}
-        {validationError && (
-          <div className="text-sm text-red-500">{validationError}</div>
+        {errors.clockOutTime && (
+          <div className="text-sm text-red-500">
+            {errors.clockOutTime.message}
+          </div>
         )}
       </ModalCard>
     </Modal>

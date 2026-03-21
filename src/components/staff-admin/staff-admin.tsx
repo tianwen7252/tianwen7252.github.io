@@ -1,30 +1,24 @@
 import { useState, useCallback } from 'react'
+import { useForm, type UseFormReturn } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { Plus, Pencil, Trash2 } from 'lucide-react'
 import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ANIMAL_AVATARS } from '@/constants/animal-avatars'
 import { SHIFT_TYPES } from '@/constants/shift-types'
+import { employeeFormSchema } from '@/lib/form-schemas'
 import { api } from '@/api'
 import type { Employee, CreateEmployee } from '@/lib/schemas'
-import type { ShiftType } from '@/constants/shift-types'
+import type { EmployeeFormValues } from '@/lib/form-schemas'
 
-// Initial form state for the add/edit modal
-const INITIAL_FORM: FormState = {
+/** Default values for the employee form. */
+const DEFAULT_VALUES: EmployeeFormValues = {
   name: '',
   avatar: '',
   shiftType: 'regular',
   isAdmin: false,
   hireDate: '',
   resignationDate: '',
-}
-
-interface FormState {
-  readonly name: string
-  readonly avatar: string
-  readonly shiftType: ShiftType
-  readonly isAdmin: boolean
-  readonly hireDate: string
-  readonly resignationDate: string
 }
 
 /**
@@ -37,8 +31,23 @@ function buildShiftLabelMap(): ReadonlyMap<string, string> {
 const SHIFT_LABEL_MAP = buildShiftLabelMap()
 
 /**
+ * Convert an Employee entity to form values for editing.
+ */
+function employeeToFormValues(employee: Employee): EmployeeFormValues {
+  return {
+    name: employee.name,
+    avatar: employee.avatar ?? '',
+    shiftType: (employee.shiftType as 'regular' | 'shift') ?? 'regular',
+    isAdmin: employee.isAdmin,
+    hireDate: employee.hireDate ?? '',
+    resignationDate: employee.resignationDate ?? '',
+  }
+}
+
+/**
  * StaffAdmin component - Employee management CRUD interface.
  * Renders a table of employees with add/edit/delete capabilities.
+ * Uses React Hook Form + Zod for form validation.
  */
 export function StaffAdmin() {
   const [employees, setEmployees] = useState<readonly Employee[]>(() =>
@@ -47,99 +56,95 @@ export function StaffAdmin() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
-  const [form, setForm] = useState<FormState>(INITIAL_FORM)
-  const [nameError, setNameError] = useState('')
+
+  const form = useForm<EmployeeFormValues>({
+    resolver: zodResolver(employeeFormSchema) as never,
+    defaultValues: DEFAULT_VALUES,
+  })
 
   // Refresh employee list from mock service
   const refreshEmployees = useCallback(() => {
     setEmployees(api.employees.getAll())
   }, [])
 
-  // Update a single form field (immutable)
-  const updateField = useCallback(
-    <K extends keyof FormState>(field: K, value: FormState[K]) => {
-      setForm(prev => ({ ...prev, [field]: value }))
-      if (field === 'name') {
-        setNameError('')
-      }
-    },
-    [],
-  )
-
   // Open add modal
   const handleAdd = useCallback(() => {
     setEditingEmployee(null)
-    setForm(INITIAL_FORM)
-    setNameError('')
+    form.reset(DEFAULT_VALUES)
     setIsModalOpen(true)
-  }, [])
+  }, [form])
 
   // Open edit modal with pre-filled data
-  const handleEdit = useCallback((employee: Employee) => {
-    setEditingEmployee(employee)
-    setForm({
-      name: employee.name,
-      avatar: employee.avatar ?? '',
-      shiftType: employee.shiftType as ShiftType,
-      isAdmin: employee.isAdmin,
-      hireDate: employee.hireDate ?? '',
-      resignationDate: employee.resignationDate ?? '',
-    })
-    setNameError('')
-    setIsModalOpen(true)
-  }, [])
+  const handleEdit = useCallback(
+    (employee: Employee) => {
+      setEditingEmployee(employee)
+      form.reset(employeeToFormValues(employee))
+      setIsModalOpen(true)
+    },
+    [form],
+  )
 
   // Close the add/edit modal
   const handleClose = useCallback(() => {
     setIsModalOpen(false)
     setEditingEmployee(null)
-    setForm(INITIAL_FORM)
-    setNameError('')
-  }, [])
+    form.reset(DEFAULT_VALUES)
+  }, [form])
 
-  // Submit form (add or update)
-  const handleSubmit = useCallback(() => {
-    const trimmedName = form.name.trim()
-    if (!trimmedName) {
-      setNameError('請輸入員工姓名')
-      return
-    }
-
-    if (editingEmployee) {
-      // Update existing employee
-      api.employees.update(editingEmployee.id, {
-        name: trimmedName,
-        avatar: form.avatar || undefined,
-        shiftType: form.shiftType,
-        isAdmin: form.isAdmin,
-        hireDate: form.hireDate || undefined,
-        resignationDate: form.resignationDate || undefined,
-        status: form.resignationDate ? 'inactive' : 'active',
-      })
-    } else {
-      // Generate next employee number
-      const allEmployees = api.employees.getAll()
-      const maxNo = allEmployees.reduce((max, e) => {
-        const num = parseInt(e.employeeNo?.replace('E', '') ?? '0', 10)
-        return num > max ? num : max
-      }, 0)
-      const employeeNo = `E${String(maxNo + 1).padStart(3, '0')}`
-
-      const newEmployee: CreateEmployee = {
-        name: trimmedName,
-        avatar: form.avatar || undefined,
-        shiftType: form.shiftType,
-        isAdmin: form.isAdmin,
-        hireDate: form.hireDate || undefined,
-        employeeNo,
-        status: 'active',
+  // Submit form (add or update) — called by handleSubmit on valid data
+  const onValidSubmit = useCallback(
+    (values: EmployeeFormValues) => {
+      const trimmedName = values.name.trim()
+      if (!trimmedName) {
+        form.setError('name', {
+          type: 'manual',
+          message: '請輸入員工姓名',
+        })
+        return
       }
-      api.employees.add(newEmployee)
-    }
 
-    refreshEmployees()
-    handleClose()
-  }, [form, editingEmployee, refreshEmployees, handleClose])
+      if (editingEmployee) {
+        // Update existing employee
+        api.employees.update(editingEmployee.id, {
+          name: trimmedName,
+          avatar: values.avatar || undefined,
+          shiftType: values.shiftType,
+          isAdmin: values.isAdmin,
+          hireDate: values.hireDate || undefined,
+          resignationDate: values.resignationDate || undefined,
+          status: values.resignationDate ? 'inactive' : 'active',
+        })
+      } else {
+        // Generate next employee number
+        const allEmployees = api.employees.getAll()
+        const maxNo = allEmployees.reduce((max, e) => {
+          const num = parseInt(e.employeeNo?.replace('E', '') ?? '0', 10)
+          return num > max ? num : max
+        }, 0)
+        const employeeNo = `E${String(maxNo + 1).padStart(3, '0')}`
+
+        const newEmployee: CreateEmployee = {
+          name: trimmedName,
+          avatar: values.avatar || undefined,
+          shiftType: values.shiftType,
+          isAdmin: values.isAdmin,
+          hireDate: values.hireDate || undefined,
+          employeeNo,
+          status: 'active',
+        }
+        api.employees.add(newEmployee)
+      }
+
+      refreshEmployees()
+      handleClose()
+    },
+    [editingEmployee, refreshEmployees, handleClose, form],
+  )
+
+  // Trigger form validation and submit
+  const handleSubmit = useCallback(() => {
+    form.handleSubmit(onValidSubmit)()
+  }, [form, onValidSubmit])
 
   // Initiate delete confirmation
   const handleDeleteClick = useCallback((employee: Employee) => {
@@ -241,9 +246,7 @@ export function StaffAdmin() {
       >
         <EmployeeForm
           form={form}
-          nameError={nameError}
           isEditing={!!editingEmployee}
-          onFieldChange={updateField}
         />
       </Modal>
 
@@ -362,25 +365,19 @@ function EmployeeRow({ employee, onEdit, onDelete }: EmployeeRowProps) {
 // ─── EmployeeForm ─────────────────────────────────────────────────────────────
 
 interface EmployeeFormProps {
-  readonly form: FormState
-  readonly nameError: string
+  readonly form: UseFormReturn<EmployeeFormValues>
   readonly isEditing: boolean
-  readonly onFieldChange: <K extends keyof FormState>(
-    field: K,
-    value: FormState[K],
-  ) => void
 }
 
 /**
  * Form content for the add/edit employee modal.
+ * Uses React Hook Form for state management and Zod for validation.
  * Includes name input, shift type radio, admin checkbox, date inputs, and avatar picker.
  */
-function EmployeeForm({
-  form,
-  nameError,
-  isEditing,
-  onFieldChange,
-}: EmployeeFormProps) {
+function EmployeeForm({ form, isEditing }: EmployeeFormProps) {
+  const { register, watch, setValue, formState: { errors } } = form
+  const currentAvatar = watch('avatar')
+
   return (
     <div className="flex flex-col gap-4">
       {/* Name input */}
@@ -390,12 +387,13 @@ function EmployeeForm({
         </label>
         <input
           type="text"
-          value={form.name}
           placeholder="請輸入員工姓名"
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-          onChange={e => onFieldChange('name', e.target.value)}
+          {...register('name')}
         />
-        {nameError && <p className="mt-1 text-sm text-red-500">{nameError}</p>}
+        {errors.name && (
+          <p className="mt-1 text-sm text-red-500">{errors.name.message}</p>
+        )}
       </div>
 
       {/* Shift type radio */}
@@ -408,10 +406,8 @@ function EmployeeForm({
             <label key={shift.key} className="flex items-center gap-1.5">
               <input
                 type="radio"
-                name="shiftType"
                 value={shift.key}
-                checked={form.shiftType === shift.key}
-                onChange={() => onFieldChange('shiftType', shift.key)}
+                {...register('shiftType')}
               />
               <span className="text-sm">{shift.label}</span>
             </label>
@@ -424,8 +420,7 @@ function EmployeeForm({
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={form.isAdmin}
-            onChange={e => onFieldChange('isAdmin', e.target.checked)}
+            {...register('isAdmin')}
           />
           <span className="text-sm font-medium text-foreground">
             管理員權限
@@ -444,9 +439,8 @@ function EmployeeForm({
         <input
           id="hire-date"
           type="date"
-          value={form.hireDate}
           className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-          onChange={e => onFieldChange('hireDate', e.target.value)}
+          {...register('hireDate')}
         />
       </div>
 
@@ -462,9 +456,8 @@ function EmployeeForm({
           <input
             id="resignation-date"
             type="date"
-            value={form.resignationDate}
             className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary"
-            onChange={e => onFieldChange('resignationDate', e.target.value)}
+            {...register('resignationDate')}
           />
         </div>
       )}
@@ -480,13 +473,13 @@ function EmployeeForm({
               key={animal.id}
               type="button"
               data-testid="avatar-option"
-              data-selected={form.avatar === animal.path ? 'true' : 'false'}
+              data-selected={currentAvatar === animal.path ? 'true' : 'false'}
               className={`rounded-lg border-2 p-1 transition-colors ${
-                form.avatar === animal.path
+                currentAvatar === animal.path
                   ? 'border-primary bg-primary/10'
                   : 'border-transparent hover:border-border'
               }`}
-              onClick={() => onFieldChange('avatar', animal.path)}
+              onClick={() => setValue('avatar', animal.path)}
             >
               <AvatarImage avatar={animal.path} size={28} />
             </button>
