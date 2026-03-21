@@ -1,4 +1,5 @@
 import { Dialog as DialogPrimitive } from 'radix-ui'
+import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ShineBorder } from '@/components/ui/shine-border'
@@ -108,9 +109,15 @@ export function Modal({
             {title}
           </DialogPrimitive.Title>
 
-          {/* Glassmorphism container */}
-          <div
+          {/* Glassmorphism container with Framer Motion entrance animation */}
+          <motion.div
             className="relative"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{
+              duration: 0.25,
+              ease: [0.16, 1, 0.3, 1],
+            }}
             style={{
               background: 'rgba(255, 255, 255, 0.7)',
               backdropFilter: 'blur(20px) saturate(180%)',
@@ -124,6 +131,7 @@ export function Modal({
               width: 500,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
+              willChange: 'transform, opacity',
             }}
           >
             {/* Animated shine border */}
@@ -194,7 +202,7 @@ export function Modal({
                 />
               </div>
             )}
-          </div>
+          </motion.div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
