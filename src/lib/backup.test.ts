@@ -70,7 +70,9 @@ describe('backup utilities', () => {
     it('should generate a filename with timestamp', () => {
       const filename = generateBackupFilename()
 
-      expect(filename).toMatch(/^tianwen-backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.db\.gz$/)
+      expect(filename).toMatch(
+        /^tianwen-backup-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}\.db\.gz$/,
+      )
     })
 
     it('should generate unique filenames on consecutive calls', () => {

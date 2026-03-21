@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -53,23 +53,23 @@
   --card-foreground: #000000;
   --popover: #fcfcfc;
   --popover-foreground: #000000;
-  --primary: #7F956A;
+  --primary: #7f956a;
   --primary-foreground: oklch(0.985 0.001 106.423);
-  --secondary: #D4D9D0;
+  --secondary: #d4d9d0;
   --secondary-foreground: #080808;
   --muted: #f5f5f5;
   --muted-foreground: #878787;
   --accent: #495940;
-  --accent-foreground: #FFFFFF;
+  --accent-foreground: #ffffff;
   --destructive: #b3191f;
   --destructive-foreground: #ffffff;
   --border: #e7e7ee;
   --input: #ebebeb;
-  --ring: #AFBEA5;
+  --ring: #afbea5;
   --chart-1: oklch(0.648 0.2 131.684);
   --chart-2: oklch(0.808 0.114 19.571);
-  --chart-3: #FFDA1A;
-  --chart-4: #0051BA;
+  --chart-3: #ffda1a;
+  --chart-4: #0051ba;
   --chart-5: oklch(0.709 0.01 56.259);
   --radius: 1.4rem;
   --sidebar: #f5f8fb;
@@ -79,7 +79,7 @@
   --sidebar-accent: #e4eae1;
   --sidebar-accent-foreground: #000000;
   --sidebar-border: #ebebeb;
-  --sidebar-ring: #AFBEA5;
+  --sidebar-ring: #afbea5;
 }
 
 .dark {
@@ -89,32 +89,32 @@
   --card-foreground: #f9f8f7;
   --popover: #0b0905;
   --popover-foreground: #f9f8f7;
-  --primary: #AFBEA5;
+  --primary: #afbea5;
   --primary-foreground: #040302;
   --secondary: #26211a;
   --secondary-foreground: #e7e4df;
   --muted: #1e1a14;
   --muted-foreground: #928f8a;
   --accent: #495940;
-  --accent-foreground: #FFFFFF;
+  --accent-foreground: #ffffff;
   --destructive: #b3191f;
   --destructive-foreground: #f9f8f7;
   --border: #2f281b;
   --input: #1a150e;
-  --ring: #AFBEA5;
+  --ring: #afbea5;
   --chart-1: #408a0f;
   --chart-2: #59a626;
   --chart-3: #73bd42;
   --chart-4: #a9e382;
-  --chart-5: #AFBEA5;
+  --chart-5: #afbea5;
   --sidebar: #040302;
   --sidebar-foreground: #f0eeeb;
-  --sidebar-primary: #AFBEA5;
+  --sidebar-primary: #afbea5;
   --sidebar-primary-foreground: #040302;
   --sidebar-accent: #495940;
-  --sidebar-accent-foreground: #FFFFFF;
+  --sidebar-accent-foreground: #ffffff;
   --sidebar-border: #272117;
-  --sidebar-ring: #AFBEA5;
+  --sidebar-ring: #afbea5;
 }
 
 @layer base {
@@ -125,7 +125,9 @@
     @apply bg-background text-foreground;
   }
   /* iPad touch optimization */
-  button, a, [role="button"] {
+  button,
+  a,
+  [role='button'] {
     -webkit-tap-highlight-color: transparent;
   }
 }

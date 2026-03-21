@@ -28,39 +28,45 @@ export function App() {
   const [storagePersisted, setStoragePersisted] = useState<boolean | null>(null)
 
   useEffect(() => {
-    requestStoragePersistence()
-    initDatabase()
+    let cancelled = false
+
+    async function bootstrap() {
+      // Request persistent storage to prevent iOS 7-day eviction
+      if (navigator.storage?.persist) {
+        const persisted = await navigator.storage.persist()
+        if (!cancelled) setStoragePersisted(persisted)
+      }
+
+      // Initialize SQLite WASM database
+      try {
+        const database = await sqliteWasmFactory.init(DEFAULT_CONFIG)
+        if (cancelled) {
+          database.close()
+          return
+        }
+        initSchema(sql => database.exec(sql))
+        dbRef.current = database
+        setDb(database)
+        setStatus('ready')
+
+        const existing = database.exec<{ cnt: number }>(
+          'SELECT COUNT(*) as cnt FROM commondities',
+        )
+        setPersistenceCount(existing.rows[0]?.cnt ?? 0)
+      } catch (err) {
+        if (!cancelled) {
+          setStatus('error')
+          setError(err instanceof Error ? err.message : String(err))
+        }
+      }
+    }
+
+    bootstrap()
     return () => {
+      cancelled = true
       dbRef.current?.close()
     }
   }, [])
-
-  // Request persistent storage to prevent iOS 7-day eviction
-  async function requestStoragePersistence() {
-    if (navigator.storage?.persist) {
-      const persisted = await navigator.storage.persist()
-      setStoragePersisted(persisted)
-    }
-  }
-
-  async function initDatabase() {
-    try {
-      const database = await sqliteWasmFactory.init(DEFAULT_CONFIG)
-      initSchema((sql) => database.exec(sql))
-      dbRef.current = database
-      setDb(database)
-      setStatus('ready')
-
-      // Check if data persisted from previous session
-      const existing = database.exec<{ cnt: number }>(
-        'SELECT COUNT(*) as cnt FROM commondities',
-      )
-      setPersistenceCount(existing.rows[0]?.cnt ?? 0)
-    } catch (err) {
-      setStatus('error')
-      setError(err instanceof Error ? err.message : String(err))
-    }
-  }
 
   const runCrudTests = useCallback(() => {
     if (!db) return
@@ -98,7 +104,8 @@ export function App() {
       )
       newResults.push({
         operation: 'SELECT',
-        success: result.rows.length === 1 && result.rows[0]?.name === 'POC Test Item',
+        success:
+          result.rows.length === 1 && result.rows[0]?.name === 'POC Test Item',
         duration: performance.now() - selectStart,
         detail: `Found ${result.rows.length} row(s)`,
       })
@@ -114,10 +121,7 @@ export function App() {
     // UPDATE test
     const updateStart = performance.now()
     try {
-      db.exec(
-        'UPDATE commondities SET price = ? WHERE id = ?',
-        [200, 'poc-1'],
-      )
+      db.exec('UPDATE commondities SET price = ? WHERE id = ?', [200, 'poc-1'])
       const verify = db.exec<{ price: number }>(
         'SELECT price FROM commondities WHERE id = ?',
         ['poc-1'],
@@ -184,7 +188,11 @@ export function App() {
       // Cleanup bulk data
       db.exec("DELETE FROM commondities WHERE id LIKE 'bulk-%'")
     } catch (err) {
-      try { db.exec('ROLLBACK') } catch { /* already committed or no active txn */ }
+      try {
+        db.exec('ROLLBACK')
+      } catch {
+        /* already committed or no active txn */
+      }
       newResults.push({
         operation: 'BULK INSERT (100 rows)',
         success: false,
@@ -206,7 +214,7 @@ export function App() {
          VALUES (?, ?, ?, ?, ?, ?)`,
         ['persist-test', 'main-dish', `Persisted at ${timestamp}`, 999, 0, 1],
       )
-      setPersistenceCount((prev) => (prev ?? 0) + 1)
+      setPersistenceCount(prev => (prev ?? 0) + 1)
     } catch (err) {
       setError(String(err))
     }
@@ -220,7 +228,9 @@ export function App() {
         <h2>Status</h2>
         <p>
           Database: <strong>{status}</strong>
-          {status === 'error' && <span style={{ color: 'red' }}> — {error}</span>}
+          {status === 'error' && (
+            <span style={{ color: 'red' }}> — {error}</span>
+          )}
         </p>
         <p>
           Storage Persistence:{' '}
@@ -234,7 +244,8 @@ export function App() {
         </p>
         {persistenceCount !== null && (
           <p>
-            Existing rows in commondities table: <strong>{persistenceCount}</strong>
+            Existing rows in commondities table:{' '}
+            <strong>{persistenceCount}</strong>
             {persistenceCount > 0 && ' (data persisted from previous session!)'}
           </p>
         )}
@@ -249,23 +260,35 @@ export function App() {
               <table style={{ borderCollapse: 'collapse', marginTop: 12 }}>
                 <thead>
                   <tr>
-                    <th style={{ border: '1px solid #ccc', padding: 8 }}>Operation</th>
-                    <th style={{ border: '1px solid #ccc', padding: 8 }}>Result</th>
-                    <th style={{ border: '1px solid #ccc', padding: 8 }}>Duration</th>
-                    <th style={{ border: '1px solid #ccc', padding: 8 }}>Detail</th>
+                    <th style={{ border: '1px solid #ccc', padding: 8 }}>
+                      Operation
+                    </th>
+                    <th style={{ border: '1px solid #ccc', padding: 8 }}>
+                      Result
+                    </th>
+                    <th style={{ border: '1px solid #ccc', padding: 8 }}>
+                      Duration
+                    </th>
+                    <th style={{ border: '1px solid #ccc', padding: 8 }}>
+                      Detail
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
-                  {results.map((r) => (
+                  {results.map(r => (
                     <tr key={r.operation}>
-                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{r.operation}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 8 }}>
+                        {r.operation}
+                      </td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>
                         {r.success ? 'PASS' : 'FAIL'}
                       </td>
                       <td style={{ border: '1px solid #ccc', padding: 8 }}>
                         {r.duration.toFixed(2)}ms
                       </td>
-                      <td style={{ border: '1px solid #ccc', padding: 8 }}>{r.detail ?? ''}</td>
+                      <td style={{ border: '1px solid #ccc', padding: 8 }}>
+                        {r.detail ?? ''}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -276,7 +299,9 @@ export function App() {
           <section>
             <h2>Persistence Test</h2>
             <p>Write data, then reload the page to verify OPFS persistence.</p>
-            <button onClick={writePersistenceData}>Write Persistence Data</button>
+            <button onClick={writePersistenceData}>
+              Write Persistence Data
+            </button>
           </section>
         </>
       )}

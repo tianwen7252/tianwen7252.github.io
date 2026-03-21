@@ -157,8 +157,8 @@ export function createBackupService(config: BackupConfig): BackupService {
       }
 
       return (data ?? [])
-        .filter((file) => file.name.endsWith('.db.gz'))
-        .map((file) => ({
+        .filter(file => file.name.endsWith('.db.gz'))
+        .map(file => ({
           filename: file.name,
           size: file.metadata?.size ?? 0,
           createdAt: file.created_at ?? new Date().toISOString(),

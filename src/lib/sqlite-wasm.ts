@@ -12,7 +12,9 @@ import type {
 } from './database'
 
 // Use the library's own types via dynamic import
-type Sqlite3Static = Awaited<ReturnType<typeof import('@sqlite.org/sqlite-wasm')['default']>>
+type Sqlite3Static = Awaited<
+  ReturnType<(typeof import('@sqlite.org/sqlite-wasm'))['default']>
+>
 type Sqlite3DB = InstanceType<Sqlite3Static['oo1']['DB']>
 
 class SqliteWasmDatabase implements Database {
@@ -33,7 +35,15 @@ class SqliteWasmDatabase implements Database {
     const rows = this.db.exec(sql, {
       returnValue: 'resultRows',
       rowMode: 'object',
-      bind: params as (string | number | null | bigint | Uint8Array | Int8Array | ArrayBuffer)[],
+      bind: params as (
+        | string
+        | number
+        | null
+        | bigint
+        | Uint8Array
+        | Int8Array
+        | ArrayBuffer
+      )[],
     }) as T[]
 
     return {
@@ -50,9 +60,7 @@ class SqliteWasmDatabase implements Database {
 export const sqliteWasmFactory: DatabaseFactory = {
   async init(config: DatabaseConfig): Promise<Database> {
     // Dynamic import to avoid loading WASM in test environment
-    const sqlite3InitModule = (
-      await import('@sqlite.org/sqlite-wasm')
-    ).default
+    const sqlite3InitModule = (await import('@sqlite.org/sqlite-wasm')).default
 
     const sqlite3 = await sqlite3InitModule()
 
@@ -65,7 +73,9 @@ export const sqliteWasmFactory: DatabaseFactory = {
         initialCapacity: 6,
       })
 
-      db = new sahPoolUtil.OpfsSAHPoolDb(config.filename) as unknown as Sqlite3DB
+      db = new sahPoolUtil.OpfsSAHPoolDb(
+        config.filename,
+      ) as unknown as Sqlite3DB
     } else {
       // In-memory mode
       db = new sqlite3.oo1.DB(':memory:')
