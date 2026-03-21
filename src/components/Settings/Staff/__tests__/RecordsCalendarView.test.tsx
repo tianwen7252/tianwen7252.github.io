@@ -791,6 +791,147 @@ describe('RecordsCalendarView', () => {
   })
 
   // --------------------------------------------------------
+  // Weekend cells with attendance data
+  // --------------------------------------------------------
+  describe('weekend cells with attendance data', () => {
+    it('shows employee cards for weekend with attendance data instead of 休', () => {
+      // 2026-03-21 is Saturday
+      const clockIn = dayjs('2026-03-21 09:00').valueOf()
+      const clockOut = dayjs('2026-03-21 17:00').valueOf()
+      const att = mockAttendance(1, '2026-03-21', clockIn, clockOut)
+
+      const saturday = createCalendarDay({
+        date: '2026-03-21',
+        isWeekend: true,
+        isCurrentMonth: true,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([saturday])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Employee name and time should be rendered
+      expect(screen.getByText('Ryan')).toBeInTheDocument()
+      expect(screen.getByText('09:00 - 17:00')).toBeInTheDocument()
+      // "休" should NOT be shown
+      expect(screen.queryByText('休')).not.toBeInTheDocument()
+    })
+
+    it('still shows 休 for weekend without attendance data', () => {
+      // 2026-03-21 is Saturday, no attendance data
+      const saturday = createCalendarDay({
+        date: '2026-03-21',
+        isWeekend: true,
+        isCurrentMonth: true,
+        cells: [{ employee: emp1, attendances: [] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([saturday])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByText('休')).toBeInTheDocument()
+    })
+
+    it('calls onCellClick for weekend cell with attendance data', () => {
+      const onCellClick = vi.fn()
+      const clockIn = dayjs('2026-03-21 09:00').valueOf()
+      const clockOut = dayjs('2026-03-21 17:00').valueOf()
+      const att = mockAttendance(1, '2026-03-21', clockIn, clockOut)
+
+      const saturday = createCalendarDay({
+        date: '2026-03-21',
+        isWeekend: true,
+        isCurrentMonth: true,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([saturday])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+          onCellClick={onCellClick}
+        />,
+      )
+
+      // Click the cell (not the employee card)
+      const dateLabel = screen.getByText('03/21')
+      fireEvent.click(dateLabel)
+
+      expect(onCellClick).toHaveBeenCalledWith('2026-03-21')
+    })
+
+    it('renders employee cards for Sunday with attendance data', () => {
+      // 2026-03-22 is Sunday
+      const clockIn = dayjs('2026-03-22 10:00').valueOf()
+      const clockOut = dayjs('2026-03-22 16:00').valueOf()
+      const att = mockAttendance(2, '2026-03-22', clockIn, clockOut)
+
+      const sunday = createCalendarDay({
+        date: '2026-03-22',
+        isWeekend: true,
+        isCurrentMonth: true,
+        cells: [{ employee: emp2, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([sunday])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Employee name and time should be rendered
+      expect(screen.getByText('陳小明')).toBeInTheDocument()
+      expect(screen.getByText('10:00 - 16:00')).toBeInTheDocument()
+      // "休" should NOT be shown
+      expect(screen.queryByText('休')).not.toBeInTheDocument()
+    })
+
+    it('today weekend with attendance data shows today badge and employee cards', () => {
+      // 2026-03-21 is Saturday AND today, with attendance data
+      const clockIn = dayjs('2026-03-21 08:00').valueOf()
+      const clockOut = dayjs('2026-03-21 15:00').valueOf()
+      const att = mockAttendance(1, '2026-03-21', clockIn, clockOut)
+
+      const todayWeekend = createCalendarDay({
+        date: '2026-03-21',
+        isWeekend: true,
+        isCurrentMonth: true,
+        isToday: true,
+        cells: [{ employee: emp1, attendances: [att] }],
+      })
+
+      render(
+        <RecordsCalendarView
+          calendarGrid={createTestGrid([todayWeekend])}
+          onEditRecord={vi.fn()}
+          onAddRecord={vi.fn()}
+        />,
+      )
+
+      // Should show today badge
+      expect(screen.getByText('今日')).toBeInTheDocument()
+      // Should show employee cards
+      expect(screen.getByText('Ryan')).toBeInTheDocument()
+      expect(screen.getByText('08:00 - 15:00')).toBeInTheDocument()
+      // "休" should NOT be shown
+      expect(screen.queryByText('休')).not.toBeInTheDocument()
+    })
+  })
+
+  // --------------------------------------------------------
   // Edge cases
   // --------------------------------------------------------
   describe('edge cases', () => {

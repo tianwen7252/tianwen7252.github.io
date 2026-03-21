@@ -10,7 +10,9 @@ import {
   getMonthOptions,
   buildDayRows,
   buildCalendarGrid,
+  dayRowHasAttendance,
 } from '../recordsUtils'
+import type { DayRow, EmployeeAttendanceCell } from '../recordsUtils'
 
 // --- Test data factories ---
 
@@ -422,5 +424,59 @@ describe('buildCalendarGrid', () => {
     // April 1 should be at position [0][3] (Wednesday)
     expect(grid[0][3].date).toBe('2026-04-01')
     expect(grid[0][3].isCurrentMonth).toBe(true)
+  })
+})
+
+// =============================================
+// dayRowHasAttendance
+// =============================================
+describe('dayRowHasAttendance', () => {
+  const baseDayRow: Omit<DayRow, 'cells'> = {
+    date: '2026-03-21',
+    displayDate: '03/21 (六)',
+    dayOfWeek: 6,
+    isWeekend: true,
+    isToday: false,
+  }
+
+  it('returns false when cells array is empty', () => {
+    const row: DayRow = { ...baseDayRow, cells: [] }
+    expect(dayRowHasAttendance(row)).toBe(false)
+  })
+
+  it('returns false when all cells have empty attendances', () => {
+    const cells: readonly EmployeeAttendanceCell[] = [
+      { employee: makeEmployee({ id: 1, name: 'Alice' }), attendances: [] },
+      { employee: makeEmployee({ id: 2, name: 'Bob' }), attendances: [] },
+    ]
+    const row: DayRow = { ...baseDayRow, cells }
+    expect(dayRowHasAttendance(row)).toBe(false)
+  })
+
+  it('returns true when at least one cell has attendance data', () => {
+    const cells: readonly EmployeeAttendanceCell[] = [
+      { employee: makeEmployee({ id: 1, name: 'Alice' }), attendances: [] },
+      {
+        employee: makeEmployee({ id: 2, name: 'Bob' }),
+        attendances: [makeAttendance({ id: 201, employeeId: 2, date: '2026-03-21' })],
+      },
+    ]
+    const row: DayRow = { ...baseDayRow, cells }
+    expect(dayRowHasAttendance(row)).toBe(true)
+  })
+
+  it('returns true when multiple cells have attendance data', () => {
+    const cells: readonly EmployeeAttendanceCell[] = [
+      {
+        employee: makeEmployee({ id: 1, name: 'Alice' }),
+        attendances: [makeAttendance({ id: 101, employeeId: 1, date: '2026-03-21' })],
+      },
+      {
+        employee: makeEmployee({ id: 2, name: 'Bob' }),
+        attendances: [makeAttendance({ id: 201, employeeId: 2, date: '2026-03-21' })],
+      },
+    ]
+    const row: DayRow = { ...baseDayRow, cells }
+    expect(dayRowHasAttendance(row)).toBe(true)
   })
 })
