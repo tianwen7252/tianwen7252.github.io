@@ -1,23 +1,14 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import { Badge, Button, message } from 'antd'
+import { InfoCircleOutlined } from '@ant-design/icons'
 import { useLiveQuery } from 'dexie-react-hooks'
 import dayjs from 'dayjs'
 import * as API from 'src/libs/api'
 import { AvatarImage } from 'src/components/AvatarImage'
 import { calcTotalHours, formatTotalHours } from './attendanceUtils'
 import { ClockInModal } from './ClockInModal'
+import { WEEKDAY_SHORT } from './recordsUtils'
 import { styles } from './styles/clockInStyles'
-
-// Chinese weekday labels — index matches dayjs().day() (0=Sunday)
-const WEEKDAYS = [
-  '星期日',
-  '星期一',
-  '星期二',
-  '星期三',
-  '星期四',
-  '星期五',
-  '星期六',
-] as const
 
 // Format a timestamp to HH:mm, or return placeholder when absent
 function formatTime(ts?: number): string {
@@ -135,10 +126,9 @@ export const ClockIn: React.FC = () => {
   })
   const [loading, setLoading] = useState(false)
 
-  // Section header date string — derive from `today` state (single source of truth)
+  // Section header title — derive from `today` state (single source of truth)
   const todayDayjs = dayjs(today)
-  const weekday = WEEKDAYS[todayDayjs.day()]
-  const dateString = `今天日期: ${todayDayjs.format('YYYY年M月D日')} ${weekday}`
+  const headerTitle = `今天: ${todayDayjs.format('YYYY/M/D')} (${WEEKDAY_SHORT[todayDayjs.day()]})`
 
   // Handle card click — derive action from attendance records and open modal state
   const handleCardClick = (
@@ -250,8 +240,8 @@ export const ClockIn: React.FC = () => {
     <div className={styles.containerCss}>
       {/* Section header */}
       <div className={styles.headerCss}>
-        <span className={styles.headerTitleCss}>員工考勤狀況</span>
-        <span className={styles.headerDateCss}>{dateString}</span>
+        <span className={styles.headerTitleCss}>{headerTitle}</span>
+        <span className={styles.headerDateCss}><InfoCircleOutlined /> 點選員工即可打卡</span>
       </div>
 
       {/* Card grid */}
