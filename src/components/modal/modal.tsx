@@ -1,9 +1,4 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogOverlay,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog as DialogPrimitive } from 'radix-ui'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
 import type {
@@ -37,7 +32,7 @@ const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
 
 /**
  * Frosted glass card — use inside GlassModal for content grouping.
- * V1 spec: bg rgba(255,255,255,0.4), border rgba(255,255,255,0.2), radius 12px, padding 24px
+ * V1: bg rgba(255,255,255,0.4), border rgba(255,255,255,0.2), radius 12px, padding 24px
  */
 export function GlassCard({ children, className }: GlassCardProps) {
   return (
@@ -59,7 +54,9 @@ export function GlassCard({ children, className }: GlassCardProps) {
 
 /**
  * Base glassmorphism modal with mesh gradient background.
- * V1 spec: bg rgba(255,255,255,0.7), blur(20px) saturate(180%), radius 16px, padding 40px
+ * Uses raw Radix Dialog primitives (not shadcn wrapper) for full control
+ * over overlay and content rendering — V1 uses Ant Design Modal with
+ * gradient on .ant-modal-wrap (full screen), which we replicate here.
  */
 export function GlassModal({
   open,
@@ -71,67 +68,78 @@ export function GlassModal({
   onClose,
 }: GlassModalProps) {
   return (
-    <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
-      <DialogOverlay className={cn('fixed inset-0', GRADIENT_CLASS[variant])} />
-      <DialogContent
-        className="border-none bg-transparent p-0 shadow-none sm:max-w-[500px] [&>button]:hidden"
-        aria-describedby={undefined}
-      >
-        {/* Accessible title (visually styled below) */}
-        <DialogTitle className="sr-only">{title}</DialogTitle>
+    <DialogPrimitive.Root open={open} onOpenChange={o => !o && onClose()}>
+      <DialogPrimitive.Portal>
+        {/* Full-screen gradient overlay — replaces V1's .ant-modal-wrap background */}
+        <DialogPrimitive.Overlay
+          className={cn('fixed inset-0 z-50', GRADIENT_CLASS[variant])}
+        />
 
-        {/* Glassmorphism container — exact V1 values */}
-        <div
-          style={{
-            background: 'rgba(255, 255, 255, 0.7)',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255, 255, 255, 0.3)',
-            boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
-            borderRadius: 16,
-            padding: 40,
-            maxWidth: 500,
-            margin: '0 auto',
-          }}
+        {/* Content — centered, no default bg/border/shadow from shadcn */}
+        <DialogPrimitive.Content
+          aria-describedby={undefined}
+          className="fixed inset-0 z-50 flex items-center justify-center outline-none"
+          onPointerDownOutside={onClose}
+          onEscapeKeyDown={onClose}
         >
-          {/* System label — V1: 14px/500, #718096, uppercase, letter-spacing 0.5px, mb 4px */}
-          {systemLabel && (
+          {/* Accessible title (sr-only) */}
+          <DialogPrimitive.Title className="sr-only">
+            {title}
+          </DialogPrimitive.Title>
+
+          {/* Glassmorphism container — V1 exact values */}
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.7)',
+              backdropFilter: 'blur(20px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
+              borderRadius: 16,
+              padding: 40,
+              width: 500,
+              maxWidth: 'calc(100vw - 32px)',
+            }}
+          >
+            {/* System label — V1: 14px/500, #718096, uppercase, ls 0.5px, mb 4px */}
+            {systemLabel && (
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: COLOR_MUTED,
+                  textTransform: 'uppercase',
+                  letterSpacing: 0.5,
+                  marginBottom: 4,
+                  textAlign: 'center',
+                }}
+              >
+                {systemLabel}
+              </div>
+            )}
+
+            {/* Title — V1: 20px/700, #1a202c, mb 24px */}
             <div
               style={{
-                fontSize: 14,
-                fontWeight: 500,
-                color: COLOR_MUTED,
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                marginBottom: 4,
+                fontSize: 20,
+                fontWeight: 700,
+                color: COLOR_TEXT,
+                marginBottom: 24,
                 textAlign: 'center',
               }}
             >
-              {systemLabel}
+              {title}
             </div>
-          )}
 
-          {/* Title — V1: 20px/700, #1a202c, mb 24px */}
-          <div
-            style={{
-              fontSize: 20,
-              fontWeight: 700,
-              color: COLOR_TEXT,
-              marginBottom: 24,
-              textAlign: 'center',
-            }}
-          >
-            {title}
+            {/* Content */}
+            {children}
+
+            {/* Footer */}
+            {footer && <div style={{ marginTop: 24 }}>{footer}</div>}
           </div>
-
-          {/* Content */}
-          {children}
-
-          {/* Footer */}
-          {footer && <div style={{ marginTop: 24 }}>{footer}</div>}
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }
 
@@ -139,7 +147,7 @@ export function GlassModal({
 
 /**
  * Specialized GlassModal for confirmation actions.
- * Based on V1 ClockInModal design with avatar, info grid, and action buttons.
+ * Pixel-perfect match to V1 ClockInModal.
  */
 export function ConfirmModal({
   open,
@@ -165,7 +173,7 @@ export function ConfirmModal({
       title={title}
       onClose={onCancel}
       footer={
-        /* Button row — V1: gap 12px, mt 24px (handled by GlassModal footer) */
+        /* Button row — V1: gap 12px */
         <div
           style={{
             display: 'flex',
@@ -174,7 +182,7 @@ export function ConfirmModal({
             width: '100%',
           }}
         >
-          {/* Cancel button — V1 exact */}
+          {/* Cancel button — V1: bg rgba(255,255,255,0.5), #4a5568, radius 8, 14px/600 */}
           <button
             type="button"
             onClick={onCancel}
@@ -194,7 +202,7 @@ export function ConfirmModal({
           >
             {cancelText}
           </button>
-          {/* Confirm button — V1 exact */}
+          {/* Confirm button — V1: #fff, radius 8, 14px/600 */}
           <button
             type="button"
             onClick={onConfirm}
@@ -223,7 +231,7 @@ export function ConfirmModal({
       }
     >
       <GlassCard>
-        {/* Avatar — V1: rounded, overflow hidden, inline-flex, mb 12px */}
+        {/* Avatar — V1: rounded 50%, overflow hidden, inline-flex, mb 12px */}
         {(avatar !== undefined || name) && (
           <div
             style={{
@@ -294,7 +302,6 @@ export function ConfirmModal({
           >
             {infoItems.map(item => (
               <div key={item.label}>
-                {/* Label — V1: 12px/500, #718096, uppercase, letter-spacing 0.5px, mb 4px */}
                 <div
                   style={{
                     fontSize: 12,
@@ -308,7 +315,6 @@ export function ConfirmModal({
                 >
                   {item.label}
                 </div>
-                {/* Value — V1: 16px/600, #1a202c */}
                 <div
                   style={{
                     fontSize: 16,
