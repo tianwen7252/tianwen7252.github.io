@@ -1,6 +1,7 @@
 /**
  * SQLite WASM implementation using @sqlite.org/sqlite-wasm.
  * Uses OpfsSAHPool VFS for Safari/iPad compatibility (no sub-workers needed).
+ * Note: opfs-sahpool does NOT require COOP/COEP headers.
  */
 
 import type {
@@ -12,29 +13,23 @@ import type {
 
 // Use the library's own types via dynamic import
 type Sqlite3Static = Awaited<ReturnType<typeof import('@sqlite.org/sqlite-wasm')['default']>>
-type Sqlite3DB = ReturnType<Sqlite3Static['oo1']['DB']['prototype']['exec']> extends infer _
-  ? InstanceType<Sqlite3Static['oo1']['DB']>
-  : never
+type Sqlite3DB = InstanceType<Sqlite3Static['oo1']['DB']>
 
 class SqliteWasmDatabase implements Database {
-  private db: Sqlite3DB | null = null
+  private readonly db: Sqlite3DB
 
-  get isReady(): boolean {
-    return this.db !== null
+  constructor(db: Sqlite3DB) {
+    this.db = db
   }
 
-  setDb(db: Sqlite3DB): void {
-    this.db = db
+  get isReady(): boolean {
+    return true
   }
 
   exec<T = Record<string, unknown>>(
     sql: string,
     params?: readonly unknown[],
   ): QueryResult<T> {
-    if (!this.db) {
-      throw new Error('Database not initialized')
-    }
-
     const rows = this.db.exec(sql, {
       returnValue: 'resultRows',
       rowMode: 'object',
@@ -48,10 +43,7 @@ class SqliteWasmDatabase implements Database {
   }
 
   close(): void {
-    if (this.db) {
-      this.db.close()
-      this.db = null
-    }
+    this.db.close()
   }
 }
 
@@ -64,7 +56,7 @@ export const sqliteWasmFactory: DatabaseFactory = {
 
     const sqlite3 = await sqlite3InitModule()
 
-    const wrapper = new SqliteWasmDatabase()
+    let db: Sqlite3DB
 
     if (config.mode === 'opfs-sahpool') {
       // Use SAH pool VFS for Safari compatibility (no sub-workers needed)
@@ -73,14 +65,12 @@ export const sqliteWasmFactory: DatabaseFactory = {
         initialCapacity: 6,
       })
 
-      const db = new sahPoolUtil.OpfsSAHPoolDb(config.filename)
-      wrapper.setDb(db as unknown as Sqlite3DB)
+      db = new sahPoolUtil.OpfsSAHPoolDb(config.filename) as unknown as Sqlite3DB
     } else {
       // In-memory mode
-      const db = new sqlite3.oo1.DB(':memory:')
-      wrapper.setDb(db)
+      db = new sqlite3.oo1.DB(':memory:')
     }
 
-    return wrapper
+    return new SqliteWasmDatabase(db)
   },
 }

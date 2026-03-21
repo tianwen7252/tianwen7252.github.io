@@ -119,5 +119,6 @@ export const CREATE_TABLES = `
  * Idempotent — safe to call multiple times.
  */
 export function initSchema(exec: (sql: string) => void): void {
+  exec('PRAGMA foreign_keys = ON')
   exec(CREATE_TABLES)
 }

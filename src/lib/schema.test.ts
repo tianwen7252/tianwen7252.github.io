@@ -65,11 +65,12 @@ describe('schema', () => {
   })
 
   describe('initSchema', () => {
-    it('should call exec with the CREATE_TABLES SQL', () => {
+    it('should enable foreign keys and create tables', () => {
       const mockExec = vi.fn()
       initSchema(mockExec)
-      expect(mockExec).toHaveBeenCalledOnce()
-      expect(mockExec).toHaveBeenCalledWith(CREATE_TABLES)
+      expect(mockExec).toHaveBeenCalledTimes(2)
+      expect(mockExec).toHaveBeenNthCalledWith(1, 'PRAGMA foreign_keys = ON')
+      expect(mockExec).toHaveBeenNthCalledWith(2, CREATE_TABLES)
     })
   })
 })

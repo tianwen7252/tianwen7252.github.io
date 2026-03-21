@@ -158,9 +158,10 @@ export function App() {
       })
     }
 
-    // Bulk INSERT performance test
+    // Bulk INSERT performance test — clean up first to handle re-entrancy
     const bulkStart = performance.now()
     try {
+      db.exec("DELETE FROM commondities WHERE id LIKE 'bulk-%'")
       db.exec('BEGIN TRANSACTION')
       for (let i = 0; i < 100; i++) {
         db.exec(
@@ -183,7 +184,7 @@ export function App() {
       // Cleanup bulk data
       db.exec("DELETE FROM commondities WHERE id LIKE 'bulk-%'")
     } catch (err) {
-      db.exec('ROLLBACK')
+      try { db.exec('ROLLBACK') } catch { /* already committed or no active txn */ }
       newResults.push({
         operation: 'BULK INSERT (100 rows)',
         success: false,
