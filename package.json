@@ -35,6 +35,8 @@
     "@sqlite.org/sqlite-wasm": "3.51.2-build8",
     "@supabase/supabase-js": "^2.99.3",
     "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/react-router": "^1.168.1",
+    "@tanstack/react-router-devtools": "^1.166.10",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
