@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { ConfirmModal, GlassModal, GlassCard } from '@/components/confirm-modal'
-import type { GradientVariant } from '@/components/confirm-modal'
+import { ConfirmModal, GlassModal, GlassCard } from '@/components/modal'
+import type { GradientVariant } from '@/components/modal'
 
 type DemoType = 'clockIn' | 'clockOut' | 'vacation' | 'form' | null
 
