@@ -15,7 +15,7 @@ import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
 import { buildTimestamp } from '@/lib/attendance-utils'
 import { recordFormSchema } from '@/lib/form-schemas'
-import { api } from '@/api'
+import { getAttendanceRepo } from '@/lib/repositories'
 import { cn } from '@/lib/cn'
 import type { Employee, Attendance } from '@/lib/schemas'
 import type { RecordFormValues } from '@/lib/form-schemas'
@@ -129,7 +129,7 @@ export function RecordModal({
       const dbType = isVac ? 'paid_leave' : 'regular'
 
       if (mode === 'add') {
-        api.attendances.add({
+        getAttendanceRepo().create({
           employeeId: employee.id,
           date,
           clockIn: clockInTs,
@@ -138,7 +138,7 @@ export function RecordModal({
         })
         toast.success(t('records.toastAdded'))
       } else if (record) {
-        api.attendances.update(record.id, {
+        getAttendanceRepo().update(record.id, {
           clockIn: clockInTs,
           clockOut: clockOutTs,
           type: dbType,
@@ -157,7 +157,7 @@ export function RecordModal({
 
   const handleDelete = useCallback(() => {
     if (record) {
-      api.attendances.remove(record.id)
+      getAttendanceRepo().remove(record.id)
       toast.success(t('records.toastDeleted'))
     }
     onSuccess()

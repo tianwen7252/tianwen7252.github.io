@@ -3,7 +3,7 @@
  * search filter, year/month selects, and RecordModal integration.
  */
 
-import { useState, useMemo, useCallback } from 'react'
+import { useState, useMemo, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { LayoutList, Calendar, Info } from 'lucide-react'
@@ -15,7 +15,7 @@ import {
   getYearOptions,
   getMonthOptions,
 } from '@/lib/records-utils'
-import { api } from '@/api'
+import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
 import { RecordsTableView } from './records-table-view'
 import { RecordsCalendarView } from './records-calendar-view'
 import { RecordModal } from '@/components/record-modal'
@@ -57,12 +57,9 @@ export function Records() {
   const currentMonth = now.month() + 1
 
   // Fetch data — refreshKey forces re-computation after mutations
-  const allEmployees = useMemo(
-    () => api.employees.getActive(),
-    [refreshKey],
-  )
+  const allEmployees = useMemo(() => getEmployeeRepo().findByStatus('active'), [refreshKey])
   const attendances = useMemo(
-    () => api.attendances.getByMonth(selectedYear, selectedMonth),
+    () => getAttendanceRepo().findByMonth(selectedYear, selectedMonth),
     [selectedYear, selectedMonth, refreshKey],
   )
 
@@ -104,6 +101,11 @@ export function Records() {
     [selectedYear, currentYear, currentMonth],
   )
 
+  // Cache last valid modal employee so close animation can render content
+  const lastModalEmployeeRef = useRef<Employee | null>(null)
+  if (modalState.employee) lastModalEmployeeRef.current = modalState.employee
+  const modalEmployee = modalState.employee ?? lastModalEmployeeRef.current
+
   // Modal handlers
   const handleAddRecord = useCallback(
     (employee: Employee, date: string) => {
@@ -136,7 +138,7 @@ export function Records() {
 
   const handleModalSuccess = useCallback(() => {
     setModalState(INITIAL_MODAL_STATE)
-    setRefreshKey(k => k + 1)
+    setRefreshKey((k) => k + 1)
   }, [setModalState, setRefreshKey])
 
   // "Today" button handler — uses fresh dayjs() to avoid stale closure
@@ -150,7 +152,9 @@ export function Records() {
     <div className="p-4">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-2xl font-black -tracking-wider">{t('records.title')}</h3>
+        <h3 className="text-2xl font-black -tracking-wider">
+          {t('records.title')}
+        </h3>
         <div className="flex gap-1 rounded-xl bg-muted p-1">
           <button
             type="button"
@@ -183,15 +187,15 @@ export function Records() {
           type="text"
           placeholder={t('records.searchPlaceholder')}
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         />
         <select
           value={selectedYear}
-          onChange={e => setSelectedYear(Number(e.target.value))}
+          onChange={(e) => setSelectedYear(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {yearOptions.map(opt => (
+          {yearOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -199,10 +203,10 @@ export function Records() {
         </select>
         <select
           value={selectedMonth}
-          onChange={e => setSelectedMonth(Number(e.target.value))}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {monthOptions.map(opt => (
+          {monthOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -218,7 +222,7 @@ export function Records() {
       </div>
 
       {/* Hint */}
-      <div className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground">
+      <div className="mb-3 flex items-center gap-1.5 text-sm text-[#aaa]">
         <Info size={14} />
         <span>{t('records.hint')}</span>
       </div>
@@ -240,12 +244,12 @@ export function Records() {
         />
       )}
 
-      {/* RecordModal */}
-      {modalState.employee && (
+      {/* RecordModal — use cached employee so close animation can play */}
+      {modalEmployee && (
         <RecordModal
           open={modalState.open}
           mode={modalState.mode}
-          employee={modalState.employee}
+          employee={modalEmployee}
           date={modalState.date}
           record={modalState.record}
           onCancel={handleModalCancel}

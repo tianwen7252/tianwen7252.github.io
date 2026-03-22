@@ -148,13 +148,13 @@ describe('i18n configuration', () => {
 
   describe('interpolation', () => {
     it('should interpolate {{name}} in staff.confirmDeleteMessage', () => {
-      const result = i18n.t('staff.confirmDeleteMessage', { name: '王小明' })
-      expect(result).toBe('確定要刪除員工「王小明」嗎？')
+      const result = i18n.t('staff.confirmDeleteMessage', { name: 'Alex' })
+      expect(result).toBe('確定要刪除員工「Alex」嗎？')
     })
 
     it('should interpolate {{name}} in clockIn.confirmClockIn', () => {
-      const result = i18n.t('clockIn.confirmClockIn', { name: '李美玲' })
-      expect(result).toBe('確認 李美玲 的上班打卡？')
+      const result = i18n.t('clockIn.confirmClockIn', { name: 'Mia' })
+      expect(result).toBe('確認 Mia 的上班打卡？')
     })
 
     it('should interpolate {{date}} and {{weekday}} in clockIn.todayTitle', () => {

@@ -96,10 +96,10 @@ describe('employeeFormSchema', () => {
 
   describe('edge cases', () => {
     it('should handle Unicode names', () => {
-      const result = employeeFormSchema.safeParse({ name: '王小明' })
+      const result = employeeFormSchema.safeParse({ name: 'Alex' })
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.name).toBe('王小明')
+        expect(result.data.name).toBe('Alex')
       }
     })
 

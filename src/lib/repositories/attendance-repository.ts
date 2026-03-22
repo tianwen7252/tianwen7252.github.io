@@ -13,6 +13,7 @@ export interface AttendanceRepository extends Repository<
     employeeId: string,
     date: string,
   ): Attendance | undefined
+  findByMonth(year: number, month: number): Attendance[]
 }
 
 function toAttendance(row: Record<string, unknown>): Attendance {
@@ -67,6 +68,15 @@ export function createAttendanceRepository(db: Database): AttendanceRepository {
       )
       const row = result.rows[0]
       return row ? toAttendance(row) : undefined
+    },
+
+    findByMonth(year: number, month: number) {
+      const prefix = `${year}-${String(month).padStart(2, '0')}%`
+      const result = db.exec<Record<string, unknown>>(
+        'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',
+        [prefix],
+      )
+      return result.rows.map(toAttendance)
     },
 
     create(data: CreateAttendance) {

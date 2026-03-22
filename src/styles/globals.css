@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 /* @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap'); */
 
 @custom-variant dark (&:is(.dark *));
@@ -42,6 +42,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px); */
+  --default-transition-timing-function: ease-out;
   --animate-shine: shine var(--duration) infinite linear;
   @keyframes shine {
     0% {
@@ -146,6 +147,10 @@
   a,
   [role='button'] {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  h3 {
+    @apply text-accent;
   }
 }
 

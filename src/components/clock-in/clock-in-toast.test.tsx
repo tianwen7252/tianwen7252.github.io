@@ -1,8 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { resetApi } from '@/api'
+import {
+  getEmployeeRepo,
+  getAttendanceRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
 import { ClockIn } from './clock-in'
+
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => getEmployeeRepo(),
+  getAttendanceRepo: () => getAttendanceRepo(),
+}))
 
 // Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
 // available when vi.mock factory (which is hoisted) executes.
@@ -22,17 +32,17 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   afterEach(() => {
-    resetApi()
+    resetMockRepositories()
   })
 
   it('should show success toast after clock-in', async () => {
-    resetApi()
+    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
-    // Click employee card with no record (emp-004 - Chen Ya Ting)
+    // Click employee card with no record (emp-004 - Grace)
     const cards = screen.getAllByTestId('employee-card')
-    const emp4Card = cards.find(card => within(card).queryByText('陳雅婷'))
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
     // Confirm clock-in
@@ -42,7 +52,7 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after clock-out', async () => {
-    resetApi()
+    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -56,12 +66,14 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after vacation', async () => {
-    resetApi()
+    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
-    // Click 申請休假 button for emp-004
-    await user.click(screen.getByText('申請休假'))
+    // Click 申請休假 button for emp-004 (Grace)
+    const graceCard = screen.getAllByTestId('employee-card')
+      .find(card => within(card).queryByText('Grace'))!
+    await user.click(within(graceCard).getByText('申請休假'))
 
     // Confirm vacation
     await user.click(screen.getByText('確認休假'))
@@ -70,7 +82,7 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after cancel vacation', async () => {
-    resetApi()
+    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -84,7 +96,7 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should NOT show toast when modal is cancelled', async () => {
-    resetApi()
+    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 

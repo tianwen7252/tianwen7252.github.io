@@ -1,20 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { api, resetApi } from '@/api'
+import {
+  getEmployeeRepo,
+  getAttendanceRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
 import { ClockIn } from './clock-in'
+
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => getEmployeeRepo(),
+  getAttendanceRepo: () => getAttendanceRepo(),
+}))
 
 // ─── Test Setup ─────────────────────────────────────────────────────────────
 
 beforeEach(() => {
   vi.useFakeTimers()
   vi.setSystemTime(new Date('2026-03-21T10:30:00'))
-  resetApi()
+  resetMockRepositories()
 })
 
 afterEach(() => {
   vi.useRealTimers()
-  resetApi()
+  resetMockRepositories()
 })
 
 // ─── Tests ──────────────────────────────────────────────────────────────────
@@ -22,9 +32,9 @@ afterEach(() => {
 describe('ClockIn', () => {
   it('should render employee cards from mock data', () => {
     render(<ClockIn />)
-    // Active employees: emp-001 through emp-004, emp-006 (emp-005 is inactive/resigned)
+    // Active employees: emp-001 through emp-004, emp-006 through emp-011 (emp-005 is inactive/resigned)
     const cards = screen.getAllByTestId('employee-card')
-    expect(cards.length).toBe(5)
+    expect(cards.length).toBe(10)
   })
 
   it('should show today date header', () => {
@@ -37,8 +47,9 @@ describe('ClockIn', () => {
 
   it('should show correct status badge for employee with no record (未打卡)', () => {
     render(<ClockIn />)
-    // emp-004 has no attendance record
-    expect(screen.getByText('未打卡')).toBeTruthy()
+    // emp-004 (Grace) has no attendance record
+    // Multiple employees (emp-007 through emp-011) also have no attendance
+    expect(screen.getAllByText('未打卡').length).toBeGreaterThanOrEqual(1)
   })
 
   it('should show correct status badge for clocked-in employee (正在上班)', () => {
@@ -61,23 +72,23 @@ describe('ClockIn', () => {
 
   it('should show employee names', () => {
     render(<ClockIn />)
-    expect(screen.getByText('王小明')).toBeTruthy()
-    expect(screen.getByText('李美玲')).toBeTruthy()
-    expect(screen.getByText('張大偉')).toBeTruthy()
-    expect(screen.getByText('陳雅婷')).toBeTruthy()
+    expect(screen.getByText('Alex')).toBeTruthy()
+    expect(screen.getByText('Mia')).toBeTruthy()
+    expect(screen.getByText('David')).toBeTruthy()
+    expect(screen.getByText('Grace')).toBeTruthy()
   })
 
   it('should show admin label for admin employees', () => {
     render(<ClockIn />)
-    // Only emp-001 (王小明) is admin
+    // Only emp-001 (Alex) is admin
     const adminLabels = screen.getAllByText('管理員')
     expect(adminLabels).toHaveLength(1)
   })
 
   it('should not show resigned employees', () => {
     render(<ClockIn />)
-    // emp-005 (林志明) is inactive with resignationDate
-    expect(screen.queryByText('林志明')).toBeNull()
+    // emp-005 (Mark) is inactive with resignationDate
+    expect(screen.queryByText('Mark')).toBeNull()
   })
 
   it('should show action buttons per state', () => {
@@ -85,7 +96,7 @@ describe('ClockIn', () => {
     // emp-001 (clocked out) and emp-004 (no record) both show 打卡上班
     const clockInBtns = screen.getAllByText('打卡上班')
     expect(clockInBtns.length).toBeGreaterThanOrEqual(1)
-    expect(screen.getByText('申請休假')).toBeTruthy()
+    expect(screen.getAllByText('申請休假').length).toBeGreaterThanOrEqual(1)
     // emp-002 (clocked in): should show 打卡下班
     expect(screen.getByText('打卡下班')).toBeTruthy()
     // emp-003 (vacation): should show 取消休假
@@ -115,18 +126,18 @@ describe('ClockIn', () => {
 
     // Click on emp-004 card (no record) — should open modal with clockIn action
     const cards = screen.getAllByTestId('employee-card')
-    const emp4Card = cards.find(card => within(card).queryByText('陳雅婷'))
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     expect(emp4Card).toBeTruthy()
     await user.click(emp4Card!)
 
     // Modal title appears twice (sr-only + visual)
-    const titles = screen.getAllByText(/確認 陳雅婷 的上班打卡？/)
+    const titles = screen.getAllByText(/確認 Grace 的上班打卡？/)
     expect(titles.length).toBe(2)
   })
 
   it('should open ClockInModal when action button is clicked', async () => {
     vi.useRealTimers()
-    resetApi() // Re-reset with real date after restoring real timers
+    resetMockRepositories() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -134,7 +145,7 @@ describe('ClockIn', () => {
     await user.click(screen.getByText('打卡下班'))
 
     // Modal title appears twice (sr-only + visual)
-    const titles = screen.getAllByText(/確認 李美玲 的下班打卡？/)
+    const titles = screen.getAllByText(/確認 Mia 的下班打卡？/)
     expect(titles.length).toBe(2)
   })
 
@@ -160,9 +171,9 @@ describe('ClockIn', () => {
 
   it('should show empty state message when no employees', () => {
     // Remove all employees to simulate empty state
-    const employees = api.employees.getAll()
+    const employees = getEmployeeRepo().findAll()
     for (const emp of employees) {
-      api.employees.remove(emp.id)
+      getEmployeeRepo().remove(emp.id)
     }
 
     render(<ClockIn />)
@@ -178,7 +189,7 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     const cards = screen.getAllByTestId('employee-card')
     // emp-002 (index 1 in active) is clocked in
-    const emp2Card = cards.find(card => within(card).queryByText('李美玲'))
+    const emp2Card = cards.find(card => within(card).queryByText('Mia'))
     expect(emp2Card?.className).toContain('bg-[#f0f5eb]')
   })
 
@@ -186,7 +197,7 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     const cards = screen.getAllByTestId('employee-card')
     // emp-001 is clocked out
-    const emp1Card = cards.find(card => within(card).queryByText('王小明'))
+    const emp1Card = cards.find(card => within(card).queryByText('Alex'))
     expect(emp1Card?.className).toContain('bg-[#f5f0fa]')
   })
 
@@ -194,31 +205,31 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     const cards = screen.getAllByTestId('employee-card')
     // emp-003 is on vacation
-    const emp3Card = cards.find(card => within(card).queryByText('張大偉'))
+    const emp3Card = cards.find(card => within(card).queryByText('David'))
     expect(emp3Card?.className).toContain('bg-[#fef2f2]')
   })
 
   it('should handle confirm for clockIn action and close modal', async () => {
     vi.useRealTimers()
-    resetApi() // Re-reset with real date after restoring real timers
+    resetMockRepositories() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Click emp-004 card (no record) to open clockIn modal
     const cards = screen.getAllByTestId('employee-card')
-    const emp4Card = cards.find(card => within(card).queryByText('陳雅婷'))
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
     // Confirm the clock-in
     await user.click(screen.getByText('確認打卡'))
 
     // Modal should close
-    expect(screen.queryByText(/確認 陳雅婷 的上班打卡？/)).toBeNull()
+    expect(screen.queryByText(/確認 Grace 的上班打卡？/)).toBeNull()
   })
 
   it('should handle confirm for clockOut action', async () => {
     vi.useRealTimers()
-    resetApi() // Re-reset with real date after restoring real timers
+    resetMockRepositories() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -229,12 +240,12 @@ describe('ClockIn', () => {
     await user.click(screen.getByText('確認下班'))
 
     // Modal should close
-    expect(screen.queryByText(/確認 李美玲 的下班打卡？/)).toBeNull()
+    expect(screen.queryByText(/確認 Mia 的下班打卡？/)).toBeNull()
   })
 
   it('should handle confirm for cancelVacation action via button', async () => {
     vi.useRealTimers()
-    resetApi() // Re-reset with real date after restoring real timers
+    resetMockRepositories() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
@@ -242,34 +253,36 @@ describe('ClockIn', () => {
     await user.click(screen.getByText('取消休假'))
 
     // Modal should open with cancelVacation title
-    const titles = screen.getAllByText(/取消 張大偉 的休假？/)
+    const titles = screen.getAllByText(/取消 David 的休假？/)
     expect(titles.length).toBe(2)
 
     // Confirm the cancellation
     await user.click(screen.getByText('確認取消'))
 
     // Modal should close
-    expect(screen.queryByText(/取消 張大偉 的休假？/)).toBeNull()
+    expect(screen.queryByText(/取消 David 的休假？/)).toBeNull()
   })
 
   it('should handle confirm for vacation action via button', async () => {
     vi.useRealTimers()
-    resetApi() // Re-reset with real date after restoring real timers
+    resetMockRepositories() // Re-reset with real date after restoring real timers
     const user = userEvent.setup()
     render(<ClockIn />)
 
-    // Click 申請休假 button for emp-004
-    await user.click(screen.getByText('申請休假'))
+    // Click 申請休假 button for emp-004 (Grace)
+    const graceCard = screen.getAllByTestId('employee-card')
+      .find(card => within(card).queryByText('Grace'))!
+    await user.click(within(graceCard).getByText('申請休假'))
 
     // Modal should open with vacation title
-    const titles = screen.getAllByText(/確認 陳雅婷 的休假打卡？/)
+    const titles = screen.getAllByText(/確認 Grace 的休假打卡？/)
     expect(titles.length).toBe(2)
 
     // Confirm the vacation
     await user.click(screen.getByText('確認休假'))
 
     // Modal should close
-    expect(screen.queryByText(/確認 陳雅婷 的休假打卡？/)).toBeNull()
+    expect(screen.queryByText(/確認 Grace 的休假打卡？/)).toBeNull()
   })
 
   it('should support keyboard navigation on employee cards', () => {

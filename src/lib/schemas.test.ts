@@ -14,7 +14,7 @@ describe('schemas', () => {
     it('should validate a complete employee', () => {
       const result = employeeSchema.safeParse({
         id: 'emp-001',
-        name: '小明',
+        name: 'Alex',
         status: 'active',
         shiftType: 'regular',
         isAdmin: true,
@@ -41,7 +41,7 @@ describe('schemas', () => {
     it('should reject invalid status', () => {
       const result = employeeSchema.safeParse({
         id: 'emp-001',
-        name: '小明',
+        name: 'Alex',
         status: 'unknown',
         shiftType: 'regular',
         isAdmin: false,
@@ -55,7 +55,7 @@ describe('schemas', () => {
   describe('createEmployeeSchema', () => {
     it('should not require id, createdAt, updatedAt', () => {
       const result = createEmployeeSchema.safeParse({
-        name: '新員工',
+        name: 'New Employee',
         status: 'active',
         shiftType: 'regular',
         isAdmin: false,

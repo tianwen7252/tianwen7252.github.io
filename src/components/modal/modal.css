@@ -37,8 +37,8 @@
   animation: overlay-fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-modal-overlay[data-state='closed'] {
-  animation: overlay-fade-out 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+.glass-modal-overlay.glass-modal-closing {
+  animation: overlay-fade-out 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 /* Content: zoom + fade (like antd Modal) */
@@ -46,8 +46,9 @@
   animation: modal-zoom-in 0.3s cubic-bezier(0.08, 0.82, 0.17, 1);
 }
 
-.glass-modal-content[data-state='closed'] {
-  animation: modal-zoom-out 0.25s cubic-bezier(0.78, 0.14, 0.15, 0.86);
+.glass-modal-content.glass-modal-closing {
+  animation: modal-zoom-out 0.3s cubic-bezier(0.78, 0.14, 0.15, 0.86) forwards;
+  pointer-events: none;
 }
 
 @keyframes overlay-fade-in {
@@ -90,18 +91,34 @@
   }
 }
 
-/* Glassmorphism container entrance */
+/* Glassmorphism container entrance/exit */
 .animate-modal-enter {
   animation: modal-container-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-modal-exit {
+  animation: modal-container-exit 0.25s cubic-bezier(0.78, 0.14, 0.15, 0.86)
+    forwards;
 }
 
 @keyframes modal-container-enter {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.9);
   }
   to {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes modal-container-exit {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
   }
 }

@@ -10,7 +10,7 @@ import { RecordsCalendarView } from './records-calendar-view'
 const employees: readonly Employee[] = [
   {
     id: 'emp-001',
-    name: '王小明',
+    name: 'Alex',
     avatar: 'images/aminals/1308845.png',
     status: 'active',
     shiftType: 'regular',
@@ -22,7 +22,7 @@ const employees: readonly Employee[] = [
   },
   {
     id: 'emp-002',
-    name: '李美玲',
+    name: 'Mia',
     avatar: 'images/aminals/780258.png',
     status: 'active',
     shiftType: 'regular',

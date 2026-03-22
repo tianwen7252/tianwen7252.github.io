@@ -9,7 +9,7 @@ import type { ClockInAction } from './clock-in-modal'
 
 const baseEmployee: Employee = {
   id: 'emp-001',
-  name: '王小明',
+  name: 'Alex',
   avatar: 'images/aminals/1308845.png',
   status: 'active',
   shiftType: 'regular',
@@ -23,7 +23,7 @@ const baseEmployee: Employee = {
 const adminEmployee: Employee = {
   ...baseEmployee,
   id: 'emp-admin',
-  name: '李管理',
+  name: 'Admin Lee',
   isAdmin: true,
 }
 
@@ -72,7 +72,7 @@ describe('ClockInModal', () => {
   it('should show correct title for clockIn action', () => {
     render(<ClockInModal {...defaultProps} action="clockIn" />)
     // Title appears twice: sr-only + visual
-    expect(screen.getAllByText('確認 王小明 的上班打卡？')).toHaveLength(2)
+    expect(screen.getAllByText('確認 Alex 的上班打卡？')).toHaveLength(2)
   })
 
   it('should show correct title for clockOut action', () => {
@@ -83,12 +83,12 @@ describe('ClockInModal', () => {
         attendance={baseAttendance}
       />,
     )
-    expect(screen.getAllByText('確認 王小明 的下班打卡？')).toHaveLength(2)
+    expect(screen.getAllByText('確認 Alex 的下班打卡？')).toHaveLength(2)
   })
 
   it('should show correct title for vacation action', () => {
     render(<ClockInModal {...defaultProps} action="vacation" />)
-    expect(screen.getAllByText('確認 王小明 的休假打卡？')).toHaveLength(2)
+    expect(screen.getAllByText('確認 Alex 的休假打卡？')).toHaveLength(2)
   })
 
   it('should show correct title for cancelVacation action', () => {
@@ -99,13 +99,13 @@ describe('ClockInModal', () => {
         attendance={baseAttendance}
       />,
     )
-    expect(screen.getAllByText('取消 王小明 的休假？')).toHaveLength(2)
+    expect(screen.getAllByText('取消 Alex 的休假？')).toHaveLength(2)
   })
 
   it('should show employee name', () => {
     render(<ClockInModal {...defaultProps} />)
     // Name shown in modal card (distinct from title which also contains name)
-    const nameElements = screen.getAllByText('王小明')
+    const nameElements = screen.getAllByText('Alex')
     expect(nameElements.length).toBeGreaterThanOrEqual(1)
   })
 
@@ -237,7 +237,7 @@ describe('ClockInModal', () => {
 
   it('should not render content when open is false', () => {
     render(<ClockInModal {...defaultProps} open={false} />)
-    expect(screen.queryByText('王小明')).toBeNull()
+    expect(screen.queryByText('Alex')).toBeNull()
   })
 
   it('should show "?? : ??" when cancelVacation attendance has no clockIn', () => {

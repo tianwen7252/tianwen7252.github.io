@@ -6,35 +6,33 @@ import { RecordModal } from './record-modal'
 
 // ─── Mock Services ──────────────────────────────────────────────────────────
 
-vi.mock('@/api', () => ({
-  api: {
-    attendances: {
-      add: vi.fn(() => ({
-        id: 'att-new',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      update: vi.fn(() => ({
-        id: 'att-001',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      remove: vi.fn(() => true),
-    },
-  },
+vi.mock('@/lib/repositories', () => ({
+  getAttendanceRepo: () => ({
+    create: vi.fn(() => ({
+      id: 'att-new',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    update: vi.fn(() => ({
+      id: 'att-001',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    remove: vi.fn(() => true),
+  }),
 }))
 
 // ─── Test Fixtures ──────────────────────────────────────────────────────────
 
 const testEmployee: Employee = {
   id: 'emp-001',
-  name: '王小明',
+  name: 'Alex',
   avatar: 'images/aminals/1308845.png',
   status: 'active',
   shiftType: 'regular',
@@ -99,7 +97,7 @@ describe('RecordModal', () => {
       render(<RecordModal {...defaultAddProps} />)
       const avatar = screen.getByAltText('avatar')
       expect(avatar).toBeTruthy()
-      expect(screen.getByText('王小明')).toBeTruthy()
+      expect(screen.getByText('Alex')).toBeTruthy()
     })
 
     it('should show the date', () => {

@@ -2,7 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffAdmin } from './staff-admin'
-import { resetApi } from '@/api'
+import {
+  getEmployeeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
+
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => getEmployeeRepo(),
+}))
 
 // Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
 // available when vi.mock factory (which is hoisted) executes.
@@ -76,12 +84,12 @@ vi.mock('@/components/avatar-image', () => ({
 
 describe('StaffAdmin — Toast Integration', () => {
   beforeEach(() => {
-    resetApi()
+    resetMockRepositories()
     vi.clearAllMocks()
   })
 
   afterEach(() => {
-    resetApi()
+    resetMockRepositories()
   })
 
   it('should show success toast after adding an employee', async () => {
@@ -91,7 +99,7 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: /新增員工/ }))
 
     const nameInput = screen.getByPlaceholderText('請輸入員工姓名')
-    await user.type(nameInput, '新員工')
+    await user.type(nameInput, 'New Employee')
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 
@@ -106,9 +114,9 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(editButtons[0]!)
 
     const dialog = screen.getByRole('dialog', { name: '編輯員工' })
-    const nameInput = within(dialog).getByDisplayValue('王小明')
+    const nameInput = within(dialog).getByDisplayValue('Alex')
     await user.clear(nameInput)
-    await user.type(nameInput, '王大明')
+    await user.type(nameInput, 'Alexander')
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 

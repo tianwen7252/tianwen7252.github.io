@@ -10,7 +10,7 @@ import { RecordsTableView } from './records-table-view'
 const employees: readonly Employee[] = [
   {
     id: 'emp-001',
-    name: '王小明',
+    name: 'Alex',
     avatar: 'images/aminals/1308845.png',
     status: 'active',
     shiftType: 'regular',
@@ -22,7 +22,7 @@ const employees: readonly Employee[] = [
   },
   {
     id: 'emp-002',
-    name: '李美玲',
+    name: 'Mia',
     avatar: 'images/aminals/780258.png',
     status: 'active',
     shiftType: 'regular',
@@ -114,8 +114,8 @@ describe('RecordsTableView', () => {
 
   it('should render employee headers with avatars', () => {
     render(<RecordsTableView {...defaultProps} />)
-    expect(screen.getByText('王小明')).toBeTruthy()
-    expect(screen.getByText('李美玲')).toBeTruthy()
+    expect(screen.getByText('Alex')).toBeTruthy()
+    expect(screen.getByText('Mia')).toBeTruthy()
     // Avatars rendered as images
     const avatars = screen.getAllByAltText('avatar')
     expect(avatars.length).toBeGreaterThanOrEqual(2)
@@ -237,7 +237,7 @@ describe('RecordsTableView', () => {
   it('should render empty state when dayRows is empty', () => {
     render(<RecordsTableView {...defaultProps} dayRows={[]} />)
     // Table should still render headers but no body rows
-    expect(screen.getByText('王小明')).toBeTruthy()
+    expect(screen.getByText('Alex')).toBeTruthy()
     expect(screen.queryByText('未打卡')).toBeNull()
   })
 })
