@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 import { RecordModal } from './record-modal'
@@ -19,7 +19,7 @@ vi.mock('sonner', () => ({
 // Mock API
 vi.mock('@/lib/repositories', () => ({
   getAttendanceRepo: () => ({
-    create: vi.fn(() => ({
+    create: vi.fn(async () => ({
       id: 'att-new',
       employeeId: 'emp-001',
       date: '2026-03-21',
@@ -27,7 +27,7 @@ vi.mock('@/lib/repositories', () => ({
       clockOut: 1742569200000,
       type: 'regular',
     })),
-    update: vi.fn(() => ({
+    update: vi.fn(async () => ({
       id: 'att-001',
       employeeId: 'emp-001',
       date: '2026-03-21',
@@ -35,7 +35,7 @@ vi.mock('@/lib/repositories', () => ({
       clockOut: 1742569200000,
       type: 'regular',
     })),
-    remove: vi.fn(() => true),
+    remove: vi.fn(async () => true),
   }),
 }))
 
@@ -88,7 +88,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已新增')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已新增')
+    })
   })
 
   it('should show success toast after updating a record', async () => {
@@ -108,7 +110,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已更新')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已更新')
+    })
   })
 
   it('should show success toast after deleting a record', async () => {
@@ -128,7 +132,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '刪除' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已刪除')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已刪除')
+    })
   })
 
   it('should NOT show toast when form validation fails', async () => {

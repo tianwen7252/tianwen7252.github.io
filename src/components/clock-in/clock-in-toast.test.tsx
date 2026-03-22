@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import {
   getEmployeeRepo,
@@ -40,6 +40,11 @@ describe('ClockIn — Toast Integration', () => {
     const user = userEvent.setup()
     render(<ClockIn />)
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getAllByTestId('employee-card').length).toBe(10)
+    })
+
     // Click employee card with no record (emp-004 - Grace)
     const cards = screen.getAllByTestId('employee-card')
     const emp4Card = cards.find(card => within(card).queryByText('Grace'))
@@ -48,7 +53,9 @@ describe('ClockIn — Toast Integration', () => {
     // Confirm clock-in
     await user.click(screen.getByText('確認打卡'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('打卡上班成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('打卡上班成功')
+    })
   })
 
   it('should show success toast after clock-out', async () => {
@@ -56,19 +63,31 @@ describe('ClockIn — Toast Integration', () => {
     const user = userEvent.setup()
     render(<ClockIn />)
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('打卡下班')).toBeTruthy()
+    })
+
     // Click 打卡下班 button for emp-002 (clocked in)
     await user.click(screen.getByText('打卡下班'))
 
     // Confirm clock-out
     await user.click(screen.getByText('確認下班'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('打卡下班成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('打卡下班成功')
+    })
   })
 
   it('should show success toast after vacation', async () => {
     resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getAllByTestId('employee-card').length).toBe(10)
+    })
 
     // Click 申請休假 button for emp-004 (Grace)
     const graceCard = screen.getAllByTestId('employee-card')
@@ -78,7 +97,9 @@ describe('ClockIn — Toast Integration', () => {
     // Confirm vacation
     await user.click(screen.getByText('確認休假'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('休假申請成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('休假申請成功')
+    })
   })
 
   it('should show success toast after cancel vacation', async () => {
@@ -86,19 +107,31 @@ describe('ClockIn — Toast Integration', () => {
     const user = userEvent.setup()
     render(<ClockIn />)
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('取消休假')).toBeTruthy()
+    })
+
     // Click 取消休假 button for emp-003
     await user.click(screen.getByText('取消休假'))
 
     // Confirm cancel vacation
     await user.click(screen.getByText('確認取消'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('已取消休假')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('已取消休假')
+    })
   })
 
   it('should NOT show toast when modal is cancelled', async () => {
     resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getAllByText('打卡上班').length).toBeGreaterThanOrEqual(1)
+    })
 
     // Open modal
     const clockInBtns = screen.getAllByText('打卡上班')

@@ -1,31 +1,29 @@
 /**
  * Tests for AttendanceRepository, focused on the new findByMonth method.
- * Uses a mock Database since SQLite WASM cannot run in Node/Vitest.
+ * Uses a mock AsyncDatabase since SQLite WASM cannot run in Node/Vitest.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import type { Database } from '@/lib/database'
+import type { AsyncDatabase } from '@/lib/worker-database'
 import { createAttendanceRepository } from './attendance-repository'
 
-function createMockDb(): Database {
+function createMockAsyncDb(): AsyncDatabase {
   return {
-    isReady: true,
-    exec: vi.fn(() => ({ rows: [], changes: 0 })),
-    close: vi.fn(),
+    exec: vi.fn(async () => ({ rows: [], changes: 0 })),
   }
 }
 
 describe('AttendanceRepository', () => {
   describe('findByMonth()', () => {
-    let db: Database
+    let db: AsyncDatabase
 
     beforeEach(() => {
-      db = createMockDb()
+      db = createMockAsyncDb()
     })
 
-    it('calls db.exec with correct SQL and LIKE param for single-digit month', () => {
+    it('calls db.exec with correct SQL and LIKE param for single-digit month', async () => {
       const repo = createAttendanceRepository(db)
-      repo.findByMonth(2026, 3)
+      await repo.findByMonth(2026, 3)
 
       expect(db.exec).toHaveBeenCalledWith(
         'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',
@@ -33,9 +31,9 @@ describe('AttendanceRepository', () => {
       )
     })
 
-    it('calls db.exec with correct SQL and LIKE param for double-digit month', () => {
+    it('calls db.exec with correct SQL and LIKE param for double-digit month', async () => {
       const repo = createAttendanceRepository(db)
-      repo.findByMonth(2026, 12)
+      await repo.findByMonth(2026, 12)
 
       expect(db.exec).toHaveBeenCalledWith(
         'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',
@@ -43,22 +41,22 @@ describe('AttendanceRepository', () => {
       )
     })
 
-    it('pads single-digit month to two digits', () => {
+    it('pads single-digit month to two digits', async () => {
       const repo = createAttendanceRepository(db)
-      repo.findByMonth(2025, 1)
+      await repo.findByMonth(2025, 1)
 
       const call = vi.mocked(db.exec).mock.calls[0]
       expect(call![1]).toEqual(['2025-01%'])
     })
 
-    it('returns empty array when no rows match', () => {
+    it('returns empty array when no rows match', async () => {
       const repo = createAttendanceRepository(db)
-      const result = repo.findByMonth(2026, 3)
+      const result = await repo.findByMonth(2026, 3)
 
       expect(result).toEqual([])
     })
 
-    it('maps rows to Attendance objects', () => {
+    it('maps rows to Attendance objects', async () => {
       const mockRows = [
         {
           id: 'att-100',
@@ -78,13 +76,13 @@ describe('AttendanceRepository', () => {
         },
       ]
 
-      vi.mocked(db.exec).mockReturnValueOnce({
+      vi.mocked(db.exec).mockResolvedValueOnce({
         rows: mockRows,
         changes: 0,
       })
 
       const repo = createAttendanceRepository(db)
-      const result = repo.findByMonth(2026, 3)
+      const result = await repo.findByMonth(2026, 3)
 
       expect(result).toHaveLength(2)
       expect(result[0]).toEqual({
@@ -105,9 +103,9 @@ describe('AttendanceRepository', () => {
       })
     })
 
-    it('handles year boundary correctly (January)', () => {
+    it('handles year boundary correctly (January)', async () => {
       const repo = createAttendanceRepository(db)
-      repo.findByMonth(2027, 1)
+      await repo.findByMonth(2027, 1)
 
       expect(db.exec).toHaveBeenCalledWith(
         'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',
@@ -115,9 +113,9 @@ describe('AttendanceRepository', () => {
       )
     })
 
-    it('handles year boundary correctly (December)', () => {
+    it('handles year boundary correctly (December)', async () => {
       const repo = createAttendanceRepository(db)
-      repo.findByMonth(2025, 12)
+      await repo.findByMonth(2025, 12)
 
       expect(db.exec).toHaveBeenCalledWith(
         'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',

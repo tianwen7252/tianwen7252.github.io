@@ -120,7 +120,7 @@ export function RecordModal({
   )
 
   const onValidSubmit = useCallback(
-    (values: RecordFormValues) => {
+    async (values: RecordFormValues) => {
       const isVac = values.attendanceType === 'vacation'
       const clockInTs = buildTimestamp(date, timeStringToDayjs(date, values.clockInTime ?? ''))
       const clockOutTs = isVac
@@ -129,7 +129,7 @@ export function RecordModal({
       const dbType = isVac ? 'paid_leave' : 'regular'
 
       if (mode === 'add') {
-        getAttendanceRepo().create({
+        await getAttendanceRepo().create({
           employeeId: employee.id,
           date,
           clockIn: clockInTs,
@@ -138,7 +138,7 @@ export function RecordModal({
         })
         toast.success(t('records.toastAdded'))
       } else if (record) {
-        getAttendanceRepo().update(record.id, {
+        await getAttendanceRepo().update(record.id, {
           clockIn: clockInTs,
           clockOut: clockOutTs,
           type: dbType,
@@ -155,9 +155,9 @@ export function RecordModal({
     form.handleSubmit(onValidSubmit)()
   }, [form, onValidSubmit])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (record) {
-      getAttendanceRepo().remove(record.id)
+      await getAttendanceRepo().remove(record.id)
       toast.success(t('records.toastDeleted'))
     }
     onSuccess()

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffAdmin } from './staff-admin'
 import {
@@ -103,12 +103,19 @@ describe('StaffAdmin — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+    })
   })
 
   it('should show success toast after updating an employee', async () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
+
+    // Wait for data
+    await waitFor(() => {
+      expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
+    })
 
     const editButtons = screen.getAllByLabelText('編輯')
     await user.click(editButtons[0]!)
@@ -120,12 +127,19 @@ describe('StaffAdmin — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+    })
   })
 
   it('should show success toast after deleting an employee', async () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
+
+    // Wait for data
+    await waitFor(() => {
+      expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
+    })
 
     const deleteButtons = screen.getAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)
@@ -133,7 +147,9 @@ describe('StaffAdmin — Toast Integration', () => {
     const confirmModal = screen.getByTestId('confirm-modal')
     await user.click(within(confirmModal).getByText('confirm-delete'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+    })
   })
 
   it('should NOT show toast when add form validation fails', async () => {
@@ -149,6 +165,11 @@ describe('StaffAdmin — Toast Integration', () => {
   it('should NOT show toast when delete is cancelled', async () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
+
+    // Wait for data
+    await waitFor(() => {
+      expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
+    })
 
     const deleteButtons = screen.getAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)

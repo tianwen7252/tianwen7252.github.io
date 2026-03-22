@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 
@@ -45,19 +45,19 @@ const mockAttendances: Attendance[] = [
 
 const mockRepos = vi.hoisted(() => ({
   employeeRepo: {
-    findByStatus: vi.fn(() => [] as Employee[]),
+    findByStatus: vi.fn(async () => [] as Employee[]),
   },
   attendanceRepo: {
-    findByMonth: vi.fn(() => [] as Attendance[]),
-    create: vi.fn(() => ({
+    findByMonth: vi.fn(async () => [] as Attendance[]),
+    create: vi.fn(async () => ({
       id: 'att-new',
       employeeId: 'emp-001',
       date: '2026-03-21',
       clockIn: 1742536800000,
       type: 'regular' as const,
     })),
-    update: vi.fn(),
-    remove: vi.fn(() => true),
+    update: vi.fn(async () => undefined),
+    remove: vi.fn(async () => true),
   },
 }))
 
@@ -74,8 +74,8 @@ import { Records } from './records'
 describe('Records', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockRepos.employeeRepo.findByStatus.mockReturnValue(mockEmployees)
-    mockRepos.attendanceRepo.findByMonth.mockReturnValue(mockAttendances)
+    mockRepos.employeeRepo.findByStatus.mockResolvedValue(mockEmployees)
+    mockRepos.attendanceRepo.findByMonth.mockResolvedValue(mockAttendances)
   })
 
   it('should render the title', () => {
@@ -116,6 +116,11 @@ describe('Records', () => {
   it('should filter employees by search', async () => {
     const user = userEvent.setup()
     render(<Records />)
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getByText('Alex')).toBeTruthy()
+    })
 
     const searchInput = screen.getByPlaceholderText('搜尋員工姓名')
     await user.type(searchInput, 'Alex')
@@ -174,6 +179,11 @@ describe('Records', () => {
     const user = userEvent.setup()
     render(<Records />)
 
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.getAllByText('未打卡').length).toBeGreaterThan(0)
+    })
+
     // Click on an empty "未打卡" cell to trigger add
     const emptyCells = screen.getAllByText('未打卡')
     if (emptyCells.length > 0) {
@@ -186,6 +196,11 @@ describe('Records', () => {
   it('should open RecordModal when cell interaction triggers edit', async () => {
     const user = userEvent.setup()
     render(<Records />)
+
+    // Wait for data to load
+    await waitFor(() => {
+      expect(screen.queryByText('08:00 - 17:00')).toBeTruthy()
+    })
 
     // Click on an attendance card to trigger edit
     const timeRange = screen.queryByText('08:00 - 17:00')

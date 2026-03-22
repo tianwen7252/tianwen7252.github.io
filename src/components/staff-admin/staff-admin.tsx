@@ -8,6 +8,7 @@ import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { employeeFormSchema } from '@/lib/form-schemas'
 import { getEmployeeRepo } from '@/lib/repositories'
+import { useDbQuery } from '@/hooks/use-db-query'
 import { EmployeeRow } from './employee-row'
 import { EmployeeForm } from './employee-form'
 import { DEFAULT_VALUES, employeeToFormValues } from './staff-admin.types'
@@ -21,8 +22,11 @@ import type { EmployeeFormValues } from '@/lib/form-schemas'
  */
 export function StaffAdmin() {
   const { t } = useTranslation()
-  const [employees, setEmployees] = useState<readonly Employee[]>(() =>
-    getEmployeeRepo().findAll(),
+  const [refreshKey, setRefreshKey] = useState(0)
+  const employees = useDbQuery(
+    () => getEmployeeRepo().findAll(),
+    [refreshKey],
+    [] as Employee[],
   )
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null)
@@ -33,9 +37,9 @@ export function StaffAdmin() {
     defaultValues: DEFAULT_VALUES,
   })
 
-  // Refresh employee list from mock service
+  // Refresh employee list from database
   const refreshEmployees = useCallback(() => {
-    setEmployees(getEmployeeRepo().findAll())
+    setRefreshKey((k) => k + 1)
   }, [])
 
   // Open add modal
@@ -64,7 +68,7 @@ export function StaffAdmin() {
 
   // Submit form (add or update) — called by handleSubmit on valid data
   const onValidSubmit = useCallback(
-    (values: EmployeeFormValues) => {
+    async (values: EmployeeFormValues) => {
       const trimmedName = values.name.trim()
       if (!trimmedName) {
         form.setError('name', {
@@ -76,7 +80,7 @@ export function StaffAdmin() {
 
       if (editingEmployee) {
         // Update existing employee
-        getEmployeeRepo().update(editingEmployee.id, {
+        await getEmployeeRepo().update(editingEmployee.id, {
           name: trimmedName,
           avatar: values.avatar || undefined,
           shiftType: values.shiftType ?? 'regular',
@@ -88,7 +92,7 @@ export function StaffAdmin() {
         toast.success(t('staff.toastUpdated'))
       } else {
         // Generate next employee number
-        const allEmployees = getEmployeeRepo().findAll()
+        const allEmployees = await getEmployeeRepo().findAll()
         const maxNo = allEmployees.reduce((max, e) => {
           const num = parseInt(e.employeeNo?.replace('E', '') ?? '0', 10)
           return num > max ? num : max
@@ -104,7 +108,7 @@ export function StaffAdmin() {
           employeeNo,
           status: 'active',
         }
-        getEmployeeRepo().create(newEmployee)
+        await getEmployeeRepo().create(newEmployee)
         toast.success(t('staff.toastAdded'))
       }
 
@@ -125,9 +129,9 @@ export function StaffAdmin() {
   }, [])
 
   // Confirm deletion
-  const handleDeleteConfirm = useCallback(() => {
+  const handleDeleteConfirm = useCallback(async () => {
     if (deleteTarget) {
-      getEmployeeRepo().remove(deleteTarget.id)
+      await getEmployeeRepo().remove(deleteTarget.id)
       refreshEmployees()
       toast.success(t('staff.toastDeleted'))
     }

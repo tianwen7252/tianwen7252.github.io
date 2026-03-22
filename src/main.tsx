@@ -7,11 +7,13 @@ import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
-import { DEFAULT_CONFIG } from '@/lib/database'
-import { sqliteWasmFactory } from '@/lib/sqlite-wasm'
-import { initSchema } from '@/lib/schema'
+import { ENABLE_SEED_DATA, DELETE_SEED_DATA } from '@/lib/db-config'
+import {
+  createWorkerDatabase,
+  initWorkerDb,
+  waitForWorkerReady,
+} from '@/lib/worker-database'
 import { initRepositories } from '@/lib/repositories'
-import { seedDatabase } from '@/lib/seed-data'
 
 // Initialize i18n before rendering (side-effect import)
 import './lib/i18n'
@@ -28,26 +30,18 @@ if (import.meta.env.DEV) {
 
 const rootElement = document.getElementById('root')!
 
-// Initialize SQLite WASM database, then render the app
+// Initialize SQLite WASM database via Web Worker, then render the app
 async function bootstrap() {
-  // Try OPFS first, fall back to in-memory if OPFS is unavailable
-  let db: Awaited<ReturnType<typeof sqliteWasmFactory.init>>
-  try {
-    db = await sqliteWasmFactory.init(DEFAULT_CONFIG)
-  } catch {
-    console.warn('[DB] OPFS unavailable, falling back to in-memory mode')
-    db = await sqliteWasmFactory.init({ filename: ':memory:', mode: 'memory' })
-  }
-  initSchema(sql => db.exec(sql))
-  initRepositories(db)
-
-  // Seed with sample data if employees table is empty
-  const { rows } = db.exec<{ cnt: number }>(
-    'SELECT COUNT(*) as cnt FROM employees',
+  const worker = new Worker(
+    new URL('./lib/db-worker.ts', import.meta.url),
+    { type: 'module' },
   )
-  if (rows[0]?.cnt === 0) {
-    seedDatabase(db)
-  }
+
+  await waitForWorkerReady(worker)
+  await initWorkerDb(worker, ENABLE_SEED_DATA, DELETE_SEED_DATA)
+
+  const db = createWorkerDatabase(worker)
+  initRepositories(db)
 
   createRoot(rootElement).render(
     <StrictMode>
@@ -59,6 +53,6 @@ async function bootstrap() {
   )
 }
 
-bootstrap().catch(err => {
+bootstrap().catch((err) => {
   rootElement.textContent = `Failed to initialize database: ${err instanceof Error ? err.message : String(err)}`
 })

@@ -16,6 +16,7 @@ import {
   getMonthOptions,
 } from '@/lib/records-utils'
 import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
+import { useDbQuery } from '@/hooks/use-db-query'
 import { RecordsTableView } from './records-table-view'
 import { RecordsCalendarView } from './records-calendar-view'
 import { RecordModal } from '@/components/record-modal'
@@ -57,10 +58,15 @@ export function Records() {
   const currentMonth = now.month() + 1
 
   // Fetch data — refreshKey forces re-computation after mutations
-  const allEmployees = useMemo(() => getEmployeeRepo().findByStatus('active'), [refreshKey])
-  const attendances = useMemo(
+  const allEmployees = useDbQuery(
+    () => getEmployeeRepo().findByStatus('active'),
+    [refreshKey],
+    [] as Employee[],
+  )
+  const attendances = useDbQuery(
     () => getAttendanceRepo().findByMonth(selectedYear, selectedMonth),
     [selectedYear, selectedMonth, refreshKey],
+    [] as Attendance[],
   )
 
   // Filter employees by search

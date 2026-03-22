@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import { Info } from 'lucide-react'
 import { WEEKDAY_SHORT } from '@/lib/records-utils'
 import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
+import { useDbQuery } from '@/hooks/use-db-query'
 import { ClockInModal } from '@/components/clock-in-modal'
 import { EmployeeCard } from './employee-card'
 import { deriveCardAction } from './clock-in-utils'
@@ -45,16 +46,20 @@ export function ClockIn() {
   // Data sources — refreshKey forces re-fetch after mutations
   const [refreshKey, setRefreshKey] = useState(0)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allEmployees = useMemo(() => getEmployeeRepo().findAll(), [refreshKey])
+  const allEmployees = useDbQuery(
+    () => getEmployeeRepo().findAll(),
+    [refreshKey],
+    [] as Employee[],
+  )
   const employees = useMemo(
     () => allEmployees.filter((e) => !e.resignationDate),
     [allEmployees],
   )
 
-  const todayAttendances = useMemo(
+  const todayAttendances = useDbQuery(
     () => getAttendanceRepo().findByDate(today),
     [today, refreshKey],
+    [] as Attendance[],
   )
 
   // Build O(1) lookup from employeeId -> attendance records
@@ -141,7 +146,7 @@ export function ClockIn() {
 
       switch (action) {
         case 'clockIn':
-          getAttendanceRepo().create({
+          await getAttendanceRepo().create({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -152,7 +157,7 @@ export function ClockIn() {
 
         case 'clockOut':
           if (record?.id != null) {
-            getAttendanceRepo().update(record.id, {
+            await getAttendanceRepo().update(record.id, {
               clockOut: now.valueOf(),
             })
           }
@@ -160,7 +165,7 @@ export function ClockIn() {
           break
 
         case 'vacation':
-          getAttendanceRepo().create({
+          await getAttendanceRepo().create({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -171,7 +176,7 @@ export function ClockIn() {
 
         case 'cancelVacation':
           if (record?.id != null) {
-            getAttendanceRepo().remove(record.id)
+            await getAttendanceRepo().remove(record.id)
           }
           toast.success(t('clockIn.toastCancelVacation'))
           break

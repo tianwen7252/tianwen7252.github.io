@@ -1,7 +1,7 @@
 /**
  * Mock repository implementations for testing.
  * Provides in-memory CRUD backed by seed data arrays,
- * with the same method signatures as real SQLite repositories.
+ * with the same async method signatures as real SQLite repositories.
  */
 
 import { nanoid } from 'nanoid'
@@ -24,23 +24,23 @@ resetState()
 // ─── Mock Employee Repository ──────────────────────────────────────────────
 
 export const mockEmployeeRepo = {
-  findAll(): Employee[] {
+  async findAll(): Promise<Employee[]> {
     return [...employees]
   },
 
-  findById(id: string): Employee | undefined {
+  async findById(id: string): Promise<Employee | undefined> {
     return employees.find(e => e.id === id)
   },
 
-  findByStatus(status: 'active' | 'inactive'): Employee[] {
+  async findByStatus(status: 'active' | 'inactive'): Promise<Employee[]> {
     return employees.filter(e => e.status === status)
   },
 
-  findByEmployeeNo(employeeNo: string): Employee | undefined {
+  async findByEmployeeNo(employeeNo: string): Promise<Employee | undefined> {
     return employees.find(e => e.employeeNo === employeeNo)
   },
 
-  create(data: CreateEmployee): Employee {
+  async create(data: CreateEmployee): Promise<Employee> {
     const now = Date.now()
     const newEmployee: Employee = {
       ...data,
@@ -52,7 +52,7 @@ export const mockEmployeeRepo = {
     return newEmployee
   },
 
-  update(id: string, data: Partial<CreateEmployee>): Employee | undefined {
+  async update(id: string, data: Partial<CreateEmployee>): Promise<Employee | undefined> {
     const index = employees.findIndex(e => e.id === id)
     if (index === -1) return undefined
 
@@ -65,7 +65,7 @@ export const mockEmployeeRepo = {
     return updated
   },
 
-  remove(id: string): boolean {
+  async remove(id: string): Promise<boolean> {
     const before = employees.length
     employees = employees.filter(e => e.id !== id)
     return employees.length < before
@@ -75,32 +75,32 @@ export const mockEmployeeRepo = {
 // ─── Mock Attendance Repository ────────────────────────────────────────────
 
 export const mockAttendanceRepo = {
-  findAll(): Attendance[] {
+  async findAll(): Promise<Attendance[]> {
     return [...attendances]
   },
 
-  findById(id: string): Attendance | undefined {
+  async findById(id: string): Promise<Attendance | undefined> {
     return attendances.find(a => a.id === id)
   },
 
-  findByEmployeeId(employeeId: string): Attendance[] {
+  async findByEmployeeId(employeeId: string): Promise<Attendance[]> {
     return attendances.filter(a => a.employeeId === employeeId)
   },
 
-  findByDate(date: string): Attendance[] {
+  async findByDate(date: string): Promise<Attendance[]> {
     return attendances.filter(a => a.date === date)
   },
 
-  findByEmployeeAndDate(employeeId: string, date: string): Attendance | undefined {
+  async findByEmployeeAndDate(employeeId: string, date: string): Promise<Attendance | undefined> {
     return attendances.find(a => a.employeeId === employeeId && a.date === date)
   },
 
-  findByMonth(year: number, month: number): Attendance[] {
+  async findByMonth(year: number, month: number): Promise<Attendance[]> {
     const prefix = `${year}-${String(month).padStart(2, '0')}`
     return attendances.filter(a => a.date.startsWith(prefix))
   },
 
-  create(data: CreateAttendance): Attendance {
+  async create(data: CreateAttendance): Promise<Attendance> {
     const newAttendance: Attendance = {
       ...data,
       id: nanoid(),
@@ -109,10 +109,10 @@ export const mockAttendanceRepo = {
     return newAttendance
   },
 
-  update(
+  async update(
     id: string,
     data: Partial<Pick<Attendance, 'clockIn' | 'clockOut' | 'type'>>,
-  ): Attendance | undefined {
+  ): Promise<Attendance | undefined> {
     const index = attendances.findIndex(a => a.id === id)
     if (index === -1) return undefined
 
@@ -124,7 +124,7 @@ export const mockAttendanceRepo = {
     return updated
   },
 
-  remove(id: string): boolean {
+  async remove(id: string): Promise<boolean> {
     const before = attendances.length
     attendances = attendances.filter(a => a.id !== id)
     return attendances.length < before

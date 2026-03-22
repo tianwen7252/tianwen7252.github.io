@@ -1,19 +1,20 @@
 import { nanoid } from 'nanoid'
-import type { Database } from '@/lib/database'
-import type { Repository } from './types'
+import type { AsyncDatabase } from '@/lib/worker-database'
 import type { Attendance, CreateAttendance } from '@/lib/schemas'
 
-export interface AttendanceRepository extends Repository<
-  Attendance,
-  CreateAttendance
-> {
-  findByEmployeeId(employeeId: string): Attendance[]
-  findByDate(date: string): Attendance[]
+export interface AttendanceRepository {
+  findAll(): Promise<Attendance[]>
+  findById(id: string): Promise<Attendance | undefined>
+  findByEmployeeId(employeeId: string): Promise<Attendance[]>
+  findByDate(date: string): Promise<Attendance[]>
   findByEmployeeAndDate(
     employeeId: string,
     date: string,
-  ): Attendance | undefined
-  findByMonth(year: number, month: number): Attendance[]
+  ): Promise<Attendance | undefined>
+  findByMonth(year: number, month: number): Promise<Attendance[]>
+  create(data: CreateAttendance): Promise<Attendance>
+  update(id: string, data: Partial<CreateAttendance>): Promise<Attendance | undefined>
+  remove(id: string): Promise<boolean>
 }
 
 function toAttendance(row: Record<string, unknown>): Attendance {
@@ -27,17 +28,17 @@ function toAttendance(row: Record<string, unknown>): Attendance {
   }
 }
 
-export function createAttendanceRepository(db: Database): AttendanceRepository {
+export function createAttendanceRepository(db: AsyncDatabase): AttendanceRepository {
   return {
-    findAll() {
-      const result = db.exec<Record<string, unknown>>(
+    async findAll() {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances ORDER BY date DESC',
       )
       return result.rows.map(toAttendance)
     },
 
-    findById(id: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findById(id: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances WHERE id = ?',
         [id],
       )
@@ -45,24 +46,24 @@ export function createAttendanceRepository(db: Database): AttendanceRepository {
       return row ? toAttendance(row) : undefined
     },
 
-    findByEmployeeId(employeeId: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findByEmployeeId(employeeId: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances WHERE employee_id = ? ORDER BY date DESC',
         [employeeId],
       )
       return result.rows.map(toAttendance)
     },
 
-    findByDate(date: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findByDate(date: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances WHERE date = ?',
         [date],
       )
       return result.rows.map(toAttendance)
     },
 
-    findByEmployeeAndDate(employeeId: string, date: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findByEmployeeAndDate(employeeId: string, date: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances WHERE employee_id = ? AND date = ?',
         [employeeId, date],
       )
@@ -70,18 +71,18 @@ export function createAttendanceRepository(db: Database): AttendanceRepository {
       return row ? toAttendance(row) : undefined
     },
 
-    findByMonth(year: number, month: number) {
+    async findByMonth(year: number, month: number) {
       const prefix = `${year}-${String(month).padStart(2, '0')}%`
-      const result = db.exec<Record<string, unknown>>(
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM attendances WHERE date LIKE ? ORDER BY date DESC',
         [prefix],
       )
       return result.rows.map(toAttendance)
     },
 
-    create(data: CreateAttendance) {
+    async create(data: CreateAttendance) {
       const id = nanoid()
-      db.exec(
+      await db.exec(
         `INSERT INTO attendances (id, employee_id, date, clock_in, clock_out, type)
          VALUES (?, ?, ?, ?, ?, ?)`,
         [
@@ -93,11 +94,12 @@ export function createAttendanceRepository(db: Database): AttendanceRepository {
           data.type,
         ],
       )
-      return this.findById(id)!
+      const created = await this.findById(id)
+      return created!
     },
 
-    update(id: string, data: Partial<CreateAttendance>) {
-      const existing = this.findById(id)
+    async update(id: string, data: Partial<CreateAttendance>) {
+      const existing = await this.findById(id)
       if (!existing) return undefined
 
       const fields: string[] = []
@@ -119,15 +121,16 @@ export function createAttendanceRepository(db: Database): AttendanceRepository {
       if (fields.length === 0) return existing
 
       values.push(id)
-      db.exec(
+      await db.exec(
         `UPDATE attendances SET ${fields.join(', ')} WHERE id = ?`,
         values,
       )
-      return this.findById(id)!
+      const updated = await this.findById(id)
+      return updated!
     },
 
-    remove(id: string) {
-      db.exec('DELETE FROM attendances WHERE id = ?', [id])
+    async remove(id: string) {
+      await db.exec('DELETE FROM attendances WHERE id = ?', [id])
       return true
     },
   }

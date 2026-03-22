@@ -4,7 +4,7 @@
  * getEmployeeRepo() / getAttendanceRepo() anywhere.
  */
 
-import type { Database } from '@/lib/database'
+import type { AsyncDatabase } from '@/lib/worker-database'
 import {
   createEmployeeRepository,
   type EmployeeRepository,
@@ -18,10 +18,10 @@ let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
 
 /**
- * Initialize both repositories with the given database instance.
+ * Initialize both repositories with the given async database instance.
  * Must be called before any getXxxRepo() calls.
  */
-export function initRepositories(db: Database): void {
+export function initRepositories(db: AsyncDatabase): void {
   employeeRepo = createEmployeeRepository(db)
   attendanceRepo = createAttendanceRepository(db)
 }

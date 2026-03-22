@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import type { Database } from '@/lib/database'
+import type { AsyncDatabase } from '@/lib/worker-database'
 
 // Will import from the provider module once it exists
 import {
@@ -14,11 +14,9 @@ import {
   resetRepositories,
 } from './provider'
 
-function createMockDb(): Database {
+function createMockAsyncDb(): AsyncDatabase {
   return {
-    isReady: true,
-    exec: vi.fn(() => ({ rows: [], changes: 0 })),
-    close: vi.fn(),
+    exec: vi.fn(async () => ({ rows: [], changes: 0 })),
   }
 }
 
@@ -36,7 +34,7 @@ describe('Repository Provider', () => {
     })
 
     it('returns a repository after initRepositories() is called', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       const repo = getEmployeeRepo()
@@ -51,7 +49,7 @@ describe('Repository Provider', () => {
     })
 
     it('returns the same instance on repeated calls', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       const repo1 = getEmployeeRepo()
@@ -68,7 +66,7 @@ describe('Repository Provider', () => {
     })
 
     it('returns a repository after initRepositories() is called', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       const repo = getAttendanceRepo()
@@ -85,7 +83,7 @@ describe('Repository Provider', () => {
     })
 
     it('returns the same instance on repeated calls', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       const repo1 = getAttendanceRepo()
@@ -96,7 +94,7 @@ describe('Repository Provider', () => {
 
   describe('resetRepositories()', () => {
     it('causes getEmployeeRepo() to throw after reset', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       // Sanity: getter works before reset
@@ -110,7 +108,7 @@ describe('Repository Provider', () => {
     })
 
     it('causes getAttendanceRepo() to throw after reset', () => {
-      const db = createMockDb()
+      const db = createMockAsyncDb()
       initRepositories(db)
 
       expect(() => getAttendanceRepo()).not.toThrow()
@@ -123,8 +121,8 @@ describe('Repository Provider', () => {
     })
 
     it('allows re-initialization after reset', () => {
-      const db1 = createMockDb()
-      const db2 = createMockDb()
+      const db1 = createMockAsyncDb()
+      const db2 = createMockAsyncDb()
 
       initRepositories(db1)
       // Verify repo works before reset
@@ -141,8 +139,8 @@ describe('Repository Provider', () => {
   })
 
   describe('initRepositories()', () => {
-    it('can be called with a valid Database object', () => {
-      const db = createMockDb()
+    it('can be called with a valid AsyncDatabase object', () => {
+      const db = createMockAsyncDb()
       expect(() => initRepositories(db)).not.toThrow()
     })
   })
