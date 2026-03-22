@@ -5,4 +5,5 @@ export type {
   ConfirmModalProps,
   GradientVariant,
   ShineColor,
+  ShineColorPreset,
 } from './modal.types'

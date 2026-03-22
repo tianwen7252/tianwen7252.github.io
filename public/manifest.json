@@ -1,20 +1,17 @@
 {
-  "short_name": "天文點餐",
-  "name": "天文點餐系統",
+  "name": "天文 POS",
+  "short_name": "天文",
+  "version": "2.0.0-alpha",
+  "description": "天文餐廳 POS 點餐管理系統",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#7f956a",
+  "background_color": "#fdfdfd",
   "icons": [
-    {
-      "src": "/images/taianwen-icon.png",
-      "type": "image/png",
-      "sizes": "24x24"
-    },
-    {
-      "src": "/images/taianwen-icon.png",
-      "type": "image/png",
-      "sizes": "512x512"
-    }
+    { "src": "/icons/icon-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512x512.png", "sizes": "512x512", "type": "image/png" }
   ],
-  "start_url": ".?v=0.0.31",
-  "orientation": "landscape",
-  "background_color": "#fff",
-  "display": "fullscreen"
+  "categories": ["business", "productivity"]
 }
