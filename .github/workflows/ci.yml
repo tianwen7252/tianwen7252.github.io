@@ -40,6 +40,8 @@ jobs:
         run: pnpm run build
 
   e2e:
+    # Disabled until Playwright is added to dependencies (V2-14)
+    if: false
     name: E2E Tests (Playwright)
     runs-on: ubuntu-latest
     permissions:
