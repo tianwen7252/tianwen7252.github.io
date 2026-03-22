@@ -29,6 +29,7 @@ vi.mock('sonner', () => ({
 describe('ClockIn — Toast Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    resetMockRepositories()
   })
 
   afterEach(() => {
@@ -36,17 +37,14 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after clock-in', async () => {
-    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
 
     // Click employee card with no record (emp-004 - Grace)
-    const cards = screen.getAllByTestId('employee-card')
     const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
@@ -59,14 +57,11 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after clock-out', async () => {
-    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('打卡下班')).toBeTruthy()
-    })
+    await screen.findByText('打卡下班')
 
     // Click 打卡下班 button for emp-002 (clocked in)
     await user.click(screen.getByText('打卡下班'))
@@ -80,18 +75,15 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after vacation', async () => {
-    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const allCards = await screen.findAllByTestId('employee-card')
+    expect(allCards).toHaveLength(10)
 
     // Click 申請休假 button for emp-004 (Grace)
-    const graceCard = screen.getAllByTestId('employee-card')
-      .find(card => within(card).queryByText('Grace'))!
+    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
     await user.click(within(graceCard).getByText('申請休假'))
 
     // Confirm vacation
@@ -103,14 +95,11 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should show success toast after cancel vacation', async () => {
-    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('取消休假')).toBeTruthy()
-    })
+    await screen.findByText('取消休假')
 
     // Click 取消休假 button for emp-003
     await user.click(screen.getByText('取消休假'))
@@ -124,14 +113,11 @@ describe('ClockIn — Toast Integration', () => {
   })
 
   it('should NOT show toast when modal is cancelled', async () => {
-    resetMockRepositories()
     const user = userEvent.setup()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByText('打卡上班').length).toBeGreaterThanOrEqual(1)
-    })
+    await screen.findAllByText('打卡上班')
 
     // Open modal
     const clockInBtns = screen.getAllByText('打卡上班')

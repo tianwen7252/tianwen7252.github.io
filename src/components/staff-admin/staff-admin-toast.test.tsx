@@ -113,11 +113,7 @@ describe('StaffAdmin — Toast Integration', () => {
     render(<StaffAdmin />)
 
     // Wait for data
-    await waitFor(() => {
-      expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-    })
-
-    const editButtons = screen.getAllByLabelText('編輯')
+    const editButtons = await screen.findAllByLabelText('編輯')
     await user.click(editButtons[0]!)
 
     const dialog = screen.getByRole('dialog', { name: '編輯員工' })
@@ -137,11 +133,7 @@ describe('StaffAdmin — Toast Integration', () => {
     render(<StaffAdmin />)
 
     // Wait for data
-    await waitFor(() => {
-      expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
-    })
-
-    const deleteButtons = screen.getAllByLabelText('刪除')
+    const deleteButtons = await screen.findAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)
 
     const confirmModal = screen.getByTestId('confirm-modal')
@@ -167,11 +159,7 @@ describe('StaffAdmin — Toast Integration', () => {
     render(<StaffAdmin />)
 
     // Wait for data
-    await waitFor(() => {
-      expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
-    })
-
-    const deleteButtons = screen.getAllByLabelText('刪除')
+    const deleteButtons = await screen.findAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)
 
     const confirmModal = screen.getByTestId('confirm-modal')

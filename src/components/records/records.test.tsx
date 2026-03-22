@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 
@@ -118,9 +118,7 @@ describe('Records', () => {
     render(<Records />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Alex')).toBeTruthy()
-    })
+    await screen.findByText('Alex')
 
     const searchInput = screen.getByPlaceholderText('搜尋員工姓名')
     await user.type(searchInput, 'Alex')
@@ -180,17 +178,12 @@ describe('Records', () => {
     render(<Records />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByText('未打卡').length).toBeGreaterThan(0)
-    })
+    const emptyCells = await screen.findAllByText('未打卡')
 
     // Click on an empty "未打卡" cell to trigger add
-    const emptyCells = screen.getAllByText('未打卡')
-    if (emptyCells.length > 0) {
-      await user.click(emptyCells[0]!)
-      // RecordModal should appear with add title
-      expect(screen.getAllByText('新增打卡紀錄')).toHaveLength(2)
-    }
+    await user.click(emptyCells[0]!)
+    // RecordModal should appear with add title
+    expect(screen.getAllByText('新增打卡紀錄')).toHaveLength(2)
   })
 
   it('should open RecordModal when cell interaction triggers edit', async () => {
@@ -198,15 +191,10 @@ describe('Records', () => {
     render(<Records />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.queryByText('08:00 - 17:00')).toBeTruthy()
-    })
+    const timeRange = await screen.findByText('08:00 - 17:00')
 
     // Click on an attendance card to trigger edit
-    const timeRange = screen.queryByText('08:00 - 17:00')
-    if (timeRange) {
-      await user.click(timeRange)
-      expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
-    }
+    await user.click(timeRange)
+    expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
   })
 })

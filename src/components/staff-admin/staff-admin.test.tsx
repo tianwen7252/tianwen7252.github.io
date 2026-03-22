@@ -82,48 +82,38 @@ describe('StaffAdmin', () => {
   describe('employee table rendering', () => {
     it('should render the employee table with column headers', async () => {
       render(<StaffAdmin />)
-      await waitFor(() => {
-        expect(screen.getByText('員工編號')).toBeTruthy()
-        expect(screen.getByText('員工')).toBeTruthy()
-        expect(screen.getByText('入職日期')).toBeTruthy()
-        expect(screen.getByText('離職日期')).toBeTruthy()
-        expect(screen.getByText('班別')).toBeTruthy()
-        expect(screen.getByText('操作')).toBeTruthy()
-      })
+      await screen.findByText('員工編號')
+      expect(screen.getByText('員工')).toBeTruthy()
+      expect(screen.getByText('入職日期')).toBeTruthy()
+      expect(screen.getByText('離職日期')).toBeTruthy()
+      expect(screen.getByText('班別')).toBeTruthy()
+      expect(screen.getByText('操作')).toBeTruthy()
     })
 
     it('should render employees from mock data', async () => {
       render(<StaffAdmin />)
-      await waitFor(() => {
-        expect(screen.getByText('Alex')).toBeTruthy()
-        expect(screen.getByText('Mia')).toBeTruthy()
-        expect(screen.getByText('David')).toBeTruthy()
-      })
+      await screen.findByText('Alex')
+      expect(screen.getByText('Mia')).toBeTruthy()
+      expect(screen.getByText('David')).toBeTruthy()
     })
 
     it('should show admin tag for admin employees', async () => {
       render(<StaffAdmin />)
       // Alex is admin
-      await waitFor(() => {
-        expect(screen.getByText('管理員')).toBeTruthy()
-      })
+      await screen.findByText('管理員')
     })
 
     it('should show resigned tag for inactive employees', async () => {
       render(<StaffAdmin />)
       // Mark is inactive (resigned)
-      await waitFor(() => {
-        expect(screen.getByText('已離職')).toBeTruthy()
-      })
+      await screen.findByText('已離職')
     })
 
     it('should show shift type labels', async () => {
       render(<StaffAdmin />)
       // Multiple employees have regular shift type
-      await waitFor(() => {
-        expect(screen.getAllByText('常日班').length).toBeGreaterThan(0)
-        expect(screen.getAllByText('排班').length).toBeGreaterThan(0)
-      })
+      await screen.findAllByText('常日班')
+      expect(screen.getAllByText('排班').length).toBeGreaterThan(0)
     })
 
     it('should render add employee button', () => {
@@ -160,9 +150,7 @@ describe('StaffAdmin', () => {
       await user.click(submitButton)
 
       // Should show validation error
-      await waitFor(() => {
-        expect(screen.getByText('請輸入員工姓名')).toBeTruthy()
-      })
+      await screen.findByText('請輸入員工姓名')
     })
 
     it('should add employee and close modal on valid submit', async () => {
@@ -170,9 +158,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for initial data
-      await waitFor(() => {
-        expect(screen.getByText('Alex')).toBeTruthy()
-      })
+      await screen.findByText('Alex')
       const initialCount = (await getEmployeeRepo().findAll()).length
 
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
@@ -190,9 +176,7 @@ describe('StaffAdmin', () => {
       })
 
       // New employee should appear in the table
-      await waitFor(() => {
-        expect(screen.getByText('New Employee')).toBeTruthy()
-      })
+      await screen.findByText('New Employee')
       expect((await getEmployeeRepo().findAll()).length).toBe(initialCount + 1)
     })
   })
@@ -203,12 +187,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-      })
-
-      // Click first edit button (for Alex)
-      const editButtons = screen.getAllByLabelText('編輯')
+      const editButtons = await screen.findAllByLabelText('編輯')
       await user.click(editButtons[0]!)
 
       const dialog = screen.getByRole('dialog', { name: '編輯員工' })
@@ -223,23 +202,13 @@ describe('StaffAdmin', () => {
       const user = userEvent.setup()
       render(<StaffAdmin />)
 
-      // Wait for data
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /新增員工/ })).toBeTruthy()
-      })
-
       // Open add modal — resignation date input should NOT exist
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
       expect(screen.queryByLabelText('離職日期')).toBeNull()
       await user.click(screen.getByText('close-modal'))
 
       // Wait for data to reload
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-      })
-
-      // Open edit modal — resignation date input SHOULD exist
-      const editButtons = screen.getAllByLabelText('編輯')
+      const editButtons = await screen.findAllByLabelText('編輯')
       await user.click(editButtons[0]!)
       expect(screen.getByLabelText('離職日期')).toBeTruthy()
     })
@@ -249,12 +218,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-      })
-
-      // Open edit modal for first employee (Alex)
-      const editButtons = screen.getAllByLabelText('編輯')
+      const editButtons = await screen.findAllByLabelText('編輯')
       await user.click(editButtons[0]!)
 
       const dialog = screen.getByRole('dialog', { name: '編輯員工' })
@@ -284,11 +248,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-      })
-
-      const editButtons = screen.getAllByLabelText('編輯')
+      const editButtons = await screen.findAllByLabelText('編輯')
       await user.click(editButtons[0]!)
 
       const dialog = screen.getByRole('dialog', { name: '編輯員工' })
@@ -298,9 +258,7 @@ describe('StaffAdmin', () => {
       await user.click(screen.getByRole('button', { name: '確認' }))
 
       // Should show validation error
-      await waitFor(() => {
-        expect(screen.getByText('請輸入員工姓名')).toBeTruthy()
-      })
+      await screen.findByText('請輸入員工姓名')
     })
 
     it('should clear name error when user starts typing', async () => {
@@ -310,9 +268,7 @@ describe('StaffAdmin', () => {
       // Open add modal and trigger validation error
       await user.click(screen.getByRole('button', { name: /新增員工/ }))
       await user.click(screen.getByRole('button', { name: '確認' }))
-      await waitFor(() => {
-        expect(screen.getByText('請輸入員工姓名')).toBeTruthy()
-      })
+      await screen.findByText('請輸入員工姓名')
 
       // Start typing — error should clear
       const nameInput = screen.getByPlaceholderText('請輸入員工姓名')
@@ -325,12 +281,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('編輯').length).toBeGreaterThan(0)
-      })
-
-      // Edit second employee (active, no resignation date)
-      const editButtons = screen.getAllByLabelText('編輯')
+      const editButtons = await screen.findAllByLabelText('編輯')
       await user.click(editButtons[1]!)
 
       // Set a resignation date using the labeled input
@@ -354,11 +305,7 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
-      })
-
-      const deleteButtons = screen.getAllByLabelText('刪除')
+      const deleteButtons = await screen.findAllByLabelText('刪除')
       await user.click(deleteButtons[0]!)
 
       expect(screen.getByTestId('confirm-modal')).toBeTruthy()
@@ -369,12 +316,9 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
-      })
+      const deleteButtons = await screen.findAllByLabelText('刪除')
 
       const initialCount = (await getEmployeeRepo().findAll()).length
-      const deleteButtons = screen.getAllByLabelText('刪除')
       await user.click(deleteButtons[0]!)
 
       // Confirm deletion
@@ -391,12 +335,9 @@ describe('StaffAdmin', () => {
       render(<StaffAdmin />)
 
       // Wait for data
-      await waitFor(() => {
-        expect(screen.getAllByLabelText('刪除').length).toBeGreaterThan(0)
-      })
+      const deleteButtons = await screen.findAllByLabelText('刪除')
 
       const initialCount = (await getEmployeeRepo().findAll()).length
-      const deleteButtons = screen.getAllByLabelText('刪除')
       await user.click(deleteButtons[0]!)
 
       // Cancel deletion
@@ -451,10 +392,8 @@ describe('StaffAdmin', () => {
     it('should display dash for missing dates', async () => {
       render(<StaffAdmin />)
       // Most employees without resignation date should show "-"
-      await waitFor(() => {
-        const dashes = screen.getAllByText('-')
-        expect(dashes.length).toBeGreaterThan(0)
-      })
+      const dashes = await screen.findAllByText('-')
+      expect(dashes.length).toBeGreaterThan(0)
     })
   })
 

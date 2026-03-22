@@ -209,9 +209,7 @@ describe('RecordModal', () => {
       // Click save
       await user.click(screen.getByRole('button', { name: '儲存' }))
 
-      await waitFor(() => {
-        expect(screen.getByText('下班時間必須晚於上班時間')).toBeTruthy()
-      })
+      await screen.findByText('下班時間必須晚於上班時間')
     })
   })
 

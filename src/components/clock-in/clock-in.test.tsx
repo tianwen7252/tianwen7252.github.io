@@ -27,16 +27,20 @@ afterEach(() => {
   resetMockRepositories()
 })
 
+// ─── Helper ─────────────────────────────────────────────────────────────────
+
+// Create a userEvent instance that works with fake timers
+const createUser = () =>
+  userEvent.setup({ advanceTimers: vi.advanceTimersByTime.bind(vi) })
+
 // ─── Tests ──────────────────────────────────────────────────────────────────
 
 describe('ClockIn', () => {
   it('should render employee cards from mock data', async () => {
     render(<ClockIn />)
     // Active employees: emp-001 through emp-004, emp-006 through emp-011 (emp-005 is inactive/resigned)
-    await waitFor(() => {
-      const cards = screen.getAllByTestId('employee-card')
-      expect(cards.length).toBe(10)
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
   })
 
   it('should show today date header', async () => {
@@ -51,59 +55,46 @@ describe('ClockIn', () => {
     render(<ClockIn />)
     // emp-004 (Grace) has no attendance record
     // Multiple employees (emp-007 through emp-011) also have no attendance
-    await waitFor(() => {
-      expect(screen.getAllByText('未打卡').length).toBeGreaterThanOrEqual(1)
-    })
+    await screen.findAllByText('未打卡')
   })
 
   it('should show correct status badge for clocked-in employee (正在上班)', async () => {
     render(<ClockIn />)
     // emp-002 has clockIn but no clockOut
-    await waitFor(() => {
-      expect(screen.getByText('正在上班')).toBeTruthy()
-    })
+    await screen.findByText('正在上班')
   })
 
   it('should show correct status badge for clocked-out employee (已下班)', async () => {
     render(<ClockIn />)
     // emp-001 and emp-006 have both clockIn and clockOut
-    await waitFor(() => {
-      expect(screen.getAllByText('已下班').length).toBeGreaterThanOrEqual(1)
-    })
+    await screen.findAllByText('已下班')
   })
 
   it('should show correct status badge for vacation employee (休假)', async () => {
     render(<ClockIn />)
     // emp-003 has type: 'paid_leave'
-    await waitFor(() => {
-      expect(screen.getByText('休假')).toBeTruthy()
-    })
+    await screen.findByText('休假')
   })
 
   it('should show employee names', async () => {
     render(<ClockIn />)
-    await waitFor(() => {
-      expect(screen.getByText('Alex')).toBeTruthy()
-      expect(screen.getByText('Mia')).toBeTruthy()
-      expect(screen.getByText('David')).toBeTruthy()
-      expect(screen.getByText('Grace')).toBeTruthy()
-    })
+    await screen.findByText('Alex')
+    expect(screen.getByText('Mia')).toBeTruthy()
+    expect(screen.getByText('David')).toBeTruthy()
+    expect(screen.getByText('Grace')).toBeTruthy()
   })
 
   it('should show admin label for admin employees', async () => {
     render(<ClockIn />)
     // Only emp-001 (Alex) is admin
-    await waitFor(() => {
-      const adminLabels = screen.getAllByText('管理員')
-      expect(adminLabels).toHaveLength(1)
-    })
+    const adminLabels = await screen.findAllByText('管理員')
+    expect(adminLabels).toHaveLength(1)
   })
 
   it('should not show resigned employees', async () => {
     render(<ClockIn />)
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
     // emp-005 (Mark) is inactive with resignationDate
     expect(screen.queryByText('Mark')).toBeNull()
   })
@@ -125,35 +116,28 @@ describe('ClockIn', () => {
   it('should show total hours for employees with complete shifts', async () => {
     render(<ClockIn />)
     // emp-001 worked 8:00-17:00=9h, emp-006 worked 10:00-14:30=4.5h
-    await waitFor(() => {
-      expect(screen.getAllByText(/總工時/).length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText(/9h/)).toBeTruthy()
-    })
+    await screen.findByText(/9h/)
+    expect(screen.getAllByText(/總工時/).length).toBeGreaterThanOrEqual(1)
   })
 
   it('should show clock times for regular employees', async () => {
     render(<ClockIn />)
-    await waitFor(() => {
-      // emp-001: clockIn 08:00, clockOut 17:00
-      // Note: 08:00 appears for both emp-001 (regular) and emp-003 (vacation)
-      const times08 = screen.getAllByText(/08:00/)
-      expect(times08.length).toBeGreaterThanOrEqual(1)
-      expect(screen.getByText(/17:00/)).toBeTruthy()
-    })
+    // emp-001: clockIn 08:00, clockOut 17:00
+    // Note: 08:00 appears for both emp-001 (regular) and emp-003 (vacation)
+    await screen.findByText(/17:00/)
+    const times08 = screen.getAllByText(/08:00/)
+    expect(times08.length).toBeGreaterThanOrEqual(1)
   })
 
   it('should open ClockInModal when employee card is clicked', async () => {
-    vi.useRealTimers()
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
 
     // Click on emp-004 card (no record) — should open modal with clockIn action
-    const cards = screen.getAllByTestId('employee-card')
     const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     expect(emp4Card).toBeTruthy()
     await user.click(emp4Card!)
@@ -164,15 +148,11 @@ describe('ClockIn', () => {
   })
 
   it('should open ClockInModal when action button is clicked', async () => {
-    vi.useRealTimers()
-    resetMockRepositories() // Re-reset with real date after restoring real timers
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('打卡下班')).toBeTruthy()
-    })
+    await screen.findByText('打卡下班')
 
     // Click the 打卡下班 button for emp-002
     await user.click(screen.getByText('打卡下班'))
@@ -183,14 +163,11 @@ describe('ClockIn', () => {
   })
 
   it('should close modal when cancel is clicked', async () => {
-    vi.useRealTimers()
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByText('打卡上班').length).toBeGreaterThanOrEqual(1)
-    })
+    await screen.findAllByText('打卡上班')
 
     // Open modal — click first 打卡上班 button
     const clockInBtns = screen.getAllByText('打卡上班')
@@ -215,9 +192,7 @@ describe('ClockIn', () => {
     }
 
     render(<ClockIn />)
-    await waitFor(() => {
-      expect(screen.getByText(/目前無員工資料/)).toBeTruthy()
-    })
+    await screen.findByText(/目前無員工資料/)
   })
 
   it('should show hint text about clicking employee to clock in', () => {
@@ -256,18 +231,14 @@ describe('ClockIn', () => {
   })
 
   it('should handle confirm for clockIn action and close modal', async () => {
-    vi.useRealTimers()
-    resetMockRepositories() // Re-reset with real date after restoring real timers
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
 
     // Click emp-004 card (no record) to open clockIn modal
-    const cards = screen.getAllByTestId('employee-card')
     const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
@@ -281,15 +252,11 @@ describe('ClockIn', () => {
   })
 
   it('should handle confirm for clockOut action', async () => {
-    vi.useRealTimers()
-    resetMockRepositories() // Re-reset with real date after restoring real timers
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('打卡下班')).toBeTruthy()
-    })
+    await screen.findByText('打卡下班')
 
     // Click 打卡下班 button for emp-002 (clocked in)
     await user.click(screen.getByText('打卡下班'))
@@ -304,15 +271,11 @@ describe('ClockIn', () => {
   })
 
   it('should handle confirm for cancelVacation action via button', async () => {
-    vi.useRealTimers()
-    resetMockRepositories() // Re-reset with real date after restoring real timers
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('取消休假')).toBeTruthy()
-    })
+    await screen.findByText('取消休假')
 
     // Click 取消休假 button for emp-003
     await user.click(screen.getByText('取消休假'))
@@ -331,19 +294,15 @@ describe('ClockIn', () => {
   })
 
   it('should handle confirm for vacation action via button', async () => {
-    vi.useRealTimers()
-    resetMockRepositories() // Re-reset with real date after restoring real timers
-    const user = userEvent.setup()
+    const user = createUser()
     render(<ClockIn />)
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getAllByTestId('employee-card').length).toBe(10)
-    })
+    const allCards = await screen.findAllByTestId('employee-card')
+    expect(allCards).toHaveLength(10)
 
     // Click 申請休假 button for emp-004 (Grace)
-    const graceCard = screen.getAllByTestId('employee-card')
-      .find(card => within(card).queryByText('Grace'))!
+    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
     await user.click(within(graceCard).getByText('申請休假'))
 
     // Modal should open with vacation title
@@ -361,13 +320,11 @@ describe('ClockIn', () => {
 
   it('should support keyboard navigation on employee cards', async () => {
     render(<ClockIn />)
-    await waitFor(() => {
-      const cards = screen.getAllByTestId('employee-card')
-      // All cards should have role="button" and tabIndex
-      for (const card of cards) {
-        expect(card.getAttribute('role')).toBe('button')
-        expect(card.getAttribute('tabindex')).toBe('0')
-      }
-    })
+    const cards = await screen.findAllByTestId('employee-card')
+    // All cards should have role="button" and tabIndex
+    for (const card of cards) {
+      expect(card.getAttribute('role')).toBe('button')
+      expect(card.getAttribute('tabindex')).toBe('0')
+    }
   })
 })
