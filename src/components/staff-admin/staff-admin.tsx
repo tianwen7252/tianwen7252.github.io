@@ -61,7 +61,7 @@ export function StaffAdmin() {
   const [deleteTarget, setDeleteTarget] = useState<Employee | null>(null)
 
   const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeFormSchema) as never,
+    resolver: zodResolver(employeeFormSchema),
     defaultValues: DEFAULT_VALUES,
   })
 
@@ -111,8 +111,8 @@ export function StaffAdmin() {
         api.employees.update(editingEmployee.id, {
           name: trimmedName,
           avatar: values.avatar || undefined,
-          shiftType: values.shiftType,
-          isAdmin: values.isAdmin,
+          shiftType: values.shiftType ?? 'regular',
+          isAdmin: values.isAdmin ?? false,
           hireDate: values.hireDate || undefined,
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
@@ -130,8 +130,8 @@ export function StaffAdmin() {
         const newEmployee: CreateEmployee = {
           name: trimmedName,
           avatar: values.avatar || undefined,
-          shiftType: values.shiftType,
-          isAdmin: values.isAdmin,
+          shiftType: values.shiftType ?? 'regular',
+          isAdmin: values.isAdmin ?? false,
           hireDate: values.hireDate || undefined,
           employeeNo,
           status: 'active',

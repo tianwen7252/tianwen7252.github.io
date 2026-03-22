@@ -4,7 +4,7 @@
  * Uses React Hook Form + Zod for form validation.
  */
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -88,7 +88,7 @@ export function RecordModal({
     defaultValues: buildFormValues(record),
   })
 
-  const { watch, setValue, formState: { errors }, setError, clearErrors } = form
+  const { watch, setValue, formState: { errors }, clearErrors } = form
 
   const attendanceType = watch('attendanceType')
   const clockInTime = watch('clockInTime') ?? ''
@@ -97,17 +97,16 @@ export function RecordModal({
   const isVacation = attendanceType === ATTENDANCE_TYPES.VACATION
 
   // Re-initialize form when modal opens or record changes
-  // Using the "derive state from props" pattern to avoid stale closures
-  const prevOpenRef = { current: open }
-  const prevRecordRef = { current: record }
+  const prevOpenRef = useRef(open)
+  const prevRecordRef = useRef(record)
 
-  if (open !== prevOpenRef.current || record !== prevRecordRef.current) {
-    prevOpenRef.current = open
-    prevRecordRef.current = record
-    if (open) {
+  useEffect(() => {
+    if (open && (open !== prevOpenRef.current || record !== prevRecordRef.current)) {
       form.reset(buildFormValues(record))
     }
-  }
+    prevOpenRef.current = open
+    prevRecordRef.current = record
+  }, [open, record, form])
 
   const handleTypeChange = useCallback(
     (type: 'regular' | 'vacation') => {
@@ -120,61 +119,41 @@ export function RecordModal({
     [setValue, clearErrors],
   )
 
-  const handleSave = useCallback(() => {
-    // Manual cross-field validation for clockOut > clockIn
-    if (!isVacation && clockInTime && clockOutTime) {
-      const clockInDayjs = timeStringToDayjs(date, clockInTime)
-      const clockOutDayjs = timeStringToDayjs(date, clockOutTime)
-      if (
-        clockInDayjs &&
-        clockOutDayjs &&
-        clockOutDayjs.isBefore(clockInDayjs)
-      ) {
-        setError('clockOutTime', {
-          type: 'manual',
-          message: t('records.clockOutAfterClockIn'),
+  const onValidSubmit = useCallback(
+    (values: RecordFormValues) => {
+      const isVac = values.attendanceType === 'vacation'
+      const clockInTs = buildTimestamp(date, timeStringToDayjs(date, values.clockInTime ?? ''))
+      const clockOutTs = isVac
+        ? undefined
+        : buildTimestamp(date, timeStringToDayjs(date, values.clockOutTime ?? ''))
+      const dbType = isVac ? 'paid_leave' : 'regular'
+
+      if (mode === 'add') {
+        api.attendances.add({
+          employeeId: employee.id,
+          date,
+          clockIn: clockInTs,
+          clockOut: clockOutTs,
+          type: dbType,
         })
-        return
+        toast.success(t('records.toastAdded'))
+      } else if (record) {
+        api.attendances.update(record.id, {
+          clockIn: clockInTs,
+          clockOut: clockOutTs,
+          type: dbType,
+        })
+        toast.success(t('records.toastUpdated'))
       }
-    }
 
-    const clockInTs = buildTimestamp(date, timeStringToDayjs(date, clockInTime))
-    const clockOutTs = isVacation
-      ? undefined
-      : buildTimestamp(date, timeStringToDayjs(date, clockOutTime))
-    const dbType = isVacation ? 'paid_leave' : 'regular'
+      onSuccess()
+    },
+    [date, mode, employee.id, record, onSuccess, t],
+  )
 
-    if (mode === 'add') {
-      api.attendances.add({
-        employeeId: employee.id,
-        date,
-        clockIn: clockInTs,
-        clockOut: clockOutTs,
-        type: dbType,
-      })
-      toast.success(t('records.toastAdded'))
-    } else if (record) {
-      api.attendances.update(record.id, {
-        clockIn: clockInTs,
-        clockOut: clockOutTs,
-        type: dbType,
-      })
-      toast.success(t('records.toastUpdated'))
-    }
-
-    onSuccess()
-  }, [
-    isVacation,
-    clockInTime,
-    clockOutTime,
-    date,
-    mode,
-    employee.id,
-    record,
-    onSuccess,
-    setError,
-    t,
-  ])
+  const handleSave = useCallback(() => {
+    form.handleSubmit(onValidSubmit)()
+  }, [form, onValidSubmit])
 
   const handleDelete = useCallback(() => {
     if (record) {
@@ -199,7 +178,7 @@ export function RecordModal({
         <div className="flex w-full justify-center gap-3">
           <button
             type="button"
-            role="button"
+
             onClick={onCancel}
             className="flex-1 rounded-lg border border-border bg-white/50 px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >
@@ -208,7 +187,7 @@ export function RecordModal({
           {mode === 'edit' && (
             <button
               type="button"
-              role="button"
+  
               onClick={handleDelete}
               className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
             >
@@ -217,7 +196,7 @@ export function RecordModal({
           )}
           <button
             type="button"
-            role="button"
+
             onClick={handleSave}
             className="flex-1 rounded-lg bg-[#7f956a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >
