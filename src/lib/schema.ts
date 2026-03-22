@@ -23,6 +23,7 @@ export const CREATE_TABLES = `
     id TEXT PRIMARY KEY,
     type_id TEXT NOT NULL,
     name TEXT NOT NULL,
+    image TEXT,
     price REAL NOT NULL DEFAULT 0,
     priority INTEGER NOT NULL DEFAULT 0,
     on_market INTEGER NOT NULL DEFAULT 1,

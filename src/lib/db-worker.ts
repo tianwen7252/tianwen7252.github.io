@@ -7,7 +7,7 @@
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
 import { CREATE_TABLES } from '@/lib/schema'
-import { SEED_EMPLOYEES, buildSeedAttendances } from '@/lib/seed-data'
+import { seedDatabase } from '@/lib/seed-data'
 import type { WorkerRequest, WorkerResponse } from '@/lib/worker-database'
 import type { Database } from '@/lib/database'
 
@@ -43,45 +43,6 @@ function wrapSahPoolDb(rawDb: unknown): Database {
   }
 }
 
-/** Seed employees and attendances into an empty database */
-function seedData(database: Database): void {
-  for (const emp of SEED_EMPLOYEES) {
-    database.exec(
-      `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        emp.id,
-        emp.name,
-        emp.avatar ?? null,
-        emp.status,
-        emp.shiftType,
-        emp.employeeNo ?? null,
-        emp.isAdmin ? 1 : 0,
-        emp.hireDate ?? null,
-        emp.resignationDate ?? null,
-        emp.createdAt,
-        emp.updatedAt,
-      ],
-    )
-  }
-
-  const attendances = buildSeedAttendances()
-  for (const att of attendances) {
-    database.exec(
-      `INSERT INTO attendances (id, employee_id, date, clock_in, clock_out, type)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [
-        att.id,
-        att.employeeId,
-        att.date,
-        att.clockIn ?? null,
-        att.clockOut ?? null,
-        att.type,
-      ],
-    )
-  }
-}
-
 // ─── Post typed messages ────────────────────────────────────────────────────
 
 function post(msg: WorkerResponse): void {
@@ -110,6 +71,8 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       // Clear all data if deleteSeedData is enabled (takes precedence)
       if (msg.deleteSeedData) {
         db.exec('DELETE FROM attendances')
+        db.exec('DELETE FROM commondities')
+        db.exec('DELETE FROM commondity_types')
         db.exec('DELETE FROM employees')
       }
 
@@ -119,7 +82,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           'SELECT COUNT(*) as cnt FROM employees',
         )
         if (result.rows[0]?.cnt === 0) {
-          seedData(db)
+          seedDatabase(db)
         }
       }
 

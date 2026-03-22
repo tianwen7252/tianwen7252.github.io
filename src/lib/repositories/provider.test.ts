@@ -6,11 +6,13 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import type { AsyncDatabase } from '@/lib/worker-database'
 
-// Will import from the provider module once it exists
 import {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
+  getCommondityTypeRepo,
+  getCommondityRepo,
+  getOrderRepo,
   resetRepositories,
 } from './provider'
 
@@ -92,6 +94,98 @@ describe('Repository Provider', () => {
     })
   })
 
+  describe('getCommondityTypeRepo()', () => {
+    it('throws before initRepositories() is called', () => {
+      expect(() => getCommondityTypeRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('returns a repository after initRepositories() is called', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo = getCommondityTypeRepo()
+      expect(repo).toBeDefined()
+      expect(typeof repo.findAll).toBe('function')
+      expect(typeof repo.findById).toBe('function')
+      expect(typeof repo.findByTypeId).toBe('function')
+      expect(typeof repo.create).toBe('function')
+      expect(typeof repo.remove).toBe('function')
+    })
+
+    it('returns the same instance on repeated calls', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo1 = getCommondityTypeRepo()
+      const repo2 = getCommondityTypeRepo()
+      expect(repo1).toBe(repo2)
+    })
+  })
+
+  describe('getCommondityRepo()', () => {
+    it('throws before initRepositories() is called', () => {
+      expect(() => getCommondityRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('returns a repository after initRepositories() is called', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo = getCommondityRepo()
+      expect(repo).toBeDefined()
+      expect(typeof repo.findAll).toBe('function')
+      expect(typeof repo.findById).toBe('function')
+      expect(typeof repo.findByTypeId).toBe('function')
+      expect(typeof repo.findOnMarket).toBe('function')
+      expect(typeof repo.create).toBe('function')
+      expect(typeof repo.update).toBe('function')
+      expect(typeof repo.remove).toBe('function')
+    })
+
+    it('returns the same instance on repeated calls', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo1 = getCommondityRepo()
+      const repo2 = getCommondityRepo()
+      expect(repo1).toBe(repo2)
+    })
+  })
+
+  describe('getOrderRepo()', () => {
+    it('throws before initRepositories() is called', () => {
+      expect(() => getOrderRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('returns a repository after initRepositories() is called', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo = getOrderRepo()
+      expect(repo).toBeDefined()
+      expect(typeof repo.findAll).toBe('function')
+      expect(typeof repo.findById).toBe('function')
+      expect(typeof repo.findByDateRange).toBe('function')
+      expect(typeof repo.create).toBe('function')
+      expect(typeof repo.getNextOrderNumber).toBe('function')
+    })
+
+    it('returns the same instance on repeated calls', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo1 = getOrderRepo()
+      const repo2 = getOrderRepo()
+      expect(repo1).toBe(repo2)
+    })
+  })
+
   describe('resetRepositories()', () => {
     it('causes getEmployeeRepo() to throw after reset', () => {
       const db = createMockAsyncDb()
@@ -116,6 +210,45 @@ describe('Repository Provider', () => {
       resetRepositories()
 
       expect(() => getAttendanceRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('causes getCommondityTypeRepo() to throw after reset', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      expect(() => getCommondityTypeRepo()).not.toThrow()
+
+      resetRepositories()
+
+      expect(() => getCommondityTypeRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('causes getCommondityRepo() to throw after reset', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      expect(() => getCommondityRepo()).not.toThrow()
+
+      resetRepositories()
+
+      expect(() => getCommondityRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('causes getOrderRepo() to throw after reset', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      expect(() => getOrderRepo()).not.toThrow()
+
+      resetRepositories()
+
+      expect(() => getOrderRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })

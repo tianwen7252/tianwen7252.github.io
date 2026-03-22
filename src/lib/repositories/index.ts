@@ -8,8 +8,23 @@ export {
   type AttendanceRepository,
 } from './attendance-repository'
 export {
+  createCommondityTypeRepository,
+  type CommondityTypeRepository,
+} from './commondity-type-repository'
+export {
+  createCommondityRepository,
+  type CommondityRepository,
+} from './commondity-repository'
+export {
+  createOrderRepository,
+  type OrderRepository,
+} from './order-repository'
+export {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
+  getCommondityTypeRepo,
+  getCommondityRepo,
+  getOrderRepo,
   resetRepositories,
 } from './provider'

@@ -5,7 +5,7 @@
  */
 
 import dayjs from 'dayjs'
-import type { Employee, Attendance } from '@/lib/schemas'
+import type { Employee, Attendance, CommondityType, Commondity } from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 
 // ─── Seed Employees ─────────────────────────────────────────────────────────
@@ -21,7 +21,7 @@ export const SEED_EMPLOYEES: readonly Employee[] = [
     isAdmin: true,
     hireDate: '2024-01-15',
     createdAt: Date.now() - 86400000 * 365,
-    updatedAt: Date.now() - 86400000 * 30,
+    updatedAt: 1700000000000,
   },
   {
     id: 'emp-002',
@@ -32,7 +32,7 @@ export const SEED_EMPLOYEES: readonly Employee[] = [
     employeeNo: 'E002',
     isAdmin: false,
     hireDate: '2024-03-01',
-    createdAt: Date.now() - 86400000 * 300,
+    createdAt: 17000000000000,
     updatedAt: Date.now() - 86400000 * 15,
   },
   {
@@ -68,7 +68,7 @@ export const SEED_EMPLOYEES: readonly Employee[] = [
     employeeNo: 'E006',
     isAdmin: false,
     hireDate: '2025-11-01',
-    createdAt: Date.now() - 86400000 * 30,
+    createdAt: 1700000000000,
     updatedAt: Date.now() - 86400000 * 1,
   },
   {
@@ -194,6 +194,217 @@ export function buildSeedAttendances(): readonly Attendance[] {
   ]
 }
 
+// ─── Seed Commondity Types ──────────────────────────────────────────────────
+
+export const SEED_COMMONDITY_TYPES: readonly CommondityType[] = [
+  {
+    id: 'ct-001',
+    typeId: 'bento',
+    type: 'bento',
+    label: '便當',
+    color: '',
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'ct-002',
+    typeId: 'single',
+    type: 'single',
+    label: '單點',
+    color: '',
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'ct-003',
+    typeId: 'drink',
+    type: 'drink',
+    label: '飲料',
+    color: '',
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'ct-004',
+    typeId: 'dumpling',
+    type: 'dumpling',
+    label: '水餃',
+    color: '',
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+] as const
+
+// ─── Seed Commondities ─────────────────────────────────────────────────────
+
+export const SEED_COMMONDITIES: readonly Commondity[] = [
+  {
+    id: 'com-001',
+    typeId: 'bento',
+    name: '滷肉便當',
+    image: 'images/commodities/lu-rou.png',
+    price: 100,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-002',
+    typeId: 'bento',
+    name: '炸雞腿便當',
+    image: 'images/commodities/fried-chicken.png',
+    price: 130,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-003',
+    typeId: 'bento',
+    name: '排骨便當',
+    image: 'images/commodities/pai-gu.png',
+    price: 120,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-004',
+    typeId: 'bento',
+    name: '鯖魚便當',
+    image: 'images/commodities/mackerel.png',
+    price: 140,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-005',
+    typeId: 'bento',
+    name: '燒肉便當',
+    image: 'images/commodities/shao-rou.png',
+    price: 125,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-006',
+    typeId: 'bento',
+    name: '炸豬排便當',
+    image: 'images/commodities/pork-cutlet.png',
+    price: 135,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-007',
+    typeId: 'bento',
+    name: '烤肉便當',
+    image: 'images/commodities/bbq-pork.png',
+    price: 115,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-008',
+    typeId: 'bento',
+    name: '紅燒肉便當',
+    image: 'images/commodities/braised-pork.png',
+    price: 120,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-009',
+    typeId: 'bento',
+    name: '嫩煎雞胸便當',
+    image: 'images/commodities/chicken-breast.png',
+    price: 150,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-010',
+    typeId: 'bento',
+    name: '泰式打拋豬便當',
+    image: 'images/commodities/thai-basil.png',
+    price: 145,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-011',
+    typeId: 'bento',
+    name: '酥炸鱈魚便當',
+    image: 'images/commodities/fried-cod.png',
+    price: 160,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-012',
+    typeId: 'bento',
+    name: '招牌便當',
+    image: 'images/commodities/signature.png',
+    price: 115,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-013',
+    typeId: 'bento',
+    name: '素食珍寶便當',
+    image: 'images/commodities/veggie.png',
+    price: 120,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-014',
+    typeId: 'bento',
+    name: '蒜泥白肉便當',
+    image: 'images/commodities/garlic-pork.png',
+    price: 130,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+  {
+    id: 'com-015',
+    typeId: 'bento',
+    name: '咖哩雞便當',
+    image: 'images/commodities/curry-chicken.png',
+    price: 115,
+    priority: 0,
+    onMarket: true,
+    createdAt: 1700000000000,
+    updatedAt: 1700000000000,
+  },
+] as const
+
 // ─── Database Seeding ───────────────────────────────────────────────────────
 
 /**
@@ -235,6 +446,44 @@ export function seedDatabase(db: Database): void {
         att.clockIn ?? null,
         att.clockOut ?? null,
         att.type,
+      ],
+    )
+  }
+
+  // Insert commondity types
+  for (const ct of SEED_COMMONDITY_TYPES) {
+    db.exec(
+      `INSERT INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ct.id,
+        ct.typeId,
+        ct.type,
+        ct.label,
+        ct.color,
+        ct.createdAt,
+        ct.updatedAt,
+      ],
+    )
+  }
+
+  // Insert commondities
+  for (const com of SEED_COMMONDITIES) {
+    db.exec(
+      `INSERT INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        com.id,
+        com.typeId,
+        com.name,
+        com.image ?? null,
+        com.price,
+        com.priority,
+        com.onMarket ? 1 : 0,
+        com.hideOnMode ?? null,
+        com.editor ?? null,
+        com.createdAt,
+        com.updatedAt,
       ],
     )
   }
