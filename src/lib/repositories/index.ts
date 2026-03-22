@@ -1,4 +1,4 @@
-export type { Repository } from './types'
+export type { Repository, AsyncRepository } from './types'
 export {
   createEmployeeRepository,
   type EmployeeRepository,
@@ -7,3 +7,9 @@ export {
   createAttendanceRepository,
   type AttendanceRepository,
 } from './attendance-repository'
+export {
+  initRepositories,
+  getEmployeeRepo,
+  getAttendanceRepo,
+  resetRepositories,
+} from './provider'

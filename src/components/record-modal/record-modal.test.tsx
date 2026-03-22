@@ -1,40 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 import { RecordModal } from './record-modal'
 
 // ─── Mock Services ──────────────────────────────────────────────────────────
 
-vi.mock('@/api', () => ({
-  api: {
-    attendances: {
-      add: vi.fn(() => ({
-        id: 'att-new',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      update: vi.fn(() => ({
-        id: 'att-001',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      remove: vi.fn(() => true),
-    },
-  },
+vi.mock('@/lib/repositories', () => ({
+  getAttendanceRepo: () => ({
+    create: vi.fn(async () => ({
+      id: 'att-new',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    update: vi.fn(async () => ({
+      id: 'att-001',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    remove: vi.fn(async () => true),
+  }),
 }))
 
 // ─── Test Fixtures ──────────────────────────────────────────────────────────
 
 const testEmployee: Employee = {
   id: 'emp-001',
-  name: '王小明',
+  name: 'Alex',
   avatar: 'images/aminals/1308845.png',
   status: 'active',
   shiftType: 'regular',
@@ -99,7 +97,7 @@ describe('RecordModal', () => {
       render(<RecordModal {...defaultAddProps} />)
       const avatar = screen.getByAltText('avatar')
       expect(avatar).toBeTruthy()
-      expect(screen.getByText('王小明')).toBeTruthy()
+      expect(screen.getByText('Alex')).toBeTruthy()
     })
 
     it('should show the date', () => {
@@ -211,7 +209,7 @@ describe('RecordModal', () => {
       // Click save
       await user.click(screen.getByRole('button', { name: '儲存' }))
 
-      expect(screen.getByText('下班時間必須晚於上班時間')).toBeTruthy()
+      await screen.findByText('下班時間必須晚於上班時間')
     })
   })
 
@@ -227,7 +225,9 @@ describe('RecordModal', () => {
 
       await user.click(screen.getByRole('button', { name: '儲存' }))
 
-      expect(onSuccess).toHaveBeenCalledOnce()
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce()
+      })
     })
 
     it('should call onSuccess after successful save in edit mode', async () => {
@@ -237,7 +237,9 @@ describe('RecordModal', () => {
 
       await user.click(screen.getByRole('button', { name: '儲存' }))
 
-      expect(onSuccess).toHaveBeenCalledOnce()
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce()
+      })
     })
 
     it('should call onCancel when cancel button is clicked', async () => {
@@ -257,7 +259,9 @@ describe('RecordModal', () => {
 
       await user.click(screen.getByRole('button', { name: '刪除' }))
 
-      expect(onSuccess).toHaveBeenCalledOnce()
+      await waitFor(() => {
+        expect(onSuccess).toHaveBeenCalledOnce()
+      })
     })
   })
 

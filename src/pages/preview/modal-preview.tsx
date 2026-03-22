@@ -16,19 +16,19 @@ const CONFIRM_DEMOS: Record<
   }
 > = {
   clockIn: {
-    title: '確認 小明 的上班打卡？',
+    title: '確認 Alex 的上班打卡？',
     variant: 'green',
     confirmText: '確認打卡',
     shineColor: 'green',
   },
   clockOut: {
-    title: '確認 小明 的下班打卡？',
+    title: '確認 Alex 的下班打卡？',
     variant: 'warm',
     confirmText: '確認下班',
     shineColor: 'purple',
   },
   vacation: {
-    title: '確認 小明 的休假打卡？',
+    title: '確認 Alex 的休假打卡？',
     variant: 'red',
     confirmText: '確認休假',
     shineColor: 'red',
@@ -104,7 +104,7 @@ export function ModalPreview() {
                 marginBottom: 4,
               }}
             >
-              小明
+              Alex
             </div>
             <div
               style={{
@@ -224,7 +224,7 @@ export function ModalPreview() {
                 </label>
                 <input
                   type="text"
-                  defaultValue="小明"
+                  defaultValue="Alex"
                   className="w-full rounded-lg border border-input bg-white/60 px-3 py-2 text-sm"
                 />
               </div>
@@ -283,7 +283,7 @@ export function ModalPreview() {
                 marginBottom: 4,
               }}
             >
-              小明
+              Alex
             </div>
             <div
               style={{

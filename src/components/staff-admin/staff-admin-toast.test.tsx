@@ -1,8 +1,16 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StaffAdmin } from './staff-admin'
-import { resetApi } from '@/api'
+import {
+  getEmployeeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
+
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => getEmployeeRepo(),
+}))
 
 // Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
 // available when vi.mock factory (which is hoisted) executes.
@@ -76,12 +84,12 @@ vi.mock('@/components/avatar-image', () => ({
 
 describe('StaffAdmin — Toast Integration', () => {
   beforeEach(() => {
-    resetApi()
+    resetMockRepositories()
     vi.clearAllMocks()
   })
 
   afterEach(() => {
-    resetApi()
+    resetMockRepositories()
   })
 
   it('should show success toast after adding an employee', async () => {
@@ -91,41 +99,49 @@ describe('StaffAdmin — Toast Integration', () => {
     await user.click(screen.getByRole('button', { name: /新增員工/ }))
 
     const nameInput = screen.getByPlaceholderText('請輸入員工姓名')
-    await user.type(nameInput, '新員工')
+    await user.type(nameInput, 'New Employee')
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+    })
   })
 
   it('should show success toast after updating an employee', async () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
 
-    const editButtons = screen.getAllByLabelText('編輯')
+    // Wait for data
+    const editButtons = await screen.findAllByLabelText('編輯')
     await user.click(editButtons[0]!)
 
     const dialog = screen.getByRole('dialog', { name: '編輯員工' })
-    const nameInput = within(dialog).getByDisplayValue('王小明')
+    const nameInput = within(dialog).getByDisplayValue('Alex')
     await user.clear(nameInput)
-    await user.type(nameInput, '王大明')
+    await user.type(nameInput, 'Alexander')
 
     await user.click(screen.getByRole('button', { name: '確認' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+    })
   })
 
   it('should show success toast after deleting an employee', async () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
 
-    const deleteButtons = screen.getAllByLabelText('刪除')
+    // Wait for data
+    const deleteButtons = await screen.findAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)
 
     const confirmModal = screen.getByTestId('confirm-modal')
     await user.click(within(confirmModal).getByText('confirm-delete'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+    })
   })
 
   it('should NOT show toast when add form validation fails', async () => {
@@ -142,7 +158,8 @@ describe('StaffAdmin — Toast Integration', () => {
     const user = userEvent.setup()
     render(<StaffAdmin />)
 
-    const deleteButtons = screen.getAllByLabelText('刪除')
+    // Wait for data
+    const deleteButtons = await screen.findAllByLabelText('刪除')
     await user.click(deleteButtons[0]!)
 
     const confirmModal = screen.getByTestId('confirm-modal')

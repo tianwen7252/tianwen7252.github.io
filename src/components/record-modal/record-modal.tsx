@@ -15,7 +15,7 @@ import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
 import { buildTimestamp } from '@/lib/attendance-utils'
 import { recordFormSchema } from '@/lib/form-schemas'
-import { api } from '@/api'
+import { getAttendanceRepo } from '@/lib/repositories'
 import { cn } from '@/lib/cn'
 import type { Employee, Attendance } from '@/lib/schemas'
 import type { RecordFormValues } from '@/lib/form-schemas'
@@ -120,7 +120,7 @@ export function RecordModal({
   )
 
   const onValidSubmit = useCallback(
-    (values: RecordFormValues) => {
+    async (values: RecordFormValues) => {
       const isVac = values.attendanceType === 'vacation'
       const clockInTs = buildTimestamp(date, timeStringToDayjs(date, values.clockInTime ?? ''))
       const clockOutTs = isVac
@@ -129,7 +129,7 @@ export function RecordModal({
       const dbType = isVac ? 'paid_leave' : 'regular'
 
       if (mode === 'add') {
-        api.attendances.add({
+        await getAttendanceRepo().create({
           employeeId: employee.id,
           date,
           clockIn: clockInTs,
@@ -138,7 +138,7 @@ export function RecordModal({
         })
         toast.success(t('records.toastAdded'))
       } else if (record) {
-        api.attendances.update(record.id, {
+        await getAttendanceRepo().update(record.id, {
           clockIn: clockInTs,
           clockOut: clockOutTs,
           type: dbType,
@@ -155,9 +155,9 @@ export function RecordModal({
     form.handleSubmit(onValidSubmit)()
   }, [form, onValidSubmit])
 
-  const handleDelete = useCallback(() => {
+  const handleDelete = useCallback(async () => {
     if (record) {
-      api.attendances.remove(record.id)
+      await getAttendanceRepo().remove(record.id)
       toast.success(t('records.toastDeleted'))
     }
     onSuccess()
@@ -187,7 +187,7 @@ export function RecordModal({
           {mode === 'edit' && (
             <button
               type="button"
-  
+
               onClick={handleDelete}
               className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
             >

@@ -12,6 +12,10 @@ export default defineConfig({
     environment: 'happy-dom',
     setupFiles: ['src/test/setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    pool: 'forks',
+    forks: {
+      singleFork: true,
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'lcov'],

@@ -1,14 +1,15 @@
 import { nanoid } from 'nanoid'
-import type { Database } from '@/lib/database'
-import type { Repository } from './types'
+import type { AsyncDatabase } from '@/lib/worker-database'
 import type { Employee, CreateEmployee } from '@/lib/schemas'
 
-export interface EmployeeRepository extends Repository<
-  Employee,
-  CreateEmployee
-> {
-  findByStatus(status: 'active' | 'inactive'): Employee[]
-  findByEmployeeNo(employeeNo: string): Employee | undefined
+export interface EmployeeRepository {
+  findAll(): Promise<Employee[]>
+  findById(id: string): Promise<Employee | undefined>
+  findByStatus(status: 'active' | 'inactive'): Promise<Employee[]>
+  findByEmployeeNo(employeeNo: string): Promise<Employee | undefined>
+  create(data: CreateEmployee): Promise<Employee>
+  update(id: string, data: Partial<CreateEmployee>): Promise<Employee | undefined>
+  remove(id: string): Promise<boolean>
 }
 
 /**
@@ -34,17 +35,17 @@ function toEmployee(row: Record<string, unknown>): Employee {
   }
 }
 
-export function createEmployeeRepository(db: Database): EmployeeRepository {
+export function createEmployeeRepository(db: AsyncDatabase): EmployeeRepository {
   return {
-    findAll() {
-      const result = db.exec<Record<string, unknown>>(
+    async findAll() {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM employees ORDER BY employee_no ASC',
       )
       return result.rows.map(toEmployee)
     },
 
-    findById(id: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findById(id: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM employees WHERE id = ?',
         [id],
       )
@@ -52,16 +53,16 @@ export function createEmployeeRepository(db: Database): EmployeeRepository {
       return row ? toEmployee(row) : undefined
     },
 
-    findByStatus(status: 'active' | 'inactive') {
-      const result = db.exec<Record<string, unknown>>(
+    async findByStatus(status: 'active' | 'inactive') {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM employees WHERE status = ? ORDER BY employee_no ASC',
         [status],
       )
       return result.rows.map(toEmployee)
     },
 
-    findByEmployeeNo(employeeNo: string) {
-      const result = db.exec<Record<string, unknown>>(
+    async findByEmployeeNo(employeeNo: string) {
+      const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM employees WHERE employee_no = ?',
         [employeeNo],
       )
@@ -69,10 +70,10 @@ export function createEmployeeRepository(db: Database): EmployeeRepository {
       return row ? toEmployee(row) : undefined
     },
 
-    create(data: CreateEmployee) {
+    async create(data: CreateEmployee) {
       const id = nanoid()
       const now = Date.now()
-      db.exec(
+      await db.exec(
         `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
@@ -89,11 +90,12 @@ export function createEmployeeRepository(db: Database): EmployeeRepository {
           now,
         ],
       )
-      return this.findById(id)!
+      const created = await this.findById(id)
+      return created!
     },
 
-    update(id: string, data: Partial<CreateEmployee>) {
-      const existing = this.findById(id)
+    async update(id: string, data: Partial<CreateEmployee>) {
+      const existing = await this.findById(id)
       if (!existing) return undefined
 
       const fields: string[] = []
@@ -138,12 +140,13 @@ export function createEmployeeRepository(db: Database): EmployeeRepository {
       values.push(Date.now())
       values.push(id)
 
-      db.exec(`UPDATE employees SET ${fields.join(', ')} WHERE id = ?`, values)
-      return this.findById(id)!
+      await db.exec(`UPDATE employees SET ${fields.join(', ')} WHERE id = ?`, values)
+      const updated = await this.findById(id)
+      return updated!
     },
 
-    remove(id: string) {
-      db.exec('DELETE FROM employees WHERE id = ?', [id])
+    async remove(id: string) {
+      await db.exec('DELETE FROM employees WHERE id = ?', [id])
       return true
     },
   }

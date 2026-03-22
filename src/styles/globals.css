@@ -1,6 +1,6 @@
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
-@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 /* @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@100..900&display=swap'); */
 
 @custom-variant dark (&:is(.dark *));
@@ -42,6 +42,7 @@
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px); */
+  --default-transition-timing-function: ease-out;
   --animate-shine: shine var(--duration) infinite linear;
   @keyframes shine {
     0% {
@@ -146,5 +147,53 @@
   a,
   [role='button'] {
     -webkit-tap-highlight-color: transparent;
+  }
+
+  h3 {
+    @apply text-accent;
+  }
+}
+
+/* ─── Animation keyframes (replaces framer-motion) ─────────────────────────── */
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in {
+  from {
+    opacity: 0;
+    transform: var(--slide-from, translateY(20px));
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+@keyframes list-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

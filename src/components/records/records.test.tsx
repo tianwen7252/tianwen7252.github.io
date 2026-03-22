@@ -8,7 +8,7 @@ import type { Employee, Attendance } from '@/lib/schemas'
 const mockEmployees: Employee[] = [
   {
     id: 'emp-001',
-    name: '王小明',
+    name: 'Alex',
     avatar: 'images/aminals/1308845.png',
     status: 'active',
     shiftType: 'regular',
@@ -20,7 +20,7 @@ const mockEmployees: Employee[] = [
   },
   {
     id: 'emp-002',
-    name: '李美玲',
+    name: 'Mia',
     avatar: 'images/aminals/780258.png',
     status: 'active',
     shiftType: 'regular',
@@ -43,24 +43,27 @@ const mockAttendances: Attendance[] = [
   },
 ]
 
-vi.mock('@/api', () => ({
-  api: {
-    employees: {
-      getActive: vi.fn(() => mockEmployees),
-    },
-    attendances: {
-      getByMonth: vi.fn(() => mockAttendances),
-      add: vi.fn(() => ({
-        id: 'att-new',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        type: 'regular',
-      })),
-      update: vi.fn(),
-      remove: vi.fn(() => true),
-    },
+const mockRepos = vi.hoisted(() => ({
+  employeeRepo: {
+    findByStatus: vi.fn(async () => [] as Employee[]),
   },
+  attendanceRepo: {
+    findByMonth: vi.fn(async () => [] as Attendance[]),
+    create: vi.fn(async () => ({
+      id: 'att-new',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      type: 'regular' as const,
+    })),
+    update: vi.fn(async () => undefined),
+    remove: vi.fn(async () => true),
+  },
+}))
+
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => mockRepos.employeeRepo,
+  getAttendanceRepo: () => mockRepos.attendanceRepo,
 }))
 
 // Import after mocks
@@ -71,6 +74,8 @@ import { Records } from './records'
 describe('Records', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockRepos.employeeRepo.findByStatus.mockResolvedValue(mockEmployees)
+    mockRepos.attendanceRepo.findByMonth.mockResolvedValue(mockAttendances)
   })
 
   it('should render the title', () => {
@@ -112,14 +117,17 @@ describe('Records', () => {
     const user = userEvent.setup()
     render(<Records />)
 
-    const searchInput = screen.getByPlaceholderText('搜尋員工姓名')
-    await user.type(searchInput, '王')
+    // Wait for data to load
+    await screen.findByText('Alex')
 
-    // Should still show 王小明 in the header
-    expect(screen.getByText('王小明')).toBeTruthy()
-    // 李美玲 should be filtered out (not in employee headers)
+    const searchInput = screen.getByPlaceholderText('搜尋員工姓名')
+    await user.type(searchInput, 'Alex')
+
+    // Should still show Alex in the header
+    expect(screen.getByText('Alex')).toBeTruthy()
+    // Mia should be filtered out (not in employee headers)
     // The name may still appear elsewhere, but not in table headers
-    expect(screen.queryByText('李美玲')).toBeNull()
+    expect(screen.queryByText('Mia')).toBeNull()
   })
 
   it('should render year select with options', () => {
@@ -142,8 +150,7 @@ describe('Records', () => {
     await user.selectOptions(yearSelect, '2025')
 
     // Data should refresh (service is called)
-    const { api } = await import('@/api')
-    expect(api.attendances.getByMonth).toHaveBeenCalled()
+    expect(mockRepos.attendanceRepo.findByMonth).toHaveBeenCalled()
   })
 
   it('should update data when month select changes', async () => {
@@ -153,8 +160,7 @@ describe('Records', () => {
     const monthSelect = screen.getByDisplayValue(/月/)
     await user.selectOptions(monthSelect, '1')
 
-    const { api } = await import('@/api')
-    expect(api.attendances.getByMonth).toHaveBeenCalled()
+    expect(mockRepos.attendanceRepo.findByMonth).toHaveBeenCalled()
   })
 
   it('should render "今天" button', () => {
@@ -171,24 +177,24 @@ describe('Records', () => {
     const user = userEvent.setup()
     render(<Records />)
 
+    // Wait for data to load
+    const emptyCells = await screen.findAllByText('未打卡')
+
     // Click on an empty "未打卡" cell to trigger add
-    const emptyCells = screen.getAllByText('未打卡')
-    if (emptyCells.length > 0) {
-      await user.click(emptyCells[0]!)
-      // RecordModal should appear with add title
-      expect(screen.getAllByText('新增打卡紀錄')).toHaveLength(2)
-    }
+    await user.click(emptyCells[0]!)
+    // RecordModal should appear with add title
+    expect(screen.getAllByText('新增打卡紀錄')).toHaveLength(2)
   })
 
   it('should open RecordModal when cell interaction triggers edit', async () => {
     const user = userEvent.setup()
     render(<Records />)
 
+    // Wait for data to load
+    const timeRange = await screen.findByText('08:00 - 17:00')
+
     // Click on an attendance card to trigger edit
-    const timeRange = screen.queryByText('08:00 - 17:00')
-    if (timeRange) {
-      await user.click(timeRange)
-      expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
-    }
+    await user.click(timeRange)
+    expect(screen.getAllByText('編輯打卡紀錄')).toHaveLength(2)
   })
 })

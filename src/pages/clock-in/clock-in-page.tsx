@@ -7,7 +7,7 @@ export function ClockInPage() {
     <div>
       {/* Sticky header */}
       <div className="sticky top-0 z-20 border-b border-border bg-card px-6 py-3">
-        <div className="flex items-center gap-2 text-lg font-semibold">
+        <div className="flex items-center gap-2 text-lg font-semibold text-primary">
           <Clock size={20} />
           <span>員工打卡</span>
         </div>

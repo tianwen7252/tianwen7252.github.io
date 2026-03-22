@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { Employee, Attendance } from '@/lib/schemas'
 import { RecordModal } from './record-modal'
@@ -17,35 +17,33 @@ vi.mock('sonner', () => ({
 }))
 
 // Mock API
-vi.mock('@/api', () => ({
-  api: {
-    attendances: {
-      add: vi.fn(() => ({
-        id: 'att-new',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      update: vi.fn(() => ({
-        id: 'att-001',
-        employeeId: 'emp-001',
-        date: '2026-03-21',
-        clockIn: 1742536800000,
-        clockOut: 1742569200000,
-        type: 'regular',
-      })),
-      remove: vi.fn(() => true),
-    },
-  },
+vi.mock('@/lib/repositories', () => ({
+  getAttendanceRepo: () => ({
+    create: vi.fn(async () => ({
+      id: 'att-new',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    update: vi.fn(async () => ({
+      id: 'att-001',
+      employeeId: 'emp-001',
+      date: '2026-03-21',
+      clockIn: 1742536800000,
+      clockOut: 1742569200000,
+      type: 'regular',
+    })),
+    remove: vi.fn(async () => true),
+  }),
 }))
 
 // ─── Test Fixtures ──────────────────────────────────────────────────────────
 
 const testEmployee: Employee = {
   id: 'emp-001',
-  name: '王小明',
+  name: 'Alex',
   avatar: 'images/aminals/1308845.png',
   status: 'active',
   shiftType: 'regular',
@@ -90,7 +88,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已新增')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已新增')
+    })
   })
 
   it('should show success toast after updating a record', async () => {
@@ -110,7 +110,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '儲存' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已更新')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已更新')
+    })
   })
 
   it('should show success toast after deleting a record', async () => {
@@ -130,7 +132,9 @@ describe('RecordModal — Toast Integration', () => {
 
     await user.click(screen.getByRole('button', { name: '刪除' }))
 
-    expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已刪除')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('出勤記錄已刪除')
+    })
   })
 
   it('should NOT show toast when form validation fails', async () => {

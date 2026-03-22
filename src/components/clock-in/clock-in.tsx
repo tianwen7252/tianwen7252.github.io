@@ -9,7 +9,8 @@ import dayjs from 'dayjs'
 import { toast } from 'sonner'
 import { Info } from 'lucide-react'
 import { WEEKDAY_SHORT } from '@/lib/records-utils'
-import { api } from '@/api'
+import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
+import { useDbQuery } from '@/hooks/use-db-query'
 import { ClockInModal } from '@/components/clock-in-modal'
 import { EmployeeCard } from './employee-card'
 import { deriveCardAction } from './clock-in-utils'
@@ -45,16 +46,20 @@ export function ClockIn() {
   // Data sources — refreshKey forces re-fetch after mutations
   const [refreshKey, setRefreshKey] = useState(0)
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const allEmployees = useMemo(() => api.employees.getAll(), [refreshKey])
+  const allEmployees = useDbQuery(
+    () => getEmployeeRepo().findAll(),
+    [refreshKey],
+    [] as Employee[],
+  )
   const employees = useMemo(
-    () => allEmployees.filter(e => !e.resignationDate),
+    () => allEmployees.filter((e) => !e.resignationDate),
     [allEmployees],
   )
 
-  const todayAttendances = useMemo(
-    () => api.attendances.getByDate(today),
+  const todayAttendances = useDbQuery(
+    () => getAttendanceRepo().findByDate(today),
     [today, refreshKey],
+    [] as Attendance[],
   )
 
   // Build O(1) lookup from employeeId -> attendance records
@@ -141,7 +146,7 @@ export function ClockIn() {
 
       switch (action) {
         case 'clockIn':
-          api.attendances.add({
+          await getAttendanceRepo().create({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -152,7 +157,7 @@ export function ClockIn() {
 
         case 'clockOut':
           if (record?.id != null) {
-            api.attendances.update(record.id, {
+            await getAttendanceRepo().update(record.id, {
               clockOut: now.valueOf(),
             })
           }
@@ -160,7 +165,7 @@ export function ClockIn() {
           break
 
         case 'vacation':
-          api.attendances.add({
+          await getAttendanceRepo().create({
             employeeId: emp.id,
             date: currentDate,
             clockIn: now.valueOf(),
@@ -171,12 +176,12 @@ export function ClockIn() {
 
         case 'cancelVacation':
           if (record?.id != null) {
-            api.attendances.remove(record.id)
+            await getAttendanceRepo().remove(record.id)
           }
           toast.success(t('clockIn.toastCancelVacation'))
           break
       }
-      setRefreshKey(k => k + 1)
+      setRefreshKey((k) => k + 1)
       handleModalClose()
     } finally {
       setLoading(false)
@@ -187,8 +192,8 @@ export function ClockIn() {
     <div className="p-4">
       {/* Section header */}
       <div className="mb-4 flex items-center justify-between">
-        <span className="text-xl font-medium">{headerTitle}</span>
-        <span className="flex items-center gap-1 text-sm text-muted-foreground">
+        <h3 className="text-xl font-medium">{headerTitle}</h3>
+        <span className="flex items-center gap-1 text-sm text-[#aaa]">
           <Info size={14} /> {t('clockIn.hint')}
         </span>
       </div>
@@ -200,7 +205,7 @@ export function ClockIn() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
         }}
       >
-        {employees.map(employee => {
+        {employees.map((employee) => {
           const records = attendanceMap[employee.id] ?? []
           return (
             <EmployeeCard

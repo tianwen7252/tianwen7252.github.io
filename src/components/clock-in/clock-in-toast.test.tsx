@@ -1,8 +1,18 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { resetApi } from '@/api'
+import {
+  getEmployeeRepo,
+  getAttendanceRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
 import { ClockIn } from './clock-in'
+
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getEmployeeRepo: () => getEmployeeRepo(),
+  getAttendanceRepo: () => getAttendanceRepo(),
+}))
 
 // Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
 // available when vi.mock factory (which is hoisted) executes.
@@ -19,32 +29,39 @@ vi.mock('sonner', () => ({
 describe('ClockIn — Toast Integration', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    resetMockRepositories()
   })
 
   afterEach(() => {
-    resetApi()
+    resetMockRepositories()
   })
 
   it('should show success toast after clock-in', async () => {
-    resetApi()
     const user = userEvent.setup()
     render(<ClockIn />)
 
-    // Click employee card with no record (emp-004 - Chen Ya Ting)
-    const cards = screen.getAllByTestId('employee-card')
-    const emp4Card = cards.find(card => within(card).queryByText('陳雅婷'))
+    // Wait for data to load
+    const cards = await screen.findAllByTestId('employee-card')
+    expect(cards).toHaveLength(10)
+
+    // Click employee card with no record (emp-004 - Grace)
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
     // Confirm clock-in
     await user.click(screen.getByText('確認打卡'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('打卡上班成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('打卡上班成功')
+    })
   })
 
   it('should show success toast after clock-out', async () => {
-    resetApi()
     const user = userEvent.setup()
     render(<ClockIn />)
+
+    // Wait for data to load
+    await screen.findByText('打卡下班')
 
     // Click 打卡下班 button for emp-002 (clocked in)
     await user.click(screen.getByText('打卡下班'))
@@ -52,27 +69,37 @@ describe('ClockIn — Toast Integration', () => {
     // Confirm clock-out
     await user.click(screen.getByText('確認下班'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('打卡下班成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('打卡下班成功')
+    })
   })
 
   it('should show success toast after vacation', async () => {
-    resetApi()
     const user = userEvent.setup()
     render(<ClockIn />)
 
-    // Click 申請休假 button for emp-004
-    await user.click(screen.getByText('申請休假'))
+    // Wait for data to load
+    const allCards = await screen.findAllByTestId('employee-card')
+    expect(allCards).toHaveLength(10)
+
+    // Click 申請休假 button for emp-004 (Grace)
+    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
+    await user.click(within(graceCard).getByText('申請休假'))
 
     // Confirm vacation
     await user.click(screen.getByText('確認休假'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('休假申請成功')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('休假申請成功')
+    })
   })
 
   it('should show success toast after cancel vacation', async () => {
-    resetApi()
     const user = userEvent.setup()
     render(<ClockIn />)
+
+    // Wait for data to load
+    await screen.findByText('取消休假')
 
     // Click 取消休假 button for emp-003
     await user.click(screen.getByText('取消休假'))
@@ -80,13 +107,17 @@ describe('ClockIn — Toast Integration', () => {
     // Confirm cancel vacation
     await user.click(screen.getByText('確認取消'))
 
-    expect(mockToast.success).toHaveBeenCalledWith('已取消休假')
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('已取消休假')
+    })
   })
 
   it('should NOT show toast when modal is cancelled', async () => {
-    resetApi()
     const user = userEvent.setup()
     render(<ClockIn />)
+
+    // Wait for data to load
+    await screen.findAllByText('打卡上班')
 
     // Open modal
     const clockInBtns = screen.getAllByText('打卡上班')

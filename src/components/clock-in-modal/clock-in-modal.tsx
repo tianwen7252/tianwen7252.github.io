@@ -3,7 +3,7 @@
  * Ported from V1 ClockInModal with V2 ConfirmModal, ModalCard, AvatarImage.
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { ConfirmModal, ModalCard } from '@/components/modal'
@@ -87,6 +87,16 @@ export function ClockInModal({
   onCancel,
 }: ClockInModalProps) {
   const { t } = useTranslation()
+
+  // Cache last valid props so close animation renders correct content
+  const snapshotRef = useRef({ employee, action, attendance })
+  if (employee) {
+    snapshotRef.current = { employee, action, attendance }
+  }
+  const displayEmployee = employee ?? snapshotRef.current.employee
+  const displayAction = employee ? action : snapshotRef.current.action
+  const displayAttendance = employee ? attendance : snapshotRef.current.attendance
+
   // Real-time clock — updates every second when modal is open
   const [currentTime, setCurrentTime] = useState(() => dayjs())
 
@@ -98,31 +108,31 @@ export function ClockInModal({
     return () => clearInterval(intervalId)
   }, [open])
 
-  // Early return when no employee
-  if (!employee) {
+  // Early return only when no employee has ever been set
+  if (!displayEmployee) {
     return null
   }
 
-  // Derive display values from action
-  const title = t(TITLE_KEY_MAP[action], { name: employee.name })
-  const confirmText = t(CONFIRM_TEXT_KEY_MAP[action])
-  const variant = VARIANT_MAP[action]
-  const shine = SHINE_MAP[action]
+  // Derive display values from cached action/attendance
+  const title = t(TITLE_KEY_MAP[displayAction], { name: displayEmployee.name })
+  const confirmText = t(CONFIRM_TEXT_KEY_MAP[displayAction])
+  const variant = VARIANT_MAP[displayAction]
+  const shine = SHINE_MAP[displayAction]
 
   // Shift type label with fallback
-  const shiftTypeEntry = SHIFT_TYPES.find(s => s.key === employee.shiftType)
+  const shiftTypeEntry = SHIFT_TYPES.find(s => s.key === displayEmployee.shiftType)
   const shiftTypeLabel = shiftTypeEntry?.label ?? SHIFT_TYPES[0].label
 
   // Re-clock-out hint
   const showReClockOutHint =
-    action === 'clockOut' && attendance?.clockOut != null
-  const clockOutTime = attendance?.clockOut
-    ? dayjs(attendance.clockOut).format('HH:mm')
+    displayAction === 'clockOut' && displayAttendance?.clockOut != null
+  const clockOutTime = displayAttendance?.clockOut
+    ? dayjs(displayAttendance.clockOut).format('HH:mm')
     : ''
 
   // Time display logic based on action
-  const isCancelVacation = action === 'cancelVacation'
-  const isVacation = action === 'vacation'
+  const isCancelVacation = displayAction === 'cancelVacation'
+  const isVacation = displayAction === 'vacation'
 
   let timeLabel: string
   let timeValue: string
@@ -130,8 +140,8 @@ export function ClockInModal({
   if (isCancelVacation) {
     timeLabel = t('clockIn.vacationClockTime')
     timeValue =
-      attendance?.clockIn != null
-        ? formatTimeAmPm(dayjs(attendance.clockIn))
+      displayAttendance?.clockIn != null
+        ? formatTimeAmPm(dayjs(displayAttendance.clockIn))
         : '?? : ??'
   } else if (isVacation) {
     timeLabel = t('clockIn.vacationTime')
@@ -153,13 +163,13 @@ export function ClockInModal({
       onCancel={onCancel}
     >
       <ModalCard>
-        <AvatarImage avatar={employee.avatar} size={120} />
+        <AvatarImage avatar={displayEmployee.avatar} size={120} />
 
         <div className="mt-3 text-xl font-bold" style={{ color: '#1a202c' }}>
-          {employee.name}
+          {displayEmployee.name}
         </div>
 
-        {employee.isAdmin && (
+        {displayEmployee.isAdmin && (
           <div
             className="mt-1 text-sm font-medium"
             style={{ color: '#7f956a' }}

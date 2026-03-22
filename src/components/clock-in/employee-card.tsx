@@ -4,7 +4,6 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
 import { calcTotalHours, formatTotalHours } from '@/lib/attendance-utils'
@@ -53,9 +52,9 @@ export function EmployeeCard({
   const isClockedOut = records.length > 0 && !isVacation && action === 'clockIn'
 
   return (
-    <motion.div
+    <div
       className={cn(
-        'cursor-pointer rounded-xl border border-border bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-md',
+        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[shadow,transform] duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]',
         cardBgClass,
       )}
       data-testid="employee-card"
@@ -63,11 +62,7 @@ export function EmployeeCard({
       tabIndex={0}
       aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
-      onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      style={{ willChange: 'transform' }}
+      onKeyDown={(e) => e.key === 'Enter' && onCardClick(employee, records)}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -104,20 +99,26 @@ export function EmployeeCard({
       {/* Clock times */}
       {isVacation ? (
         <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
-          <div>{t('clockIn.vacationLabel')}：{formatTime(lastRecord?.clockIn)}</div>
+          <div>
+            {t('clockIn.vacationLabel')}：{formatTime(lastRecord?.clockIn)}
+          </div>
         </div>
       ) : (
         <div className="space-y-1 text-sm" style={{ color: '#718096' }}>
           {records.map((shift, index) => (
             <div key={shift.id ?? index}>
-              {t('clockIn.arrival')}：{formatTime(shift.clockIn)} {t('clockIn.departure')}：
-              {formatTime(shift.clockOut)}
+              {t('clockIn.arrival')}：{formatTime(shift.clockIn)}{' '}
+              {t('clockIn.departure')}：{formatTime(shift.clockOut)}
             </div>
           ))}
           {records.length === 0 && (
             <>
-              <div>{t('clockIn.arrival')}：{formatTime(undefined)}</div>
-              <div>{t('clockIn.departure')}：{formatTime(undefined)}</div>
+              <div>
+                {t('clockIn.arrival')}：{formatTime(undefined)}
+              </div>
+              <div>
+                {t('clockIn.departure')}：{formatTime(undefined)}
+              </div>
             </>
           )}
         </div>
@@ -139,15 +140,17 @@ export function EmployeeCard({
           <>
             <button
               type="button"
-              className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
-              onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
+              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
+              onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
             >
               {t('clockIn.clockIn')}
             </button>
             <button
               type="button"
-              className="rounded-lg bg-[#f88181] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#e06868]"
-              onClick={e => onButtonAction(e, employee, 'vacation', undefined)}
+              className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#e06868]"
+              onClick={(e) =>
+                onButtonAction(e, employee, 'vacation', undefined)
+              }
             >
               {t('clockIn.applyVacation')}
             </button>
@@ -156,8 +159,8 @@ export function EmployeeCard({
         {isClockedIn && (
           <button
             type="button"
-            className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
-            onClick={e => onButtonAction(e, employee, 'clockOut', lastRecord)}
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
+            onClick={(e) => onButtonAction(e, employee, 'clockOut', lastRecord)}
           >
             {t('clockIn.clockOut')}
           </button>
@@ -165,8 +168,8 @@ export function EmployeeCard({
         {isClockedOut && (
           <button
             type="button"
-            className="rounded-lg bg-[#7f956a] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#6b8058]"
-            onClick={e => onButtonAction(e, employee, 'clockIn', undefined)}
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-[#6b8058]"
+            onClick={(e) => onButtonAction(e, employee, 'clockIn', undefined)}
           >
             {t('clockIn.clockIn')}
           </button>
@@ -174,8 +177,8 @@ export function EmployeeCard({
         {isVacation && (
           <button
             type="button"
-            className="rounded-lg bg-gray-400 px-3 py-1.5 text-sm font-semibold text-white hover:bg-gray-500"
-            onClick={e =>
+            className="rounded-lg border bg-white text-[#444] px-3 py-1.5 text-sm font-semibold hover:bg-gray-500"
+            onClick={(e) =>
               onButtonAction(e, employee, 'cancelVacation', lastRecord)
             }
           >
@@ -183,6 +186,6 @@ export function EmployeeCard({
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }

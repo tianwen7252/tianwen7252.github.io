@@ -1,6 +1,6 @@
+import { useState, useEffect } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ShineBorder } from '@/components/ui/shine-border'
@@ -28,7 +28,7 @@ const GRADIENT_CLASS: Record<GradientVariant, string> = {
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   green: COLOR_PRIMARY,
-  warm: COLOR_PRIMARY,
+  warm: '#ad9ac0',
   red: COLOR_RED,
 }
 
@@ -85,22 +85,62 @@ export function Modal({
   loading = false,
   onClose,
 }: ModalProps) {
+  // Delay Radix unmount so close animation plays first.
+  // dialogOpen stays true during close animation; closing triggers CSS exit classes.
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [closing, setClosing] = useState(false)
+
+  useEffect(() => {
+    if (open) {
+      setDialogOpen(true)
+      setClosing(false)
+    } else if (dialogOpen) {
+      // In test env, CSS animations don't run — close immediately
+      if (import.meta.env.MODE === 'test') {
+        setDialogOpen(false)
+        return
+      }
+      setClosing(true)
+      // Fallback: unmount after animation duration if animationend doesn't fire
+      const timer = setTimeout(() => {
+        setClosing(false)
+        setDialogOpen(false)
+      }, 300)
+      return () => clearTimeout(timer)
+    }
+  }, [open, dialogOpen])
+
+  function handleCloseAnimationEnd(e: React.AnimationEvent) {
+    if (closing && e.animationName === 'overlay-fade-out') {
+      setClosing(false)
+      setDialogOpen(false)
+    }
+  }
+
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={o => !o && onClose()}>
+    <DialogPrimitive.Root
+      open={dialogOpen}
+      onOpenChange={(o) => !o && onClose()}
+    >
       <DialogPrimitive.Portal>
         {/* Full-screen gradient overlay with fade animation */}
         <DialogPrimitive.Overlay
           className={cn(
             'glass-modal-overlay fixed inset-0 z-50',
             GRADIENT_CLASS[variant],
+            closing && 'glass-modal-closing',
           )}
+          onAnimationEnd={handleCloseAnimationEnd}
         />
 
         {/* Content — centered, with zoom animation (antd style) */}
         <DialogPrimitive.Content
           aria-describedby={undefined}
-          className="glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none"
-          onClick={e => {
+          className={cn(
+            'glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none',
+            closing && 'glass-modal-closing',
+          )}
+          onClick={(e) => {
             if (e.target === e.currentTarget) onClose()
           }}
           onEscapeKeyDown={onClose}
@@ -110,15 +150,12 @@ export function Modal({
             {title}
           </DialogPrimitive.Title>
 
-          {/* Glassmorphism container with Framer Motion entrance animation */}
-          <motion.div
-            className="relative"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{
-              duration: 0.25,
-              ease: [0.16, 1, 0.3, 1],
-            }}
+          {/* Glassmorphism container with CSS entrance/exit animation */}
+          <div
+            className={cn(
+              'relative',
+              closing ? 'animate-modal-exit' : 'animate-modal-enter',
+            )}
             style={{
               background: 'rgba(255, 255, 255, 0.7)',
               backdropFilter: 'blur(20px) saturate(180%)',
@@ -132,7 +169,6 @@ export function Modal({
               width: 500,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
-              willChange: 'transform, opacity',
             }}
           >
             {/* Animated shine border */}
@@ -203,7 +239,7 @@ export function Modal({
                 />
               </div>
             )}
-          </motion.div>
+          </div>
         </DialogPrimitive.Content>
       </DialogPrimitive.Portal>
     </DialogPrimitive.Root>
