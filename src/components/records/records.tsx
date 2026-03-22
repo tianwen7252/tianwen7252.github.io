@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { LayoutList, Calendar, Info } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -42,6 +43,7 @@ const INITIAL_MODAL_STATE: ModalState = {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 export function Records() {
+  const { t } = useTranslation()
   const now = dayjs()
   const [viewMode, setViewMode] = useState<ViewMode>('table')
   const [searchQuery, setSearchQuery] = useState('')
@@ -148,7 +150,7 @@ export function Records() {
     <div className="p-4">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-2xl font-black -tracking-wider">員工考勤狀況</h3>
+        <h3 className="text-2xl font-black -tracking-wider">{t('records.title')}</h3>
         <div className="flex gap-1 rounded-xl bg-muted p-1">
           <button
             type="button"
@@ -159,7 +161,7 @@ export function Records() {
             onClick={() => setViewMode('table')}
           >
             <LayoutList size={14} className="mr-1 inline" />
-            表格
+            {t('records.table')}
           </button>
           <button
             type="button"
@@ -170,7 +172,7 @@ export function Records() {
             onClick={() => setViewMode('calendar')}
           >
             <Calendar size={14} className="mr-1 inline" />
-            月曆
+            {t('records.calendar')}
           </button>
         </div>
       </div>
@@ -179,7 +181,7 @@ export function Records() {
       <div className="mb-4 grid w-full grid-cols-[2fr_1fr_1fr_auto] items-center gap-3">
         <input
           type="text"
-          placeholder="搜尋員工姓名"
+          placeholder={t('records.searchPlaceholder')}
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
@@ -211,14 +213,14 @@ export function Records() {
           className="rounded-lg border border-[#7f956a] bg-transparent px-3 py-1.5 text-sm font-semibold text-[#7f956a] transition-colors hover:bg-[#7f956a] hover:text-white"
           onClick={handleTodayClick}
         >
-          今天
+          {t('records.today')}
         </button>
       </div>
 
       {/* Hint */}
       <div className="mb-3 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Info size={14} />
-        <span>點擊儲存格即可直接編輯打卡時間</span>
+        <span>{t('records.hint')}</span>
       </div>
 
       {/* View content */}

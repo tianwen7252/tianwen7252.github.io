@@ -3,6 +3,7 @@
  * Weekday header row, 6 rows x 7 columns, employee cards with time labels.
  */
 
+import { useTranslation } from 'react-i18next'
 import {
   WEEKDAY_LABELS,
   formatClockTime,
@@ -42,13 +43,14 @@ function DayCellContent({
   ) => void
   readonly onAddRecord: (employee: Employee, date: string) => void
 }) {
+  const { t } = useTranslation()
   if (!day.isCurrentMonth) return null
 
   const hasAttendance = dayRowHasAttendance(day)
 
-  // Weekend with no attendance shows "休"
+  // Weekend with no attendance shows translated label
   if (day.isWeekend && !hasAttendance) {
-    return <div className="mt-1 text-[#cbd5e1] font-medium">休</div>
+    return <div className="mt-1 text-[#cbd5e1] font-medium">{t('records.weekendLabel')}</div>
   }
 
   // No cells or empty cells
@@ -75,7 +77,7 @@ function DayCellContent({
                   onEditRecord(employee, day.date, att)
                 }}
               >
-                休假
+                {t('records.vacation')}
               </button>
             )
           }
@@ -114,6 +116,7 @@ export function RecordsCalendarView({
   onAddRecord,
   onCellClick,
 }: RecordsCalendarViewProps) {
+  const { t } = useTranslation()
   return (
     <div className="rounded-xl border border-[#f1f5f9] shadow-[0_1px_3px_rgba(0,0,0,0.05)] overflow-hidden">
       {/* Weekday headers */}
@@ -161,7 +164,7 @@ export function RecordsCalendarView({
                   </span>
                   {day.isToday && (
                     <span className="rounded-full bg-[#3b82f6] px-2 py-0.5 text-[10px] font-bold text-white">
-                      今日
+                      {t('records.todayBadge')}
                     </span>
                   )}
                 </div>

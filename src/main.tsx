@@ -7,6 +7,10 @@ import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
+
+// Initialize i18n before rendering (side-effect import)
+import './lib/i18n'
+
 import './styles/globals.css'
 import { router } from './routes/router'
 

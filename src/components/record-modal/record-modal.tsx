@@ -6,6 +6,7 @@
 
 import { useCallback } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
 import { toast } from 'sonner'
@@ -81,6 +82,7 @@ export function RecordModal({
   onCancel,
   onSuccess,
 }: RecordModalProps) {
+  const { t } = useTranslation()
   const form = useForm<RecordFormValues>({
     resolver: zodResolver(recordFormSchema),
     defaultValues: buildFormValues(record),
@@ -130,7 +132,7 @@ export function RecordModal({
       ) {
         setError('clockOutTime', {
           type: 'manual',
-          message: '下班時間必須晚於上班時間',
+          message: t('records.clockOutAfterClockIn'),
         })
         return
       }
@@ -150,14 +152,14 @@ export function RecordModal({
         clockOut: clockOutTs,
         type: dbType,
       })
-      toast.success('出勤記錄已新增')
+      toast.success(t('records.toastAdded'))
     } else if (record) {
       api.attendances.update(record.id, {
         clockIn: clockInTs,
         clockOut: clockOutTs,
         type: dbType,
       })
-      toast.success('出勤記錄已更新')
+      toast.success(t('records.toastUpdated'))
     }
 
     onSuccess()
@@ -171,17 +173,18 @@ export function RecordModal({
     record,
     onSuccess,
     setError,
+    t,
   ])
 
   const handleDelete = useCallback(() => {
     if (record) {
       api.attendances.remove(record.id)
-      toast.success('出勤記錄已刪除')
+      toast.success(t('records.toastDeleted'))
     }
     onSuccess()
-  }, [record, onSuccess])
+  }, [record, onSuccess, t])
 
-  const title = mode === 'add' ? '新增打卡紀錄' : '編輯打卡紀錄'
+  const title = mode === 'add' ? t('records.addRecord') : t('records.editRecord')
   const gradientVariant = mode === 'add' ? 'green' : 'warm'
   const shineVariant = mode === 'add' ? 'green' : 'purple'
 
@@ -200,7 +203,7 @@ export function RecordModal({
             onClick={onCancel}
             className="flex-1 rounded-lg border border-border bg-white/50 px-4 py-2.5 text-sm font-semibold text-gray-600 shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >
-            取消
+            {t('common.cancel')}
           </button>
           {mode === 'edit' && (
             <button
@@ -209,7 +212,7 @@ export function RecordModal({
               onClick={handleDelete}
               className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
             >
-              刪除
+              {t('common.delete')}
             </button>
           )}
           <button
@@ -218,7 +221,7 @@ export function RecordModal({
             onClick={handleSave}
             className="flex-1 rounded-lg bg-[#7f956a] px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
           >
-            儲存
+            {t('common.save')}
           </button>
         </div>
       }
@@ -236,7 +239,7 @@ export function RecordModal({
         {/* Shift badge */}
         {shiftNumber !== undefined && (
           <div className="rounded-full bg-blue-100 px-3 py-0.5 text-sm font-medium text-blue-700">
-            第 {shiftNumber} 班
+            {t('records.shiftNumber', { number: shiftNumber })}
           </div>
         )}
 
@@ -252,7 +255,7 @@ export function RecordModal({
             )}
             onClick={() => handleTypeChange('regular')}
           >
-            一般
+            {t('records.regular')}
           </button>
           <button
             type="button"
@@ -264,7 +267,7 @@ export function RecordModal({
             )}
             onClick={() => handleTypeChange('vacation')}
           >
-            休假
+            {t('records.vacation')}
           </button>
         </div>
 
@@ -275,7 +278,7 @@ export function RecordModal({
               htmlFor="clock-in-time"
               className="text-sm font-medium text-[#718096]"
             >
-              上班時間
+              {t('records.clockInTime')}
             </label>
             <input
               id="clock-in-time"
@@ -293,7 +296,7 @@ export function RecordModal({
               htmlFor="clock-out-time"
               className="text-sm font-medium text-[#718096]"
             >
-              下班時間
+              {t('records.clockOutTime')}
             </label>
             <input
               id="clock-out-time"
