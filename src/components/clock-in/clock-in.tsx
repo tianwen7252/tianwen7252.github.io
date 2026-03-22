@@ -5,6 +5,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import dayjs from 'dayjs'
+import { motion } from 'framer-motion'
 import { Info } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
@@ -126,7 +127,7 @@ function EmployeeCard({
   const isClockedOut = records.length > 0 && !isVacation && action === 'clockIn'
 
   return (
-    <div
+    <motion.div
       className={cn(
         'cursor-pointer rounded-xl border border-border bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-md',
         cardBgClass,
@@ -137,6 +138,10 @@ function EmployeeCard({
       aria-label={`${employee.name} 打卡 — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
       onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
+      style={{ willChange: 'transform' }}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -252,7 +257,7 @@ function EmployeeCard({
           </button>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
