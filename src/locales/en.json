@@ -14,6 +14,8 @@
   "nav": {
     "home": "Home",
     "clockIn": "Clock In",
+    "records": "Records",
+    "staffAdmin": "Staff Admin",
     "settings": "Settings",
     "appTitle": "Tianwen V2"
   },

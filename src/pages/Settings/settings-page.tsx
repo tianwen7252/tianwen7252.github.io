@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { ClockIn } from '@/components/clock-in'
 import { Records } from '@/components/records'
@@ -9,16 +10,17 @@ type TabKey = 'clock-in' | 'records' | 'staff-admin'
 
 interface Tab {
   readonly key: TabKey
-  readonly label: string
+  readonly labelKey: string
 }
 
 const TABS: readonly Tab[] = [
-  { key: 'clock-in', label: '打卡' },
-  { key: 'records', label: '打卡記錄' },
-  { key: 'staff-admin', label: '員工管理' },
+  { key: 'clock-in', labelKey: 'nav.clockIn' },
+  { key: 'records', labelKey: 'nav.records' },
+  { key: 'staff-admin', labelKey: 'nav.staffAdmin' },
 ]
 
 export function SettingsPage() {
+  const { t, i18n } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabKey>('clock-in')
 
   return (
@@ -26,7 +28,7 @@ export function SettingsPage() {
       {/* Tab navigation */}
       <div className="border-b border-border bg-card px-6">
         <div className="flex gap-1">
-          {TABS.map(tab => (
+          {TABS.map((tab) => (
             <button
               key={tab.key}
               type="button"
@@ -38,7 +40,7 @@ export function SettingsPage() {
               )}
               onClick={() => setActiveTab(tab.key)}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           ))}
         </div>
@@ -53,6 +55,22 @@ export function SettingsPage() {
             <StaffAdmin />
           </AuthGuard>
         )}
+      </div>
+
+      {/* Language switcher */}
+      <div className="fixed bottom-4 right-4 flex items-center gap-2">
+        <label htmlFor="language-select" className="text-sm font-medium">
+          {t('settings.language')}
+        </label>
+        <select
+          id="language-select"
+          value={i18n.language}
+          onChange={(e) => i18n.changeLanguage(e.target.value)}
+          className="rounded-md border border-border bg-card px-2 py-1 text-sm"
+        >
+          <option value="zh-TW">{t('settings.zhTW')}</option>
+          <option value="en">{t('settings.en')}</option>
+        </select>
       </div>
     </div>
   )
