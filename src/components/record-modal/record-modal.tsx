@@ -187,7 +187,7 @@ export function RecordModal({
           {mode === 'edit' && (
             <button
               type="button"
-  
+
               onClick={handleDelete}
               className="flex-1 rounded-lg bg-red-500 px-4 py-2.5 text-sm font-semibold text-white shadow-[0_0_10px_#ccc] transition-transform hover:-translate-y-0.5"
             >

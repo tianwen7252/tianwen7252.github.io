@@ -1,14 +1,11 @@
 /**
  * SlideIn — wrapper component that slides children in from a given direction.
- * Uses framer-motion for GPU-accelerated transform transitions.
+ * Uses CSS animations for GPU-accelerated transform transitions.
  */
-
-import { motion } from 'framer-motion'
-import type { HTMLMotionProps } from 'framer-motion'
 
 type Direction = 'up' | 'down' | 'left' | 'right'
 
-interface SlideInProps extends Omit<HTMLMotionProps<'div'>, 'initial' | 'animate' | 'exit' | 'transition' | 'style'> {
+interface SlideInProps extends React.ComponentProps<'div'> {
   /** Slide direction (default: 'up') */
   readonly direction?: Direction
   /** Slide distance in pixels (default: 20) */
@@ -20,20 +17,17 @@ interface SlideInProps extends Omit<HTMLMotionProps<'div'>, 'initial' | 'animate
   readonly children: React.ReactNode
 }
 
-/** Compute the initial x/y offset based on direction and distance. */
-function getInitialOffset(
-  direction: Direction,
-  distance: number,
-): { x: number; y: number } {
+/** Map direction to CSS custom property values for translateX/Y. */
+function getTransformValue(direction: Direction, distance: number): string {
   switch (direction) {
     case 'up':
-      return { x: 0, y: distance }
+      return `translateY(${distance}px)`
     case 'down':
-      return { x: 0, y: -distance }
+      return `translateY(${-distance}px)`
     case 'left':
-      return { x: distance, y: 0 }
+      return `translateX(${distance}px)`
     case 'right':
-      return { x: -distance, y: 0 }
+      return `translateX(${-distance}px)`
   }
 }
 
@@ -44,21 +38,22 @@ export function SlideIn({
   duration = 0.3,
   delay = 0,
   className,
+  style,
   ...rest
 }: SlideInProps) {
-  const offset = getInitialOffset(direction, distance)
+  const fromTransform = getTransformValue(direction, distance)
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: offset.x, y: offset.y }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      exit={{ opacity: 0, x: offset.x, y: offset.y }}
-      transition={{ duration, delay }}
+    <div
       className={className}
-      style={{ willChange: 'transform, opacity' }}
+      style={{
+        '--slide-from': fromTransform,
+        animation: `slide-in ${duration}s ease-out ${delay}s both`,
+        ...style,
+      } as React.CSSProperties}
       {...rest}
     >
       {children}
-    </motion.div>
+    </div>
   )
 }

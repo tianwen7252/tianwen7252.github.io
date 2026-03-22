@@ -4,7 +4,6 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { motion } from 'framer-motion'
 import { cn } from '@/lib/cn'
 import { AvatarImage } from '@/components/avatar-image'
 import { calcTotalHours, formatTotalHours } from '@/lib/attendance-utils'
@@ -53,9 +52,9 @@ export function EmployeeCard({
   const isClockedOut = records.length > 0 && !isVacation && action === 'clockIn'
 
   return (
-    <motion.div
+    <div
       className={cn(
-        'cursor-pointer rounded-xl border border-border bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-shadow hover:shadow-md',
+        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[shadow,transform] duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]',
         cardBgClass,
       )}
       data-testid="employee-card"
@@ -64,10 +63,6 @@ export function EmployeeCard({
       aria-label={`${employee.name} ${t('nav.clockIn')} — ${badgeText}`}
       onClick={() => onCardClick(employee, records)}
       onKeyDown={e => e.key === 'Enter' && onCardClick(employee, records)}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      style={{ willChange: 'transform' }}
     >
       {/* Avatar with colored border */}
       <div className="mx-auto mb-3">
@@ -183,6 +178,6 @@ export function EmployeeCard({
           </button>
         )}
       </div>
-    </motion.div>
+    </div>
   )
 }

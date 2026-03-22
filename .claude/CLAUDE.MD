@@ -6,36 +6,6 @@
 
 ---
 
-## 技術堆疊
-
-| 類別       | 工具                                        |
-| ---------- | ------------------------------------------- |
-| 前端框架   | React 18 + TypeScript                       |
-| 建置工具   | Vite 7 (`@vitejs/plugin-react-swc`)         |
-| UI 元件庫  | Ant Design v5 (antd)                        |
-| CSS-in-JS  | Emotion (`@emotion/react`, `@emotion/css`)  |
-| 路由       | React Router v7                             |
-| 資料庫     | Dexie v4（IndexedDB，瀏覽器本地端）         |
-| 圖表       | Chart.js + react-chartjs-2                  |
-| 日期處理   | dayjs                                       |
-| 工具函式庫 | lodash-es、mathjs                           |
-| 測試       | Vitest + @testing-library/react + happy-dom |
-| 套件管理   | pnpm 10                                     |
-| Linting    | ESLint + Prettier                           |
-| Git Hooks  | Husky（pre-commit）                         |
-| NodeJS     | v24 (nvm use v24)                           |
-
----
-
-## 元件樣式規範
-
-- 使用 **Emotion CSS-in-JS**，每個有樣式的元件在 `styles/index.tsx` 定義
-- 在元件中以 `css={styles.xxxCss}` 注入（Emotion prop）
-- 全域 Ant Design token 覆寫在 `src/styles/global.ts`（`antStyles`、`btnStyles`）
-- Import alias：`src` → `./src`（在 `vite.config.ts` 與 `vitest.config.ts` 皆已設定）
-
----
-
 ## Git Hooks
 
 `pre-commit` 會自動執行：
@@ -47,13 +17,6 @@
 
 ## 重要注意事項
 
-- 這是純前端 PWA，**所有資料儲存在瀏覽器 IndexedDB**，無後端伺服器
-- 所有資料庫操作請透過 `src/libs/api.ts` 存取，不要直接操作 `db`
-- 員工管理（StaffAdmin）頁面受 `AuthGuard` 保護
-- 資料庫 schema 版本升級需在 `src/libs/dataCenter.ts` 中修改 `DB_VERSION` 並提供 migration
-- 商品名稱拼字沿用 `commondity`（非 `commodity`），為歷史遺留，保持一致性
-- 統計圖表資料來自 `orders` + `dailyData` 雙表，透過 `src/pages/Statistics/charts/` 各模組處理
-- Vite build 使用手動 chunk 分割：`react`、`lodash`、`antd`、`chartjs`、`mathjs`
 - 使用nvm use v24當準備進行執行nodejs
 - 套件管理器使用 **pnpm**，所有安裝與執行指令請使用 `pnpm` 而非 `npm`
 - 裝置支援：App 支援 iPad 10（2022）及 iPad 11（2025）以後的版本，CSS 與互動設計需確保在這些裝置上正常運作
