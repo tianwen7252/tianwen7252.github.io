@@ -20,7 +20,7 @@ const TABS: readonly Tab[] = [
 ]
 
 export function SettingsPage() {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabKey>('clock-in')
 
   return (
@@ -55,22 +55,6 @@ export function SettingsPage() {
             <StaffAdmin />
           </AuthGuard>
         )}
-      </div>
-
-      {/* Language switcher */}
-      <div className="fixed bottom-4 right-4 flex items-center gap-2">
-        <label htmlFor="language-select" className="text-sm font-medium">
-          {t('settings.language')}
-        </label>
-        <select
-          id="language-select"
-          value={i18n.language}
-          onChange={(e) => i18n.changeLanguage(e.target.value)}
-          className="rounded-md border border-border bg-card px-2 py-1 text-sm"
-        >
-          <option value="zh-TW">{t('settings.zhTW')}</option>
-          <option value="en">{t('settings.en')}</option>
-        </select>
       </div>
     </div>
   )

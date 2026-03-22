@@ -19,11 +19,6 @@ vi.mock('@/components/auth-guard', () => ({
     <div data-testid="auth-guard">{children}</div>
   ),
 }))
-vi.mock('@/components/app-error-boundary', () => ({
-  AppErrorBoundary: ({ children }: { children: React.ReactNode }) => (
-    <>{children}</>
-  ),
-}))
 
 describe('SettingsPage', () => {
   beforeEach(async () => {
@@ -44,47 +39,6 @@ describe('SettingsPage', () => {
       expect(screen.getByText('Clock In')).toBeTruthy()
       expect(screen.getByText('Records')).toBeTruthy()
       expect(screen.getByText('Staff Admin')).toBeTruthy()
-    })
-  })
-
-  describe('language switcher', () => {
-    it('should render language selector with label', () => {
-      render(<SettingsPage />)
-      expect(screen.getByLabelText('語言')).toBeTruthy()
-    })
-
-    it('should display zh-TW as default selected language', () => {
-      render(<SettingsPage />)
-      const select = screen.getByLabelText('語言') as HTMLSelectElement
-      expect(select.value).toBe('zh-TW')
-    })
-
-    it('should have both language options', () => {
-      render(<SettingsPage />)
-      expect(screen.getByText('繁體中文')).toBeTruthy()
-      expect(screen.getByText('English')).toBeTruthy()
-    })
-
-    it('should switch to English when en is selected', async () => {
-      const user = userEvent.setup()
-      render(<SettingsPage />)
-
-      const select = screen.getByLabelText('語言') as HTMLSelectElement
-      await user.selectOptions(select, 'en')
-
-      // After switching, the language label should change to English
-      expect(i18n.language).toBe('en')
-    })
-
-    it('should switch back to zh-TW from English', async () => {
-      await i18n.changeLanguage('en')
-      const user = userEvent.setup()
-      render(<SettingsPage />)
-
-      const select = screen.getByLabelText('Language') as HTMLSelectElement
-      await user.selectOptions(select, 'zh-TW')
-
-      expect(i18n.language).toBe('zh-TW')
     })
   })
 
