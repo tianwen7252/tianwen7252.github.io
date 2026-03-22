@@ -1,0 +1,153 @@
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { StaffAdmin } from './staff-admin'
+import { resetApi } from '@/api'
+
+// Mock sonner to capture toast calls — vi.hoisted ensures mockToast is
+// available when vi.mock factory (which is hoisted) executes.
+const mockToast = vi.hoisted(() => ({
+  success: vi.fn(),
+  error: vi.fn(),
+  info: vi.fn(),
+}))
+
+vi.mock('sonner', () => ({
+  toast: mockToast,
+}))
+
+// Mock the modal component to avoid Radix Portal issues in tests
+vi.mock('@/components/modal', () => ({
+  Modal: ({
+    open,
+    title,
+    children,
+    footer,
+    onClose,
+  }: {
+    open: boolean
+    title: string
+    children: React.ReactNode
+    footer?: React.ReactNode
+    onClose: () => void
+  }) =>
+    open ? (
+      <div data-testid="modal" role="dialog" aria-label={title}>
+        <h2>{title}</h2>
+        {children}
+        {footer}
+        <button onClick={onClose}>close-modal</button>
+      </div>
+    ) : null,
+  ConfirmModal: ({
+    open,
+    title,
+    children,
+    onConfirm,
+    onCancel,
+  }: {
+    open: boolean
+    title: string
+    children?: React.ReactNode
+    onConfirm: () => void
+    onCancel: () => void
+  }) =>
+    open ? (
+      <div data-testid="confirm-modal" role="dialog" aria-label={title}>
+        <h2>{title}</h2>
+        {children}
+        <button onClick={onConfirm}>confirm-delete</button>
+        <button onClick={onCancel}>cancel-delete</button>
+      </div>
+    ) : null,
+}))
+
+// Mock AvatarImage to simplify testing
+vi.mock('@/components/avatar-image', () => ({
+  AvatarImage: ({ avatar, size }: { avatar?: string; size?: number }) => (
+    <img
+      data-testid="avatar-image"
+      src={avatar ?? ''}
+      style={{ width: size, height: size }}
+      alt="avatar"
+    />
+  ),
+}))
+
+describe('StaffAdmin — Toast Integration', () => {
+  beforeEach(() => {
+    resetApi()
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    resetApi()
+  })
+
+  it('should show success toast after adding an employee', async () => {
+    const user = userEvent.setup()
+    render(<StaffAdmin />)
+
+    await user.click(screen.getByRole('button', { name: /新增員工/ }))
+
+    const nameInput = screen.getByPlaceholderText('請輸入員工姓名')
+    await user.type(nameInput, '新員工')
+
+    await user.click(screen.getByRole('button', { name: '確認' }))
+
+    expect(mockToast.success).toHaveBeenCalledWith('員工已新增')
+  })
+
+  it('should show success toast after updating an employee', async () => {
+    const user = userEvent.setup()
+    render(<StaffAdmin />)
+
+    const editButtons = screen.getAllByLabelText('編輯')
+    await user.click(editButtons[0]!)
+
+    const dialog = screen.getByRole('dialog', { name: '編輯員工' })
+    const nameInput = within(dialog).getByDisplayValue('王小明')
+    await user.clear(nameInput)
+    await user.type(nameInput, '王大明')
+
+    await user.click(screen.getByRole('button', { name: '確認' }))
+
+    expect(mockToast.success).toHaveBeenCalledWith('員工資料已更新')
+  })
+
+  it('should show success toast after deleting an employee', async () => {
+    const user = userEvent.setup()
+    render(<StaffAdmin />)
+
+    const deleteButtons = screen.getAllByLabelText('刪除')
+    await user.click(deleteButtons[0]!)
+
+    const confirmModal = screen.getByTestId('confirm-modal')
+    await user.click(within(confirmModal).getByText('confirm-delete'))
+
+    expect(mockToast.success).toHaveBeenCalledWith('員工已刪除')
+  })
+
+  it('should NOT show toast when add form validation fails', async () => {
+    const user = userEvent.setup()
+    render(<StaffAdmin />)
+
+    await user.click(screen.getByRole('button', { name: /新增員工/ }))
+    await user.click(screen.getByRole('button', { name: '確認' }))
+
+    expect(mockToast.success).not.toHaveBeenCalled()
+  })
+
+  it('should NOT show toast when delete is cancelled', async () => {
+    const user = userEvent.setup()
+    render(<StaffAdmin />)
+
+    const deleteButtons = screen.getAllByLabelText('刪除')
+    await user.click(deleteButtons[0]!)
+
+    const confirmModal = screen.getByTestId('confirm-modal')
+    await user.click(within(confirmModal).getByText('cancel-delete'))
+
+    expect(mockToast.success).not.toHaveBeenCalled()
+  })
+})
