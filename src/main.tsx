@@ -30,7 +30,14 @@ const rootElement = document.getElementById('root')!
 
 // Initialize SQLite WASM database, then render the app
 async function bootstrap() {
-  const db = await sqliteWasmFactory.init(DEFAULT_CONFIG)
+  // Try OPFS first, fall back to in-memory if OPFS is unavailable
+  let db: Awaited<ReturnType<typeof sqliteWasmFactory.init>>
+  try {
+    db = await sqliteWasmFactory.init(DEFAULT_CONFIG)
+  } catch {
+    console.warn('[DB] OPFS unavailable, falling back to in-memory mode')
+    db = await sqliteWasmFactory.init({ filename: ':memory:', mode: 'memory' })
+  }
   initSchema(sql => db.exec(sql))
   initRepositories(db)
 
