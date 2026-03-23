@@ -29,13 +29,9 @@ export function OrderItemRow({
     onUpdateQuantity(item.id, item.quantity + 1)
   }
 
-  const handleRemove = () => {
-    onRemove(item.id)
-  }
-
   return (
     <div className="flex flex-col gap-1 py-2">
-      {/* Top row: name, quantity controls, price, remove button */}
+      {/* Top row: name, quantity controls, price */}
       <div className="flex items-center justify-between gap-2">
         <span className="flex-1 truncate font-medium">{item.name}</span>
 
@@ -72,7 +68,7 @@ export function OrderItemRow({
           variant="ghost"
           size="icon-xs"
           aria-label="remove"
-          onClick={handleRemove}
+          onClick={() => onRemove(item.id)}
           className="text-muted-foreground hover:text-destructive"
         >
           <X className="size-3" />

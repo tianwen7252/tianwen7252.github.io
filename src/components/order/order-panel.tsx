@@ -3,6 +3,7 @@ import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useOrderStore } from '@/stores/order-store'
+import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { DiscountSection } from './discount-section'
 import { OrderSummary } from './order-summary'
@@ -56,13 +57,14 @@ export function OrderPanel() {
         ) : (
           <div className="divide-y divide-border">
             {items.map(item => (
-              <OrderItemRow
-                key={item.id}
-                item={item}
-                onRemove={removeItem}
-                onUpdateQuantity={updateQuantity}
-                onUpdateNote={updateNote}
-              />
+              <SwipeToDelete key={item.id} onDelete={() => removeItem(item.id)}>
+                <OrderItemRow
+                  item={item}
+                  onRemove={removeItem}
+                  onUpdateQuantity={updateQuantity}
+                  onUpdateNote={updateNote}
+                />
+              </SwipeToDelete>
             ))}
           </div>
         )}
