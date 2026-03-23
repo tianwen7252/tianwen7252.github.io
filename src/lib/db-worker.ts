@@ -7,7 +7,7 @@
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
 import { CREATE_TABLES } from '@/lib/schema'
-import { seedDatabase } from '@/lib/seed-data'
+import { seedEmployees, seedCommodities } from '@/lib/seed-data'
 import type { WorkerRequest, WorkerResponse } from '@/lib/worker-database'
 import type { Database } from '@/lib/database'
 
@@ -76,13 +76,20 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         db.exec('DELETE FROM employees')
       }
 
-      // Seed if enabled and employees table is empty
+      // Seed each table independently if empty
       if (msg.enableSeedData && !msg.deleteSeedData) {
-        const result = db.exec<{ cnt: number }>(
+        const empCount = db.exec<{ cnt: number }>(
           'SELECT COUNT(*) as cnt FROM employees',
         )
-        if (result.rows[0]?.cnt === 0) {
-          seedDatabase(db)
+        if (empCount.rows[0]?.cnt === 0) {
+          seedEmployees(db)
+        }
+
+        const comCount = db.exec<{ cnt: number }>(
+          'SELECT COUNT(*) as cnt FROM commondities',
+        )
+        if (comCount.rows[0]?.cnt === 0) {
+          seedCommodities(db)
         }
       }
 
