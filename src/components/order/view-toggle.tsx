@@ -1,4 +1,4 @@
-import { LayoutGrid, List } from 'lucide-react'
+import { Calculator } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface ViewToggleProps {
@@ -7,20 +7,19 @@ interface ViewToggleProps {
 }
 
 /**
- * Toggle button that switches between grid and list view modes.
- * Currently only grid mode is functional (list is a visual placeholder).
+ * Calculator button — placeholder for future calculator/quick-entry feature.
+ * Positioned at the top-right of the product grid header.
  */
-export function ViewToggle({ mode, onToggle }: ViewToggleProps) {
-  const isGrid = mode === 'grid'
-
+export function ViewToggle({ onToggle }: ViewToggleProps) {
   return (
     <Button
-      variant="ghost"
+      variant="outline"
       size="icon-sm"
       onClick={onToggle}
-      aria-label={isGrid ? '切換列表檢視' : '切換格狀檢視'}
+      aria-label="計算機"
+      className="border"
     >
-      {isGrid ? <LayoutGrid className="size-5" /> : <List className="size-5" />}
+      <Calculator className="size-5" />
     </Button>
   )
 }

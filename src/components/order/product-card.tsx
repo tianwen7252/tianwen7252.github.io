@@ -28,21 +28,23 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
       type="button"
       onClick={handleClick}
       className={cn(
-        'flex w-full cursor-pointer flex-col items-center rounded-xl bg-card p-3 shadow-sm',
+        'flex h-full w-full cursor-pointer flex-col items-center justify-between rounded-xl bg-card p-3 shadow-sm',
         'transition-all hover:shadow-md active:scale-[0.97]',
       )}
     >
-      {commodity.image != null && (
-        <img
-          src={commodity.image}
-          alt={commodity.name}
-          className="mb-2 size-20 rounded-full object-cover"
-        />
-      )}
-      <span className="text-base font-bold text-card-foreground">
-        {commodity.name}
-      </span>
-      <span className="text-base text-muted-foreground">
+      <div className="flex flex-col items-center">
+        {commodity.image != null && (
+          <img
+            src={commodity.image}
+            alt={commodity.name}
+            className="mb-2 size-20 rounded-full object-cover"
+          />
+        )}
+        <span className="text-base font-bold text-card-foreground">
+          {commodity.name}
+        </span>
+      </div>
+      <span className="mt-1 text-base text-muted-foreground">
         ${commodity.price}
       </span>
     </button>

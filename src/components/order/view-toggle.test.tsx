@@ -3,24 +3,15 @@ import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ViewToggle } from './view-toggle'
 
-describe('ViewToggle', () => {
+describe('ViewToggle (Calculator button)', () => {
   it('should render a button element', () => {
     render(<ViewToggle mode="grid" onToggle={vi.fn()} />)
     expect(screen.getByRole('button')).toBeTruthy()
   })
 
-  it('should have accessible label for grid mode', () => {
+  it('should have accessible label', () => {
     render(<ViewToggle mode="grid" onToggle={vi.fn()} />)
-    expect(
-      screen.getByRole('button', { name: /切換列表檢視/i }),
-    ).toBeTruthy()
-  })
-
-  it('should have accessible label for list mode', () => {
-    render(<ViewToggle mode="list" onToggle={vi.fn()} />)
-    expect(
-      screen.getByRole('button', { name: /切換格狀檢視/i }),
-    ).toBeTruthy()
+    expect(screen.getByRole('button', { name: /計算機/i })).toBeTruthy()
   })
 
   it('should call onToggle when clicked', async () => {
@@ -31,21 +22,11 @@ describe('ViewToggle', () => {
     expect(onToggle).toHaveBeenCalledTimes(1)
   })
 
-  it('should render LayoutGrid icon when mode is grid', () => {
+  it('should render calculator svg icon', () => {
     const { container } = render(
       <ViewToggle mode="grid" onToggle={vi.fn()} />,
     )
-    // lucide-react renders an svg with data-testid or class; check svg presence
-    const svg = container.querySelector('svg')
-    expect(svg).toBeTruthy()
-  })
-
-  it('should render List icon when mode is list', () => {
-    const { container } = render(
-      <ViewToggle mode="list" onToggle={vi.fn()} />,
-    )
-    const svg = container.querySelector('svg')
-    expect(svg).toBeTruthy()
+    expect(container.querySelector('svg')).toBeTruthy()
   })
 
   it('should not call onToggle without user interaction', () => {

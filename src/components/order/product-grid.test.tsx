@@ -207,7 +207,7 @@ describe('ProductGrid', () => {
       expect(screen.getByText('滷肉便當')).toBeTruthy()
     })
     // View toggle button should exist (aria-label based)
-    expect(screen.getByLabelText(/切換列表檢視/i)).toBeTruthy()
+    expect(screen.getByLabelText(/計算機/i)).toBeTruthy()
   })
 
   it('should fetch categories and commodities from repositories', async () => {
@@ -228,18 +228,18 @@ describe('ProductGrid', () => {
     })
 
     // Initially in grid mode — button says "switch to list"
-    expect(screen.getByLabelText(/切換列表檢視/i)).toBeTruthy()
+    expect(screen.getByLabelText(/計算機/i)).toBeTruthy()
 
     // Click toggle — should switch to list mode
-    await user.click(screen.getByLabelText(/切換列表檢視/i))
+    await user.click(screen.getByLabelText(/計算機/i))
 
     // Now in list mode — button says "switch to grid"
-    expect(screen.getByLabelText(/切換格狀檢視/i)).toBeTruthy()
+    expect(screen.getByLabelText(/計算機/i)).toBeTruthy()
 
     // Click toggle again — should switch back to grid mode
-    await user.click(screen.getByLabelText(/切換格狀檢視/i))
+    await user.click(screen.getByLabelText(/計算機/i))
 
     // Back to grid mode
-    expect(screen.getByLabelText(/切換列表檢視/i)).toBeTruthy()
+    expect(screen.getByLabelText(/計算機/i)).toBeTruthy()
   })
 })

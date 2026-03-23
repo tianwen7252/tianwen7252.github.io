@@ -42,10 +42,11 @@ export function OrderItemRow({
         {/* Quantity controls */}
         <div className="flex items-center gap-1">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon-xs"
             aria-label="decrease"
             onClick={handleDecrease}
+            className="border"
           >
             <Minus className="size-3" />
           </Button>
@@ -53,10 +54,11 @@ export function OrderItemRow({
             x{item.quantity}
           </span>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon-xs"
             aria-label="increase"
             onClick={handleIncrease}
+            className="border"
           >
             <Plus className="size-3" />
           </Button>
@@ -69,11 +71,11 @@ export function OrderItemRow({
 
         {/* Remove button */}
         <Button
-          variant="ghost"
+          variant="outline"
           size="icon-xs"
           aria-label="remove"
           onClick={handleRemove}
-          className="text-muted-foreground hover:text-destructive"
+          className="border text-muted-foreground hover:text-destructive"
         >
           <X className="size-3" />
         </Button>

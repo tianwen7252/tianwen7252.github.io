@@ -14,7 +14,7 @@ export function DiscountSection({
 }: DiscountSectionProps) {
   return (
     <div className="flex flex-col gap-2">
-      <h4 className="text-base font-medium text-muted-foreground">
+      <h4 className="text-sm font-medium text-muted-foreground">
         折扣優惠 (可多選)
       </h4>
 
