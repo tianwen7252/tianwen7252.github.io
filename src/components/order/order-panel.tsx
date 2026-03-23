@@ -27,7 +27,10 @@ export function OrderPanel() {
   // Auto-scroll to bottom when new items are added
   useEffect(() => {
     if (listRef.current) {
-      listRef.current.scrollTop = listRef.current.scrollHeight
+      listRef.current.scrollTo({
+        top: listRef.current.scrollHeight,
+        behavior: 'smooth',
+      })
     }
   }, [items.length])
 
