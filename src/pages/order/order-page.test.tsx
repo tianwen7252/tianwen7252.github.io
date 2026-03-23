@@ -46,7 +46,7 @@ describe('OrderPage', () => {
     const leftPanel = container.querySelector('[data-testid="product-grid"]')
       ?.parentElement as HTMLElement
     expect(leftPanel).toBeTruthy()
-    expect(leftPanel.classList.contains('flex-[65]')).toBe(true)
+    expect(leftPanel.classList.contains('flex-[64]')).toBe(true)
   })
 
   it('should have left panel with scrollable overflow', () => {
@@ -68,7 +68,7 @@ describe('OrderPage', () => {
     const rightPanel = container.querySelector('[data-testid="order-panel"]')
       ?.parentElement as HTMLElement
     expect(rightPanel).toBeTruthy()
-    expect(rightPanel.classList.contains('flex-[35]')).toBe(true)
+    expect(rightPanel.classList.contains('flex-[36]')).toBe(true)
   })
 
   it('should have right panel with scrollable overflow', () => {

@@ -37,11 +37,8 @@ export function OrderSummary({
 
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">
-        <span className="text-xl font-bold">{t('order.total')}</span>
-        <span
-          data-testid="total-value"
-          className="text-3xl font-bold"
-        >
+        <span className="text-xl">{t('order.total')}</span>
+        <span data-testid="total-value" className="text-3xl font-bold">
           ${total.toLocaleString()}
         </span>
       </div>

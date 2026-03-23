@@ -3,6 +3,7 @@ import { ClipboardList, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { useOrderStore } from '@/stores/order-store'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
@@ -26,13 +27,14 @@ export function OrderPanel() {
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const listRef = useRef<HTMLDivElement>(null)
+  const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Auto-scroll to bottom when new items are added
   useEffect(() => {
-    if (listRef.current) {
-      listRef.current.scrollTo({
-        top: listRef.current.scrollHeight,
+    const handle = scrollRef.current
+    if (handle?.el) {
+      handle.scrollTo({
+        top: handle.el.scrollHeight,
         behavior: 'smooth',
       })
     }
@@ -61,7 +63,7 @@ export function OrderPanel() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <ClipboardList className="size-5" />
-        <h3 className="text-base font-semibold">{t('order.currentOrder')}</h3>
+        <h3 className="text-base">{t('order.currentOrder')}</h3>
         {itemCount > 0 && (
           <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-primary-foreground">
             {itemCount}
@@ -83,13 +85,13 @@ export function OrderPanel() {
       </div>
 
       {/* Order items list */}
-      <div ref={listRef} className="flex-1 overflow-y-auto">
+      <ScrollArea ref={scrollRef} className="flex-1" watchDeps={[items.length]}>
         {isEmpty ? (
           <p className="py-8 text-center text-muted-foreground">
             {t('order.emptyOrder')}
           </p>
         ) : (
-          <div className="divide-y divide-border">
+          <div className="divide-y divide-border pr-2">
             {items.map((item) => (
               <SwipeToDelete key={item.id} onDelete={() => removeItem(item.id)}>
                 <OrderItemRow
@@ -102,7 +104,7 @@ export function OrderPanel() {
             ))}
           </div>
         )}
-      </div>
+      </ScrollArea>
 
       {/* Divider */}
       <hr className="border-border" />

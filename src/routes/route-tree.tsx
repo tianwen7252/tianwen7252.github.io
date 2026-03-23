@@ -25,7 +25,7 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: s => s.location.pathname })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   return (
     <div className="min-h-screen bg-background text-foreground">
