@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ClipboardList } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -22,6 +22,14 @@ export function OrderPanel() {
   const submitOrder = useOrderStore(s => s.submitOrder)
 
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const listRef = useRef<HTMLDivElement>(null)
+
+  // Auto-scroll to bottom when new items are added
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight
+    }
+  }, [items.length])
 
   const subtotal = getSubtotal()
   const totalDiscount = getTotalDiscount()
@@ -49,7 +57,7 @@ export function OrderPanel() {
       </div>
 
       {/* Order items list */}
-      <div className="flex-1 overflow-y-auto">
+      <div ref={listRef} className="flex-1 overflow-y-auto">
         {isEmpty ? (
           <p className="py-8 text-center text-muted-foreground">
             尚無訂單項目
