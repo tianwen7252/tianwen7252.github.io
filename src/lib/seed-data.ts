@@ -197,10 +197,10 @@ export function buildSeedAttendances(): readonly Attendance[] {
 // ─── Seed Commondity Types (from V1) ────────────────────────────────────────
 
 export const SEED_COMMONDITY_TYPES: readonly CommondityType[] = [
-  { id: 'ct-001', typeId: 'bento', type: 'main-dish', label: '🍱 餐盒', color: 'green', createdAt: 1700000000000, updatedAt: 1700000000000 },
-  { id: 'ct-002', typeId: 'single', type: 'à-la-carte', label: '🍖 單點', color: 'brown', createdAt: 1700000000000, updatedAt: 1700000000000 },
-  { id: 'ct-003', typeId: 'drink', type: 'drink', label: '🧃 飲料', color: 'indigo', createdAt: 1700000000000, updatedAt: 1700000000000 },
-  { id: 'ct-004', typeId: 'dumpling', type: 'dumpling', label: '🥟 水餃', color: 'indigo', createdAt: 1700000000000, updatedAt: 1700000000000 },
+  { id: 'ct-001', typeId: 'bento', type: 'main-dish', label: '餐盒', color: 'green', createdAt: 1700000000000, updatedAt: 1700000000000 },
+  { id: 'ct-002', typeId: 'single', type: 'à-la-carte', label: '單點', color: 'brown', createdAt: 1700000000000, updatedAt: 1700000000000 },
+  { id: 'ct-003', typeId: 'drink', type: 'drink', label: '飲料', color: 'indigo', createdAt: 1700000000000, updatedAt: 1700000000000 },
+  { id: 'ct-004', typeId: 'dumpling', type: 'dumpling', label: '水餃', color: 'indigo', createdAt: 1700000000000, updatedAt: 1700000000000 },
 ] as const
 
 // ─── Seed Commondities (from V1) ───────────────────────────────────────────

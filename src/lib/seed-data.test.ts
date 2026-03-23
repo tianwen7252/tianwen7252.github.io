@@ -35,7 +35,7 @@ describe('Seed Data', () => {
 
     it('has correct labels from V1', () => {
       const labels = SEED_COMMONDITY_TYPES.map((ct) => ct.label)
-      expect(labels).toEqual(['🍱 餐盒', '🍖 單點', '🧃 飲料', '🥟 水餃'])
+      expect(labels).toEqual(['餐盒', '單點', '飲料', '水餃'])
     })
   })
 
