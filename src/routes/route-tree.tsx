@@ -7,7 +7,7 @@ import {
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
-import { HomePage } from '@/pages/home'
+import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
@@ -77,7 +77,7 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: HomePage,
+  component: OrderPage,
 })
 
 // Preview layout route — for component previews during development

@@ -120,6 +120,21 @@
     "settingsError": "Settings page error occurred",
     "clockInError": "Clock-in page error occurred"
   },
+  "order": {
+    "title": "Order",
+    "currentOrder": "Current Order",
+    "emptyOrder": "No items in order",
+    "subtotal": "Subtotal",
+    "discount": "Discounts",
+    "discountHint": "Multiple allowed",
+    "total": "Total",
+    "submit": "Submit Order",
+    "submitSuccess": "Order submitted",
+    "submitError": "Failed to submit order",
+    "loading": "Loading...",
+    "loadError": "Failed to load products",
+    "noProducts": "No products available"
+  },
   "settings": {
     "tabs": {
       "clockIn": "Clock In",
