@@ -51,7 +51,7 @@
     "hint": "點選員工即可打卡",
     "clockIn": "打卡上班",
     "clockOut": "打卡下班",
-    "applyVacation": "申請休假",
+    "applyVacation": "休假",
     "cancelVacation": "取消休假",
     "notClockedIn": "未打卡",
     "clockedIn": "正在上班",
@@ -119,6 +119,25 @@
     "appError": "應用程式發生錯誤",
     "settingsError": "設定頁面發生錯誤",
     "clockInError": "打卡頁面發生錯誤"
+  },
+  "order": {
+    "title": "點餐",
+    "currentOrder": "目前訂單",
+    "emptyOrder": "尚無訂單項目",
+    "subtotal": "小計",
+    "discount": "折扣優惠",
+    "discountHint": "可多選",
+    "total": "總金額",
+    "submit": "提交訂單",
+    "submitSuccess": "訂單已送出",
+    "submitError": "訂單送出失敗",
+    "loading": "載入中...",
+    "loadError": "載入商品失敗，請重試",
+    "noProducts": "目前沒有商品",
+    "clearCart": "清空訂單",
+    "categories": "商品分類",
+    "calculator": "計算機",
+    "discountLine": "折扣"
   },
   "settings": {
     "tabs": {

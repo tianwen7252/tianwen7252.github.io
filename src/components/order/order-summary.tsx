@@ -1,0 +1,34 @@
+import { useTranslation } from 'react-i18next'
+
+export interface OrderSummaryProps {
+  readonly subtotal: number
+  readonly total: number
+}
+
+/** Order summary displaying subtotal and total */
+export function OrderSummary({
+  subtotal,
+  total,
+}: OrderSummaryProps) {
+  const { t } = useTranslation()
+  return (
+    <div className="flex flex-col gap-2">
+      {/* Subtotal row */}
+      <div
+        data-testid="subtotal-row"
+        className="flex items-center justify-between text-base"
+      >
+        <span>{t('order.subtotal')}</span>
+        <span>${subtotal.toLocaleString()}</span>
+      </div>
+
+      {/* Total row */}
+      <div className="flex items-center justify-between pt-2">
+        <span className="text-xl">{t('order.total')}</span>
+        <span data-testid="total-value" className="text-3xl font-bold">
+          ${total.toLocaleString()}
+        </span>
+      </div>
+    </div>
+  )
+}

@@ -1,0 +1,219 @@
+import { create } from 'zustand'
+import { nanoid } from 'nanoid'
+import { getOrderRepo } from '@/lib/repositories/provider'
+import type { OrderData } from '@/lib/schemas'
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface CartItem {
+  /** Unique cart item id (nanoid) */
+  readonly id: string
+  /** Reference to commodity */
+  readonly commodityId: string
+  /** Product name (for display) */
+  readonly name: string
+  /** Unit price */
+  readonly price: number
+  /** Quantity (>= 1) */
+  readonly quantity: number
+  /** Customer note (e.g., "不加蛋") */
+  readonly note: string
+}
+
+export interface Discount {
+  /** Unique discount id */
+  readonly id: string
+  /** Display label (e.g., "會員折扣") */
+  readonly label: string
+  /** Positive value (e.g., 50 means -$50) */
+  readonly amount: number
+}
+
+interface OrderState {
+  /** Currently selected operator employee id */
+  readonly operatorId: string | null
+  /** Currently selected operator display name */
+  readonly operatorName: string | null
+  /** Cart items (immutable array) */
+  readonly items: readonly CartItem[]
+  /** Applied discounts (immutable array) */
+  readonly discounts: readonly Discount[]
+}
+
+interface OrderActions {
+  setOperator: (employeeId: string | null, name: string | null) => void
+  addItem: (commodity: { id: string; name: string; price: number }) => void
+  removeItem: (cartItemId: string) => void
+  updateQuantity: (cartItemId: string, quantity: number) => void
+  updateNote: (cartItemId: string, note: string) => void
+  addDiscount: (label: string, amount: number) => void
+  removeDiscount: (discountId: string) => void
+  clearCart: () => void
+  submitOrder: () => Promise<void>
+  getSubtotal: () => number
+  getTotalDiscount: () => number
+  getTotal: () => number
+  getItemCount: () => number
+}
+
+// ─── Store ────────────────────────────────────────────────────────────────────
+
+export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
+  operatorId: null,
+  operatorName: null,
+  items: [],
+  discounts: [],
+
+  setOperator: (employeeId, name) =>
+    set({ operatorId: employeeId, operatorName: name }),
+
+  addItem: (commodity) =>
+    set(state => {
+      const existing = state.items.find(
+        item => item.commodityId === commodity.id,
+      )
+      if (existing) {
+        // Increment quantity for duplicate commodity (immutable map)
+        return {
+          items: state.items.map(item =>
+            item.id === existing.id
+              ? { ...item, quantity: item.quantity + 1 }
+              : item,
+          ),
+        }
+      }
+      // Add new cart item
+      const newItem: CartItem = {
+        id: nanoid(),
+        commodityId: commodity.id,
+        name: commodity.name,
+        price: commodity.price,
+        quantity: 1,
+        note: '',
+      }
+      return { items: [...state.items, newItem] }
+    }),
+
+  removeItem: (cartItemId) =>
+    set(state => ({
+      items: state.items.filter(item => item.id !== cartItemId),
+    })),
+
+  updateQuantity: (cartItemId, quantity) =>
+    set(state => {
+      if (quantity <= 0) {
+        return { items: state.items.filter(item => item.id !== cartItemId) }
+      }
+      return {
+        items: state.items.map(item =>
+          item.id === cartItemId ? { ...item, quantity } : item,
+        ),
+      }
+    }),
+
+  updateNote: (cartItemId, note) =>
+    set(state => ({
+      items: state.items.map(item =>
+        item.id === cartItemId ? { ...item, note } : item,
+      ),
+    })),
+
+  addDiscount: (label, amount) => {
+    if (amount <= 0) return
+    set(state => ({
+      discounts: [
+        ...state.discounts,
+        { id: nanoid(), label, amount },
+      ],
+    }))
+  },
+
+  removeDiscount: (discountId) =>
+    set(state => ({
+      discounts: state.discounts.filter(d => d.id !== discountId),
+    })),
+
+  clearCart: () => set({ items: [], discounts: [] }),
+
+  submitOrder: async () => {
+    const { items, discounts, operatorId, getSubtotal, getTotal } = get()
+
+    // Guard against empty cart
+    if (items.length === 0) {
+      throw new Error('Cannot submit an empty order')
+    }
+
+    const subtotal = getSubtotal()
+    const total = getTotal()
+
+    const repo = getOrderRepo()
+    const number = await repo.getNextOrderNumber()
+
+    // Convert cart items to OrderData format
+    const orderData: OrderData[] = []
+    for (const item of items) {
+      orderData.push({
+        comID: item.commodityId,
+        value: item.name,
+        amount: String(item.price),
+      })
+      if (item.quantity > 1) {
+        orderData.push({
+          comID: item.commodityId,
+          res: 'qty',
+          operator: '*',
+          amount: String(item.quantity),
+        })
+      }
+    }
+
+    // Serialize discount entries into OrderData
+    for (const discount of discounts) {
+      orderData.push({
+        res: discount.label,
+        type: 'discount',
+        operator: '+',
+        amount: String(-discount.amount),
+      })
+    }
+
+    // Collect non-empty notes
+    const memo = items
+      .map(item => item.note)
+      .filter(note => note !== '')
+
+    await repo.create({
+      number,
+      data: orderData,
+      memo,
+      soups: 0,
+      total,
+      originalTotal: subtotal,
+      editor: operatorId ?? '',
+    })
+
+    // Clear cart after successful submit
+    get().clearCart()
+  },
+
+  getSubtotal: () => {
+    const { items } = get()
+    return items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  },
+
+  getTotalDiscount: () => {
+    const { discounts } = get()
+    return discounts.reduce((sum, d) => sum + d.amount, 0)
+  },
+
+  getTotal: () => {
+    const subtotal = get().getSubtotal()
+    const totalDiscount = get().getTotalDiscount()
+    return Math.max(0, subtotal - totalDiscount)
+  },
+
+  getItemCount: () => {
+    const { items } = get()
+    return items.reduce((sum, item) => sum + item.quantity, 0)
+  },
+}))

@@ -1,7 +1,7 @@
 /**
  * Repository provider — singleton access to repository instances.
  * Call initRepositories(db) once at app startup, then use
- * getEmployeeRepo() / getAttendanceRepo() anywhere.
+ * getEmployeeRepo() / getAttendanceRepo() / etc. anywhere.
  */
 
 import type { AsyncDatabase } from '@/lib/worker-database'
@@ -13,17 +13,35 @@ import {
   createAttendanceRepository,
   type AttendanceRepository,
 } from './attendance-repository'
+import {
+  createCommondityTypeRepository,
+  type CommondityTypeRepository,
+} from './commondity-type-repository'
+import {
+  createCommondityRepository,
+  type CommondityRepository,
+} from './commondity-repository'
+import {
+  createOrderRepository,
+  type OrderRepository,
+} from './order-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
+let commondityTypeRepo: CommondityTypeRepository | null = null
+let commondityRepo: CommondityRepository | null = null
+let orderRepo: OrderRepository | null = null
 
 /**
- * Initialize both repositories with the given async database instance.
+ * Initialize all repositories with the given async database instance.
  * Must be called before any getXxxRepo() calls.
  */
 export function initRepositories(db: AsyncDatabase): void {
   employeeRepo = createEmployeeRepository(db)
   attendanceRepo = createAttendanceRepository(db)
+  commondityTypeRepo = createCommondityTypeRepository(db)
+  commondityRepo = createCommondityRepository(db)
+  orderRepo = createOrderRepository(db)
 }
 
 /**
@@ -53,10 +71,52 @@ export function getAttendanceRepo(): AttendanceRepository {
 }
 
 /**
- * Reset both repository singletons to null.
+ * Get the CommondityTypeRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getCommondityTypeRepo(): CommondityTypeRepository {
+  if (!commondityTypeRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return commondityTypeRepo
+}
+
+/**
+ * Get the CommondityRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getCommondityRepo(): CommondityRepository {
+  if (!commondityRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return commondityRepo
+}
+
+/**
+ * Get the OrderRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getOrderRepo(): OrderRepository {
+  if (!orderRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return orderRepo
+}
+
+/**
+ * Reset all repository singletons to null.
  * Useful for testing or app teardown.
  */
 export function resetRepositories(): void {
   employeeRepo = null
   attendanceRepo = null
+  commondityTypeRepo = null
+  commondityRepo = null
+  orderRepo = null
 }

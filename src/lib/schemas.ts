@@ -69,10 +69,17 @@ export const commondityTypeSchema = z.object({
   updatedAt: z.number(),
 })
 
+export const createCommondityTypeSchema = commondityTypeSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
 export const commonditySchema = z.object({
   id: z.string(),
   typeId: z.string(),
   name: z.string().min(1),
+  image: z.string().optional(),
   price: z.number().min(0),
   priority: z.number().default(0),
   onMarket: z.boolean().default(true),
@@ -82,8 +89,16 @@ export const commonditySchema = z.object({
   updatedAt: z.number(),
 })
 
+export const createCommonditySchema = commonditySchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
 export type CommondityType = z.infer<typeof commondityTypeSchema>
+export type CreateCommondityType = z.infer<typeof createCommondityTypeSchema>
 export type Commondity = z.infer<typeof commonditySchema>
+export type CreateCommondity = z.infer<typeof createCommonditySchema>
 
 // ─── Order ───────────────────────────────────────────────────────────────────
 
@@ -110,8 +125,15 @@ export const orderSchema = z.object({
   updatedAt: z.number(),
 })
 
+export const createOrderSchema = orderSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
 export type OrderData = z.infer<typeof orderDataSchema>
 export type Order = z.infer<typeof orderSchema>
+export type CreateOrder = z.infer<typeof createOrderSchema>
 
 // ─── DailyData ───────────────────────────────────────────────────────────────
 
