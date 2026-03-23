@@ -411,7 +411,7 @@ export const SEED_COMMONDITIES: readonly Commondity[] = [
 export function seedEmployees(db: Database): void {
   for (const emp of SEED_EMPLOYEES) {
     db.exec(
-      `INSERT INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
+      `INSERT OR IGNORE INTO employees (id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         emp.id,
@@ -432,7 +432,7 @@ export function seedEmployees(db: Database): void {
   const attendances = buildSeedAttendances()
   for (const att of attendances) {
     db.exec(
-      `INSERT INTO attendances (id, employee_id, date, clock_in, clock_out, type)
+      `INSERT OR IGNORE INTO attendances (id, employee_id, date, clock_in, clock_out, type)
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         att.id,
@@ -450,7 +450,7 @@ export function seedEmployees(db: Database): void {
 export function seedCommodities(db: Database): void {
   for (const ct of SEED_COMMONDITY_TYPES) {
     db.exec(
-      `INSERT INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
+      `INSERT OR IGNORE INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         ct.id,
@@ -466,7 +466,7 @@ export function seedCommodities(db: Database): void {
 
   for (const com of SEED_COMMONDITIES) {
     db.exec(
-      `INSERT INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
+      `INSERT OR IGNORE INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         com.id,
