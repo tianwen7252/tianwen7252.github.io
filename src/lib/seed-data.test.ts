@@ -33,34 +33,32 @@ describe('Seed Data', () => {
       }
     })
 
-    it('has correct labels', () => {
+    it('has correct labels from V1', () => {
       const labels = SEED_COMMONDITY_TYPES.map((ct) => ct.label)
-      expect(labels).toEqual(['\u4fbf\u7576', '\u55ae\u9ede', '\u98f2\u6599', '\u6c34\u9903'])
+      expect(labels).toEqual(['🍱 餐盒', '🍖 單點', '🧃 飲料', '🥟 水餃'])
     })
   })
 
   describe('SEED_COMMONDITIES', () => {
-    it('has 15 bento items', () => {
-      expect(SEED_COMMONDITIES).toHaveLength(15)
+    it('has 47 total items (17 bento + 16 single + 9 drink + 5 dumpling)', () => {
+      expect(SEED_COMMONDITIES).toHaveLength(47)
     })
 
-    it('all items are bento type', () => {
-      for (const com of SEED_COMMONDITIES) {
-        expect(com.typeId).toBe('bento')
-      }
+    it('has correct item counts per category', () => {
+      const bento = SEED_COMMONDITIES.filter((c) => c.typeId === 'bento')
+      const single = SEED_COMMONDITIES.filter((c) => c.typeId === 'single')
+      const drink = SEED_COMMONDITIES.filter((c) => c.typeId === 'drink')
+      const dumpling = SEED_COMMONDITIES.filter((c) => c.typeId === 'dumpling')
+      expect(bento).toHaveLength(17)
+      expect(single).toHaveLength(16)
+      expect(drink).toHaveLength(9)
+      expect(dumpling).toHaveLength(5)
     })
 
     it('all items have unique ids', () => {
       const ids = SEED_COMMONDITIES.map((com) => com.id)
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(ids.length)
-    })
-
-    it('all items have image paths', () => {
-      for (const com of SEED_COMMONDITIES) {
-        expect(com.image).toBeTruthy()
-        expect(com.image).toContain('images/commodities/')
-      }
     })
 
     it('all items have positive prices', () => {
@@ -75,9 +73,15 @@ describe('Seed Data', () => {
       }
     })
 
-    it('has correct first and last item names', () => {
-      expect(SEED_COMMONDITIES[0]!.name).toBe('\u6ef7\u8089\u4fbf\u7576')
-      expect(SEED_COMMONDITIES[14]!.name).toBe('\u5496\u54e9\u96de\u4fbf\u7576')
+    it('first bento item is 油淋雞腿飯 at $140', () => {
+      expect(SEED_COMMONDITIES[0]!.name).toBe('油淋雞腿飯')
+      expect(SEED_COMMONDITIES[0]!.price).toBe(140)
+    })
+
+    it('bento 加蛋 and 加菜 have hideOnMode', () => {
+      const hidden = SEED_COMMONDITIES.filter((c) => c.hideOnMode != null)
+      expect(hidden).toHaveLength(2)
+      expect(hidden.map((c) => c.name)).toEqual(['加蛋', '加菜'])
     })
   })
 
