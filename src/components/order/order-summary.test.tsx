@@ -11,7 +11,7 @@ describe('OrderSummary', () => {
 
   it('should render TOTAL label and value', () => {
     render(<OrderSummary subtotal={430} totalDiscount={50} total={380} />)
-    expect(screen.getByText('TOTAL')).toBeTruthy()
+    expect(screen.getByText('總金額')).toBeTruthy()
     expect(screen.getByText('$380')).toBeTruthy()
   })
 

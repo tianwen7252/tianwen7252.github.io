@@ -133,7 +133,11 @@
     "submitError": "訂單送出失敗",
     "loading": "載入中...",
     "loadError": "載入商品失敗，請重試",
-    "noProducts": "目前沒有商品"
+    "noProducts": "目前沒有商品",
+    "clearCart": "清空訂單",
+    "categories": "商品分類",
+    "calculator": "計算機",
+    "discountLine": "折扣"
   },
   "settings": {
     "tabs": {

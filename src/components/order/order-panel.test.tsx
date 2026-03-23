@@ -176,7 +176,7 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /提交訂單/i })
     await user.click(submitButton)
 
-    expect(toast.success).toHaveBeenCalledWith('訂單已提交')
+    expect(toast.success).toHaveBeenCalledWith('訂單已送出')
   })
 
   it('should show error toast when submitOrder fails', async () => {
@@ -196,7 +196,7 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /提交訂單/i })
     await user.click(submitButton)
 
-    expect(toast.error).toHaveBeenCalledWith('提交失敗，請重試')
+    expect(toast.error).toHaveBeenCalledWith('訂單送出失敗')
   })
 
   it('should not render empty state when items exist', async () => {

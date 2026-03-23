@@ -39,7 +39,7 @@ export function OrderItemRow({
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
-            size="icon-xs"
+            size="icon-sm"
             aria-label="decrease"
             onClick={handleDecrease}
           >
@@ -50,7 +50,7 @@ export function OrderItemRow({
           </span>
           <Button
             variant="ghost"
-            size="icon-xs"
+            size="icon-sm"
             aria-label="increase"
             onClick={handleIncrease}
           >
@@ -66,7 +66,7 @@ export function OrderItemRow({
         {/* Remove button */}
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           aria-label="remove"
           onClick={() => onRemove(item.id)}
           className="text-muted-foreground hover:text-destructive"
@@ -79,7 +79,7 @@ export function OrderItemRow({
       {item.note !== '' && (
         <p
           data-testid="order-item-note"
-          className="pl-1 text-xs text-muted-foreground"
+          className="pl-1 text-md text-muted-foreground"
         >
           {item.note}
         </p>

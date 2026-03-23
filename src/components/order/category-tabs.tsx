@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import type { CommondityType } from '@/lib/schemas'
 
@@ -16,14 +17,15 @@ export function CategoryTabs({
   selectedTypeId,
   onSelect,
 }: CategoryTabsProps) {
+  const { t } = useTranslation()
   if (categories.length === 0) {
-    return <div role="tablist" aria-label="商品分類" />
+    return <div role="tablist" aria-label={t('order.categories')} />
   }
 
   return (
     <div
       role="tablist"
-      aria-label="商品分類"
+      aria-label={t('order.categories')}
       className="flex flex-wrap gap-2"
     >
       {categories.map(category => {

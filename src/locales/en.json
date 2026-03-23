@@ -133,7 +133,11 @@
     "submitError": "Failed to submit order",
     "loading": "Loading...",
     "loadError": "Failed to load products",
-    "noProducts": "No products available"
+    "noProducts": "No products available",
+    "clearCart": "Clear order",
+    "categories": "Product categories",
+    "calculator": "Calculator",
+    "discountLine": "Discount"
   },
   "settings": {
     "tabs": {

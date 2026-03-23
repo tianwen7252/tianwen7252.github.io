@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import type { Discount } from '@/stores/order-store'
@@ -12,10 +13,11 @@ export function DiscountSection({
   discounts,
   onRemoveDiscount,
 }: DiscountSectionProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2">
       <h4 className="text-sm font-medium text-muted-foreground">
-        折扣優惠 (可多選)
+        {t('order.discount')} ({t('order.discountHint')})
       </h4>
 
       {discounts.length > 0 && (

@@ -1,13 +1,15 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Calculator } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import {
   getCommondityTypeRepo,
   getCommondityRepo,
 } from '@/lib/repositories/provider'
 import { useOrderStore } from '@/stores/order-store'
+import { Button } from '@/components/ui/button'
 import { CategoryTabs } from './category-tabs'
 import { ProductCard } from './product-card'
-import { ViewToggle } from './view-toggle'
 
 /**
  * Main container component for the product selection area.
@@ -15,10 +17,10 @@ import { ViewToggle } from './view-toggle'
  * manages selected category state, and renders the grid of products.
  */
 export function ProductGrid() {
+  const { t } = useTranslation()
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
-  const addItem = useOrderStore(state => state.addItem)
+  const addItem = useOrderStore((state) => state.addItem)
 
   // Fetch all commodity types (categories)
   const {
@@ -56,14 +58,10 @@ export function ProductGrid() {
     addItem(commodity)
   }
 
-  const handleToggleView = () => {
-    setViewMode(prev => (prev === 'grid' ? 'list' : 'grid'))
-  }
-
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
-        <span className="text-muted-foreground">載入中...</span>
+        <span className="text-muted-foreground">{t('order.loading')}</span>
       </div>
     )
   }
@@ -71,7 +69,7 @@ export function ProductGrid() {
   if (isError) {
     return (
       <div className="flex items-center justify-center p-8">
-        <span className="text-destructive">載入商品失敗，請重試</span>
+        <span className="text-destructive">{t('order.loadError')}</span>
       </div>
     )
   }
@@ -85,17 +83,24 @@ export function ProductGrid() {
           selectedTypeId={selectedTypeId}
           onSelect={setSelectedTypeId}
         />
-        <ViewToggle mode={viewMode} onToggle={handleToggleView} />
+        <Button
+          variant="outline"
+          size="icon-sm"
+          aria-label={t('order.calculator')}
+          className="border text-muted-foreground"
+        >
+          <Calculator className="size-5" />
+        </Button>
       </div>
 
       {/* Product grid */}
       {commodities.length === 0 ? (
         <div className="flex items-center justify-center p-12">
-          <span className="text-muted-foreground">目前沒有商品</span>
+          <span className="text-muted-foreground">{t('order.noProducts')}</span>
         </div>
       ) : (
         <div className="grid grid-cols-5 gap-3">
-          {commodities.map(commodity => (
+          {commodities.map((commodity) => (
             <ProductCard
               key={commodity.id}
               commodity={commodity}

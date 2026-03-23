@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next'
+
 export interface OrderSummaryProps {
   readonly subtotal: number
   readonly totalDiscount: number
@@ -10,6 +12,7 @@ export function OrderSummary({
   totalDiscount,
   total,
 }: OrderSummaryProps) {
+  const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2">
       {/* Subtotal row */}
@@ -17,7 +20,7 @@ export function OrderSummary({
         data-testid="subtotal-row"
         className="flex items-center justify-between text-base"
       >
-        <span>小計</span>
+        <span>{t('order.subtotal')}</span>
         <span>${subtotal.toLocaleString()}</span>
       </div>
 
@@ -27,14 +30,14 @@ export function OrderSummary({
           data-testid="discount-line"
           className="flex items-center justify-between text-base text-muted-foreground"
         >
-          <span>折扣</span>
+          <span>{t('order.discountLine')}</span>
           <span>-${totalDiscount.toLocaleString()}</span>
         </div>
       )}
 
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">
-        <span className="text-xl font-bold">TOTAL</span>
+        <span className="text-xl font-bold">{t('order.total')}</span>
         <span
           data-testid="total-value"
           className="text-3xl font-bold"
