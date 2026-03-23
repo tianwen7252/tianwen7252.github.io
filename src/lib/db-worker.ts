@@ -6,7 +6,7 @@
  */
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
-import { CREATE_TABLES } from '@/lib/schema'
+import { initSchema } from '@/lib/schema'
 import { seedEmployees, seedCommodities } from '@/lib/seed-data'
 import type { WorkerRequest, WorkerResponse } from '@/lib/worker-database'
 import type { Database } from '@/lib/database'
@@ -64,9 +64,8 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
       db = wrapSahPoolDb(rawDb)
 
-      // Initialize schema
-      db.exec('PRAGMA foreign_keys = ON')
-      db.exec(CREATE_TABLES)
+      // Initialize schema + run migrations for existing DBs
+      initSchema((sql: string) => db!.exec(sql))
 
       // Clear all data if deleteSeedData is enabled (takes precedence)
       if (msg.deleteSeedData) {

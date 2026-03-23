@@ -116,10 +116,24 @@ export const CREATE_TABLES = `
 ` as const
 
 /**
+ * Migrations for existing databases that predate schema changes.
+ * Each migration is idempotent — safe to run on any database state.
+ */
+function runMigrations(exec: (sql: string) => void): void {
+  // V2-29: Add image column to commondities (may not exist on older DBs)
+  try {
+    exec('ALTER TABLE commondities ADD COLUMN image TEXT')
+  } catch {
+    // Column already exists — safe to ignore
+  }
+}
+
+/**
  * Initialize the database schema.
  * Idempotent — safe to call multiple times.
  */
 export function initSchema(exec: (sql: string) => void): void {
   exec('PRAGMA foreign_keys = ON')
   exec(CREATE_TABLES)
+  runMigrations(exec)
 }

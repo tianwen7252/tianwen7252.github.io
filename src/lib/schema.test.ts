@@ -65,12 +65,16 @@ describe('schema', () => {
   })
 
   describe('initSchema', () => {
-    it('should enable foreign keys and create tables', () => {
+    it('should enable foreign keys, create tables, and run migrations', () => {
       const mockExec = vi.fn()
       initSchema(mockExec)
-      expect(mockExec).toHaveBeenCalledTimes(2)
       expect(mockExec).toHaveBeenNthCalledWith(1, 'PRAGMA foreign_keys = ON')
       expect(mockExec).toHaveBeenNthCalledWith(2, CREATE_TABLES)
+      // Third call is the ALTER TABLE migration for image column
+      expect(mockExec).toHaveBeenNthCalledWith(
+        3,
+        'ALTER TABLE commondities ADD COLUMN image TEXT',
+      )
     })
   })
 })
