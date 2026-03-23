@@ -2,14 +2,12 @@ import { useTranslation } from 'react-i18next'
 
 export interface OrderSummaryProps {
   readonly subtotal: number
-  readonly totalDiscount: number
   readonly total: number
 }
 
-/** Order summary displaying subtotal, discount, and total */
+/** Order summary displaying subtotal and total */
 export function OrderSummary({
   subtotal,
-  totalDiscount,
   total,
 }: OrderSummaryProps) {
   const { t } = useTranslation()
@@ -23,17 +21,6 @@ export function OrderSummary({
         <span>{t('order.subtotal')}</span>
         <span>${subtotal.toLocaleString()}</span>
       </div>
-
-      {/* Discount line (only shown when discount > 0) */}
-      {totalDiscount > 0 && (
-        <div
-          data-testid="discount-line"
-          className="flex items-center justify-between text-base text-muted-foreground"
-        >
-          <span>{t('order.discountLine')}</span>
-          <span>-${totalDiscount.toLocaleString()}</span>
-        </div>
-      )}
 
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">

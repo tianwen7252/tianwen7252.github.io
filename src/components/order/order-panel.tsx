@@ -7,19 +7,15 @@ import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { useOrderStore } from '@/stores/order-store'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
-import { DiscountSection } from './discount-section'
 import { OrderSummary } from './order-summary'
 
 /** Main order panel (right sidebar) wiring store data to presentational components */
 export function OrderPanel() {
   const items = useOrderStore((s) => s.items)
-  const discounts = useOrderStore((s) => s.discounts)
   const removeItem = useOrderStore((s) => s.removeItem)
   const updateQuantity = useOrderStore((s) => s.updateQuantity)
   const updateNote = useOrderStore((s) => s.updateNote)
-  const removeDiscount = useOrderStore((s) => s.removeDiscount)
   const getSubtotal = useOrderStore((s) => s.getSubtotal)
-  const getTotalDiscount = useOrderStore((s) => s.getTotalDiscount)
   const getTotal = useOrderStore((s) => s.getTotal)
   const getItemCount = useOrderStore((s) => s.getItemCount)
   const clearCart = useOrderStore((s) => s.clearCart)
@@ -41,7 +37,6 @@ export function OrderPanel() {
   }, [items.length])
 
   const subtotal = getSubtotal()
-  const totalDiscount = getTotalDiscount()
   const total = getTotal()
   const itemCount = getItemCount()
   const isEmpty = items.length === 0
@@ -59,7 +54,7 @@ export function OrderPanel() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 p-4">
+    <div className="flex h-full flex-col gap-4 px-4 pb-4">
       {/* Header */}
       <div className="flex items-center gap-2">
         <ClipboardList className="size-5" />
@@ -112,14 +107,7 @@ export function OrderPanel() {
       {/* Order summary */}
       <OrderSummary
         subtotal={subtotal}
-        totalDiscount={totalDiscount}
         total={total}
-      />
-
-      {/* Discount section */}
-      <DiscountSection
-        discounts={discounts}
-        onRemoveDiscount={removeDiscount}
       />
 
       {/* Submit button */}

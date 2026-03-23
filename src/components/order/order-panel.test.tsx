@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useOrderStore } from '@/stores/order-store'
-import type { CartItem, Discount } from '@/stores/order-store'
+import type { CartItem } from '@/stores/order-store'
 
 // Mock sonner toast
 vi.mock('sonner', () => ({
@@ -21,16 +21,6 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
     price: 120,
     quantity: 1,
     note: '',
-    ...overrides,
-  }
-}
-
-/** Factory to create mock Discount objects */
-function makeDiscount(overrides: Partial<Discount> = {}): Discount {
-  return {
-    id: 'disc-1',
-    label: '會員折扣',
-    amount: 50,
     ...overrides,
   }
 }
@@ -78,18 +68,6 @@ describe('OrderPanel', () => {
     expect(screen.getByText('香草奶昔')).toBeTruthy()
   })
 
-  it('should render discount section', async () => {
-    act(() => {
-      useOrderStore.setState({
-        items: [makeCartItem()],
-        discounts: [makeDiscount({ label: '會員折扣', amount: 50 })],
-      })
-    })
-    await renderOrderPanel()
-    expect(screen.getByText('折扣優惠 (可多選)')).toBeTruthy()
-    expect(screen.getByText(/會員折扣/)).toBeTruthy()
-  })
-
   it('should render order summary with correct totals', async () => {
     act(() => {
       useOrderStore.setState({
@@ -97,14 +75,11 @@ describe('OrderPanel', () => {
           makeCartItem({ price: 120, quantity: 2 }),
           makeCartItem({ id: 'c2', commodityId: 'com-2', name: '香草奶昔', price: 80, quantity: 1 }),
         ],
-        discounts: [makeDiscount({ amount: 50 })],
       })
     })
     await renderOrderPanel()
-    // Subtotal: 120*2 + 80*1 = 320
-    expect(screen.getByText('$320')).toBeTruthy()
-    // Total: 320 - 50 = 270
-    expect(screen.getByText('$270')).toBeTruthy()
+    // Subtotal: 120*2 + 80*1 = 320, total is also 320 (no discount)
+    expect(screen.getAllByText('$320').length).toBeGreaterThanOrEqual(1)
   })
 
   it('should render submit button', async () => {
@@ -141,23 +116,6 @@ describe('OrderPanel', () => {
     await user.click(screen.getByRole('button', { name: /remove/i }))
     // Item should be removed from store
     expect(useOrderStore.getState().items).toHaveLength(0)
-  })
-
-  it('should call removeDiscount when discount remove button is clicked', async () => {
-    act(() => {
-      useOrderStore.setState({
-        items: [makeCartItem()],
-        discounts: [makeDiscount({ id: 'disc-99', label: '測試折扣', amount: 30 })],
-      })
-    })
-    const user = userEvent.setup()
-    await renderOrderPanel()
-    // Find the remove button within the discount tag
-    const discountTag = screen.getByTestId('discount-tag')
-    const removeBtn = discountTag.querySelector('button')
-    expect(removeBtn).toBeTruthy()
-    await user.click(removeBtn!)
-    expect(useOrderStore.getState().discounts).toHaveLength(0)
   })
 
   it('should call submitOrder and show toast on success', async () => {
