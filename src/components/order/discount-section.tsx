@@ -14,7 +14,7 @@ export function DiscountSection({
 }: DiscountSectionProps) {
   return (
     <div className="flex flex-col gap-2">
-      <h4 className="text-sm font-medium text-muted-foreground">
+      <h4 className="text-base font-medium text-muted-foreground">
         折扣優惠 (可多選)
       </h4>
 
@@ -24,7 +24,7 @@ export function DiscountSection({
             <span
               key={discount.id}
               data-testid="discount-tag"
-              className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-sm"
+              className="inline-flex items-center gap-1 rounded-full bg-muted px-3 py-1 text-base"
             >
               {discount.label} -${discount.amount.toLocaleString()}
               <Button

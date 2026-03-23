@@ -39,10 +39,10 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
           className="mb-2 size-20 rounded-full object-cover"
         />
       )}
-      <span className="text-sm font-bold text-card-foreground">
+      <span className="text-base font-bold text-card-foreground">
         {commodity.name}
       </span>
-      <span className="text-sm text-muted-foreground">
+      <span className="text-base text-muted-foreground">
         ${commodity.price}
       </span>
     </button>

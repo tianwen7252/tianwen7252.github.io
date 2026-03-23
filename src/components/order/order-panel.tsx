@@ -44,7 +44,7 @@ export function OrderPanel() {
       {/* Header */}
       <div className="flex items-center gap-2">
         <ClipboardList className="size-5" />
-        <h3 className="text-lg font-semibold">目前訂單</h3>
+        <h3 className="text-xl font-semibold">目前訂單</h3>
       </div>
 
       {/* Order items list */}

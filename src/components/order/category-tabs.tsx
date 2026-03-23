@@ -37,7 +37,7 @@ export function CategoryTabs({
             aria-selected={isActive}
             onClick={() => onSelect(category.typeId)}
             className={cn(
-              'rounded-full px-4 py-1.5 text-sm font-medium transition-colors',
+              'rounded-full px-4 py-1.5 text-base font-medium transition-colors',
               isActive
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-muted text-muted-foreground hover:bg-muted/80',

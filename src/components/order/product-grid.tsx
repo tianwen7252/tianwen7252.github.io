@@ -15,7 +15,7 @@ import { ViewToggle } from './view-toggle'
  * manages selected category state, and renders the grid of products.
  */
 export function ProductGrid() {
-  const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null)
+  const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
 
   const addItem = useOrderStore(state => state.addItem)

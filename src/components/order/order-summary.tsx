@@ -15,7 +15,7 @@ export function OrderSummary({
       {/* Subtotal row */}
       <div
         data-testid="subtotal-row"
-        className="flex items-center justify-between text-sm"
+        className="flex items-center justify-between text-base"
       >
         <span>小計</span>
         <span>${subtotal.toLocaleString()}</span>
@@ -25,7 +25,7 @@ export function OrderSummary({
       {totalDiscount > 0 && (
         <div
           data-testid="discount-line"
-          className="flex items-center justify-between text-sm text-muted-foreground"
+          className="flex items-center justify-between text-base text-muted-foreground"
         >
           <span>折扣</span>
           <span>-${totalDiscount.toLocaleString()}</span>
@@ -34,10 +34,10 @@ export function OrderSummary({
 
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">
-        <span className="text-lg font-bold">TOTAL</span>
+        <span className="text-xl font-bold">TOTAL</span>
         <span
           data-testid="total-value"
-          className="text-2xl font-bold"
+          className="text-3xl font-bold"
         >
           ${total.toLocaleString()}
         </span>

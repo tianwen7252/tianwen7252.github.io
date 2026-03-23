@@ -103,7 +103,7 @@ describe('ProductGrid', () => {
     vi.clearAllMocks()
     mockFindAllTypes.mockResolvedValue(mockCategories)
     mockFindOnMarket.mockResolvedValue(mockCommodities)
-    mockFindByTypeId.mockResolvedValue([])
+    mockFindByTypeId.mockResolvedValue(mockCommodities)
   })
 
   it('should show loading state initially', () => {
@@ -140,12 +140,12 @@ describe('ProductGrid', () => {
     })
   })
 
-  it('should call findOnMarket initially (no category selected)', async () => {
+  it('should call findByTypeId with bento initially (default category)', async () => {
     renderWithProviders(<ProductGrid />)
     await waitFor(() => {
-      expect(mockFindOnMarket).toHaveBeenCalled()
+      expect(mockFindByTypeId).toHaveBeenCalledWith('bento')
     })
-    expect(mockFindByTypeId).not.toHaveBeenCalled()
+    expect(mockFindOnMarket).not.toHaveBeenCalled()
   })
 
   it('should call findByTypeId when a category tab is clicked', async () => {
@@ -194,7 +194,7 @@ describe('ProductGrid', () => {
   })
 
   it('should show empty state when no products are available', async () => {
-    mockFindOnMarket.mockResolvedValue([])
+    mockFindByTypeId.mockResolvedValue([])
     renderWithProviders(<ProductGrid />)
     await waitFor(() => {
       expect(screen.getByText('目前沒有商品')).toBeTruthy()
@@ -214,7 +214,7 @@ describe('ProductGrid', () => {
     renderWithProviders(<ProductGrid />)
     await waitFor(() => {
       expect(mockFindAllTypes).toHaveBeenCalledTimes(1)
-      expect(mockFindOnMarket).toHaveBeenCalledTimes(1)
+      expect(mockFindByTypeId).toHaveBeenCalledWith('bento')
     })
   })
 

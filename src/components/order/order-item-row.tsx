@@ -49,7 +49,7 @@ export function OrderItemRow({
           >
             <Minus className="size-3" />
           </Button>
-          <span className="min-w-[1.5rem] text-center text-sm">
+          <span className="min-w-[1.5rem] text-center text-base">
             x{item.quantity}
           </span>
           <Button
@@ -63,7 +63,7 @@ export function OrderItemRow({
         </div>
 
         {/* Price */}
-        <span className="min-w-[3rem] text-right text-sm font-medium">
+        <span className="min-w-[3rem] text-right text-base font-medium">
           ${totalPrice.toLocaleString()}
         </span>
 
