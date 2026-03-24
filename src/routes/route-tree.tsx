@@ -30,7 +30,7 @@ function RootLayout() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation header */}
-      <header className="border-b border-border bg-card px-6 py-3">
+      <header className="border-b border-border px-6 py-3 bg-[#F8F4EC]">
         <nav className="flex items-center gap-4">
           <Link to="/" className="text-lg font-bold text-primary">
             {t('nav.appTitle')}
@@ -156,5 +156,9 @@ export const routeTree = rootRoute.addChildren([
   indexRoute,
   clockInRoute,
   settingsRoute,
-  previewRoute.addChildren([previewIndexRoute, previewModalRoute, previewNotifyRoute]),
+  previewRoute.addChildren([
+    previewIndexRoute,
+    previewModalRoute,
+    previewNotifyRoute,
+  ]),
 ])

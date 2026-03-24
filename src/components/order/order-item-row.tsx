@@ -26,7 +26,7 @@ export function OrderItemRow({
   const { t } = useTranslation()
   const totalPrice = item.price * item.quantity
   const prevQuantityRef = useRef(item.quantity)
-  const [bounce, setBounce] = useState(false)
+  const quantityRef = useRef<HTMLSpanElement>(null)
   const [popoverOpen, setPopoverOpen] = useState(false)
   const [editValue, setEditValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -34,7 +34,13 @@ export function OrderItemRow({
   useEffect(() => {
     if (item.quantity !== prevQuantityRef.current) {
       prevQuantityRef.current = item.quantity
-      setBounce(true)
+      const el = quantityRef.current
+      if (el) {
+        // Remove then re-add class with forced reflow to restart animation
+        el.classList.remove('animate-qty-bounce')
+        void el.offsetWidth
+        el.classList.add('animate-qty-bounce')
+      }
     }
   }, [item.quantity])
 
@@ -99,8 +105,11 @@ export function OrderItemRow({
           <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
             <PopoverTrigger asChild>
               <span
-                className={`min-w-[1.5rem] cursor-pointer rounded px-1 text-center text-base outline-none hover:bg-muted ${bounce ? 'animate-qty-bounce' : ''}`}
-                onAnimationEnd={() => setBounce(false)}
+                ref={quantityRef}
+                className="min-w-[1.5rem] cursor-pointer rounded px-1 text-center text-base outline-none hover:bg-muted"
+                onAnimationEnd={(e) =>
+                  e.currentTarget.classList.remove('animate-qty-bounce')
+                }
                 onClick={handleOpenPopover}
                 role="button"
                 tabIndex={0}

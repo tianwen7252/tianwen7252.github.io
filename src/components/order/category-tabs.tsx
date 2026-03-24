@@ -28,7 +28,7 @@ export function CategoryTabs({
       aria-label={t('order.categories')}
       className="flex flex-wrap gap-2"
     >
-      {categories.map(category => {
+      {categories.map((category) => {
         const isActive = category.typeId === selectedTypeId
         return (
           <button
@@ -42,7 +42,7 @@ export function CategoryTabs({
               'rounded-full px-4 py-1.5 text-base font-medium transition-colors',
               isActive
                 ? 'bg-primary text-primary-foreground'
-                : 'bg-muted text-muted-foreground hover:bg-muted/80',
+                : 'text-muted-foreground',
             )}
           >
             {category.label}

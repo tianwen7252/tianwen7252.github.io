@@ -18,7 +18,7 @@ const VARIANT_CONFIG: Record<
   info: { icon: <Info className="size-5 text-white" />, color: '#4A90D9' },
   warning: {
     icon: <AlertTriangle className="size-5 text-white" />,
-    color: '#E8C872',
+    color: '#D9B870',
   },
 }
 

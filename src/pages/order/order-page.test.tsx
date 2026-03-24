@@ -56,11 +56,11 @@ describe('OrderPage', () => {
     expect(leftPanel.classList.contains('overflow-y-auto')).toBe(true)
   })
 
-  it('should have left panel with page background color', () => {
+  it('should have left panel with correct flex ratio', () => {
     const { container } = render(<OrderPage />)
     const leftPanel = container.querySelector('[data-testid="product-grid"]')
       ?.parentElement as HTMLElement
-    expect(leftPanel.classList.contains('bg-background')).toBe(true)
+    expect(leftPanel.classList.contains('flex-[64]')).toBe(true)
   })
 
   it('should have right panel with 35% flex ratio', () => {
