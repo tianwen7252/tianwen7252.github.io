@@ -5,7 +5,7 @@ import { OrderSummary } from './order-summary'
 describe('OrderSummary', () => {
   it('should render subtotal label and value', () => {
     render(<OrderSummary subtotal={430} total={380} />)
-    expect(screen.getByText('小計')).toBeTruthy()
+    expect(screen.getByText('小計(不含優惠)')).toBeTruthy()
     expect(screen.getByText('$430')).toBeTruthy()
   })
 

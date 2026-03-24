@@ -124,7 +124,7 @@
     "title": "點餐",
     "currentOrder": "目前訂單",
     "emptyOrder": "尚無訂單項目",
-    "subtotal": "小計",
+    "subtotal": "小計(不含優惠)",
     "discount": "折扣優惠",
     "discountHint": "可多選",
     "total": "總金額",

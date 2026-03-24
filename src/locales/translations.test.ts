@@ -23,7 +23,7 @@ describe('i18n translations', () => {
     })
 
     it('should have order.subtotal', () => {
-      expect(zhTW.order.subtotal).toBe('小計')
+      expect(zhTW.order.subtotal).toBe('小計(不含優惠)')
     })
 
     it('should have order.discount', () => {
