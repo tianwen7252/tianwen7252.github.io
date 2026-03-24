@@ -7,6 +7,7 @@ interface ProductCardProps {
     id: string
     name: string
     price: number
+    typeId: string
   }) => void
 }
 
@@ -20,6 +21,7 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
       id: commodity.id,
       name: commodity.name,
       price: commodity.price,
+      typeId: commodity.typeId,
     })
   }
 

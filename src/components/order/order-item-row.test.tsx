@@ -9,6 +9,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
   return {
     id: 'cart-1',
     commodityId: 'com-1',
+    typeId: 'bento',
     name: '經典漢堡',
     price: 120,
     quantity: 1,

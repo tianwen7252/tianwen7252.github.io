@@ -54,6 +54,7 @@ export function ProductGrid() {
     id: string
     name: string
     price: number
+    typeId: string
   }) => {
     addItem(commodity)
   }

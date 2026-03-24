@@ -82,7 +82,10 @@ export function Modal({
   children,
   footer,
   shineColor,
+  width = 500,
+  height,
   loading = false,
+  closeOnBackdropClick = true,
   onClose,
 }: ModalProps) {
   // Delay Radix unmount so close animation plays first.
@@ -120,7 +123,9 @@ export function Modal({
   return (
     <DialogPrimitive.Root
       open={dialogOpen}
-      onOpenChange={(o) => !o && onClose()}
+      onOpenChange={(o) => {
+        if (!o && closeOnBackdropClick) onClose()
+      }}
     >
       <DialogPrimitive.Portal>
         {/* Full-screen gradient overlay with fade animation */}
@@ -141,9 +146,12 @@ export function Modal({
             closing && 'glass-modal-closing',
           )}
           onClick={(e) => {
-            if (e.target === e.currentTarget) onClose()
+            if (e.target === e.currentTarget && closeOnBackdropClick) onClose()
           }}
-          onEscapeKeyDown={onClose}
+          onEscapeKeyDown={(e) => {
+            if (!closeOnBackdropClick) e.preventDefault()
+            else onClose()
+          }}
         >
           {/* Accessible title (sr-only) */}
           <DialogPrimitive.Title className="sr-only">
@@ -166,9 +174,11 @@ export function Modal({
               boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
               borderRadius: 16,
               padding: 40,
-              width: 500,
+              width,
+              height,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
+              ...(height ? { display: 'flex', flexDirection: 'column' as const } : {}),
             }}
           >
             {/* Animated shine border */}
@@ -200,21 +210,34 @@ export function Modal({
             {/* Title */}
             <div
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
                 fontSize: 22,
                 fontWeight: 500,
                 color: COLOR_TEXT,
                 marginBottom: 24,
-                textAlign: 'center',
               }}
             >
               {title}
             </div>
 
             {/* Content */}
-            {children}
+            {height ? (
+              <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+                {children}
+              </div>
+            ) : (
+              children
+            )}
 
             {/* Footer */}
-            {footer && <div style={{ marginTop: 24 }}>{footer}</div>}
+            {footer && (
+              <div style={{ marginTop: height ? 'auto' : 24, paddingTop: height ? 16 : 0 }}>
+                {footer}
+              </div>
+            )}
 
             {/* Loading overlay */}
             {loading && (

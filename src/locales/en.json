@@ -17,7 +17,8 @@
     "records": "Records",
     "staffAdmin": "Staff Admin",
     "settings": "Settings",
-    "appTitle": "Tianwen V2"
+    "appTitle": "Tianwen V2",
+    "orders": "Orders"
   },
   "staff": {
     "title": "Staff Management",
@@ -124,7 +125,8 @@
     "title": "Order",
     "currentOrder": "Current Order",
     "emptyOrder": "No items in order",
-    "subtotal": "Subtotal",
+    "bentoCount": "{{count}} bentos",
+    "soupCount": "{{count}} soups",
     "discount": "Discounts",
     "discountHint": "Multiple allowed",
     "total": "Total",
@@ -137,7 +139,35 @@
     "clearCart": "Clear order",
     "categories": "Product categories",
     "calculator": "Calculator",
-    "discountLine": "Discount"
+    "discountLine": "Discount",
+    "confirmTitle": "Confirm Order",
+    "categoryBento": "Bento",
+    "categorySingle": "A la carte",
+    "categoryDrink": "Drinks",
+    "categoryDumpling": "Dumplings",
+    "categoryOther": "Other",
+    "categoryDiscount": "Discounts",
+    "orderNote": "Order Notes",
+    "addTag": "Add tag",
+    "change": "Change"
+  },
+  "orders": {
+    "title": "Order History",
+    "loading": "Loading orders...",
+    "loadError": "Failed to load, please retry",
+    "noOrders": "No orders for this date",
+    "morning": "Morning",
+    "afternoon": "Afternoon",
+    "morningShift": "Morning (before 13:30)",
+    "afternoonShift": "Afternoon (13:30+)",
+    "grandTotal": "Grand Total",
+    "orderCount": "{{count}} orders",
+    "confirmDeleteTitle": "Delete Order #{{number}}?",
+    "confirmDeleteBtn": "Confirm Delete",
+    "confirmDeleteMessage": "This action cannot be undone",
+    "toastDeleted": "Order deleted",
+    "toastDeleteError": "Delete failed, please retry",
+    "moreItems": "+{{count}} more"
   },
   "settings": {
     "tabs": {

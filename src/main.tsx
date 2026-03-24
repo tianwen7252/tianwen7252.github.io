@@ -24,21 +24,22 @@ document.addEventListener('gesturechange', (e) => e.preventDefault())
 document.addEventListener('gestureend', (e) => e.preventDefault())
 
 // Prevent double-tap zoom
-document.addEventListener(
-  'touchend',
-  (e) => {
-    if (e.touches.length > 0) return
-    const now = Date.now()
-    const DOUBLE_TAP_THRESHOLD = 300
-    const lastTouch = (document as unknown as Record<string, number>)
-      .__lastTouchEnd ?? 0
-    if (now - lastTouch < DOUBLE_TAP_THRESHOLD) {
-      e.preventDefault()
-    }
-    ;(document as unknown as Record<string, number>).__lastTouchEnd = now
-  },
-  { passive: false },
-)
+// comment this out since it prevents the button from being clicked repeatedly.
+// document.addEventListener(
+//   'touchend',
+//   (e) => {
+//     if (e.touches.length > 0) return
+//     const now = Date.now()
+//     const DOUBLE_TAP_THRESHOLD = 300
+//     const lastTouch = (document as unknown as Record<string, number>)
+//       .__lastTouchEnd ?? 0
+//     if (now - lastTouch < DOUBLE_TAP_THRESHOLD) {
+//       e.preventDefault()
+//     }
+//     ;(document as unknown as Record<string, number>).__lastTouchEnd = now
+//   },
+//   { passive: false },
+// )
 
 import './styles/globals.css'
 import { router } from './routes/router'
@@ -54,10 +55,9 @@ const rootElement = document.getElementById('root')!
 
 // Initialize SQLite WASM database via Web Worker, then render the app
 async function bootstrap() {
-  const worker = new Worker(
-    new URL('./lib/db-worker.ts', import.meta.url),
-    { type: 'module' },
-  )
+  const worker = new Worker(new URL('./lib/db-worker.ts', import.meta.url), {
+    type: 'module',
+  })
 
   await waitForWorkerReady(worker)
   await initWorkerDb(worker, ENABLE_SEED_DATA, DELETE_SEED_DATA)

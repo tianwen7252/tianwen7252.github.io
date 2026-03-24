@@ -348,4 +348,54 @@ describe('OrderRepository', () => {
       expect(result).toBe(1)
     })
   })
+
+  // ─── remove ─────────────────────────────────────────────────────────────────
+
+  describe('remove()', () => {
+    it('calls db.exec with correct DELETE SQL and param', async () => {
+      const repo = createOrderRepository(db)
+      await repo.remove('ord-001')
+
+      expect(db.exec).toHaveBeenCalledWith(
+        'DELETE FROM orders WHERE id = ?',
+        ['ord-001'],
+      )
+    })
+
+    it('returns true when a row was deleted (changes > 0)', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: 1,
+      })
+
+      const repo = createOrderRepository(db)
+      const result = await repo.remove('ord-001')
+
+      expect(result).toBe(true)
+    })
+
+    it('returns false when no row was deleted (changes === 0)', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: 0,
+      })
+
+      const repo = createOrderRepository(db)
+      const result = await repo.remove('non-existent')
+
+      expect(result).toBe(false)
+    })
+
+    it('returns false when changes is undefined', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: undefined as unknown as number,
+      })
+
+      const repo = createOrderRepository(db)
+      const result = await repo.remove('ord-001')
+
+      expect(result).toBe(false)
+    })
+  })
 })

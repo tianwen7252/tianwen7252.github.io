@@ -22,8 +22,12 @@ describe('i18n translations', () => {
       expect(zhTW.order.emptyOrder).toBe('尚無訂單項目')
     })
 
-    it('should have order.subtotal', () => {
-      expect(zhTW.order.subtotal).toBe('小計(不含優惠)')
+    it('should have order.bentoCount', () => {
+      expect(zhTW.order.bentoCount).toBe('{{count}}個便當')
+    })
+
+    it('should have order.soupCount', () => {
+      expect(zhTW.order.soupCount).toBe('{{count}}杯湯')
     })
 
     it('should have order.discount', () => {
@@ -80,8 +84,12 @@ describe('i18n translations', () => {
       expect(en.order.emptyOrder).toBe('No items in order')
     })
 
-    it('should have order.subtotal', () => {
-      expect(en.order.subtotal).toBe('Subtotal')
+    it('should have order.bentoCount', () => {
+      expect(en.order.bentoCount).toBe('{{count}} bentos')
+    })
+
+    it('should have order.soupCount', () => {
+      expect(en.order.soupCount).toBe('{{count}} soups')
     })
 
     it('should have order.discount', () => {
@@ -121,10 +129,64 @@ describe('i18n translations', () => {
     })
   })
 
+  describe('zh-TW orders translations', () => {
+    it('should have orders namespace', () => {
+      expect(zhTW.orders).toBeDefined()
+    })
+
+    it('should have orders.title', () => {
+      expect(zhTW.orders.title).toBe('訂單紀錄')
+    })
+
+    it('should have orders.noOrders', () => {
+      expect(zhTW.orders.noOrders).toBe('本日無訂單')
+    })
+
+    it('should have orders.confirmDeleteTitle', () => {
+      expect(zhTW.orders.confirmDeleteTitle).toBe('確認刪除訂單 #{{number}}')
+    })
+  })
+
+  describe('en orders translations', () => {
+    it('should have orders namespace', () => {
+      expect(en.orders).toBeDefined()
+    })
+
+    it('should have orders.title', () => {
+      expect(en.orders.title).toBe('Order History')
+    })
+
+    it('should have orders.noOrders', () => {
+      expect(en.orders.noOrders).toBe('No orders for this date')
+    })
+  })
+
+  describe('nav.orders translations', () => {
+    it('should have nav.orders in zh-TW', () => {
+      expect(zhTW.nav.orders).toBe('訂單')
+    })
+
+    it('should have nav.orders in en', () => {
+      expect(en.nav.orders).toBe('Orders')
+    })
+  })
+
   describe('translation key parity', () => {
     it('should have the same order keys in both locales', () => {
       const zhKeys = Object.keys(zhTW.order).sort()
       const enKeys = Object.keys(en.order).sort()
+      expect(zhKeys).toEqual(enKeys)
+    })
+
+    it('should have the same orders keys in both locales', () => {
+      const zhKeys = Object.keys(zhTW.orders).sort()
+      const enKeys = Object.keys(en.orders).sort()
+      expect(zhKeys).toEqual(enKeys)
+    })
+
+    it('should have the same nav keys in both locales', () => {
+      const zhKeys = Object.keys(zhTW.nav).sort()
+      const enKeys = Object.keys(en.nav).sort()
       expect(zhKeys).toEqual(enKeys)
     })
   })

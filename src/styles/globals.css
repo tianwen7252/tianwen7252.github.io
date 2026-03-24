@@ -186,6 +186,10 @@ html {
       font-family: 'Noto Sans TC', sans-serif;
     }
   } */
+
+  .rdp-selected {
+    background: transparent !important;
+  }
 }
 
 /* ─── Quantity bounce animation ──────────────────────────────────────────── */

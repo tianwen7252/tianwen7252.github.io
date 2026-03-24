@@ -17,6 +17,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
   return {
     id: 'cart-1',
     commodityId: 'com-1',
+    typeId: 'bento',
     name: '經典漢堡',
     price: 120,
     quantity: 1,
@@ -68,7 +69,7 @@ describe('OrderPanel', () => {
     expect(screen.getByText('香草奶昔')).toBeTruthy()
   })
 
-  it('should render order summary with correct totals', async () => {
+  it('should render order summary with correct total', async () => {
     act(() => {
       useOrderStore.setState({
         items: [
@@ -78,8 +79,48 @@ describe('OrderPanel', () => {
       })
     })
     await renderOrderPanel()
-    // Subtotal: 120*2 + 80*1 = 320, total is also 320 (no discount)
-    expect(screen.getAllByText('$320').length).toBeGreaterThanOrEqual(1)
+    // Total: 120*2 + 80*1 = 320 (no discount)
+    expect(screen.getByText('$320')).toBeTruthy()
+  })
+
+  it('should pass bentoCount and soupCount to OrderSummary', async () => {
+    // Items with typeId='bento' and name containing '飯' count as bento
+    act(() => {
+      useOrderStore.setState({
+        items: [
+          makeCartItem({ id: 'c1', typeId: 'bento', name: '滷肉飯', price: 100, quantity: 2 }),
+          makeCartItem({ id: 'c2', typeId: 'drink', name: '紅茶', price: 30, quantity: 1 }),
+        ],
+      })
+    })
+    await renderOrderPanel()
+    // bentoCount = 2 (only bento with '飯'), soupCount = 2 (same as bento)
+    expect(screen.getByText('2個便當')).toBeTruthy()
+    expect(screen.getByText('2杯湯')).toBeTruthy()
+  })
+
+  it('should NOT count non-rice bento items like 雞胸肉沙拉', async () => {
+    act(() => {
+      useOrderStore.setState({
+        items: [
+          makeCartItem({ id: 'c1', typeId: 'bento', name: '雞胸肉沙拉', price: 160, quantity: 1 }),
+        ],
+      })
+    })
+    await renderOrderPanel()
+    expect(screen.queryByTestId('bento-soup-row')).toBeNull()
+  })
+
+  it('should not show bento/soup row when no bento items', async () => {
+    act(() => {
+      useOrderStore.setState({
+        items: [
+          makeCartItem({ id: 'c1', typeId: 'drink', name: '紅茶', price: 30, quantity: 1 }),
+        ],
+      })
+    })
+    await renderOrderPanel()
+    expect(screen.queryByTestId('bento-soup-row')).toBeNull()
   })
 
   it('should render submit button', async () => {
@@ -118,10 +159,7 @@ describe('OrderPanel', () => {
     expect(useOrderStore.getState().items).toHaveLength(0)
   })
 
-  it('should call submitOrder and show toast on success', async () => {
-    const { notify } = await import('@/components/ui/sonner')
-    vi.spyOn(useOrderStore.getState(), 'submitOrder').mockResolvedValueOnce()
-
+  it('should open confirm modal when submit button is clicked', async () => {
     act(() => {
       useOrderStore.setState({
         items: [makeCartItem()],
@@ -133,10 +171,53 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /提交訂單/i })
     await user.click(submitButton)
 
+    // Modal should appear with the confirm title (use role query to avoid description duplicate)
+    expect(screen.getByRole('dialog')).toBeTruthy()
+    expect(screen.getByRole('heading', { name: '確認訂單' })).toBeTruthy()
+  })
+
+  it('should close confirm modal when cancel button is clicked', async () => {
+    act(() => {
+      useOrderStore.setState({
+        items: [makeCartItem()],
+      })
+    })
+
+    const user = userEvent.setup()
+    await renderOrderPanel()
+    // Open modal
+    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
+    expect(screen.getByRole('dialog')).toBeTruthy()
+
+    // Click cancel in the modal
+    await user.click(screen.getByRole('button', { name: /取消/i }))
+    // Modal should close
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
+  it('should call submitOrder and show toast on success when confirmed in modal', async () => {
+    const { notify } = await import('@/components/ui/sonner')
+    vi.spyOn(useOrderStore.getState(), 'submitOrder').mockResolvedValueOnce()
+
+    act(() => {
+      useOrderStore.setState({
+        items: [makeCartItem()],
+      })
+    })
+
+    const user = userEvent.setup()
+    await renderOrderPanel()
+    // Open modal
+    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
+    // Click confirm in the modal (the second '提交訂單' button inside the modal)
+    const modalButtons = screen.getAllByRole('button', { name: /提交訂單/i })
+    // The last one is inside the modal
+    await user.click(modalButtons[modalButtons.length - 1]!)
+
     expect(notify.success).toHaveBeenCalledWith('訂單已送出')
   })
 
-  it('should show error toast when submitOrder fails', async () => {
+  it('should show error toast when submitOrder fails after modal confirm', async () => {
     const { notify } = await import('@/components/ui/sonner')
     vi.spyOn(useOrderStore.getState(), 'submitOrder').mockRejectedValueOnce(
       new Error('Network error'),
@@ -150,8 +231,11 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    const submitButton = screen.getByRole('button', { name: /提交訂單/i })
-    await user.click(submitButton)
+    // Open modal
+    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
+    // Click confirm in the modal
+    const modalButtons = screen.getAllByRole('button', { name: /提交訂單/i })
+    await user.click(modalButtons[modalButtons.length - 1]!)
 
     expect(notify.error).toHaveBeenCalledWith('訂單送出失敗')
   })
