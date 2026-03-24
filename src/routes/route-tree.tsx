@@ -41,7 +41,7 @@ function RootLayout() {
             <NavLink to="/orders">{t('nav.orders')}</NavLink>
             <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
             <NavLink to="/settings">{t('nav.settings')}</NavLink>
-            <NavLink to="/preview">Preview</NavLink>
+            {import.meta.env.DEV && <NavLink to="/preview">Preview</NavLink>}
           </div>
         </nav>
       </header>

@@ -19,6 +19,10 @@ vi.mock('@/pages/clock-in', () => ({
   ClockInPage: () => null,
 }))
 
+vi.mock('@/pages/orders', () => ({
+  OrdersPage: () => null,
+}))
+
 vi.mock('@/pages/settings', () => ({
   SettingsPage: () => null,
 }))
