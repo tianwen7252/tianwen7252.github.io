@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { useOrderStore } from '@/stores/order-store'
 import type { CartItem } from '@/stores/order-store'
 
-// Mock sonner toast
-vi.mock('sonner', () => ({
-  toast: {
+// Mock notify
+vi.mock('@/components/ui/sonner', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
   },
@@ -119,8 +119,7 @@ describe('OrderPanel', () => {
   })
 
   it('should call submitOrder and show toast on success', async () => {
-    const { toast } = await import('sonner')
-    // Mock the repo to prevent actual DB calls
+    const { notify } = await import('@/components/ui/sonner')
     vi.spyOn(useOrderStore.getState(), 'submitOrder').mockResolvedValueOnce()
 
     act(() => {
@@ -134,11 +133,11 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /提交訂單/i })
     await user.click(submitButton)
 
-    expect(toast.success).toHaveBeenCalledWith('訂單已送出')
+    expect(notify.success).toHaveBeenCalledWith('訂單已送出')
   })
 
   it('should show error toast when submitOrder fails', async () => {
-    const { toast } = await import('sonner')
+    const { notify } = await import('@/components/ui/sonner')
     vi.spyOn(useOrderStore.getState(), 'submitOrder').mockRejectedValueOnce(
       new Error('Network error'),
     )
@@ -154,7 +153,7 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /提交訂單/i })
     await user.click(submitButton)
 
-    expect(toast.error).toHaveBeenCalledWith('訂單送出失敗')
+    expect(notify.error).toHaveBeenCalledWith('訂單送出失敗')
   })
 
   it('should not render empty state when items exist', async () => {

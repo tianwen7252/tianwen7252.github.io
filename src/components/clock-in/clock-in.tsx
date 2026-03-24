@@ -6,7 +6,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Info } from 'lucide-react'
 import { WEEKDAY_SHORT } from '@/lib/records-utils'
 import { getEmployeeRepo, getAttendanceRepo } from '@/lib/repositories'
@@ -152,7 +152,7 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'regular',
           })
-          toast.success(t('clockIn.toastClockIn'))
+          notify.success(t('clockIn.toastClockIn'))
           break
 
         case 'clockOut':
@@ -161,7 +161,7 @@ export function ClockIn() {
               clockOut: now.valueOf(),
             })
           }
-          toast.success(t('clockIn.toastClockOut'))
+          notify.success(t('clockIn.toastClockOut'))
           break
 
         case 'vacation':
@@ -171,14 +171,14 @@ export function ClockIn() {
             clockIn: now.valueOf(),
             type: 'paid_leave',
           })
-          toast.success(t('clockIn.toastVacation'))
+          notify.success(t('clockIn.toastVacation'))
           break
 
         case 'cancelVacation':
           if (record?.id != null) {
             await getAttendanceRepo().remove(record.id)
           }
-          toast.success(t('clockIn.toastCancelVacation'))
+          notify.success(t('clockIn.toastCancelVacation'))
           break
       }
       setRefreshKey((k) => k + 1)

@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
-import { ModalPreview } from '@/pages/preview'
+import { ModalPreview, NotifyPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
@@ -114,6 +114,12 @@ function PreviewIndex() {
           </Link>{' '}
           (V2-16)
         </li>
+        <li>
+          <Link to="/preview/notify" className="text-primary underline">
+            Notify
+          </Link>{' '}
+          (Toast Notifications)
+        </li>
       </ul>
     </div>
   )
@@ -123,6 +129,12 @@ const previewModalRoute = createRoute({
   getParentRoute: () => previewRoute,
   path: '/modal',
   component: ModalPreview,
+})
+
+const previewNotifyRoute = createRoute({
+  getParentRoute: () => previewRoute,
+  path: '/notify',
+  component: NotifyPreview,
 })
 
 // Clock-in standalone page
@@ -144,5 +156,5 @@ export const routeTree = rootRoute.addChildren([
   indexRoute,
   clockInRoute,
   settingsRoute,
-  previewRoute.addChildren([previewIndexRoute, previewModalRoute]),
+  previewRoute.addChildren([previewIndexRoute, previewModalRoute, previewNotifyRoute]),
 ])

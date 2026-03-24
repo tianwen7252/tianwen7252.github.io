@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
 import dayjs from 'dayjs'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Modal, ModalCard } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
 import { ATTENDANCE_TYPES } from '@/constants/attendance-types'
@@ -136,14 +136,14 @@ export function RecordModal({
           clockOut: clockOutTs,
           type: dbType,
         })
-        toast.success(t('records.toastAdded'))
+        notify.success(t('records.toastAdded'))
       } else if (record) {
         await getAttendanceRepo().update(record.id, {
           clockIn: clockInTs,
           clockOut: clockOutTs,
           type: dbType,
         })
-        toast.success(t('records.toastUpdated'))
+        notify.success(t('records.toastUpdated'))
       }
 
       onSuccess()
@@ -158,7 +158,7 @@ export function RecordModal({
   const handleDelete = useCallback(async () => {
     if (record) {
       await getAttendanceRepo().remove(record.id)
-      toast.success(t('records.toastDeleted'))
+      notify.success(t('records.toastDeleted'))
     }
     onSuccess()
   }, [record, onSuccess, t])

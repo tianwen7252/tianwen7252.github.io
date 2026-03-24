@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Plus } from 'lucide-react'
 import { Modal, ConfirmModal } from '@/components/modal'
 import { AvatarImage } from '@/components/avatar-image'
@@ -89,7 +89,7 @@ export function StaffAdmin() {
           resignationDate: values.resignationDate || undefined,
           status: values.resignationDate ? 'inactive' : 'active',
         })
-        toast.success(t('staff.toastUpdated'))
+        notify.success(t('staff.toastUpdated'))
       } else {
         // Generate next employee number
         const allEmployees = await getEmployeeRepo().findAll()
@@ -109,7 +109,7 @@ export function StaffAdmin() {
           status: 'active',
         }
         await getEmployeeRepo().create(newEmployee)
-        toast.success(t('staff.toastAdded'))
+        notify.success(t('staff.toastAdded'))
       }
 
       refreshEmployees()
@@ -133,7 +133,7 @@ export function StaffAdmin() {
     if (deleteTarget) {
       await getEmployeeRepo().remove(deleteTarget.id)
       refreshEmployees()
-      toast.success(t('staff.toastDeleted'))
+      notify.success(t('staff.toastDeleted'))
     }
     setDeleteTarget(null)
   }, [deleteTarget, refreshEmployees, t])

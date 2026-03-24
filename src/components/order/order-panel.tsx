@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ClipboardList, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { notify } from '@/components/ui/sonner'
 import { Button } from '@/components/ui/button'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
 import { useOrderStore } from '@/stores/order-store'
@@ -46,9 +46,9 @@ export function OrderPanel() {
     setIsSubmitting(true)
     try {
       await submitOrder()
-      toast.success(t('order.submitSuccess'))
+      notify.success(t('order.submitSuccess'))
     } catch {
-      toast.error(t('order.submitError'))
+      notify.error(t('order.submitError'))
     } finally {
       setIsSubmitting(false)
     }
