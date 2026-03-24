@@ -5,6 +5,28 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Disable pinch-to-zoom globally (iPad Safari) */
+html {
+  touch-action: manipulation;
+}
+
+/* Force landscape — show overlay when device is in portrait */
+@media screen and (orientation: portrait) {
+  body::after {
+    content: '請將裝置轉為橫向使用';
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--background, #fdfdfd);
+    color: var(--foreground, #333);
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
