@@ -166,6 +166,25 @@
   } */
 }
 
+/* ─── Quantity bounce animation ──────────────────────────────────────────── */
+
+@keyframes qty-bounce {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(2);
+    color: var(--primary);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-qty-bounce {
+  animation: qty-bounce 0.35s ease-out;
+}
+
 /* ─── Animation keyframes (replaces framer-motion) ─────────────────────────── */
 
 @keyframes page-enter {

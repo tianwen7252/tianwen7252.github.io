@@ -20,21 +20,22 @@ export function OrderPanel() {
   const getItemCount = useOrderStore((s) => s.getItemCount)
   const clearCart = useOrderStore((s) => s.clearCart)
   const submitOrder = useOrderStore((s) => s.submitOrder)
+  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
-  // Auto-scroll to bottom when new items are added
+  // Scroll to the last added/updated item
   useEffect(() => {
-    const handle = scrollRef.current
-    if (handle?.el) {
-      handle.scrollTo({
-        top: handle.el.scrollHeight,
-        behavior: 'smooth',
-      })
+    if (!lastAddedItem) return
+    const el = scrollRef.current?.el
+    if (!el) return
+    const target = el.querySelector(`[data-cart-item-id="${lastAddedItem[0]}"]`)
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
     }
-  }, [items.length])
+  }, [lastAddedItem])
 
   const subtotal = getSubtotal()
   const total = getTotal()
@@ -80,7 +81,7 @@ export function OrderPanel() {
       </div>
 
       {/* Order items list */}
-      <ScrollArea ref={scrollRef} className="flex-1" watchDeps={[items.length]}>
+      <ScrollArea ref={scrollRef} className="flex-1" watchDeps={[items.length, lastAddedItem]}>
         {isEmpty ? (
           <p className="py-8 text-center text-muted-foreground">
             {t('order.emptyOrder')}
@@ -88,14 +89,16 @@ export function OrderPanel() {
         ) : (
           <div className="divide-y divide-border pr-2">
             {items.map((item) => (
-              <SwipeToDelete key={item.id} onDelete={() => removeItem(item.id)}>
-                <OrderItemRow
-                  item={item}
-                  onRemove={removeItem}
-                  onUpdateQuantity={updateQuantity}
-                  onUpdateNote={updateNote}
-                />
-              </SwipeToDelete>
+              <div key={item.id} data-cart-item-id={item.id}>
+                <SwipeToDelete onDelete={() => removeItem(item.id)}>
+                  <OrderItemRow
+                    item={item}
+                    onRemove={removeItem}
+                    onUpdateQuantity={updateQuantity}
+                    onUpdateNote={updateNote}
+                  />
+                </SwipeToDelete>
+              </div>
             ))}
           </div>
         )}

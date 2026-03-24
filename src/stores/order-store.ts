@@ -38,6 +38,8 @@ interface OrderState {
   readonly items: readonly CartItem[]
   /** Applied discounts (immutable array) */
   readonly discounts: readonly Discount[]
+  /** Last added/updated cart item — [id, seq] where seq increments to trigger scroll */
+  readonly lastAddedItem: readonly [string, number] | null
 }
 
 interface OrderActions {
@@ -63,6 +65,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   operatorName: null,
   items: [],
   discounts: [],
+  lastAddedItem: null,
 
   setOperator: (employeeId, name) =>
     set({ operatorId: employeeId, operatorName: name }),
@@ -80,6 +83,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
               ? { ...item, quantity: item.quantity + 1 }
               : item,
           ),
+          lastAddedItem: [existing.id, (state.lastAddedItem?.[1] ?? 0) + 1] as const,
         }
       }
       // Add new cart item
@@ -91,7 +95,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
         quantity: 1,
         note: '',
       }
-      return { items: [...state.items, newItem] }
+      return { items: [...state.items, newItem], lastAddedItem: [newItem.id, (state.lastAddedItem?.[1] ?? 0) + 1] as const }
     }),
 
   removeItem: (cartItemId) =>
