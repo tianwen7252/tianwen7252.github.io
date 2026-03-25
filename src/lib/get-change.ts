@@ -32,7 +32,10 @@ export function getChange(total: number): readonly ChangeEntry[] | null {
       } else if (total > bill) {
         const money = bill * (firstNumber + 1)
         const prevBill = COMMON_BILLS[index - 1]
-        if (money > total && (prevBill === undefined || money < prevBill || index === 0)) {
+        if (
+          money > total &&
+          (prevBill === undefined || money < prevBill || index === 0)
+        ) {
           result.push([bill, money, money - total])
         }
       }

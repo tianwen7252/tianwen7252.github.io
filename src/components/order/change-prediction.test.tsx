@@ -31,22 +31,19 @@ describe('ChangePrediction', () => {
   it('should apply blue color for $1000 denomination badge', () => {
     render(<ChangePrediction total={140} />)
     const badge = screen.getByText('$1000 找 $860')
-    expect(badge.className).toContain('bg-[#3f6ab0]')
-    expect(badge.className).toContain('text-white')
+    expect(badge.className).toContain('text-[#3f6ab0]')
   })
 
   it('should apply brown color for $500 denomination badge', () => {
     render(<ChangePrediction total={140} />)
     const badge = screen.getByText('$500 找 $360')
-    expect(badge.className).toContain('bg-[#ae917d]')
-    expect(badge.className).toContain('text-white')
+    expect(badge.className).toContain('text-[#ae917d]')
   })
 
   it('should apply pink color for $100 denomination badge', () => {
     render(<ChangePrediction total={140} />)
     const badge = screen.getByText('$200 找 $60')
-    expect(badge.className).toContain('bg-[#f38590]')
-    expect(badge.className).toContain('text-white')
+    expect(badge.className).toContain('text-[#f38590]')
   })
 
   // ─── Renders nothing for null/empty cases ────────────────────────────────
