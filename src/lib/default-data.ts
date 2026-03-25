@@ -105,23 +105,37 @@ export function markDefaultDataVersion(): void {
 /**
  * Deletes only the known default data items from the database using their
  * well-known IDs. User-created data with other IDs is left untouched.
+ *
+ * FK-safe deletion order:
+ *   commondities → commondity_types (if no user commondities reference them)
+ *   attendances (for default employees) → employees
  */
 export function deleteDefaultData(db: Database): void {
   const employeeIds = EMPLOYEE_SEEDS.map((s) => s.id)
   const typeIds = COMMODITY_TYPE_SEEDS.map((s) => s.id)
+  const typeIdValues = COMMODITY_TYPE_SEEDS.map((s) => s.typeId)
   const commodityIds = COMMODITY_SEEDS.map((s) => s.id)
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 
+  // Delete default commondities first (child of commondity_types via type_id FK)
   db.exec(
     `DELETE FROM commondities WHERE id IN (${placeholders(commodityIds)})`,
     commodityIds,
   )
 
-  db.exec(
-    `DELETE FROM commondity_types WHERE id IN (${placeholders(typeIds)})`,
-    typeIds,
+  // Only delete commondity_types if no user-created commondities still reference them.
+  // Skipped when users have added custom menu items using the default type IDs.
+  const remaining = db.exec<{ cnt: number }>(
+    `SELECT COUNT(*) as cnt FROM commondities WHERE type_id IN (${placeholders(typeIdValues)})`,
+    typeIdValues,
   )
+  if (Number(remaining.rows[0]?.cnt ?? 0) === 0) {
+    db.exec(
+      `DELETE FROM commondity_types WHERE id IN (${placeholders(typeIds)})`,
+      typeIds,
+    )
+  }
 
   // Delete attendances for default employees before deleting the employees
   // (FK: attendances.employee_id → employees.id)

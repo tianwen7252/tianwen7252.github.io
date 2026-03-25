@@ -16,7 +16,7 @@ import {
   DEFAULT_COMMODITIES,
 } from './default-data'
 import { UPDATE_DEFAULT_DATA_NUMBER } from '@/constants/default-data'
-import type { Database } from '@/lib/database'
+import type { Database, QueryResult } from '@/lib/database'
 
 // ─── Mock Database factory ───────────────────────────────────────────────────
 
@@ -94,13 +94,47 @@ describe('markDefaultDataVersion()', () => {
 // ─── deleteDefaultData ───────────────────────────────────────────────────────
 
 describe('deleteDefaultData(db)', () => {
-  it('issues DELETE for commondity_types using default type IDs', () => {
+  it('issues SELECT COUNT to check for non-default commondities before deleting commondity_types', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const typesSql = db.calls.find((c) => c.sql.includes('commondity_types'))
+    const selectCall = db.calls.find(
+      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commondities'),
+    )
+    expect(selectCall).toBeDefined()
+    expect(selectCall!.sql).toMatch(/SELECT COUNT\(\*\) as cnt FROM commondities WHERE type_id IN/)
+    expect(selectCall!.params).toHaveLength(4) // 4 default typeId values
+  })
+
+  it('issues DELETE for commondity_types when SELECT COUNT returns 0', () => {
+    // Default mock returns rows:[] which means cnt=undefined→0, so deletion proceeds
+    const db = makeMockDb()
+    deleteDefaultData(db)
+
+    const typesSql = db.calls.find((c) => c.sql.includes('DELETE FROM commondity_types'))
     expect(typesSql).toBeDefined()
     expect(typesSql!.sql).toMatch(/DELETE FROM commondity_types WHERE id IN/)
+  })
+
+  it('skips DELETE for commondity_types when non-default commondities still reference them', () => {
+    const calls: Array<{ sql: string; params: readonly unknown[] }> = []
+    const mockDb: Database & { calls: typeof calls } = {
+      isReady: true,
+      calls,
+      exec<T = Record<string, unknown>>(sql: string, params?: readonly unknown[]): QueryResult<T> {
+        calls.push({ sql: sql.trim(), params: params ?? [] })
+        // Simulate COUNT(*) returning 2 (user has custom commondities)
+        if (sql.includes('SELECT COUNT') && sql.includes('commondities')) {
+          return { rows: [{ cnt: 2 }] as unknown as readonly T[], changes: 0 }
+        }
+        return { rows: [] as readonly T[], changes: 0 }
+      },
+      close() {},
+    }
+    deleteDefaultData(mockDb)
+
+    const typesSql = calls.find((c) => c.sql.includes('DELETE FROM commondity_types'))
+    expect(typesSql).toBeUndefined()
   })
 
   it('issues DELETE for commondities using default commodity IDs', () => {
@@ -146,15 +180,19 @@ describe('deleteDefaultData(db)', () => {
     expect(comCall!.params).toHaveLength(46) // COMMODITY_SEEDS has 46 entries
   })
 
-  it('deletes commondities before commondity_types to respect FK constraint', () => {
+  it('deletes commondities before SELECT-checking and deleting commondity_types', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
     const comIdx = db.calls.findIndex(
       (c) => c.sql.includes('DELETE FROM commondities') && !c.sql.includes('commondity_types'),
     )
+    const selectIdx = db.calls.findIndex(
+      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commondities'),
+    )
     const typesIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM commondity_types'))
-    expect(comIdx).toBeLessThan(typesIdx)
+    expect(comIdx).toBeLessThan(selectIdx)
+    expect(selectIdx).toBeLessThan(typesIdx)
   })
 
   it('deletes attendances for default employees before deleting employees to respect FK constraint', () => {
