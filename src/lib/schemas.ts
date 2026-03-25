@@ -136,6 +136,39 @@ export type OrderData = z.infer<typeof orderDataSchema>
 export type Order = z.infer<typeof orderSchema>
 export type CreateOrder = z.infer<typeof createOrderSchema>
 
+// ─── OrderItem ───────────────────────────────────────────────────────────────
+
+export const orderItemSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  commodityId: z.string(),
+  name: z.string(),
+  price: z.number(),
+  quantity: z.number().int().min(1),
+  includesSoup: z.boolean().default(false),
+  createdAt: z.number(),
+})
+
+export const createOrderItemSchema = orderItemSchema.omit({ id: true, createdAt: true })
+
+export type OrderItem = z.infer<typeof orderItemSchema>
+export type CreateOrderItem = z.infer<typeof createOrderItemSchema>
+
+// ─── OrderDiscount ───────────────────────────────────────────────────────────
+
+export const orderDiscountSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  label: z.string(),
+  amount: z.number(),
+  createdAt: z.number(),
+})
+
+export const createOrderDiscountSchema = orderDiscountSchema.omit({ id: true, createdAt: true })
+
+export type OrderDiscount = z.infer<typeof orderDiscountSchema>
+export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
+
 // ─── DailyData ───────────────────────────────────────────────────────────────
 
 export const dailyDataSchema = z.object({

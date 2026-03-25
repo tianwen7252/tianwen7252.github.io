@@ -210,12 +210,44 @@ describe('clearAllData(db)', () => {
     expect(db.calls.some((c) => c.sql === 'DELETE FROM daily_data')).toBe(true)
   })
 
-  it('issues exactly 7 DELETE statements', () => {
+  it('deletes from order_items table', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    expect(db.calls.some((c) => c.sql === 'DELETE FROM order_items')).toBe(true)
+  })
+
+  it('deletes from order_discounts table', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    expect(db.calls.some((c) => c.sql === 'DELETE FROM order_discounts')).toBe(true)
+  })
+
+  it('issues exactly 9 DELETE statements', () => {
     const db = makeMockDb()
     clearAllData(db)
 
     const deletes = db.calls.filter((c) => c.sql.startsWith('DELETE'))
-    expect(deletes).toHaveLength(7)
+    expect(deletes).toHaveLength(9)
+  })
+
+  it('deletes order_items before orders to respect FK constraint', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    const itemsIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM order_items')
+    const ordersIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM orders')
+    expect(itemsIdx).toBeLessThan(ordersIdx)
+  })
+
+  it('deletes order_discounts before orders to respect FK constraint', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    const discountsIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM order_discounts')
+    const ordersIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM orders')
+    expect(discountsIdx).toBeLessThan(ordersIdx)
   })
 })
 

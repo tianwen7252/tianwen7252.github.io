@@ -135,6 +135,8 @@ export function deleteDefaultData(db: Database): void {
  */
 export function clearAllData(db: Database): void {
   db.exec('DELETE FROM attendances')
+  db.exec('DELETE FROM order_items')
+  db.exec('DELETE FROM order_discounts')
   db.exec('DELETE FROM orders')
   db.exec('DELETE FROM commondities')
   db.exec('DELETE FROM commondity_types')

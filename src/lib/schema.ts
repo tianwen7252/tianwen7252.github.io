@@ -106,6 +106,33 @@ export const CREATE_TABLES = `
   CREATE INDEX IF NOT EXISTS idx_attendances_employee_date
     ON attendances(employee_id, date);
 
+  -- Order line items (normalized from orders.data JSON)
+  CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    commodity_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price REAL NOT NULL DEFAULT 0,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+
+  -- Order discounts (normalized from orders.data JSON)
+  CREATE TABLE IF NOT EXISTS order_discounts (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -134,6 +161,31 @@ function runMigrations(exec: (sql: string) => void): void {
   } catch {
     // Column already exists — safe to ignore
   }
+
+  // V2-53: Add order_items table
+  exec(`CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    commodity_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price REAL NOT NULL DEFAULT 0,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  )`)
+  exec('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)')
+
+  // V2-53: Add order_discounts table
+  exec(`CREATE TABLE IF NOT EXISTS order_discounts (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  )`)
+  exec('CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id)')
 }
 
 /**

@@ -20,11 +20,21 @@ export {
   type OrderRepository,
 } from './order-repository'
 export {
+  createOrderItemRepository,
+  type OrderItemRepository,
+} from './order-item-repository'
+export {
+  createOrderDiscountRepository,
+  type OrderDiscountRepository,
+} from './order-discount-repository'
+export {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
   getCommondityTypeRepo,
   getCommondityRepo,
   getOrderRepo,
+  getOrderItemRepo,
+  getOrderDiscountRepo,
   resetRepositories,
 } from './provider'
