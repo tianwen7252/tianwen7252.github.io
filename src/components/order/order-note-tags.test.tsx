@@ -168,8 +168,8 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      // i18n key: order.addTag -> '新增標籤'
-      const input = screen.getByPlaceholderText('新增標籤')
+      // i18n key: order.addTag -> '新增備註'
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '常客{Enter}')
 
       // New tag should appear
@@ -180,7 +180,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '常客{Enter}')
 
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
@@ -191,7 +191,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤') as HTMLInputElement
+      const input = screen.getByPlaceholderText('新增備註') as HTMLInputElement
       await user.type(input, '常客{Enter}')
 
       expect(input.value).toBe('')
@@ -201,7 +201,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '   {Enter}')
 
       // Only default tags should exist
@@ -213,7 +213,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '攤位{Enter}')
 
       // Should not create duplicate — only 1 instance of '攤位'
@@ -226,7 +226,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '常客{Enter}')
 
       // Should not create duplicate
@@ -302,7 +302,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '五折(50%){Enter}')
 
       expect(screen.getByText('五折(50%)')).toBeTruthy()
@@ -312,7 +312,7 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
 
-      const input = screen.getByPlaceholderText('新增標籤')
+      const input = screen.getByPlaceholderText('新增備註')
       await user.type(input, '  常客  {Enter}')
 
       expect(screen.getByText('常客')).toBeTruthy()

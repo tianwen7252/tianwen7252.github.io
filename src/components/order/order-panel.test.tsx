@@ -125,12 +125,12 @@ describe('OrderPanel', () => {
 
   it('should render submit button', async () => {
     await renderOrderPanel()
-    expect(screen.getByRole('button', { name: /提交訂單/i })).toBeTruthy()
+    expect(screen.getByRole('button', { name: /送出訂單/i })).toBeTruthy()
   })
 
   it('should disable submit button when cart is empty', async () => {
     await renderOrderPanel()
-    const submitButton = screen.getByRole('button', { name: /提交訂單/i })
+    const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     expect(submitButton.hasAttribute('disabled')).toBe(true)
   })
 
@@ -141,7 +141,7 @@ describe('OrderPanel', () => {
       })
     })
     await renderOrderPanel()
-    const submitButton = screen.getByRole('button', { name: /提交訂單/i })
+    const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     expect(submitButton.hasAttribute('disabled')).toBe(false)
   })
 
@@ -168,7 +168,7 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    const submitButton = screen.getByRole('button', { name: /提交訂單/i })
+    const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     await user.click(submitButton)
 
     // Modal should appear with the confirm title (use role query to avoid description duplicate)
@@ -186,7 +186,7 @@ describe('OrderPanel', () => {
     const user = userEvent.setup()
     await renderOrderPanel()
     // Open modal
-    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
+    await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     expect(screen.getByRole('dialog')).toBeTruthy()
 
     // Click cancel in the modal
@@ -208,11 +208,9 @@ describe('OrderPanel', () => {
     const user = userEvent.setup()
     await renderOrderPanel()
     // Open modal
-    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
-    // Click confirm in the modal (the second '提交訂單' button inside the modal)
-    const modalButtons = screen.getAllByRole('button', { name: /提交訂單/i })
-    // The last one is inside the modal
-    await user.click(modalButtons[modalButtons.length - 1]!)
+    await user.click(screen.getByRole('button', { name: /送出訂單/i }))
+    // Click confirm in the modal
+    await user.click(screen.getByRole('button', { name: /確認送出/i }))
 
     expect(notify.success).toHaveBeenCalledWith('訂單已送出')
   })
@@ -232,10 +230,9 @@ describe('OrderPanel', () => {
     const user = userEvent.setup()
     await renderOrderPanel()
     // Open modal
-    await user.click(screen.getByRole('button', { name: /提交訂單/i }))
+    await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     // Click confirm in the modal
-    const modalButtons = screen.getAllByRole('button', { name: /提交訂單/i })
-    await user.click(modalButtons[modalButtons.length - 1]!)
+    await user.click(screen.getByRole('button', { name: /確認送出/i }))
 
     expect(notify.error).toHaveBeenCalledWith('訂單送出失敗')
   })

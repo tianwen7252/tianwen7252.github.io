@@ -130,7 +130,8 @@
     "discount": "折扣優惠",
     "discountHint": "可多選",
     "total": "總金額",
-    "submit": "提交訂單",
+    "submit": "送出訂單",
+    "confirmSubmit": "確認送出",
     "submitSuccess": "訂單已送出",
     "submitError": "訂單送出失敗",
     "loading": "載入中...",
@@ -148,7 +149,7 @@
     "categoryOther": "其它",
     "categoryDiscount": "優惠",
     "orderNote": "訂單備註",
-    "addTag": "新增標籤",
+    "addTag": "新增備註",
     "change": "找"
   },
   "orders": {

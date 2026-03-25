@@ -24,12 +24,18 @@ const GRADIENT_CLASS: Record<GradientVariant, string> = {
   green: 'model-green',
   warm: 'model-warm',
   red: 'model-red',
+  blue: 'model-blue',
+  orange: 'model-orange',
+  gray: 'model-gray',
 }
 
 const CONFIRM_BUTTON_BG: Record<GradientVariant, string> = {
   green: COLOR_PRIMARY,
   warm: '#ad9ac0',
   red: COLOR_RED,
+  blue: '#6aa3d4',
+  orange: '#d4a76a',
+  gray: '#999999',
 }
 
 // Preset shine color combinations (3 colors each for animated gradient shine)
@@ -77,6 +83,7 @@ export function ModalCard({ children, className }: ModalCardProps) {
 export function Modal({
   open,
   variant = 'green',
+  animated = false,
   header,
   title,
   children,
@@ -132,7 +139,7 @@ export function Modal({
         <DialogPrimitive.Overlay
           className={cn(
             'glass-modal-overlay fixed inset-0 z-50',
-            GRADIENT_CLASS[variant],
+            animated ? 'model-animated' : GRADIENT_CLASS[variant],
             closing && 'glass-modal-closing',
           )}
           onAnimationEnd={handleCloseAnimationEnd}
@@ -153,9 +160,9 @@ export function Modal({
             else onClose()
           }}
         >
-          {/* Accessible title (sr-only) */}
+          {/* Accessible title (sr-only) — falls back to header when title is not provided */}
           <DialogPrimitive.Title className="sr-only">
-            {title}
+            {title ?? header}
           </DialogPrimitive.Title>
 
           {/* Glassmorphism container with CSS entrance/exit animation */}
@@ -178,7 +185,9 @@ export function Modal({
               height,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
-              ...(height ? { display: 'flex', flexDirection: 'column' as const } : {}),
+              ...(height
+                ? { display: 'flex', flexDirection: 'column' as const }
+                : {}),
             }}
           >
             {/* Animated shine border */}
@@ -194,34 +203,39 @@ export function Modal({
             {header && (
               <div
                 style={{
-                  fontSize: 16,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  fontSize: 18,
                   fontWeight: 500,
                   color: COLOR_MUTED,
                   textTransform: 'uppercase',
                   letterSpacing: 0.5,
                   marginBottom: 4,
-                  textAlign: 'center',
                 }}
               >
                 {header}
               </div>
             )}
 
-            {/* Title */}
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                fontSize: 22,
-                fontWeight: 500,
-                color: COLOR_TEXT,
-                marginBottom: 24,
-              }}
-            >
-              {title}
-            </div>
+            {/* Title — only rendered when title prop is provided */}
+            {title && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  fontSize: 22,
+                  fontWeight: 500,
+                  color: COLOR_TEXT,
+                  marginBottom: 24,
+                }}
+              >
+                {title}
+              </div>
+            )}
 
             {/* Content */}
             {height ? (
@@ -234,7 +248,12 @@ export function Modal({
 
             {/* Footer */}
             {footer && (
-              <div style={{ marginTop: height ? 'auto' : 24, paddingTop: height ? 16 : 0 }}>
+              <div
+                style={{
+                  marginTop: height ? 'auto' : 24,
+                  paddingTop: height ? 16 : 0,
+                }}
+              >
                 {footer}
               </div>
             )}
@@ -279,6 +298,7 @@ export function ConfirmModal({
   open,
   title,
   variant = 'green',
+  animated = false,
   header,
   children,
   confirmText,
@@ -296,6 +316,7 @@ export function ConfirmModal({
     <Modal
       open={open}
       variant={variant}
+      animated={animated}
       header={resolvedHeader}
       title={title}
       shineColor={shineColor}

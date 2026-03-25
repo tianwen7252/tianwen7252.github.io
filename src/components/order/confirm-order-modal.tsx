@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/modal/modal'
 import { groupCartItems } from '@/lib/group-cart-items'
 import type { CartItem, Discount } from '@/stores/order-store'
-import { CircleCheckBig, Utensils, Soup } from 'lucide-react'
+import { CircleCheckBig, Utensils, Soup, LoaderCircle } from 'lucide-react'
 import { ChangePrediction } from './change-prediction'
 import { OrderNoteTags } from './order-note-tags'
 
@@ -38,7 +38,8 @@ const DEFAULT_ACCENT = { border: 'border-l-gray-300', text: 'text-gray-400' }
 
 /**
  * Confirmation modal that displays cart items grouped by category.
- * Left panel shows categorized items; right panel contains order note tags.
+ * Left panel shows categorized items; right panel contains order note tags,
+ * change prediction, and total amount.
  */
 export function ConfirmOrderModal({
   open,
@@ -63,7 +64,7 @@ export function ConfirmOrderModal({
   return (
     <Modal
       open={open}
-      title={
+      header={
         <>
           <CircleCheckBig /> {t('order.confirmTitle')}
         </>
@@ -71,7 +72,6 @@ export function ConfirmOrderModal({
       variant="green"
       width={960}
       height={560}
-      loading={isSubmitting}
       closeOnBackdropClick={false}
       onClose={onClose}
       footer={
@@ -79,7 +79,7 @@ export function ConfirmOrderModal({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-lg border border-black/8 bg-white/50 px-4 py-3 text-[15px] font-semibold text-gray-600 transition hover:-translate-y-0.5"
+            className="flex-1 rounded-lg border border-black/8 bg-white/50 px-4 py-3 text-md text-gray-600 transition hover:-translate-y-0.5"
           >
             {t('common.cancel')}
           </button>
@@ -87,9 +87,10 @@ export function ConfirmOrderModal({
             type="button"
             onClick={() => onConfirm(selectedTags)}
             disabled={isSubmitting}
-            className="flex-1 rounded-lg bg-primary px-4 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-md text-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {t('order.submit')}
+            {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
+            {t('order.confirmSubmit')}
           </button>
         </div>
       }
@@ -158,7 +159,7 @@ export function ConfirmOrderModal({
             {bentoCount > 0 && (
               <div
                 data-testid="confirm-bento-soup-row"
-                className="flex items-center gap-4 px-4 text-sm text-gray-500"
+                className="flex items-center gap-4 text-sm text-gray-500"
               >
                 <span className="flex items-center gap-1">
                   <Utensils className="size-4" />
@@ -171,17 +172,13 @@ export function ConfirmOrderModal({
               </div>
             )}
             <ChangePrediction total={total} />
+            {/* Total amount row */}
             <div
               data-testid="confirm-total-row"
-              className="flex items-center justify-between rounded-xl px-4 py-3"
-              style={{ background: 'rgba(127,149,106,0.12)' }}
+              className="flex items-center justify-between border-t border-black/8 pt-2 text-base font-semibold text-gray-800"
             >
-              <span className="text-base text-gray-600">
-                {t('order.total')}
-              </span>
-              <span className="text-2xl font-bold tabular-nums text-primary">
-                ${total.toLocaleString()}
-              </span>
+              <span>{t('order.total')}</span>
+              <span>${total.toLocaleString()}</span>
             </div>
           </div>
         </div>

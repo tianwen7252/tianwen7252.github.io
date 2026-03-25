@@ -1,5 +1,5 @@
 import { useState, useCallback, useMemo } from 'react'
-import { X } from 'lucide-react'
+import { X, Square, SquareCheckBig } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { Input } from '@/components/ui/input'
@@ -136,6 +136,11 @@ export function OrderNoteTags({
                 if (e.key === 'Enter' || e.key === ' ') handleToggleTag(tag)
               }}
             >
+              {isSelected ? (
+                <SquareCheckBig className="size-3.5" />
+              ) : (
+                <Square className="size-3.5" />
+              )}
               {tag}
               {!isDefault && (
                 <button
@@ -162,7 +167,7 @@ export function OrderNoteTags({
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleAddTag}
-        className="h-8 rounded-lg border-gray-200 bg-white/60 text-sm placeholder:text-gray-400"
+        className="h-8 w-[calc(100%-6px)] rounded-lg border-gray-200 bg-white/60 text-sm placeholder:text-gray-400"
       />
     </div>
   )

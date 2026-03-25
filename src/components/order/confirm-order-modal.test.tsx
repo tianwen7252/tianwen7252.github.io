@@ -131,7 +131,7 @@ describe('ConfirmOrderModal', () => {
         onConfirm={onConfirm}
       />,
     )
-    const confirmButton = screen.getByRole('button', { name: /提交訂單/i })
+    const confirmButton = screen.getByRole('button', { name: /確認送出/i })
     await user.click(confirmButton)
     expect(onConfirm).toHaveBeenCalledOnce()
   })
@@ -143,7 +143,7 @@ describe('ConfirmOrderModal', () => {
         isSubmitting={true}
       />,
     )
-    const confirmButton = screen.getByRole('button', { name: /提交訂單/i })
+    const confirmButton = screen.getByRole('button', { name: /確認送出/i })
     expect(confirmButton.hasAttribute('disabled')).toBe(true)
   })
 
@@ -314,7 +314,7 @@ describe('ConfirmOrderModal', () => {
       await user.click(screen.getByText('外送'))
 
       // Click confirm
-      const confirmButton = screen.getByRole('button', { name: /提交訂單/i })
+      const confirmButton = screen.getByRole('button', { name: /確認送出/i })
       await user.click(confirmButton)
 
       expect(onConfirm).toHaveBeenCalledWith(['外送'])

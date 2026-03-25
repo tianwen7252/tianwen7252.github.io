@@ -43,7 +43,7 @@ describe('i18n translations', () => {
     })
 
     it('should have order.submit', () => {
-      expect(zhTW.order.submit).toBe('提交訂單')
+      expect(zhTW.order.submit).toBe('送出訂單')
     })
 
     it('should have order.submitSuccess', () => {

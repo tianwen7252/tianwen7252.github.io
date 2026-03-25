@@ -148,7 +148,8 @@
     "categoryOther": "Other",
     "categoryDiscount": "Discounts",
     "orderNote": "Order Notes",
-    "addTag": "Add tag",
+    "addTag": "Add note",
+    "confirmSubmit": "Confirm Submit",
     "change": "Change"
   },
   "orders": {
