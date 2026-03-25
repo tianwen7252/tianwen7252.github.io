@@ -7,7 +7,8 @@ import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
-import { ENABLE_SEED_DATA, DELETE_SEED_DATA } from '@/constants/seed-data'
+import { ENABLE_DEFAULT_DATA, DELETE_DEFAULT_DATA, CLEAR_DB_DATA } from '@/constants/default-data'
+import { shouldResetDefaultData, markDefaultDataVersion } from '@/lib/default-data'
 import {
   createWorkerDatabase,
   initWorkerDb,
@@ -60,7 +61,9 @@ async function bootstrap() {
   })
 
   await waitForWorkerReady(worker)
-  await initWorkerDb(worker, ENABLE_SEED_DATA, DELETE_SEED_DATA)
+  const resetData = shouldResetDefaultData()
+  await initWorkerDb(worker, ENABLE_DEFAULT_DATA, DELETE_DEFAULT_DATA, CLEAR_DB_DATA, resetData)
+  markDefaultDataVersion()
 
   const db = createWorkerDatabase(worker)
   initRepositories(db)

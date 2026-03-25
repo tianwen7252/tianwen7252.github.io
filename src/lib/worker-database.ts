@@ -9,7 +9,13 @@ import type { QueryResult } from './database'
 
 /** Main → Worker message types */
 export type WorkerRequest =
-  | { readonly type: 'init'; readonly enableSeedData: boolean; readonly deleteSeedData: boolean }
+  | {
+      readonly type: 'init'
+      readonly enableDefaultData: boolean
+      readonly deleteDefaultData: boolean
+      readonly clearDbData: boolean
+      readonly shouldResetData: boolean
+    }
   | { readonly type: 'exec'; readonly id: number; readonly sql: string; readonly params?: readonly unknown[] }
 
 /** Worker → Main message types */
@@ -110,8 +116,10 @@ export function waitForWorkerReady(worker: Worker): Promise<void> {
  */
 export function initWorkerDb(
   worker: Worker,
-  enableSeedData: boolean,
-  deleteSeedData: boolean,
+  enableDefaultData: boolean,
+  deleteDefaultData: boolean,
+  clearDbData: boolean,
+  shouldResetData: boolean,
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     const handler = (e: MessageEvent<WorkerResponse>) => {
@@ -125,6 +133,12 @@ export function initWorkerDb(
       }
     }
     worker.addEventListener('message', handler)
-    worker.postMessage({ type: 'init', enableSeedData, deleteSeedData })
+    worker.postMessage({
+      type: 'init',
+      enableDefaultData,
+      deleteDefaultData,
+      clearDbData,
+      shouldResetData,
+    })
   })
 }
