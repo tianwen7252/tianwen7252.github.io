@@ -186,6 +186,19 @@ html {
       font-family: 'Noto Sans TC', sans-serif;
     }
   } */
+
+  .rdp-selected {
+    background: transparent !important;
+  }
+}
+
+/* ─── Ripple button animation ────────────────────────────────────────────── */
+
+@keyframes ripple-anim {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
 }
 
 /* ─── Quantity bounce animation ──────────────────────────────────────────── */

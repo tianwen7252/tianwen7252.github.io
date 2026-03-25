@@ -7,7 +7,7 @@ import {
   getCommondityRepo,
 } from '@/lib/repositories/provider'
 import { useOrderStore } from '@/stores/order-store'
-import { Button } from '@/components/ui/button'
+import { RippleButton } from '@/components/ui/ripple-button'
 import { CategoryTabs } from './category-tabs'
 import { ProductCard } from './product-card'
 
@@ -54,6 +54,7 @@ export function ProductGrid() {
     id: string
     name: string
     price: number
+    typeId: string
   }) => {
     addItem(commodity)
   }
@@ -83,14 +84,13 @@ export function ProductGrid() {
           selectedTypeId={selectedTypeId}
           onSelect={setSelectedTypeId}
         />
-        <Button
-          variant="outline"
-          size="icon-sm"
+        <RippleButton
           aria-label={t('order.calculator')}
-          className="border text-muted-foreground"
+          rippleColor="rgba(0, 0, 0, 0.1)"
+          className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center"
         >
           <Calculator className="size-5" />
-        </Button>
+        </RippleButton>
       </div>
 
       {/* Product grid */}

@@ -24,9 +24,19 @@ describe('Modal', () => {
         <div>Modal content</div>
       </Modal>,
     )
-    // Title appears twice: sr-only (accessibility) + visual
+    // Title appears twice: sr-only h2 (accessibility) + visual title div
     expect(screen.getAllByText('Test Modal')).toHaveLength(2)
     expect(screen.getByText('Modal content')).toBeTruthy()
+  })
+
+  it('should not render visual title when title prop is omitted', () => {
+    render(
+      <Modal open header="Header Only" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    // sr-only h2 falls back to header text; header div also renders "Header Only" — total 2
+    expect(screen.getAllByText('Header Only')).toHaveLength(2)
   })
 
   it('should render header when provided', () => {

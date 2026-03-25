@@ -1,26 +1,37 @@
+import { Utensils, Soup } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 export interface OrderSummaryProps {
-  readonly subtotal: number
+  readonly bentoCount: number
+  readonly soupCount: number
   readonly total: number
 }
 
-/** Order summary displaying subtotal and total */
+/** Order summary displaying bento/soup counts and total */
 export function OrderSummary({
-  subtotal,
+  bentoCount,
+  soupCount,
   total,
 }: OrderSummaryProps) {
   const { t } = useTranslation()
   return (
     <div className="flex flex-col gap-2">
-      {/* Subtotal row */}
-      <div
-        data-testid="subtotal-row"
-        className="flex items-center justify-between text-base"
-      >
-        <span>{t('order.subtotal')}</span>
-        <span>${subtotal.toLocaleString()}</span>
-      </div>
+      {/* Bento + Soup count row (only when bento items exist) */}
+      {bentoCount > 0 && (
+        <div
+          data-testid="bento-soup-row"
+          className="flex items-center gap-4 text-base text-muted-foreground"
+        >
+          <span className="flex items-center gap-1">
+            <Utensils className="size-4" />
+            {t('order.bentoCount', { count: bentoCount })}
+          </span>
+          <span className="flex items-center gap-1">
+            <Soup className="size-4" />
+            {t('order.soupCount', { count: soupCount })}
+          </span>
+        </div>
+      )}
 
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">

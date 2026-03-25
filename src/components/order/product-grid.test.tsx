@@ -190,6 +190,7 @@ describe('ProductGrid', () => {
       id: 'com-1',
       name: '滷肉便當',
       price: 100,
+      typeId: 'type-1',
     })
   })
 

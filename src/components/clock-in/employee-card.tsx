@@ -54,7 +54,8 @@ export function EmployeeCard({
   return (
     <div
       className={cn(
-        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] transition-[shadow,transform] duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.95]',
+        'cursor-pointer rounded-xl border border-[#eee] bg-card px-2.5 py-5 text-center flex flex-col shadow-[0_1px_3px_rgba(0,0,0,0.08)] ',
+        'transition-all ease-in-out duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.95]',
         cardBgClass,
       )}
       data-testid="employee-card"

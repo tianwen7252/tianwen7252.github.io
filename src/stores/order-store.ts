@@ -10,6 +10,8 @@ export interface CartItem {
   readonly id: string
   /** Reference to commodity */
   readonly commodityId: string
+  /** Category type identifier (e.g., "bento", "drink") */
+  readonly typeId: string
   /** Product name (for display) */
   readonly name: string
   /** Unit price */
@@ -44,18 +46,20 @@ interface OrderState {
 
 interface OrderActions {
   setOperator: (employeeId: string | null, name: string | null) => void
-  addItem: (commodity: { id: string; name: string; price: number }) => void
+  addItem: (commodity: { id: string; name: string; price: number; typeId: string }) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
   updateNote: (cartItemId: string, note: string) => void
   addDiscount: (label: string, amount: number) => void
   removeDiscount: (discountId: string) => void
   clearCart: () => void
-  submitOrder: () => Promise<void>
+  submitOrder: (memoTags?: string[]) => Promise<void>
   getSubtotal: () => number
   getTotalDiscount: () => number
   getTotal: () => number
   getItemCount: () => number
+  getBentoCount: () => number
+  getSoupCount: () => number
 }
 
 // ─── Store ────────────────────────────────────────────────────────────────────
@@ -90,6 +94,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       const newItem: CartItem = {
         id: nanoid(),
         commodityId: commodity.id,
+        typeId: commodity.typeId,
         name: commodity.name,
         price: commodity.price,
         quantity: 1,
@@ -139,8 +144,8 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
 
   clearCart: () => set({ items: [], discounts: [] }),
 
-  submitOrder: async () => {
-    const { items, discounts, operatorId, getSubtotal, getTotal } = get()
+  submitOrder: async (memoTags) => {
+    const { items, discounts, operatorId, getSubtotal, getTotal, getSoupCount } = get()
 
     // Guard against empty cart
     if (items.length === 0) {
@@ -181,16 +186,17 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       })
     }
 
-    // Collect non-empty notes
-    const memo = items
+    // Collect non-empty notes, prepended by memoTags
+    const itemNotes = items
       .map(item => item.note)
       .filter(note => note !== '')
+    const memo = [...(memoTags ?? []), ...itemNotes]
 
     await repo.create({
       number,
       data: orderData,
       memo,
-      soups: 0,
+      soups: getSoupCount(),
       total,
       originalTotal: subtotal,
       editor: operatorId ?? '',
@@ -219,5 +225,21 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   getItemCount: () => {
     const { items } = get()
     return items.reduce((sum, item) => sum + item.quantity, 0)
+  },
+
+  getBentoCount: () => {
+    // Only rice-based bentos (name contains '飯') qualify for soup.
+    // Add-ons (加蛋, 加菜) and non-rice bentos (雞胸肉沙拉) share typeId='bento'
+    // but are excluded because they don't include a rice box.
+    const { items } = get()
+    return items
+      .filter(item => item.typeId === 'bento' && item.name.includes('飯'))
+      .reduce((sum, item) => sum + item.quantity, 0)
+  },
+
+  // Kept separate from getBentoCount to allow future decoupling
+  // (e.g., half soups for small bentos, or soup-free promos).
+  getSoupCount: () => {
+    return get().getBentoCount()
   },
 }))

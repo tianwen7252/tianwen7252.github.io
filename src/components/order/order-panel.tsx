@@ -2,21 +2,24 @@ import { useState, useRef, useEffect } from 'react'
 import { ClipboardList, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { notify } from '@/components/ui/sonner'
-import { Button } from '@/components/ui/button'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
+import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
+import { ConfirmOrderModal } from './confirm-order-modal'
 
 /** Main order panel (right sidebar) wiring store data to presentational components */
 export function OrderPanel() {
   const items = useOrderStore((s) => s.items)
+  const discounts = useOrderStore((s) => s.discounts)
   const removeItem = useOrderStore((s) => s.removeItem)
   const updateQuantity = useOrderStore((s) => s.updateQuantity)
   const updateNote = useOrderStore((s) => s.updateNote)
-  const getSubtotal = useOrderStore((s) => s.getSubtotal)
   const getTotal = useOrderStore((s) => s.getTotal)
+  const getBentoCount = useOrderStore((s) => s.getBentoCount)
+  const getSoupCount = useOrderStore((s) => s.getSoupCount)
   const getItemCount = useOrderStore((s) => s.getItemCount)
   const clearCart = useOrderStore((s) => s.clearCart)
   const submitOrder = useOrderStore((s) => s.submitOrder)
@@ -24,6 +27,7 @@ export function OrderPanel() {
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Scroll to the last added/updated item
@@ -37,15 +41,17 @@ export function OrderPanel() {
     }
   }, [lastAddedItem])
 
-  const subtotal = getSubtotal()
   const total = getTotal()
+  const bentoCount = getBentoCount()
+  const soupCount = getSoupCount()
   const itemCount = getItemCount()
   const isEmpty = items.length === 0
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (memoTags: string[]) => {
     setIsSubmitting(true)
     try {
-      await submitOrder()
+      await submitOrder(memoTags)
+      setConfirmOpen(false)
       notify.success(t('order.submitSuccess'))
     } catch {
       notify.error(t('order.submitError'))
@@ -67,21 +73,24 @@ export function OrderPanel() {
         )}
         <div className="flex-1" />
         {itemCount > 0 && (
-          <Button
-            variant="outline"
-            size="icon-xs"
+          <RippleButton
             aria-label={t('order.clearCart')}
             disabled={isEmpty}
             onClick={clearCart}
-            className="border text-muted-foreground hover:text-destructive"
+            rippleColor="rgba(0, 0, 0, 0.1)"
+            className="size-6 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
           >
             <Trash2 className="size-4" />
-          </Button>
+          </RippleButton>
         )}
       </div>
 
       {/* Order items list */}
-      <ScrollArea ref={scrollRef} className="flex-1" watchDeps={[items.length, lastAddedItem]}>
+      <ScrollArea
+        ref={scrollRef}
+        className="flex-1"
+        watchDeps={[items.length, lastAddedItem]}
+      >
         {isEmpty ? (
           <p className="py-8 text-center text-muted-foreground">
             {t('order.emptyOrder')}
@@ -109,19 +118,32 @@ export function OrderPanel() {
 
       {/* Order summary */}
       <OrderSummary
-        subtotal={subtotal}
+        bentoCount={bentoCount}
+        soupCount={soupCount}
         total={total}
       />
 
-      {/* Submit button */}
-      <Button
-        className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-        size="lg"
+      {/* Submit button — opens confirmation modal */}
+      <RippleButton
+        className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         disabled={isEmpty || isSubmitting}
-        onClick={handleSubmit}
+        onClick={() => setConfirmOpen(true)}
       >
         {t('order.submit')}
-      </Button>
+      </RippleButton>
+
+      {/* Confirm order modal */}
+      <ConfirmOrderModal
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleSubmit}
+        items={items}
+        discounts={discounts}
+        total={total}
+        bentoCount={bentoCount}
+        soupCount={soupCount}
+        isSubmitting={isSubmitting}
+      />
     </div>
   )
 }

@@ -8,6 +8,7 @@ export interface OrderRepository {
   findById(id: string): Promise<Order | undefined>
   findByDateRange(startDate: number, endDate: number): Promise<Order[]>
   create(data: CreateOrder): Promise<Order>
+  remove(id: string): Promise<boolean>
   getNextOrderNumber(): Promise<number>
 }
 
@@ -82,6 +83,14 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       const created = await this.findById(id)
       if (!created) throw new Error(`Failed to retrieve created order with id: ${id}`)
       return created
+    },
+
+    async remove(id: string) {
+      const result = await db.exec(
+        'DELETE FROM orders WHERE id = ?',
+        [id],
+      )
+      return (result.changes ?? 0) > 0
     },
 
     async getNextOrderNumber() {

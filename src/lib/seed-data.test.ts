@@ -40,8 +40,8 @@ describe('Seed Data', () => {
   })
 
   describe('SEED_COMMONDITIES', () => {
-    it('has 47 total items (17 bento + 16 single + 9 drink + 5 dumpling)', () => {
-      expect(SEED_COMMONDITIES).toHaveLength(47)
+    it('has 46 total items (17 bento + 15 single + 9 drink + 5 dumpling)', () => {
+      expect(SEED_COMMONDITIES).toHaveLength(46)
     })
 
     it('has correct item counts per category', () => {
@@ -50,7 +50,7 @@ describe('Seed Data', () => {
       const drink = SEED_COMMONDITIES.filter((c) => c.typeId === 'drink')
       const dumpling = SEED_COMMONDITIES.filter((c) => c.typeId === 'dumpling')
       expect(bento).toHaveLength(17)
-      expect(single).toHaveLength(16)
+      expect(single).toHaveLength(15)
       expect(drink).toHaveLength(9)
       expect(dumpling).toHaveLength(5)
     })
