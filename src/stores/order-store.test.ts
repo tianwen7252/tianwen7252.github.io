@@ -25,7 +25,6 @@ function createMockOrderRepo(
     create: vi.fn().mockResolvedValue({
       id: 'order-1',
       number: 1,
-      data: [],
       memo: [],
       soups: 0,
       total: 0,

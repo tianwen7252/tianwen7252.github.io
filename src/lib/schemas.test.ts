@@ -135,7 +135,6 @@ describe('schemas', () => {
       const result = orderSchema.safeParse({
         id: 'ord-001',
         number: 1,
-        data: [{ comID: 'com-001', res: '炒飯', type: 'main-dish' }],
         memo: [],
         soups: 0,
         total: 80,

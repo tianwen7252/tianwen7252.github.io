@@ -6,7 +6,7 @@
  */
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
-import { initSchema } from '@/lib/schema'
+import { initSchema, dropLegacyOrderDataColumn } from '@/lib/schema'
 import { migrateData } from '@/lib/migrate-data'
 import {
   insertDefaultEmployees,
@@ -73,13 +73,17 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       // Initialize schema + run migrations for existing DBs
       initSchema((sql: string) => db!.exec(sql))
 
-      // Migrate legacy order data into normalized relational tables
-      // Best-effort: a migration failure must not prevent the app from starting
+      // Migrate legacy order data into normalized relational tables.
+      // Must run BEFORE dropLegacyOrderDataColumn — migration reads orders.data.
+      // Best-effort: a migration failure must not prevent the app from starting.
       try {
         migrateData(db)
       } catch (err) {
         console.error('[db-worker] migrateData failed, continuing init:', err)
       }
+
+      // V2-56: Drop the legacy data column after migration completes
+      dropLegacyOrderDataColumn((sql: string) => db!.exec(sql))
 
       // Full wipe takes highest precedence
       if (msg.clearDbData) {

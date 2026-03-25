@@ -39,7 +39,6 @@ export const CREATE_TABLES = `
   CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     number INTEGER NOT NULL,
-    data TEXT NOT NULL DEFAULT '[]',
     memo TEXT NOT NULL DEFAULT '[]',
     soups INTEGER NOT NULL DEFAULT 0,
     total REAL NOT NULL DEFAULT 0,
@@ -196,4 +195,18 @@ export function initSchema(exec: (sql: string) => void): void {
   exec('PRAGMA foreign_keys = ON')
   exec(CREATE_TABLES)
   runMigrations(exec)
+}
+
+/**
+ * V2-56: Drop the legacy `data` JSON blob column from orders.
+ * Must be called AFTER migrateData() completes — the migration reads this column,
+ * so dropping it first would make migration permanently impossible.
+ * Idempotent — safe to call when the column has already been dropped.
+ */
+export function dropLegacyOrderDataColumn(exec: (sql: string) => void): void {
+  try {
+    exec('ALTER TABLE orders DROP COLUMN data')
+  } catch {
+    // Column already dropped or does not exist — safe to ignore
+  }
 }

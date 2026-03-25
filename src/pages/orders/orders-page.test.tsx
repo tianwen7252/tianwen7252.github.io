@@ -109,7 +109,6 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: 'test-1',
     number: 1,
-    data: [],
     memo: [],
     soups: 0,
     total: 100,

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { CREATE_TABLES, initSchema, SCHEMA_VERSION } from './schema'
+import { CREATE_TABLES, initSchema, dropLegacyOrderDataColumn, SCHEMA_VERSION } from './schema'
 
 describe('schema', () => {
   describe('SCHEMA_VERSION', () => {
@@ -62,6 +62,16 @@ describe('schema', () => {
       // schema_meta uses "key TEXT PRIMARY KEY" (different column name)
       expect(matches?.length).toBe(9)
     })
+
+    it('should not include a data column in the orders table DDL', () => {
+      // V2-56: orders.data was removed — ensure it stays removed from fresh DDL
+      const ordersSection = CREATE_TABLES.slice(
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS orders'),
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS order_types'),
+      )
+      expect(ordersSection).not.toContain('data TEXT')
+      expect(ordersSection).not.toContain('data BLOB')
+    })
   })
 
   describe('initSchema', () => {
@@ -75,6 +85,21 @@ describe('schema', () => {
         3,
         'ALTER TABLE commondities ADD COLUMN image TEXT',
       )
+    })
+  })
+
+  describe('dropLegacyOrderDataColumn', () => {
+    it('should execute ALTER TABLE orders DROP COLUMN data', () => {
+      const mockExec = vi.fn()
+      dropLegacyOrderDataColumn(mockExec)
+      expect(mockExec).toHaveBeenCalledWith('ALTER TABLE orders DROP COLUMN data')
+    })
+
+    it('should swallow errors when the column does not exist', () => {
+      const mockExec = vi.fn().mockImplementation(() => {
+        throw new Error('no such column: data')
+      })
+      expect(() => dropLegacyOrderDataColumn(mockExec)).not.toThrow()
     })
   })
 })

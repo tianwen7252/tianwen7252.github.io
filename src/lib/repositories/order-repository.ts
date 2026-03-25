@@ -16,13 +16,12 @@ export interface OrderRepository {
 
 /**
  * Parse a raw DB row into the base Order fields (without normalized items/discounts).
- * Handles JSON.parse for data and memo fields.
+ * Handles JSON.parse for the memo field.
  */
 function rowToOrderBase(row: Record<string, unknown>): Omit<Order, 'items' | 'discounts'> {
   return {
     id: String(row['id']),
     number: Number(row['number']),
-    data: JSON.parse(String(row['data'] ?? '[]')),
     memo: JSON.parse(String(row['memo'] ?? '[]')),
     soups: Number(row['soups']),
     total: Number(row['total']),
@@ -34,45 +33,6 @@ function rowToOrderBase(row: Record<string, unknown>): Omit<Order, 'items' | 'di
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
-}
-
-/**
- * Build backward-compatible OrderData JSON from structured items and discounts.
- * This preserves the legacy data field for backward-compat readers during the
- * V2-54 transition period.
- */
-function buildLegacyData(
-  items: CreateOrder['items'],
-  discounts: CreateOrder['discounts'],
-): string {
-  const entries: Array<Record<string, string>> = []
-
-  for (const item of items) {
-    entries.push({
-      comID: item.commodityId,
-      value: item.name,
-      amount: String(item.price),
-    })
-    if (item.quantity > 1) {
-      entries.push({
-        comID: item.commodityId,
-        res: 'qty',
-        operator: '*',
-        amount: String(item.quantity),
-      })
-    }
-  }
-
-  for (const discount of discounts) {
-    entries.push({
-      res: discount.label,
-      type: 'discount',
-      operator: '+',
-      amount: String(-discount.amount),
-    })
-  }
-
-  return JSON.stringify(entries)
 }
 
 export function createOrderRepository(db: AsyncDatabase): OrderRepository {
@@ -117,18 +77,14 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       const id = nanoid()
       const now = Date.now()
 
-      // Build backward-compat data JSON for old-order readers
-      const legacyData = buildLegacyData(data.items, data.discounts)
-
       await db.exec('BEGIN TRANSACTION')
       try {
         await db.exec(
-          `INSERT INTO orders (id, number, data, memo, soups, total, original_total, edited_memo, editor, created_at, updated_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          `INSERT INTO orders (id, number, memo, soups, total, original_total, edited_memo, editor, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           [
             id,
             data.number,
-            legacyData,
             JSON.stringify(data.memo),
             data.soups,
             data.total,

@@ -19,7 +19,6 @@ function makeOrderRow(overrides: Record<string, unknown> = {}): Record<string, u
   return {
     id: 'ord-001',
     number: 1,
-    data: '[]',
     memo: '[]',
     soups: 0,
     total: 100,
@@ -83,14 +82,11 @@ describe('OrderRepository', () => {
       expect(result).toEqual([])
     })
 
-    it('maps rows to Order objects with JSON parsing for data and memo, attaches empty items/discounts', async () => {
+    it('maps rows to Order objects with JSON parsing for memo, attaches empty items/discounts', async () => {
       const mockRows = [
         makeOrderRow({
           id: 'ord-001',
           number: 1,
-          data: JSON.stringify([
-            { comID: 'com-001', value: '滷肉便當', res: '100', type: 'bento' },
-          ]),
           memo: JSON.stringify(['加辣', '不要酸菜']),
           soups: 2,
           total: 200,
@@ -110,7 +106,6 @@ describe('OrderRepository', () => {
       expect(result[0]).toEqual({
         id: 'ord-001',
         number: 1,
-        data: [{ comID: 'com-001', value: '滷肉便當', res: '100', type: 'bento' }],
         memo: ['加辣', '不要酸菜'],
         soups: 2,
         total: 200,
@@ -152,7 +147,7 @@ describe('OrderRepository', () => {
       })
     })
 
-    it('handles empty JSON arrays for data and memo', async () => {
+    it('handles empty JSON array for memo', async () => {
       vi.mocked(db.exec)
         .mockResolvedValueOnce({
           rows: [makeOrderRow({ id: 'ord-002', number: 2, original_total: null })],
@@ -164,7 +159,6 @@ describe('OrderRepository', () => {
       const repo = createOrderRepository(db)
       const result = await repo.findAll()
 
-      expect(result[0]!.data).toEqual([])
       expect(result[0]!.memo).toEqual([])
       expect(result[0]!.originalTotal).toBeUndefined()
       expect(result[0]!.items).toEqual([])
@@ -267,7 +261,7 @@ describe('OrderRepository', () => {
   // ─── create ─────────────────────────────────────────────────────────────────
 
   describe('create()', () => {
-    it('calls db.exec with INSERT SQL, including backward-compat data JSON', async () => {
+    it('calls db.exec with INSERT SQL for orders (without data column)', async () => {
       // Mock sequence: BEGIN, INSERT orders, INSERT item, SELECT items, INSERT discount,
       //                SELECT discounts, COMMIT, SELECT order (findById), SELECT items, SELECT discounts
       vi.mocked(db.exec)
@@ -281,7 +275,6 @@ describe('OrderRepository', () => {
         .mockResolvedValueOnce({
           rows: [makeOrderRow({
             number: 1,
-            data: JSON.stringify([{ comID: 'com-001', value: '滷肉便當', amount: '100' }]),
             memo: JSON.stringify(['加辣']),
             soups: 1,
             total: 100,
@@ -306,147 +299,10 @@ describe('OrderRepository', () => {
         String(sql).includes('INSERT INTO orders'),
       )
       expect(String(insertCall![0])).toContain('INSERT INTO orders')
+      expect(String(insertCall![0])).not.toContain('data,')
     })
 
-    it('writes backward-compat data JSON with item entries', async () => {
-      vi.mocked(db.exec)
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_item (qty 2 item)
-        .mockResolvedValueOnce({ rows: [makeItemRow({ quantity: 2 })], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
-        .mockResolvedValueOnce({
-          rows: [makeOrderRow({ data: JSON.stringify([
-            { comID: 'com-001', value: '滷肉便當', amount: '100' },
-            { comID: 'com-001', res: 'qty', operator: '*', amount: '2' },
-          ]) })],
-          changes: 0,
-        })
-        .mockResolvedValueOnce({ rows: [makeItemRow({ quantity: 2 })], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 0 })
-
-      const repo = createOrderRepository(db)
-      await repo.create({
-        number: 1,
-        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 2, includesSoup: true }],
-        discounts: [],
-        memo: [],
-        soups: 1,
-        total: 100,
-        editor: '',
-      })
-
-      const insertCall = vi.mocked(db.exec).mock.calls.find(([sql]) =>
-        String(sql).includes('INSERT INTO orders'),
-      )
-      const params = insertCall![1] as unknown[]
-      // The data param should include item entries
-      const dataParam = params.find((p) => {
-        if (typeof p !== 'string') return false
-        try {
-          const parsed = JSON.parse(p)
-          return Array.isArray(parsed) && parsed.length > 0 && parsed[0].comID !== undefined
-        } catch {
-          return false
-        }
-      }) as string
-      expect(dataParam).toBeDefined()
-      const parsed = JSON.parse(dataParam)
-      expect(parsed[0]).toMatchObject({ comID: 'com-001', value: '滷肉便當', amount: '100' })
-    })
-
-    it('writes backward-compat data JSON with qty entry for quantity > 1', async () => {
-      vi.mocked(db.exec)
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_item
-        .mockResolvedValueOnce({ rows: [makeItemRow({ quantity: 3 })], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
-        .mockResolvedValueOnce({
-          rows: [makeOrderRow()],
-          changes: 0,
-        })
-        .mockResolvedValueOnce({ rows: [makeItemRow({ quantity: 3 })], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 0 })
-
-      const repo = createOrderRepository(db)
-      await repo.create({
-        number: 1,
-        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 3, includesSoup: false }],
-        discounts: [],
-        memo: [],
-        soups: 0,
-        total: 300,
-        editor: '',
-      })
-
-      const insertCall = vi.mocked(db.exec).mock.calls.find(([sql]) =>
-        String(sql).includes('INSERT INTO orders'),
-      )
-      const params = insertCall![1] as unknown[]
-      const dataParam = params.find((p) => {
-        if (typeof p !== 'string') return false
-        try {
-          const parsed = JSON.parse(p)
-          return Array.isArray(parsed) && parsed.length > 0
-        } catch {
-          return false
-        }
-      }) as string
-      const parsed = JSON.parse(dataParam)
-      const qtyEntry = parsed.find((e: Record<string, unknown>) => e['res'] === 'qty')
-      expect(qtyEntry).toMatchObject({ comID: 'com-001', res: 'qty', operator: '*', amount: '3' })
-    })
-
-    it('writes backward-compat data JSON with discount entries', async () => {
-      vi.mocked(db.exec)
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_item
-        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_discount
-        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
-        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
-        .mockResolvedValueOnce({
-          rows: [makeOrderRow({ data: JSON.stringify([
-            { comID: 'com-001', value: '滷肉便當', amount: '100' },
-            { res: '會員折扣', type: 'discount', operator: '+', amount: '-50' },
-          ]) })],
-          changes: 0,
-        })
-        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
-        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
-
-      const repo = createOrderRepository(db)
-      await repo.create({
-        number: 1,
-        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 1, includesSoup: false }],
-        discounts: [{ label: '會員折扣', amount: 50 }],
-        memo: [],
-        soups: 0,
-        total: 50,
-        editor: '',
-      })
-
-      const insertCall = vi.mocked(db.exec).mock.calls.find(([sql]) =>
-        String(sql).includes('INSERT INTO orders'),
-      )
-      const params = insertCall![1] as unknown[]
-      const dataParam = params.find((p) => {
-        if (typeof p !== 'string') return false
-        try {
-          const parsed = JSON.parse(p)
-          return Array.isArray(parsed)
-        } catch {
-          return false
-        }
-      }) as string
-      const parsed = JSON.parse(dataParam)
-      const discountEntry = parsed.find((e: Record<string, unknown>) => e['type'] === 'discount')
-      expect(discountEntry).toMatchObject({ res: '會員折扣', type: 'discount', operator: '+', amount: '-50' })
-    })
-
-    it('returns the created Order with parsed data, items, and discounts', async () => {
+    it('returns the created Order with items and discounts', async () => {
       vi.mocked(db.exec)
         .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
         .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
@@ -465,7 +321,6 @@ describe('OrderRepository', () => {
           rows: [makeOrderRow({
             id: 'generated-id',
             number: 5,
-            data: JSON.stringify([{ comID: 'com-001' }]),
             memo: JSON.stringify(['備註']),
             soups: 1,
             total: 50,

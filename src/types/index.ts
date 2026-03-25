@@ -1,7 +1,6 @@
 export type {
   CommondityType,
   Commondity,
-  OrderData,
   Order,
   OrderType,
   DailyData,
