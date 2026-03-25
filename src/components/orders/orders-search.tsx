@@ -50,9 +50,11 @@ function matchesQuery(order: Order, query: string): boolean {
   // Check memo tags
   if (order.memo.some((tag) => tag.toLowerCase().includes(q))) return true
 
-  // Check item names
-  const { items } = parseOrderItems(order.data)
-  if (items.some((item) => item.name.toLowerCase().includes(q))) return true
+  // Check item names — prefer normalized items, fall back to legacy parseOrderItems
+  const itemsToSearch = order.items.length > 0
+    ? order.items
+    : parseOrderItems(order.data).items
+  if (itemsToSearch.some((item) => item.name.toLowerCase().includes(q))) return true
 
   return false
 }

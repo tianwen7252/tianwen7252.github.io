@@ -71,6 +71,8 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     total: 250,
     originalTotal: 300,
     editor: 'admin',
+    items: [],
+    discounts: [],
     createdAt: new Date('2026-03-24T12:45:00').getTime(),
     updatedAt: new Date('2026-03-24T12:45:00').getTime(),
     ...overrides,
@@ -86,6 +88,35 @@ function makeManyItemsOrder(): Order {
       { comID: 'c4', value: '牛肉飯', amount: '150' },
       { comID: 'c5', value: '豬排飯', amount: '110' },
     ],
+    total: 580,
+    originalTotal: undefined,
+    items: [],
+    discounts: [],
+  })
+}
+
+function makeOrderWithNormalizedItems(): Order {
+  return makeOrder({
+    data: [],
+    items: [
+      { id: 'i1', orderId: 'test-1', commodityId: 'c1', name: '雞腿飯', price: 100, quantity: 2, includesSoup: true, createdAt: 1700000000000 },
+      { id: 'i2', orderId: 'test-1', commodityId: 'c2', name: '排骨飯', price: 100, quantity: 1, includesSoup: true, createdAt: 1700000000001 },
+    ],
+    discounts: [],
+  })
+}
+
+function makeOrderWithManyNormalizedItems(): Order {
+  return makeOrder({
+    data: [],
+    items: [
+      { id: 'i1', orderId: 'test-1', commodityId: 'c1', name: '雞腿飯', price: 100, quantity: 1, includesSoup: true, createdAt: 1700000000000 },
+      { id: 'i2', orderId: 'test-1', commodityId: 'c2', name: '排骨飯', price: 100, quantity: 1, includesSoup: true, createdAt: 1700000000001 },
+      { id: 'i3', orderId: 'test-1', commodityId: 'c3', name: '魚排飯', price: 120, quantity: 1, includesSoup: true, createdAt: 1700000000002 },
+      { id: 'i4', orderId: 'test-1', commodityId: 'c4', name: '牛肉飯', price: 150, quantity: 1, includesSoup: true, createdAt: 1700000000003 },
+      { id: 'i5', orderId: 'test-1', commodityId: 'c5', name: '豬排飯', price: 110, quantity: 1, includesSoup: true, createdAt: 1700000000004 },
+    ],
+    discounts: [],
     total: 580,
     originalTotal: undefined,
   })
@@ -202,5 +233,31 @@ describe('OrderHistoryCard', () => {
   it('should have data-testid="order-history-card"', () => {
     render(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByTestId('order-history-card')).toBeTruthy()
+  })
+
+  // ─── Normalized items backward compat ───────────────────────────────────────
+
+  it('should render item summary from normalized items when available', () => {
+    const order = makeOrderWithNormalizedItems()
+    render(<OrderHistoryCard order={order} onDelete={vi.fn()} />)
+    const card = screen.getByTestId('order-history-card')
+    expect(card.textContent).toContain('雞腿飯')
+    expect(card.textContent).toContain('x2')
+    expect(card.textContent).toContain('排骨飯')
+  })
+
+  it('should show "+N more" when normalized items exceed 3', () => {
+    const order = makeOrderWithManyNormalizedItems()
+    render(<OrderHistoryCard order={order} onDelete={vi.fn()} />)
+    expect(screen.getByText('+2 more')).toBeTruthy()
+  })
+
+  it('should fall back to legacy parseOrderItems when normalized items is empty', () => {
+    // Default order has data but items: []
+    render(<OrderHistoryCard {...defaultProps} />)
+    const card = screen.getByTestId('order-history-card')
+    // Legacy data contains 雞腿飯 x2 and 排骨飯 x1
+    expect(card.textContent).toContain('雞腿飯')
+    expect(card.textContent).toContain('排骨飯')
   })
 })

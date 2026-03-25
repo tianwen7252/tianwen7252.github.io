@@ -101,6 +101,41 @@ export type CreateCommondityType = z.infer<typeof createCommondityTypeSchema>
 export type Commondity = z.infer<typeof commonditySchema>
 export type CreateCommondity = z.infer<typeof createCommonditySchema>
 
+// ─── OrderItem ───────────────────────────────────────────────────────────────
+// Defined before Order so it can be referenced in orderSchema directly.
+
+export const orderItemSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  commodityId: z.string(),
+  name: z.string(),
+  price: z.number(),
+  quantity: z.number().int().min(1),
+  includesSoup: z.boolean().default(false),
+  createdAt: z.number(),
+})
+
+export const createOrderItemSchema = orderItemSchema.omit({ id: true, createdAt: true })
+
+export type OrderItem = z.infer<typeof orderItemSchema>
+export type CreateOrderItem = z.infer<typeof createOrderItemSchema>
+
+// ─── OrderDiscount ───────────────────────────────────────────────────────────
+// Defined before Order so it can be referenced in orderSchema directly.
+
+export const orderDiscountSchema = z.object({
+  id: z.string(),
+  orderId: z.string(),
+  label: z.string(),
+  amount: z.number(),
+  createdAt: z.number(),
+})
+
+export const createOrderDiscountSchema = orderDiscountSchema.omit({ id: true, createdAt: true })
+
+export type OrderDiscount = z.infer<typeof orderDiscountSchema>
+export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
+
 // ─── Order ───────────────────────────────────────────────────────────────────
 
 export const orderDataSchema = z.object({
@@ -124,50 +159,43 @@ export const orderSchema = z.object({
   editor: z.string().default(''),
   createdAt: z.number(),
   updatedAt: z.number(),
+  // Normalized items and discounts — populated on read, empty array for old orders
+  items: z.array(orderItemSchema).default([]),
+  discounts: z.array(orderDiscountSchema).default([]),
 })
 
-export const createOrderSchema = orderSchema.omit({
-  id: true,
-  createdAt: true,
-  updatedAt: true,
-})
-
-export type OrderData = z.infer<typeof orderDataSchema>
-export type Order = z.infer<typeof orderSchema>
-export type CreateOrder = z.infer<typeof createOrderSchema>
-
-// ─── OrderItem ───────────────────────────────────────────────────────────────
-
-export const orderItemSchema = z.object({
-  id: z.string(),
-  orderId: z.string(),
+// NewOrderItem — for creating an item without an orderId (orderId is assigned at creation time)
+export const newOrderItemSchema = z.object({
   commodityId: z.string(),
   name: z.string(),
   price: z.number(),
   quantity: z.number().int().min(1),
   includesSoup: z.boolean().default(false),
-  createdAt: z.number(),
 })
 
-export const createOrderItemSchema = orderItemSchema.omit({ id: true, createdAt: true })
-
-export type OrderItem = z.infer<typeof orderItemSchema>
-export type CreateOrderItem = z.infer<typeof createOrderItemSchema>
-
-// ─── OrderDiscount ───────────────────────────────────────────────────────────
-
-export const orderDiscountSchema = z.object({
-  id: z.string(),
-  orderId: z.string(),
+// NewOrderDiscount — for creating a discount without an orderId
+export const newOrderDiscountSchema = z.object({
   label: z.string(),
   amount: z.number(),
-  createdAt: z.number(),
 })
 
-export const createOrderDiscountSchema = orderDiscountSchema.omit({ id: true, createdAt: true })
+export const createOrderSchema = z.object({
+  number: z.number(),
+  items: z.array(newOrderItemSchema).default([]),
+  discounts: z.array(newOrderDiscountSchema).default([]),
+  memo: z.array(z.string()),
+  soups: z.number(),
+  total: z.number(),
+  originalTotal: z.number().optional(),
+  editedMemo: z.string().optional(),
+  editor: z.string(),
+})
 
-export type OrderDiscount = z.infer<typeof orderDiscountSchema>
-export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
+export type OrderData = z.infer<typeof orderDataSchema>
+export type Order = z.infer<typeof orderSchema>
+export type CreateOrder = z.infer<typeof createOrderSchema>
+export type NewOrderItem = z.infer<typeof newOrderItemSchema>
+export type NewOrderDiscount = z.infer<typeof newOrderDiscountSchema>
 
 // ─── DailyData ───────────────────────────────────────────────────────────────
 

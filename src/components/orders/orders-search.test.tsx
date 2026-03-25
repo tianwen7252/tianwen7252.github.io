@@ -64,6 +64,8 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
     soups: 0,
     total: 100,
     editor: '',
+    items: [],
+    discounts: [],
     createdAt: dayjs('2026-03-24T10:00:00').valueOf(),
     updatedAt: dayjs('2026-03-24T10:00:00').valueOf(),
     ...overrides,
@@ -328,5 +330,38 @@ describe('OrdersSearch', () => {
     render(<OrdersSearch {...defaultProps} isLoading={true} />)
     // When loading and no query, should not show results
     expect(screen.queryByTestId('search-result-group')).toBeNull()
+  })
+
+  it('should filter by normalized items when order.items is non-empty', async () => {
+    const orders = [
+      makeOrder({
+        id: 'o1',
+        number: 1,
+        data: [],
+        items: [
+          {
+            id: 'i1',
+            orderId: 'o1',
+            commodityId: 'c1',
+            name: 'Dragon Roll',
+            price: 200,
+            quantity: 1,
+            includesSoup: false,
+            createdAt: 1700000000000,
+          },
+        ],
+      }),
+      makeOrder({ id: 'o2', number: 2, data: [], items: [] }),
+    ]
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(<OrdersSearch {...defaultProps} orders={orders} />)
+    const input = screen.getByTestId('orders-search-input')
+    await user.type(input, 'dragon')
+
+    const cards = screen.getAllByTestId('order-history-card')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]!.getAttribute('data-order-id')).toBe('o1')
   })
 })

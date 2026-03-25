@@ -2,6 +2,8 @@ import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
 import type { AsyncDatabase } from '@/lib/worker-database'
 import type { Order, CreateOrder } from '@/lib/schemas'
+import { createOrderItemRepository } from './order-item-repository'
+import { createOrderDiscountRepository } from './order-discount-repository'
 
 export interface OrderRepository {
   findAll(): Promise<Order[]>
@@ -13,10 +15,10 @@ export interface OrderRepository {
 }
 
 /**
- * Parse a raw DB row into an Order object.
+ * Parse a raw DB row into the base Order fields (without normalized items/discounts).
  * Handles JSON.parse for data and memo fields.
  */
-function toOrder(row: Record<string, unknown>): Order {
+function rowToOrderBase(row: Record<string, unknown>): Omit<Order, 'items' | 'discounts'> {
   return {
     id: String(row['id']),
     number: Number(row['number']),
@@ -34,13 +36,63 @@ function toOrder(row: Record<string, unknown>): Order {
   }
 }
 
+/**
+ * Build backward-compatible OrderData JSON from structured items and discounts.
+ * This preserves the legacy data field for backward-compat readers during the
+ * V2-54 transition period.
+ */
+function buildLegacyData(
+  items: CreateOrder['items'],
+  discounts: CreateOrder['discounts'],
+): string {
+  const entries: Array<Record<string, string>> = []
+
+  for (const item of items) {
+    entries.push({
+      comID: item.commodityId,
+      value: item.name,
+      amount: String(item.price),
+    })
+    if (item.quantity > 1) {
+      entries.push({
+        comID: item.commodityId,
+        res: 'qty',
+        operator: '*',
+        amount: String(item.quantity),
+      })
+    }
+  }
+
+  for (const discount of discounts) {
+    entries.push({
+      res: discount.label,
+      type: 'discount',
+      operator: '+',
+      amount: String(-discount.amount),
+    })
+  }
+
+  return JSON.stringify(entries)
+}
+
 export function createOrderRepository(db: AsyncDatabase): OrderRepository {
+  const itemRepo = createOrderItemRepository(db)
+  const discountRepo = createOrderDiscountRepository(db)
+
+  async function attachRelated(base: Omit<Order, 'items' | 'discounts'>): Promise<Order> {
+    const [items, discounts] = await Promise.all([
+      itemRepo.findByOrderId(base.id),
+      discountRepo.findByOrderId(base.id),
+    ])
+    return { ...base, items, discounts }
+  }
+
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM orders ORDER BY created_at DESC',
       )
-      return result.rows.map(toOrder)
+      return Promise.all(result.rows.map(rowToOrderBase).map(attachRelated))
     },
 
     async findById(id: string) {
@@ -49,7 +101,8 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
         [id],
       )
       const row = result.rows[0]
-      return row ? toOrder(row) : undefined
+      if (!row) return undefined
+      return attachRelated(rowToOrderBase(row))
     },
 
     async findByDateRange(startDate: number, endDate: number) {
@@ -57,35 +110,65 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
         'SELECT * FROM orders WHERE created_at >= ? AND created_at <= ? ORDER BY created_at DESC',
         [startDate, endDate],
       )
-      return result.rows.map(toOrder)
+      return Promise.all(result.rows.map(rowToOrderBase).map(attachRelated))
     },
 
     async create(data: CreateOrder) {
       const id = nanoid()
       const now = Date.now()
-      await db.exec(
-        `INSERT INTO orders (id, number, data, memo, soups, total, original_total, edited_memo, editor, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          data.number,
-          JSON.stringify(data.data),
-          JSON.stringify(data.memo),
-          data.soups,
-          data.total,
-          data.originalTotal ?? null,
-          data.editedMemo ?? null,
-          data.editor,
-          now,
-          now,
-        ],
-      )
+
+      // Build backward-compat data JSON for old-order readers
+      const legacyData = buildLegacyData(data.items, data.discounts)
+
+      await db.exec('BEGIN TRANSACTION')
+      try {
+        await db.exec(
+          `INSERT INTO orders (id, number, data, memo, soups, total, original_total, edited_memo, editor, created_at, updated_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            id,
+            data.number,
+            legacyData,
+            JSON.stringify(data.memo),
+            data.soups,
+            data.total,
+            data.originalTotal ?? null,
+            data.editedMemo ?? null,
+            data.editor,
+            now,
+            now,
+          ],
+        )
+
+        // Insert normalized items if any
+        if (data.items.length > 0) {
+          await itemRepo.createBatch(
+            data.items.map((item) => ({ ...item, orderId: id })),
+          )
+        }
+
+        // Insert normalized discounts if any
+        if (data.discounts.length > 0) {
+          await discountRepo.createBatch(
+            data.discounts.map((d) => ({ ...d, orderId: id })),
+          )
+        }
+
+        await db.exec('COMMIT')
+      } catch (err) {
+        await db.exec('ROLLBACK')
+        throw err
+      }
+
       const created = await this.findById(id)
       if (!created) throw new Error(`Failed to retrieve created order with id: ${id}`)
       return created
     },
 
     async remove(id: string) {
+      // Delete child rows first to avoid FK constraint violations
+      await itemRepo.removeByOrderId(id)
+      await discountRepo.removeByOrderId(id)
       const result = await db.exec(
         'DELETE FROM orders WHERE id = ?',
         [id],

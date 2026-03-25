@@ -30,6 +30,8 @@ function createMockOrderRepo(
       soups: 0,
       total: 0,
       editor: '',
+      items: [],
+      discounts: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     } satisfies Order),
@@ -675,7 +677,7 @@ describe('useOrderStore', () => {
       )
     })
 
-    it('should convert items to OrderData format', async () => {
+    it('should convert items to structured items array', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
@@ -686,12 +688,12 @@ describe('useOrderStore', () => {
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 1, includesSoup: false },
       ])
     })
 
-    it('should add quantity OrderData for items with quantity > 1', async () => {
+    it('should pass quantity directly in structured items (no separate qty entry)', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
@@ -706,9 +708,8 @@ describe('useOrderStore', () => {
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
-        { comID: 'com-1', res: 'qty', operator: '*', amount: '2' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 2, includesSoup: false },
       ])
     })
 
@@ -830,7 +831,7 @@ describe('useOrderStore', () => {
       expect(useOrderStore.getState().items).toHaveLength(1)
     })
 
-    it('should handle multiple items with different quantities', async () => {
+    it('should handle multiple items with different quantities in structured items', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
@@ -847,10 +848,9 @@ describe('useOrderStore', () => {
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
-        { comID: 'com-1', res: 'qty', operator: '*', amount: '2' },
-        { comID: 'com-2', value: 'Noodles', amount: '80' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 2, includesSoup: false },
+        { commodityId: 'com-2', name: 'Noodles', price: 80, quantity: 1, includesSoup: false },
       ])
     })
 
@@ -880,7 +880,7 @@ describe('useOrderStore', () => {
       expect(mockRepo.create).not.toHaveBeenCalled()
     })
 
-    it('should serialize discount entries into OrderData', async () => {
+    it('should pass discounts as structured discounts array', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
@@ -892,15 +892,9 @@ describe('useOrderStore', () => {
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      const discountEntry = createCall.data.find(
-        d => d.type === 'discount',
-      )
-      expect(discountEntry).toEqual({
-        res: '會員折扣',
-        type: 'discount',
-        operator: '+',
-        amount: '-50',
-      })
+      expect(createCall.discounts).toEqual([
+        { label: '會員折扣', amount: 50 },
+      ])
     })
   })
 

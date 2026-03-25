@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { nanoid } from 'nanoid'
 import { getOrderRepo } from '@/lib/repositories/provider'
-import type { OrderData } from '@/lib/schemas'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -161,34 +160,6 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
     const repo = getOrderRepo()
     const number = await repo.getNextOrderNumber()
 
-    // Convert cart items to OrderData format
-    const orderData: OrderData[] = []
-    for (const item of items) {
-      orderData.push({
-        comID: item.commodityId,
-        value: item.name,
-        amount: String(item.price),
-      })
-      if (item.quantity > 1) {
-        orderData.push({
-          comID: item.commodityId,
-          res: 'qty',
-          operator: '*',
-          amount: String(item.quantity),
-        })
-      }
-    }
-
-    // Serialize discount entries into OrderData
-    for (const discount of discounts) {
-      orderData.push({
-        res: discount.label,
-        type: 'discount',
-        operator: '+',
-        amount: String(-discount.amount),
-      })
-    }
-
     // Collect non-empty notes, prepended by memoTags
     const itemNotes = items
       .map(item => item.note)
@@ -197,7 +168,17 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
 
     await repo.create({
       number,
-      data: orderData,
+      items: items.map(item => ({
+        commodityId: item.commodityId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        includesSoup: item.includesSoup,
+      })),
+      discounts: discounts.map(d => ({
+        label: d.label,
+        amount: d.amount,
+      })),
       memo,
       soups: getSoupCount(),
       total,

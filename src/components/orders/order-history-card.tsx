@@ -72,8 +72,10 @@ export function OrderHistoryCard({
   onEdit,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
-  const { items } = parseOrderItems(order.data)
-  const { visible, moreCount } = buildItemSummary(items)
+  // Prefer normalized items when available; fall back to legacy parseOrderItems
+  const { items: parsedItems } = parseOrderItems(order.data)
+  const displayItems = order.items.length > 0 ? order.items : parsedItems
+  const { visible, moreCount } = buildItemSummary(displayItems)
   // AM/PM format for time display
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
