@@ -125,7 +125,7 @@ export function OrderPanel() {
 
       {/* Submit button — opens confirmation modal */}
       <RippleButton
-        className="h-10 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+        className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         disabled={isEmpty || isSubmitting}
         onClick={() => setConfirmOpen(true)}
       >

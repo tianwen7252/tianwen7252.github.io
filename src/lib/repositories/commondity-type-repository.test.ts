@@ -28,7 +28,7 @@ describe('CommondityTypeRepository', () => {
       await repo.findAll()
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commondity_types ORDER BY type_id ASC',
+        'SELECT * FROM commondity_types ORDER BY id ASC',
       )
     })
 

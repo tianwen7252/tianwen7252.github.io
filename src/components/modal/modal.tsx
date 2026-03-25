@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { useTranslation } from 'react-i18next'
-import { Loader2 } from 'lucide-react'
+import { Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { RippleButton } from '@/components/ui/ripple-button'
 import type {
   ModalProps,
   ModalCardProps,
@@ -207,6 +208,15 @@ export function Modal({
                 duration={20}
               />
             )}
+
+            {/* Close button */}
+            <RippleButton
+              onClick={onClose}
+              rippleColor="rgba(0,0,0,0.1)"
+              className="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+            >
+              <X size={18} />
+            </RippleButton>
 
             {/* Header */}
             {header && (

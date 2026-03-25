@@ -7,7 +7,7 @@ import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
-import { ENABLE_SEED_DATA, DELETE_SEED_DATA } from '@/lib/db-config'
+import { ENABLE_SEED_DATA, DELETE_SEED_DATA } from '@/constants/seed-data'
 import {
   createWorkerDatabase,
   initWorkerDb,

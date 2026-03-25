@@ -93,7 +93,7 @@ export function OrderHistoryCard({
         </div>
 
         {/* Row 2: Item summary */}
-        <div className="text-sm text-muted-foreground mb-1">
+        <div className="text-md text-[#777] mb-1">
           <span>{visible}</span>
           {moreCount > 0 && (
             <span className="ml-1 text-xs text-muted-foreground/70">

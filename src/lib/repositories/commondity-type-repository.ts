@@ -31,7 +31,7 @@ export function createCommondityTypeRepository(
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commondity_types ORDER BY type_id ASC',
+        'SELECT * FROM commondity_types ORDER BY id ASC',
       )
       return result.rows.map(toCommondityType)
     },

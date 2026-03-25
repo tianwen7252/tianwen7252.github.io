@@ -26,6 +26,7 @@
 - Please must follow Tailwind CSS v4's rule
 - Modal UI一律使用src/components/modal/modal.tsx
 - UI設計時，先以shadcn/UI為參考有沒有可用的UI，再重新設計
+- 所有按鈕一律使用RippleButton
 - Even in **--dangerously-skip-permissions** mode, never delete any files or git branches without user confirmation
 
 ---
