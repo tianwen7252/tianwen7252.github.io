@@ -29,6 +29,7 @@ export const CREATE_TABLES = `
     on_market INTEGER NOT NULL DEFAULT 1,
     hide_on_mode TEXT,
     editor TEXT,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (type_id) REFERENCES commondity_types(type_id)
@@ -123,6 +124,13 @@ function runMigrations(exec: (sql: string) => void): void {
   // V2-29: Add image column to commondities (may not exist on older DBs)
   try {
     exec('ALTER TABLE commondities ADD COLUMN image TEXT')
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // V2-52: Add includes_soup column to commondities (may not exist on older DBs)
+  try {
+    exec('ALTER TABLE commondities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0')
   } catch {
     // Column already exists — safe to ignore
   }

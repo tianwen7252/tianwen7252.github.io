@@ -85,6 +85,7 @@ export const commonditySchema = z.object({
   onMarket: z.boolean().default(true),
   hideOnMode: z.string().optional(),
   editor: z.string().optional(),
+  includesSoup: z.boolean().default(false),
   createdAt: z.number(),
   updatedAt: z.number(),
 })

@@ -96,6 +96,7 @@ export const SEED_COMMONDITIES: readonly Commondity[] = COMMODITY_SEEDS.map((see
   price: seed.price,
   priority: seed.priority,
   onMarket: true,
+  includesSoup: seed.includesSoup ?? false,
   hideOnMode: seed.hideOnMode,
   createdAt: BASE_TS,
   updatedAt: BASE_TS,

@@ -15,6 +15,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
     price: 100,
     quantity: 1,
     note: '',
+    includesSoup: false,
     ...overrides,
   }
 }
@@ -58,9 +59,9 @@ describe('ConfirmOrderModal', () => {
 
   it('should show categorized items grouped by category', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 2 }),
+      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 2, includesSoup: true }),
       makeCartItem({ id: '2', name: '紅茶', typeId: 'drink', price: 30, quantity: 1 }),
-      makeCartItem({ id: '3', name: '加蛋', typeId: 'bento', price: 15, quantity: 1 }),
+      makeCartItem({ id: '3', name: '加蛋', typeId: 'bento', price: 15, quantity: 1, includesSoup: false }),
     ]
     render(
       <ConfirmOrderModal

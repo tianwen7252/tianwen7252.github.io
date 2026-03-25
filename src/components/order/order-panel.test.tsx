@@ -22,6 +22,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
     price: 120,
     quantity: 1,
     note: '',
+    includesSoup: false,
     ...overrides,
   }
 }
@@ -84,26 +85,26 @@ describe('OrderPanel', () => {
   })
 
   it('should pass bentoCount and soupCount to OrderSummary', async () => {
-    // Items with typeId='bento' and name containing '飯' count as bento
+    // Items with includesSoup=true count as bento
     act(() => {
       useOrderStore.setState({
         items: [
-          makeCartItem({ id: 'c1', typeId: 'bento', name: '滷肉飯', price: 100, quantity: 2 }),
-          makeCartItem({ id: 'c2', typeId: 'drink', name: '紅茶', price: 30, quantity: 1 }),
+          makeCartItem({ id: 'c1', typeId: 'bento', name: '滷肉飯', price: 100, quantity: 2, includesSoup: true }),
+          makeCartItem({ id: 'c2', typeId: 'drink', name: '紅茶', price: 30, quantity: 1, includesSoup: false }),
         ],
       })
     })
     await renderOrderPanel()
-    // bentoCount = 2 (only bento with '飯'), soupCount = 2 (same as bento)
+    // bentoCount = 2 (only items with includesSoup=true), soupCount = 2 (same as bento)
     expect(screen.getByText('2個便當')).toBeTruthy()
     expect(screen.getByText('2杯湯')).toBeTruthy()
   })
 
-  it('should NOT count non-rice bento items like 雞胸肉沙拉', async () => {
+  it('should NOT count bento items where includesSoup is false (e.g. 雞胸肉沙拉)', async () => {
     act(() => {
       useOrderStore.setState({
         items: [
-          makeCartItem({ id: 'c1', typeId: 'bento', name: '雞胸肉沙拉', price: 160, quantity: 1 }),
+          makeCartItem({ id: 'c1', typeId: 'bento', name: '雞胸肉沙拉', price: 160, quantity: 1, includesSoup: false }),
         ],
       })
     })

@@ -337,6 +337,46 @@ describe('insertDefaultCommodities(db)', () => {
       expect(onMarketParam).toBe(1)
     }
   })
+
+  it('includes includes_soup column in commodity INSERT SQL', () => {
+    const db = makeMockDb()
+    insertDefaultCommodities(db)
+
+    const comInserts = db.calls.filter(
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+    )
+    for (const call of comInserts) {
+      expect(call.sql).toMatch(/includes_soup/)
+    }
+  })
+
+  it('passes includes_soup as 1 for com-001 through com-014 (rice bentos)', () => {
+    const db = makeMockDb()
+    insertDefaultCommodities(db)
+
+    const comInserts = db.calls.filter(
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+    )
+    // First 14 inserts are the rice bentos (com-001 to com-014)
+    for (let i = 0; i < 14; i++) {
+      // includes_soup is at index 9 (after editor at index 8)
+      const includesSoupParam = comInserts[i]!.params[9]
+      expect(includesSoupParam).toBe(1)
+    }
+  })
+
+  it('passes includes_soup as 0 for com-015 (雞胸肉沙拉, no rice)', () => {
+    const db = makeMockDb()
+    insertDefaultCommodities(db)
+
+    const comInserts = db.calls.filter(
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+    )
+    // com-015 is the 15th commodity insert
+    const com015Insert = comInserts[14]
+    const includesSoupParam = com015Insert!.params[9]
+    expect(includesSoupParam).toBe(0)
+  })
 })
 
 // ─── Exported data arrays ────────────────────────────────────────────────────
@@ -387,5 +427,27 @@ describe('DEFAULT_COMMODITIES', () => {
   it('all IDs are unique', () => {
     const ids = DEFAULT_COMMODITIES.map((c) => c.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('com-001 through com-014 have includesSoup=true', () => {
+    const soupIds = [
+      'com-001', 'com-002', 'com-003', 'com-004', 'com-005',
+      'com-006', 'com-007', 'com-008', 'com-009', 'com-010',
+      'com-011', 'com-012', 'com-013', 'com-014',
+    ]
+    for (const id of soupIds) {
+      const com = DEFAULT_COMMODITIES.find(c => c.id === id)
+      expect(com, `${id} should exist`).toBeDefined()
+      expect(com!.includesSoup, `${id} should have includesSoup=true`).toBe(true)
+    }
+  })
+
+  it('com-015, com-016, com-017 have includesSoup=false', () => {
+    const noSoupIds = ['com-015', 'com-016', 'com-017']
+    for (const id of noSoupIds) {
+      const com = DEFAULT_COMMODITIES.find(c => c.id === id)
+      expect(com, `${id} should exist`).toBeDefined()
+      expect(com!.includesSoup, `${id} should have includesSoup=false`).toBe(false)
+    }
   })
 })

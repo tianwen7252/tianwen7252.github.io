@@ -14,6 +14,7 @@ function makeCommodity(overrides: Partial<Commondity> = {}): Commondity {
     price: 100,
     priority: 0,
     onMarket: true,
+    includesSoup: false,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,
@@ -56,6 +57,7 @@ describe('ProductCard', () => {
       name: '滷肉便當',
       price: 100,
       typeId: 'type-1',
+      includesSoup: false,
     })
     expect(onAdd).toHaveBeenCalledTimes(1)
   })

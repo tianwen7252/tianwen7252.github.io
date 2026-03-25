@@ -271,6 +271,8 @@ export interface CommoditySeed {
   readonly imageKey?: string
   /** Hide on specific mode */
   readonly hideOnMode?: string
+  /** True when the bento includes a soup/congee (rice-based bentos only) */
+  readonly includesSoup?: boolean
 }
 
 export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
@@ -282,6 +284,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 140,
     priority: 1,
     imageKey: 'poached-chicken-leg-rice',
+    includesSoup: true,
   },
   {
     id: 'com-002',
@@ -290,6 +293,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 130,
     priority: 2,
     imageKey: 'fried-chicken-leg-rice',
+    includesSoup: true,
   },
   {
     id: 'com-003',
@@ -298,6 +302,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 130,
     priority: 3,
     imageKey: 'braised-chicken-leg-rice',
+    includesSoup: true,
   },
   {
     id: 'com-004',
@@ -306,6 +311,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 110,
     priority: 4,
     imageKey: 'fish-fillet-rice',
+    includesSoup: true,
   },
   {
     id: 'com-005',
@@ -314,6 +320,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 115,
     priority: 5,
     imageKey: 'pork-ribs-rice',
+    includesSoup: true,
   },
   {
     id: 'com-006',
@@ -322,6 +329,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 115,
     priority: 6,
     imageKey: 'braised-pork-belly-rice',
+    includesSoup: true,
   },
   {
     id: 'com-007',
@@ -330,6 +338,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 115,
     priority: 7,
     imageKey: 'garlic-pork-rice',
+    includesSoup: true,
   },
   {
     id: 'com-008',
@@ -338,6 +347,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 110,
     priority: 8,
     imageKey: 'beijing-sauce-pork-rice',
+    includesSoup: true,
   },
   {
     id: 'com-009',
@@ -346,6 +356,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 110,
     priority: 9,
     imageKey: 'sweet-sour-chicken-rice',
+    includesSoup: true,
   },
   {
     id: 'com-010',
@@ -354,6 +365,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 100,
     priority: 10,
     imageKey: 'shredded-chicken-rice',
+    includesSoup: true,
   },
   {
     id: 'com-011',
@@ -362,6 +374,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 100,
     priority: 11,
     imageKey: 'boneless-chicken-cutlet-rice',
+    includesSoup: true,
   },
   {
     id: 'com-012',
@@ -370,6 +383,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 80,
     priority: 12,
     imageKey: 'vegetable-rice',
+    includesSoup: true,
   },
   {
     id: 'com-013',
@@ -378,6 +392,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 60,
     priority: 13,
     imageKey: 'large-chicken-rice',
+    includesSoup: true,
   },
   {
     id: 'com-014',
@@ -386,6 +401,7 @@ export const COMMODITY_SEEDS: readonly CommoditySeed[] = [
     price: 45,
     priority: 14,
     imageKey: 'small-chicken-rice',
+    includesSoup: true,
   },
   {
     id: 'com-015',

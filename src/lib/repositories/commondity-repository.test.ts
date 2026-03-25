@@ -88,6 +88,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -101,6 +102,7 @@ describe('CommondityRepository', () => {
         onMarket: false,
         hideOnMode: 'takeout',
         editor: 'admin',
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -209,6 +211,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -295,6 +298,7 @@ describe('CommondityRepository', () => {
         price: 100,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       const insertCall = vi.mocked(db.exec).mock.calls[0]
@@ -334,6 +338,7 @@ describe('CommondityRepository', () => {
         price: 100,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       expect(result).toEqual({
@@ -346,6 +351,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -380,6 +386,7 @@ describe('CommondityRepository', () => {
         price: 30,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       expect(result.image).toBeUndefined()

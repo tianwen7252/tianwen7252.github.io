@@ -38,11 +38,11 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /**
- * Determine the category key for a cart item based on typeId and name.
+ * Determine the category key for a cart item based on typeId and includesSoup.
  *
  * Rules:
- * - typeId 'bento' + name contains '飯' -> 'bento'
- * - typeId 'bento' + name does NOT contain '飯' -> 'single'
+ * - typeId 'bento' + includesSoup=true -> 'bento'
+ * - typeId 'bento' + includesSoup=false -> 'single' (add-ons, non-rice bentos)
  * - typeId 'single' -> 'single'
  * - typeId 'drink' -> 'drink'
  * - typeId 'dumpling' -> 'dumpling'
@@ -50,7 +50,7 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
  */
 function getCategoryKey(item: CartItem): string {
   if (item.typeId === 'bento') {
-    return item.name.includes('飯') ? 'bento' : 'single'
+    return item.includesSoup ? 'bento' : 'single'
   }
   if (item.typeId === 'single') return 'single'
   if (item.typeId === 'drink') return 'drink'

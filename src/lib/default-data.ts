@@ -71,6 +71,7 @@ export const DEFAULT_COMMODITIES: readonly Commondity[] = COMMODITY_SEEDS.map((s
   priority: seed.priority,
   onMarket: true,
   hideOnMode: seed.hideOnMode,
+  includesSoup: seed.includesSoup ?? false,
   createdAt: BASE_TS,
   updatedAt: BASE_TS,
 })) as readonly Commondity[]
@@ -179,8 +180,8 @@ export function insertDefaultCommodities(db: Database): void {
 
   for (const com of DEFAULT_COMMODITIES) {
     db.exec(
-      `INSERT OR IGNORE INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, includes_soup, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         com.id,
         com.typeId,
@@ -191,6 +192,7 @@ export function insertDefaultCommodities(db: Database): void {
         com.onMarket ? 1 : 0,
         com.hideOnMode ?? null,
         com.editor ?? null,
+        com.includesSoup ? 1 : 0,
         com.createdAt,
         com.updatedAt,
       ],

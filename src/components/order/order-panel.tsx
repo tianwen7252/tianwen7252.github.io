@@ -78,7 +78,7 @@ export function OrderPanel() {
             disabled={isEmpty}
             onClick={clearCart}
             rippleColor="rgba(0, 0, 0, 0.1)"
-            className="size-6 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
+            className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center hover:text-destructive"
           >
             <Trash2 className="size-4" />
           </RippleButton>

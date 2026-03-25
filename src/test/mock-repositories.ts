@@ -5,8 +5,57 @@
  */
 
 import { nanoid } from 'nanoid'
-import { SEED_EMPLOYEES, buildSeedAttendances } from '@/lib/seed-data'
+import dayjs from 'dayjs'
+import { DEFAULT_EMPLOYEES } from '@/lib/default-data'
 import type { Employee, CreateEmployee, Attendance, CreateAttendance } from '@/lib/schemas'
+
+// ─── Test attendance patterns ──────────────────────────────────────────────
+
+/**
+ * Build sample attendance records for today (based on current Date.now()).
+ * Used by tests that rely on attendance state (clocked-in, vacation, etc.).
+ * Returns a new array on each call (immutable).
+ */
+function buildTestAttendances(): readonly Attendance[] {
+  const today = dayjs().format('YYYY-MM-DD')
+  const base = dayjs(today)
+  return [
+    // Alex: clocked in at 08:00, clocked out at 17:00
+    {
+      id: 'att-001',
+      employeeId: 'emp-001',
+      date: today,
+      clockIn: base.hour(8).minute(0).valueOf(),
+      clockOut: base.hour(17).minute(0).valueOf(),
+      type: 'regular' as const,
+    },
+    // Mia: clocked in at 09:00, still working
+    {
+      id: 'att-002',
+      employeeId: 'emp-002',
+      date: today,
+      clockIn: base.hour(9).minute(0).valueOf(),
+      type: 'regular' as const,
+    },
+    // David: on paid leave
+    {
+      id: 'att-003',
+      employeeId: 'emp-003',
+      date: today,
+      clockIn: base.hour(8).minute(0).valueOf(),
+      type: 'paid_leave' as const,
+    },
+    // Jason: clocked in at 10:00, clocked out at 14:30
+    {
+      id: 'att-004',
+      employeeId: 'emp-006',
+      date: today,
+      clockIn: base.hour(10).minute(0).valueOf(),
+      clockOut: base.hour(14).minute(30).valueOf(),
+      type: 'regular' as const,
+    },
+  ]
+}
 
 // ─── In-memory state ───────────────────────────────────────────────────────
 
@@ -14,8 +63,8 @@ let employees: Employee[] = []
 let attendances: Attendance[] = []
 
 function resetState(): void {
-  employees = SEED_EMPLOYEES.map(e => ({ ...e }))
-  attendances = [...buildSeedAttendances()]
+  employees = DEFAULT_EMPLOYEES.map(e => ({ ...e }))
+  attendances = [...buildTestAttendances()]
 }
 
 // Initialize on load

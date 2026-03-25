@@ -22,7 +22,7 @@ export function OrderSummary({
           data-testid="bento-soup-row"
           className="flex items-center gap-4 text-base text-muted-foreground"
         >
-          <span className="flex items-center gap-1">
+          <span className="flex items-center gap-4">
             <Utensils className="size-4" />
             {t('order.bentoCount', { count: bentoCount })}
           </span>
