@@ -171,9 +171,9 @@ describe('OrderPanel', () => {
     const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     await user.click(submitButton)
 
-    // Modal should appear with the confirm title (use role query to avoid description duplicate)
+    // Modal should appear — dialog role present, visual header shows confirm title
     expect(screen.getByRole('dialog')).toBeTruthy()
-    expect(screen.getByRole('heading', { name: '確認訂單' })).toBeTruthy()
+    expect(screen.getByText('確認訂單')).toBeTruthy()
   })
 
   it('should close confirm modal when cancel button is clicked', async () => {

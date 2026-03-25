@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/modal/modal'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { groupCartItems } from '@/lib/group-cart-items'
 import type { CartItem, Discount } from '@/stores/order-store'
 import { CircleCheckBig, Utensils, Soup, LoaderCircle } from 'lucide-react'
@@ -63,13 +64,21 @@ export function ConfirmOrderModal({
 
   return (
     <Modal
+      animated
       open={open}
       header={
         <>
           <CircleCheckBig /> {t('order.confirmTitle')}
         </>
       }
-      variant="green"
+      title={
+        <div
+          data-testid="confirm-total-row"
+          className="text-[2rem] text-[#ecb05d]"
+        >
+          {t('order.total')}: ${total.toLocaleString()}
+        </div>
+      }
       width={960}
       height={560}
       closeOnBackdropClick={false}
@@ -97,51 +106,55 @@ export function ConfirmOrderModal({
     >
       <div className="flex h-full gap-0">
         {/* ── Left panel: categorized items ── */}
-        <div className="flex-5 space-y-4 overflow-y-auto pr-5">
-          {groups.map((group) => {
-            const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
-            return (
-              <div
-                key={group.key}
-                className={`border-l-3 pl-3 ${accent.border}`}
-              >
-                {/* Category label */}
-                <div className={`mb-1.5 text-md tracking-wide ${accent.text}`}>
-                  {t(group.label)}
+        <ScrollArea className="flex-5" watchDeps={[groups]}>
+          <div className="space-y-4 pr-5">
+            {groups.map((group) => {
+              const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
+              return (
+                <div
+                  key={group.key}
+                  className={`border-l-3 pl-3 ${accent.border}`}
+                >
+                  {/* Category label */}
+                  <div
+                    className={`mb-1.5 text-md tracking-wide ${accent.text}`}
+                  >
+                    {t(group.label)}
+                  </div>
+                  {/* Regular items */}
+                  {group.items.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-baseline justify-between py-[5px]"
+                    >
+                      <span className="text-md text-gray-800">{item.name}</span>
+                      <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
+                      <span className="text-gray-400">x{item.quantity}</span>
+                      <span className="ml-3 min-w-[3.5rem] text-right tabular-nums font-semibold text-gray-700">
+                        ${(item.price * item.quantity).toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
+                  {/* Discount items */}
+                  {group.discounts?.map((discount) => (
+                    <div
+                      key={discount.id}
+                      className="flex items-baseline justify-between py-[5px] text-[15px]"
+                    >
+                      <span className="text-md text-gray-800">
+                        {discount.label}
+                      </span>
+                      <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
+                      <span className="min-w-[3.5rem] text-right tabular-nums font-semibold text-red-500">
+                        -${discount.amount.toLocaleString()}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-                {/* Regular items */}
-                {group.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-baseline justify-between py-[5px]"
-                  >
-                    <span className="text-md text-gray-800">{item.name}</span>
-                    <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
-                    <span className="text-gray-400">x{item.quantity}</span>
-                    <span className="ml-3 min-w-[3.5rem] text-right tabular-nums font-semibold text-gray-700">
-                      ${(item.price * item.quantity).toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-                {/* Discount items */}
-                {group.discounts?.map((discount) => (
-                  <div
-                    key={discount.id}
-                    className="flex items-baseline justify-between py-[5px] text-[15px]"
-                  >
-                    <span className="text-md text-gray-800">
-                      {discount.label}
-                    </span>
-                    <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
-                    <span className="min-w-[3.5rem] text-right tabular-nums font-semibold text-red-500">
-                      -${discount.amount.toLocaleString()}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        </ScrollArea>
 
         {/* ── Divider ── */}
         <div className="mx-1 w-px bg-black/8" />
@@ -172,14 +185,6 @@ export function ConfirmOrderModal({
               </div>
             )}
             <ChangePrediction total={total} />
-            {/* Total amount row */}
-            <div
-              data-testid="confirm-total-row"
-              className="flex items-center justify-between border-t border-black/8 pt-2 text-base font-semibold text-gray-800"
-            >
-              <span>{t('order.total')}</span>
-              <span>${total.toLocaleString()}</span>
-            </div>
           </div>
         </div>
       </div>
