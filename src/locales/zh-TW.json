@@ -150,6 +150,7 @@
     "categoryDiscount": "優惠",
     "orderNote": "訂單備註",
     "addTag": "新增備註",
+    "deleteTagConfirm": "確定刪除「{{tag}}」？",
     "change": "找"
   },
   "orders": {

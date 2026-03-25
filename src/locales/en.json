@@ -149,6 +149,7 @@
     "categoryDiscount": "Discounts",
     "orderNote": "Order Notes",
     "addTag": "Add note",
+    "deleteTagConfirm": "Delete \"{{tag}}\"?",
     "confirmSubmit": "Confirm Submit",
     "change": "Change"
   },

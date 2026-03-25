@@ -3,6 +3,11 @@ import { X, Square, SquareCheckBig } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -56,6 +61,7 @@ export function OrderNoteTags({
   const [customTags, setCustomTags] =
     useState<readonly string[]>(loadCustomTags)
   const [inputValue, setInputValue] = useState('')
+  const [pendingDeleteTag, setPendingDeleteTag] = useState<string | null>(null)
 
   const allTags = useMemo(() => [...DEFAULT_TAGS, ...customTags], [customTags])
 
@@ -143,18 +149,54 @@ export function OrderNoteTags({
               )}
               {tag}
               {!isDefault && (
-                <button
-                  data-tag-delete={tag}
-                  type="button"
-                  className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-destructive/20"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeleteTag(tag)
-                  }}
-                  aria-label={`delete ${tag}`}
+                <Popover
+                  open={pendingDeleteTag === tag}
+                  onOpenChange={(open) =>
+                    !open && setPendingDeleteTag(null)
+                  }
                 >
-                  <X className="size-3" />
-                </button>
+                  <PopoverTrigger asChild>
+                    <button
+                      data-tag-delete={tag}
+                      type="button"
+                      className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setPendingDeleteTag(tag)
+                      }}
+                      aria-label={`delete ${tag}`}
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-3" side="top" align="center">
+                    {/* stopPropagation prevents React Portal click bubbling to the tag span */}
+                    <div className="space-y-2.5" onClick={(e) => e.stopPropagation()}>
+                      <p className="text-sm text-gray-600">
+                        {t('order.deleteTagConfirm', { tag })}
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setPendingDeleteTag(null)}
+                          className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition hover:bg-muted"
+                        >
+                          {t('common.cancel')}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleDeleteTag(tag)
+                            setPendingDeleteTag(null)
+                          }}
+                          className="flex-1 rounded-md bg-destructive px-3 py-1.5 text-xs text-destructive-foreground transition hover:opacity-80"
+                        >
+                          {t('common.delete')}
+                        </button>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
               )}
             </span>
           )

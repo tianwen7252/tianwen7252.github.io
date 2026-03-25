@@ -248,7 +248,52 @@ describe('OrderNoteTags', () => {
       expect(deleteBtn).toBeTruthy()
     })
 
-    it('should remove custom tag when delete button is clicked', async () => {
+    it('should show confirmation popover when X button is clicked', async () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      const user = userEvent.setup()
+      renderOrderNoteTags()
+
+      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
+      await user.click(deleteBtn)
+
+      // Popover should appear with confirm/cancel buttons
+      expect(screen.getByText(/確定刪除/)).toBeTruthy()
+      expect(screen.getByRole('button', { name: '刪除' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: '取消' })).toBeTruthy()
+    })
+
+    it('should not delete tag when cancel is clicked in popover', async () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      const user = userEvent.setup()
+      renderOrderNoteTags()
+
+      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
+      await user.click(deleteBtn)
+
+      await user.click(screen.getByRole('button', { name: '取消' }))
+
+      // Tag should still be present
+      expect(screen.getByText('常客')).toBeTruthy()
+    })
+
+    it('should not toggle tag selection when cancel is clicked in popover', async () => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      const onSelectedTagsChange = vi.fn()
+      const user = userEvent.setup()
+      renderOrderNoteTags({ onSelectedTagsChange })
+
+      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
+      await user.click(deleteBtn)
+      await user.click(screen.getByRole('button', { name: '取消' }))
+
+      // React Portal click bubbling must not trigger tag toggle
+      expect(onSelectedTagsChange).not.toHaveBeenCalled()
+    })
+
+    it('should remove custom tag when delete is confirmed in popover', async () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客', '急單']))
       const user = userEvent.setup()
       renderOrderNoteTags()
@@ -256,6 +301,7 @@ describe('OrderNoteTags', () => {
       const tagEl = screen.getByText('常客').closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
+      await user.click(screen.getByRole('button', { name: '刪除' }))
 
       // '常客' should be removed
       expect(screen.queryByText('常客')).toBeNull()
@@ -263,7 +309,7 @@ describe('OrderNoteTags', () => {
       expect(screen.getByText('急單')).toBeTruthy()
     })
 
-    it('should update localStorage when custom tag is deleted', async () => {
+    it('should update localStorage when deletion is confirmed in popover', async () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客', '急單']))
       const user = userEvent.setup()
       renderOrderNoteTags()
@@ -271,13 +317,14 @@ describe('OrderNoteTags', () => {
       const tagEl = screen.getByText('常客').closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
+      await user.click(screen.getByRole('button', { name: '刪除' }))
 
       const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
       expect(stored).not.toContain('常客')
       expect(stored).toContain('急單')
     })
 
-    it('should also remove deleted tag from selectedTags if it was selected', async () => {
+    it('should also remove deleted tag from selectedTags when confirmed', async () => {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
       const onSelectedTagsChange = vi.fn()
       const user = userEvent.setup()
@@ -289,6 +336,7 @@ describe('OrderNoteTags', () => {
       const tagEl = screen.getByText('常客').closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
+      await user.click(screen.getByRole('button', { name: '刪除' }))
 
       // Should call with the deleted tag removed from selected
       expect(onSelectedTagsChange).toHaveBeenCalledWith(['攤位'])
