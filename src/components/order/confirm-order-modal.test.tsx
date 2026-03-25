@@ -50,9 +50,10 @@ describe('ConfirmOrderModal', () => {
 
   it('should render dialog with title when open', () => {
     render(<ConfirmOrderModal {...defaultProps} open={true} />)
-    // i18n key: order.confirmTitle -> '確認訂單'
+    // sr-only h2 exists for accessibility (contains the title total text)
     expect(screen.getByRole('heading', { level: 2 })).toBeTruthy()
-    expect(screen.getByRole('heading', { level: 2 }).textContent).toContain('確認訂單')
+    // visual header shows confirm title
+    expect(screen.getByText('確認訂單')).toBeTruthy()
   })
 
   it('should show categorized items grouped by category', () => {
@@ -87,9 +88,8 @@ describe('ConfirmOrderModal', () => {
     )
     expect(screen.getByText('雞腿飯')).toBeTruthy()
     expect(screen.getByText('x2')).toBeTruthy()
-    // $200 appears in both item price and total row; verify at least 2 exist
-    const allPrices = screen.getAllByText('$200')
-    expect(allPrices.length).toBeGreaterThanOrEqual(2)
+    // $200 appears in item price span
+    expect(screen.getByText('$200')).toBeTruthy()
   })
 
   it('should display discount rows with negative amounts', () => {
@@ -178,8 +178,8 @@ describe('ConfirmOrderModal', () => {
         total={300}
       />,
     )
-    // The total should be displayed in the confirm-total-row
-    const totalRow = screen.getByTestId('confirm-total-row')
+    // The total should be displayed in the confirm-total-row (sr-only + visible = 2 elements)
+    const totalRow = screen.getAllByTestId('confirm-total-row')[0]!
     expect(totalRow.textContent).toContain('$300')
   })
 
@@ -245,8 +245,8 @@ describe('ConfirmOrderModal', () => {
           total={300}
         />,
       )
-      // Should display a total row with the total amount
-      const totalRow = screen.getByTestId('confirm-total-row')
+      // Should display a total row with the total amount (sr-only + visible = 2 elements)
+      const totalRow = screen.getAllByTestId('confirm-total-row')[0]!
       expect(totalRow).toBeTruthy()
       expect(totalRow.textContent).toContain('$300')
     })

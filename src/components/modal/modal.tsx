@@ -43,6 +43,9 @@ const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
   green: ['#a8c896', '#c8deb8', '#e4fad9'],
   purple: ['#c4a1e0', '#dcc4f0', '#e3d0f5'],
   red: ['#e39a9d', '#f4b6b7', '#f0c4c4'],
+  blue: ['#6aa3d4', '#8bbde0', '#b5d4ee'],
+  orange: ['#d4a76a', '#e0bf8a', '#edd5aa'],
+  gray: ['#bbbbbb', '#cccccc', '#dddddd'],
 }
 
 function resolveShineColor(shineColor: ShineColor): string | string[] {
@@ -139,11 +142,17 @@ export function Modal({
         <DialogPrimitive.Overlay
           className={cn(
             'glass-modal-overlay fixed inset-0 z-50',
-            animated ? 'model-animated' : GRADIENT_CLASS[variant],
+            !animated && GRADIENT_CLASS[variant],
             closing && 'glass-modal-closing',
           )}
           onAnimationEnd={handleCloseAnimationEnd}
-        />
+        >
+          {animated && (
+            <div className="absolute inset-0 overflow-hidden">
+              <div className="model-bg-animated" />
+            </div>
+          )}
+        </DialogPrimitive.Overlay>
 
         {/* Content — centered, with zoom animation (antd style) */}
         <DialogPrimitive.Content

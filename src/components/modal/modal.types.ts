@@ -1,7 +1,7 @@
 export type GradientVariant = 'green' | 'warm' | 'red' | 'blue' | 'orange' | 'gray'
 
 /** Preset shine color names or custom ShineBorder color format */
-export type ShineColorPreset = 'green' | 'purple' | 'red'
+export type ShineColorPreset = 'green' | 'purple' | 'red' | 'blue' | 'orange' | 'gray'
 export type ShineColor = ShineColorPreset | string | string[]
 
 /**
