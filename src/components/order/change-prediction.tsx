@@ -37,7 +37,7 @@ export function ChangePrediction({ total }: ChangePredictionProps) {
           <span
             key={`${bill}-${money}`}
             data-testid="change-badge"
-            className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium shadow-sm ${BILL_COLOR_MAP[bill] ?? ''}`}
+            className={`inline-flex items-center rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm ${BILL_COLOR_MAP[bill] ?? ''}`}
           >
             ${money} {t('order.change')} ${change}
           </span>
