@@ -1,22 +1,32 @@
 /**
- * Editable seed data constants.
- * Modify these arrays to change the initial data seeded into the database.
- * Structure and seeding logic live in seed-data.ts — this file is data only.
+ * Editable default data constants.
+ * Modify these arrays to change the initial data loaded into the database.
+ * Structure and loading logic live in default-data.ts — this file is data only.
  */
 
 // ─── DB Config ──────────────────────────────────────────────────────────────
 
-/**
- * Enable seed data initialization on first run.
- * Set to false once real data is entered via UI.
- */
-export const ENABLE_SEED_DATA = true
+/** Enable default data initialization on first run. */
+export const ENABLE_DEFAULT_DATA = true
 
 /**
- * When true, clears all data from employees and attendances tables on startup.
- * Useful for resetting to a clean state. Takes precedence over ENABLE_SEED_DATA.
+ * When true, deletes only the default data items from the database on startup.
+ * Useful for resetting default entries without touching user-created data.
  */
-export const DELETE_SEED_DATA = false
+export const DELETE_DEFAULT_DATA = false
+
+/**
+ * Increment this number to trigger an automatic reset of default data on next launch.
+ * The value is stored in localStorage to detect version changes across sessions.
+ */
+export const UPDATE_DEFAULT_DATA_NUMBER = 1
+
+/**
+ * When true, deletes ALL data from all tables on startup.
+ * Takes precedence over DELETE_DEFAULT_DATA and ENABLE_DEFAULT_DATA.
+ * Use only for full database wipes during development.
+ */
+export const CLEAR_DB_DATA = false
 
 // ─── Employee Avatars ───────────────────────────────────────────────────────
 
@@ -159,62 +169,6 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
     isAdmin: false,
     hireDate: '2023-09-01',
     resignationDate: '2025-12-31',
-  },
-] as const
-
-// ─── Attendance Patterns ────────────────────────────────────────────────────
-
-export interface AttendanceSeed {
-  readonly id: string
-  readonly employeeId: string
-  readonly clockInHour: number
-  readonly clockInMinute: number
-  readonly clockOutHour?: number
-  readonly clockOutMinute?: number
-  readonly type:
-    | 'regular'
-    | 'paid_leave'
-    | 'sick_leave'
-    | 'personal_leave'
-    | 'absent'
-}
-
-export const ATTENDANCE_SEEDS: readonly AttendanceSeed[] = [
-  // Alex: clocked in at 08:00, clocked out at 17:00 (full day)
-  {
-    id: 'att-001',
-    employeeId: 'emp-001',
-    clockInHour: 8,
-    clockInMinute: 0,
-    clockOutHour: 17,
-    clockOutMinute: 0,
-    type: 'regular',
-  },
-  // Mia: clocked in at 09:00, still working
-  {
-    id: 'att-002',
-    employeeId: 'emp-002',
-    clockInHour: 9,
-    clockInMinute: 0,
-    type: 'regular',
-  },
-  // David: on paid leave
-  {
-    id: 'att-003',
-    employeeId: 'emp-003',
-    clockInHour: 8,
-    clockInMinute: 0,
-    type: 'paid_leave',
-  },
-  // Jason: clocked in at 10:00, clocked out at 14:30 (half day)
-  {
-    id: 'att-004',
-    employeeId: 'emp-006',
-    clockInHour: 10,
-    clockInMinute: 0,
-    clockOutHour: 14,
-    clockOutMinute: 30,
-    type: 'regular',
   },
 ] as const
 

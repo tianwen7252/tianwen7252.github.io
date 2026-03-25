@@ -213,9 +213,9 @@ export function Modal({
             <RippleButton
               onClick={onClose}
               rippleColor="rgba(0,0,0,0.1)"
-              className="absolute right-2 top-2 z-10 flex size-8 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
+              className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
             >
-              <X size={18} />
+              <X size={20} />
             </RippleButton>
 
             {/* Header */}

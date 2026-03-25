@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next'
+import { HandCoins } from 'lucide-react'
 import { getChange } from '@/lib/get-change'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -11,9 +12,9 @@ interface ChangePredictionProps {
 
 /** Background color class per bill denomination. */
 const BILL_COLOR_MAP: Record<number, string> = {
-  1000: 'bg-[#3f6ab0] text-white',
-  500: 'bg-[#ae917d] text-white',
-  100: 'bg-[#f38590] text-white',
+  1000: 'text-[#3f6ab0]',
+  500: 'text-[#ae917d]',
+  100: 'text-[#f38590]',
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -33,11 +34,12 @@ export function ChangePrediction({ total }: ChangePredictionProps) {
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
+        <HandCoins className="text-gray-500" />
         {predictions.map(([bill, money, change]) => (
           <span
             key={`${bill}-${money}`}
             data-testid="change-badge"
-            className={`inline-flex items-center rounded-xl px-3 py-1.5 text-sm font-medium shadow-sm ${BILL_COLOR_MAP[bill] ?? ''}`}
+            className={`inline-flex items-center ml-0 mr-2 text-sm ${BILL_COLOR_MAP[bill] ?? ''}`}
           >
             ${money} {t('order.change')} ${change}
           </span>

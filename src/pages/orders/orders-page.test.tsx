@@ -109,11 +109,12 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: 'test-1',
     number: 1,
-    data: [],
     memo: [],
     soups: 0,
     total: 100,
     editor: '',
+    items: [],
+    discounts: [],
     createdAt: dayjs('2026-03-24T10:00:00').valueOf(),
     updatedAt: dayjs('2026-03-24T10:00:00').valueOf(),
     ...overrides,

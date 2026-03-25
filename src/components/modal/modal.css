@@ -122,8 +122,8 @@
   top: 50%;
   left: 50%;
   animation:
-    bg-spin 5s linear infinite,
-    bg-cycle 30s step-end infinite; /* 5s x 6 colors  */
+    bg-spin 3s linear infinite,
+    bg-cycle 18s step-end infinite; /* 3s x 6 colors  */
 }
 
 /* ─── Modal animations (Ant Design style) ─────────────────────────────────── */

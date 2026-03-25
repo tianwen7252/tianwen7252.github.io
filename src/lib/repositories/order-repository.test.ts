@@ -13,6 +13,49 @@ function createMockAsyncDb(): AsyncDatabase {
   }
 }
 
+// Helper row factories
+
+function makeOrderRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'ord-001',
+    number: 1,
+    memo: '[]',
+    soups: 0,
+    total: 100,
+    original_total: null,
+    edited_memo: null,
+    editor: '',
+    created_at: 1700000000000,
+    updated_at: 1700000000000,
+    ...overrides,
+  }
+}
+
+function makeItemRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'item-001',
+    order_id: 'ord-001',
+    commodity_id: 'com-001',
+    name: '滷肉便當',
+    price: 100,
+    quantity: 2,
+    includes_soup: 1,
+    created_at: 1700000000001,
+    ...overrides,
+  }
+}
+
+function makeDiscountRow(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    id: 'disc-001',
+    order_id: 'ord-001',
+    label: '會員折扣',
+    amount: 50,
+    created_at: 1700000000002,
+    ...overrides,
+  }
+}
+
 describe('OrderRepository', () => {
   let db: AsyncDatabase
 
@@ -39,29 +82,22 @@ describe('OrderRepository', () => {
       expect(result).toEqual([])
     })
 
-    it('maps rows to Order objects with JSON parsing for data and memo', async () => {
+    it('maps rows to Order objects with JSON parsing for memo, attaches empty items/discounts', async () => {
       const mockRows = [
-        {
+        makeOrderRow({
           id: 'ord-001',
           number: 1,
-          data: JSON.stringify([
-            { comID: 'com-001', value: '滷肉便當', res: '100', type: 'bento' },
-          ]),
           memo: JSON.stringify(['加辣', '不要酸菜']),
           soups: 2,
           total: 200,
           original_total: 200,
-          edited_memo: null,
-          editor: '',
-          created_at: 1700000000000,
-          updated_at: 1700000000000,
-        },
+        }),
       ]
 
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: mockRows,
-        changes: 0,
-      })
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: mockRows, changes: 0 }) // SELECT orders
+        .mockResolvedValueOnce({ rows: [], changes: 0 })       // SELECT order_items
+        .mockResolvedValueOnce({ rows: [], changes: 0 })       // SELECT order_discounts
 
       const repo = createOrderRepository(db)
       const result = await repo.findAll()
@@ -70,7 +106,6 @@ describe('OrderRepository', () => {
       expect(result[0]).toEqual({
         id: 'ord-001',
         number: 1,
-        data: [{ comID: 'com-001', value: '滷肉便當', res: '100', type: 'bento' }],
         memo: ['加辣', '不要酸菜'],
         soups: 2,
         total: 200,
@@ -79,35 +114,55 @@ describe('OrderRepository', () => {
         editor: '',
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
+        items: [],
+        discounts: [],
       })
     })
 
-    it('handles empty JSON arrays for data and memo', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [
-          {
-            id: 'ord-002',
-            number: 2,
-            data: '[]',
-            memo: '[]',
-            soups: 0,
-            total: 0,
-            original_total: null,
-            edited_memo: null,
-            editor: '',
-            created_at: 1700000000000,
-            updated_at: 1700000000000,
-          },
-        ],
-        changes: 0,
-      })
+    it('attaches normalized items and discounts when present', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [makeOrderRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
 
       const repo = createOrderRepository(db)
       const result = await repo.findAll()
 
-      expect(result[0]!.data).toEqual([])
+      expect(result[0]!.items).toHaveLength(1)
+      expect(result[0]!.items[0]).toMatchObject({
+        id: 'item-001',
+        orderId: 'ord-001',
+        commodityId: 'com-001',
+        name: '滷肉便當',
+        price: 100,
+        quantity: 2,
+        includesSoup: true,
+      })
+      expect(result[0]!.discounts).toHaveLength(1)
+      expect(result[0]!.discounts[0]).toMatchObject({
+        id: 'disc-001',
+        orderId: 'ord-001',
+        label: '會員折扣',
+        amount: 50,
+      })
+    })
+
+    it('handles empty JSON array for memo', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({
+          rows: [makeOrderRow({ id: 'ord-002', number: 2, original_total: null })],
+          changes: 0,
+        })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+
+      const repo = createOrderRepository(db)
+      const result = await repo.findAll()
+
       expect(result[0]!.memo).toEqual([])
       expect(result[0]!.originalTotal).toBeUndefined()
+      expect(result[0]!.items).toEqual([])
+      expect(result[0]!.discounts).toEqual([])
     })
   })
 
@@ -131,25 +186,23 @@ describe('OrderRepository', () => {
       expect(result).toBeUndefined()
     })
 
-    it('returns mapped Order when row found', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [
-          {
-            id: 'ord-001',
-            number: 1,
-            data: JSON.stringify([]),
-            memo: JSON.stringify([]),
-            soups: 0,
-            total: 100,
-            original_total: 100,
-            edited_memo: 'modified',
-            editor: 'admin',
-            created_at: 1700000000000,
-            updated_at: 1700000000000,
-          },
-        ],
-        changes: 0,
-      })
+    it('returns mapped Order with items and discounts when row found', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({
+          rows: [
+            makeOrderRow({
+              id: 'ord-001',
+              number: 1,
+              total: 100,
+              original_total: 100,
+              edited_memo: 'modified',
+              editor: 'admin',
+            }),
+          ],
+          changes: 0,
+        })
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
 
       const repo = createOrderRepository(db)
       const result = await repo.findById('ord-001')
@@ -158,6 +211,8 @@ describe('OrderRepository', () => {
       expect(result!.id).toBe('ord-001')
       expect(result!.editedMemo).toBe('modified')
       expect(result!.editor).toBe('admin')
+      expect(result!.items).toHaveLength(1)
+      expect(result!.discounts).toHaveLength(1)
     })
   })
 
@@ -184,117 +239,205 @@ describe('OrderRepository', () => {
       expect(result).toEqual([])
     })
 
-    it('maps rows correctly within date range', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [
-          {
-            id: 'ord-001',
-            number: 1,
-            data: '[]',
-            memo: '[]',
-            soups: 0,
-            total: 100,
-            original_total: null,
-            edited_memo: null,
-            editor: '',
-            created_at: 1700050000000,
-            updated_at: 1700050000000,
-          },
-        ],
-        changes: 0,
-      })
+    it('maps rows correctly within date range, attaching items/discounts', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({
+          rows: [makeOrderRow({ created_at: 1700050000000, updated_at: 1700050000000 })],
+          changes: 0,
+        })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
 
       const repo = createOrderRepository(db)
       const result = await repo.findByDateRange(1700000000000, 1700100000000)
 
       expect(result).toHaveLength(1)
       expect(result[0]!.id).toBe('ord-001')
+      expect(result[0]!.items).toEqual([])
+      expect(result[0]!.discounts).toEqual([])
     })
   })
 
   // ─── create ─────────────────────────────────────────────────────────────────
 
   describe('create()', () => {
-    it('calls db.exec with INSERT SQL, stringifying data and memo', async () => {
+    it('calls db.exec with INSERT SQL for orders (without data column)', async () => {
+      // Mock sequence: BEGIN, INSERT orders, INSERT item, SELECT items, INSERT discount,
+      //                SELECT discounts, COMMIT, SELECT order (findById), SELECT items, SELECT discounts
       vi.mocked(db.exec)
-        .mockResolvedValueOnce({ rows: [], changes: 1 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })           // BEGIN TRANSACTION
+        .mockResolvedValueOnce({ rows: [], changes: 1 })           // INSERT orders
+        .mockResolvedValueOnce({ rows: [], changes: 1 })           // INSERT order_item
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 }) // findByOrderId items
+        .mockResolvedValueOnce({ rows: [], changes: 1 })           // INSERT order_discount
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 }) // findByOrderId discounts
+        .mockResolvedValueOnce({ rows: [], changes: 0 })           // COMMIT
         .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 'generated-id',
-              number: 1,
-              data: JSON.stringify([{ comID: 'com-001', value: '滷肉便當' }]),
-              memo: JSON.stringify(['加辣']),
-              soups: 1,
-              total: 100,
-              original_total: null,
-              edited_memo: null,
-              editor: '',
-              created_at: 1700000000000,
-              updated_at: 1700000000000,
-            },
-          ],
+          rows: [makeOrderRow({
+            number: 1,
+            memo: JSON.stringify(['加辣']),
+            soups: 1,
+            total: 100,
+          })],
           changes: 0,
         })
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })    // findById items
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 }) // findById discounts
 
       const repo = createOrderRepository(db)
       await repo.create({
         number: 1,
-        data: [{ comID: 'com-001', value: '滷肉便當' }],
+        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 2, includesSoup: true }],
+        discounts: [{ label: '會員折扣', amount: 50 }],
         memo: ['加辣'],
         soups: 1,
         total: 100,
         editor: '',
       })
 
-      const insertCall = vi.mocked(db.exec).mock.calls[0]
-      expect(insertCall![0]).toContain('INSERT INTO orders')
-      // Verify data and memo are stringified
-      const params = insertCall![1] as unknown[]
-      expect(params).toContain(JSON.stringify([{ comID: 'com-001', value: '滷肉便當' }]))
-      expect(params).toContain(JSON.stringify(['加辣']))
+      const insertCall = vi.mocked(db.exec).mock.calls.find(([sql]) =>
+        String(sql).includes('INSERT INTO orders'),
+      )
+      expect(String(insertCall![0])).toContain('INSERT INTO orders')
+      expect(String(insertCall![0])).not.toContain('data,')
     })
 
-    it('returns the created Order with parsed data and memo', async () => {
+    it('returns the created Order with items and discounts', async () => {
       vi.mocked(db.exec)
-        .mockResolvedValueOnce({ rows: [], changes: 1 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_item
         .mockResolvedValueOnce({
-          rows: [
-            {
-              id: 'generated-id',
-              number: 5,
-              data: JSON.stringify([{ comID: 'com-001' }]),
-              memo: JSON.stringify(['備註']),
-              soups: 2,
-              total: 250,
-              original_total: 300,
-              edited_memo: null,
-              editor: 'admin',
-              created_at: 1700000000000,
-              updated_at: 1700000000000,
-            },
-          ],
+          rows: [makeItemRow()],
           changes: 0,
         })
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_discount
+        .mockResolvedValueOnce({
+          rows: [makeDiscountRow()],
+          changes: 0,
+        })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
+        .mockResolvedValueOnce({
+          rows: [makeOrderRow({
+            id: 'generated-id',
+            number: 5,
+            memo: JSON.stringify(['備註']),
+            soups: 1,
+            total: 50,
+            original_total: 100,
+            editor: 'admin',
+          })],
+          changes: 0,
+        })
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
 
       const repo = createOrderRepository(db)
       const result = await repo.create({
         number: 5,
-        data: [{ comID: 'com-001' }],
+        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 2, includesSoup: true }],
+        discounts: [{ label: '會員折扣', amount: 50 }],
         memo: ['備註'],
-        soups: 2,
-        total: 250,
-        originalTotal: 300,
+        soups: 1,
+        total: 50,
+        originalTotal: 100,
         editor: 'admin',
       })
 
       expect(result.id).toBe('generated-id')
       expect(result.number).toBe(5)
-      expect(result.data).toEqual([{ comID: 'com-001' }])
       expect(result.memo).toEqual(['備註'])
-      expect(result.soups).toBe(2)
-      expect(result.total).toBe(250)
-      expect(result.originalTotal).toBe(300)
+      expect(result.soups).toBe(1)
+      expect(result.total).toBe(50)
+      expect(result.originalTotal).toBe(100)
+      expect(result.items).toHaveLength(1)
+      expect(result.discounts).toHaveLength(1)
+    })
+
+    it('skips item insert when items array is empty', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
+        // no item insert calls
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_discount
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
+        .mockResolvedValueOnce({ rows: [makeOrderRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeDiscountRow()], changes: 0 })
+
+      const repo = createOrderRepository(db)
+      await repo.create({
+        number: 1,
+        items: [],
+        discounts: [{ label: '會員折扣', amount: 50 }],
+        memo: [],
+        soups: 0,
+        total: 0,
+        editor: '',
+      })
+
+      // None of the exec calls should be an INSERT INTO order_items
+      const calls = vi.mocked(db.exec).mock.calls
+      const itemInsertCalls = calls.filter(
+        (c) => typeof c[0] === 'string' && c[0].includes('INSERT INTO order_items'),
+      )
+      expect(itemInsertCalls).toHaveLength(0)
+    })
+
+    it('skips discount insert when discounts array is empty', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT order_item
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
+        // no discount insert calls
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
+        .mockResolvedValueOnce({ rows: [makeOrderRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [makeItemRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+
+      const repo = createOrderRepository(db)
+      await repo.create({
+        number: 1,
+        items: [{ commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 1, includesSoup: false }],
+        discounts: [],
+        memo: [],
+        soups: 0,
+        total: 100,
+        editor: '',
+      })
+
+      const calls = vi.mocked(db.exec).mock.calls
+      const discountInsertCalls = calls.filter(
+        (c) => typeof c[0] === 'string' && c[0].includes('INSERT INTO order_discounts'),
+      )
+      expect(discountInsertCalls).toHaveLength(0)
+    })
+
+    it('skips both item and discount inserts when both arrays are empty', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // BEGIN TRANSACTION
+        .mockResolvedValueOnce({ rows: [], changes: 1 })          // INSERT orders
+        .mockResolvedValueOnce({ rows: [], changes: 0 })          // COMMIT
+        .mockResolvedValueOnce({ rows: [makeOrderRow()], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+        .mockResolvedValueOnce({ rows: [], changes: 0 })
+
+      const repo = createOrderRepository(db)
+      await repo.create({
+        number: 1,
+        items: [],
+        discounts: [],
+        memo: [],
+        soups: 0,
+        total: 0,
+        editor: '',
+      })
+
+      const calls = vi.mocked(db.exec).mock.calls
+      expect(calls.filter((c) => typeof c[0] === 'string' && c[0].includes('INSERT INTO order_items'))).toHaveLength(0)
+      expect(calls.filter((c) => typeof c[0] === 'string' && c[0].includes('INSERT INTO order_discounts'))).toHaveLength(0)
     })
   })
 
@@ -362,11 +505,35 @@ describe('OrderRepository', () => {
       )
     })
 
+    it('removes child items and discounts before the parent order', async () => {
+      const repo = createOrderRepository(db)
+      await repo.remove('ord-001')
+
+      const calls = vi.mocked(db.exec).mock.calls
+      const itemDeleteIndex = calls.findIndex(([sql]) =>
+        String(sql).includes('DELETE FROM order_items'),
+      )
+      const discountDeleteIndex = calls.findIndex(([sql]) =>
+        String(sql).includes('DELETE FROM order_discounts'),
+      )
+      const orderDeleteIndex = calls.findIndex(([sql]) =>
+        String(sql).includes('DELETE FROM orders'),
+      )
+
+      expect(itemDeleteIndex).toBeGreaterThanOrEqual(0)
+      expect(discountDeleteIndex).toBeGreaterThanOrEqual(0)
+      expect(orderDeleteIndex).toBeGreaterThanOrEqual(0)
+      expect(itemDeleteIndex).toBeLessThan(orderDeleteIndex)
+      expect(discountDeleteIndex).toBeLessThan(orderDeleteIndex)
+      expect(calls[itemDeleteIndex]![1]).toEqual(['ord-001'])
+      expect(calls[discountDeleteIndex]![1]).toEqual(['ord-001'])
+    })
+
     it('returns true when a row was deleted (changes > 0)', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [],
-        changes: 1,
-      })
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_items
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_discounts
+        .mockResolvedValueOnce({ rows: [], changes: 1 })  // DELETE orders
 
       const repo = createOrderRepository(db)
       const result = await repo.remove('ord-001')
@@ -375,10 +542,10 @@ describe('OrderRepository', () => {
     })
 
     it('returns false when no row was deleted (changes === 0)', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [],
-        changes: 0,
-      })
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_items
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_discounts
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE orders
 
       const repo = createOrderRepository(db)
       const result = await repo.remove('non-existent')
@@ -387,10 +554,10 @@ describe('OrderRepository', () => {
     })
 
     it('returns false when changes is undefined', async () => {
-      vi.mocked(db.exec).mockResolvedValueOnce({
-        rows: [],
-        changes: undefined as unknown as number,
-      })
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_items
+        .mockResolvedValueOnce({ rows: [], changes: 0 })  // DELETE order_discounts
+        .mockResolvedValueOnce({ rows: [], changes: undefined as unknown as number })  // DELETE orders
 
       const repo = createOrderRepository(db)
       const result = await repo.remove('ord-001')

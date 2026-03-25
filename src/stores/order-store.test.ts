@@ -25,11 +25,12 @@ function createMockOrderRepo(
     create: vi.fn().mockResolvedValue({
       id: 'order-1',
       number: 1,
-      data: [],
       memo: [],
       soups: 0,
       total: 0,
       editor: '',
+      items: [],
+      discounts: [],
       createdAt: Date.now(),
       updatedAt: Date.now(),
     } satisfies Order),
@@ -96,7 +97,7 @@ describe('useOrderStore', () => {
     it('should add a new item with quantity 1 and empty note', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const { items } = useOrderStore.getState()
       expect(items).toHaveLength(1)
       expect(items[0]).toMatchObject({
@@ -114,10 +115,10 @@ describe('useOrderStore', () => {
 
     it('should increment quantity when adding duplicate commodity', () => {
       const store = useOrderStore.getState()
-      store.addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+      store.addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const { items } = useOrderStore.getState()
       expect(items).toHaveLength(1)
       expect(items[0]!.quantity).toBe(2)
@@ -125,10 +126,10 @@ describe('useOrderStore', () => {
 
     it('should add separate items for different commodities', () => {
       const store = useOrderStore.getState()
-      store.addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+      store.addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       const { items } = useOrderStore.getState()
       expect(items).toHaveLength(2)
       expect(items[0]!.commodityId).toBe('com-1')
@@ -138,18 +139,34 @@ describe('useOrderStore', () => {
     it('should store typeId on new cart item', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       const { items } = useOrderStore.getState()
       expect(items[0]!.typeId).toBe('bento')
+    })
+
+    it('should store includesSoup on new cart item', () => {
+      useOrderStore
+        .getState()
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
+      const { items } = useOrderStore.getState()
+      expect(items[0]!.includesSoup).toBe(true)
+    })
+
+    it('should store includesSoup=false on cart item without soup', () => {
+      useOrderStore
+        .getState()
+        .addItem({ id: 'com-1', name: '加蛋', price: 15, typeId: 'bento', includesSoup: false })
+      const { items } = useOrderStore.getState()
+      expect(items[0]!.includesSoup).toBe(false)
     })
 
     it('should preserve typeId when incrementing quantity for duplicate commodity', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       const { items } = useOrderStore.getState()
       expect(items).toHaveLength(1)
       expect(items[0]!.typeId).toBe('bento')
@@ -159,10 +176,10 @@ describe('useOrderStore', () => {
     it('should store different typeIds for different commodities', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '珍奶', price: 60, typeId: 'drink' })
+        .addItem({ id: 'com-2', name: '珍奶', price: 60, typeId: 'drink', includesSoup: false })
       const { items } = useOrderStore.getState()
       expect(items[0]!.typeId).toBe('bento')
       expect(items[1]!.typeId).toBe('drink')
@@ -171,11 +188,11 @@ describe('useOrderStore', () => {
     it('should not mutate the original items array', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'bento', includesSoup: true })
       const itemsBefore = useOrderStore.getState().items
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'noodle' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'noodle', includesSoup: false })
       const itemsAfter = useOrderStore.getState().items
       // Should be a different array reference (immutable)
       expect(itemsBefore).not.toBe(itemsAfter)
@@ -188,7 +205,7 @@ describe('useOrderStore', () => {
     it('should remove item by cart item id', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().removeItem(cartItemId)
       expect(useOrderStore.getState().items).toHaveLength(0)
@@ -197,10 +214,10 @@ describe('useOrderStore', () => {
     it('should not affect other items when removing one', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       const firstItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().removeItem(firstItemId)
       const { items } = useOrderStore.getState()
@@ -211,7 +228,7 @@ describe('useOrderStore', () => {
     it('should do nothing if cart item id does not exist', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore.getState().removeItem('non-existent-id')
       expect(useOrderStore.getState().items).toHaveLength(1)
     })
@@ -223,7 +240,7 @@ describe('useOrderStore', () => {
     it('should update quantity for a cart item', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, 5)
       expect(useOrderStore.getState().items[0]!.quantity).toBe(5)
@@ -232,7 +249,7 @@ describe('useOrderStore', () => {
     it('should remove item when quantity is set to 0', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, 0)
       expect(useOrderStore.getState().items).toHaveLength(0)
@@ -241,7 +258,7 @@ describe('useOrderStore', () => {
     it('should remove item when quantity is negative', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, -1)
       expect(useOrderStore.getState().items).toHaveLength(0)
@@ -250,7 +267,7 @@ describe('useOrderStore', () => {
     it('should not mutate items when updating quantity', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const itemsBefore = useOrderStore.getState().items
       const cartItemId = itemsBefore[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, 3)
@@ -267,7 +284,7 @@ describe('useOrderStore', () => {
     it('should update note for a cart item', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateNote(cartItemId, 'No egg')
       expect(useOrderStore.getState().items[0]!.note).toBe('No egg')
@@ -276,7 +293,7 @@ describe('useOrderStore', () => {
     it('should clear note when empty string is passed', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateNote(cartItemId, 'No egg')
       useOrderStore.getState().updateNote(cartItemId, '')
@@ -286,7 +303,7 @@ describe('useOrderStore', () => {
     it('should not mutate items when updating note', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const itemsBefore = useOrderStore.getState().items
       const cartItemId = itemsBefore[0]!.id
       useOrderStore.getState().updateNote(cartItemId, 'Extra spicy')
@@ -298,7 +315,7 @@ describe('useOrderStore', () => {
     it('should handle Unicode characters in notes', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateNote(cartItemId, '不加蛋、少辣')
       expect(useOrderStore.getState().items[0]!.note).toBe('不加蛋、少辣')
@@ -370,10 +387,10 @@ describe('useOrderStore', () => {
     it('should clear all items', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       useOrderStore.getState().clearCart()
       expect(useOrderStore.getState().items).toEqual([])
     })
@@ -389,7 +406,7 @@ describe('useOrderStore', () => {
       useOrderStore.getState().setOperator('emp-001', 'Alice')
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore.getState().clearCart()
       const state = useOrderStore.getState()
       expect(state.operatorId).toBe('emp-001')
@@ -414,14 +431,14 @@ describe('useOrderStore', () => {
     it('should calculate subtotal for a single item', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       expect(useOrderStore.getState().getSubtotal()).toBe(100)
     })
 
     it('should calculate subtotal with quantity', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, 3)
       expect(useOrderStore.getState().getSubtotal()).toBe(300)
@@ -430,10 +447,10 @@ describe('useOrderStore', () => {
     it('should sum subtotals across multiple items', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       // com-1: 100 * 1 = 100, com-2: 80 * 1 = 80
       expect(useOrderStore.getState().getSubtotal()).toBe(180)
     })
@@ -463,14 +480,14 @@ describe('useOrderStore', () => {
     it('should return subtotal when no discounts', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       expect(useOrderStore.getState().getTotal()).toBe(100)
     })
 
     it('should subtract discounts from subtotal', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore.getState().addDiscount('Discount', 30)
       expect(useOrderStore.getState().getTotal()).toBe(70)
     })
@@ -478,7 +495,7 @@ describe('useOrderStore', () => {
     it('should never return negative total (min 0)', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 50, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 50, typeId: 'food', includesSoup: false })
       useOrderStore.getState().addDiscount('Big Discount', 200)
       expect(useOrderStore.getState().getTotal()).toBe(0)
     })
@@ -494,10 +511,10 @@ describe('useOrderStore', () => {
     it('should sum all item quantities', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       const cartItemId = useOrderStore.getState().items[0]!.id
       useOrderStore.getState().updateQuantity(cartItemId, 3)
       // 3 + 1 = 4
@@ -512,65 +529,65 @@ describe('useOrderStore', () => {
       expect(useOrderStore.getState().getBentoCount()).toBe(0)
     })
 
-    it('should count items with typeId "bento" AND name containing "飯"', () => {
+    it('should count items with includesSoup=true', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       expect(useOrderStore.getState().getBentoCount()).toBe(1)
     })
 
-    it('should NOT count items with typeId "bento" but name without "飯" (e.g., 加蛋)', () => {
+    it('should NOT count items with includesSoup=false (e.g., 加蛋)', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '加蛋', price: 15, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '加蛋', price: 15, typeId: 'bento', includesSoup: false })
       expect(useOrderStore.getState().getBentoCount()).toBe(0)
     })
 
-    it('should NOT count items with name containing "飯" but non-bento typeId', () => {
+    it('should NOT count drink items even if somehow includesSoup is true', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '炒飯', price: 80, typeId: 'noodle' })
+        .addItem({ id: 'com-1', name: '炒飯', price: 80, typeId: 'noodle', includesSoup: false })
       expect(useOrderStore.getState().getBentoCount()).toBe(0)
     })
 
-    it('should sum quantities of matching bento items', () => {
+    it('should sum quantities of items with includesSoup=true', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       // Add same item again to increment quantity to 2
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       expect(useOrderStore.getState().getBentoCount()).toBe(2)
     })
 
-    it('should sum across multiple different bento items', () => {
+    it('should sum across multiple different soup-included bento items', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento', includesSoup: true })
       expect(useOrderStore.getState().getBentoCount()).toBe(2)
     })
 
-    it('should handle mixed cart with bento, non-bento, and bento-without-飯 items', () => {
-      // Bento with 飯 — should count
+    it('should handle mixed cart with soup/no-soup bento and non-bento items', () => {
+      // includesSoup=true — should count
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
-      // Bento without 飯 — should NOT count
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
+      // includesSoup=false — should NOT count
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '加蛋', price: 15, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '加蛋', price: 15, typeId: 'bento', includesSoup: false })
       // Non-bento — should NOT count
       useOrderStore
         .getState()
-        .addItem({ id: 'com-3', name: '珍珠奶茶', price: 60, typeId: 'drink' })
-      // Bento with 飯, quantity 3
+        .addItem({ id: 'com-3', name: '珍珠奶茶', price: 60, typeId: 'drink', includesSoup: false })
+      // includesSoup=true, quantity 3
       useOrderStore
         .getState()
-        .addItem({ id: 'com-4', name: '雞腿飯', price: 120, typeId: 'bento' })
+        .addItem({ id: 'com-4', name: '雞腿飯', price: 120, typeId: 'bento', includesSoup: true })
       const cartItemId = useOrderStore.getState().items.find(
         item => item.commodityId === 'com-4',
       )!.id
@@ -579,17 +596,17 @@ describe('useOrderStore', () => {
       expect(useOrderStore.getState().getBentoCount()).toBe(4)
     })
 
-    it('should NOT count items with typeId "bento" and name "加菜"', () => {
+    it('should NOT count 加菜 (includesSoup=false)', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '加菜', price: 20, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '加菜', price: 20, typeId: 'bento', includesSoup: false })
       expect(useOrderStore.getState().getBentoCount()).toBe(0)
     })
 
-    it('should NOT count non-rice bento like 雞胸肉沙拉', () => {
+    it('should NOT count 雞胸肉沙拉 (includesSoup=false)', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-015', name: '雞胸肉沙拉', price: 160, typeId: 'bento' })
+        .addItem({ id: 'com-015', name: '雞胸肉沙拉', price: 160, typeId: 'bento', includesSoup: false })
       expect(useOrderStore.getState().getBentoCount()).toBe(0)
     })
   })
@@ -601,13 +618,13 @@ describe('useOrderStore', () => {
       expect(useOrderStore.getState().getSoupCount()).toBe(0)
     })
 
-    it('should equal getBentoCount (one soup per bento)', () => {
+    it('should equal getBentoCount (one soup per bento with includesSoup=true)', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento', includesSoup: true })
       const bentoCount = useOrderStore.getState().getBentoCount()
       const soupCount = useOrderStore.getState().getSoupCount()
       expect(soupCount).toBe(bentoCount)
@@ -617,17 +634,17 @@ describe('useOrderStore', () => {
     it('should return 0 when only non-bento items in cart', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '珍珠奶茶', price: 60, typeId: 'drink' })
+        .addItem({ id: 'com-1', name: '珍珠奶茶', price: 60, typeId: 'drink', includesSoup: false })
       expect(useOrderStore.getState().getSoupCount()).toBe(0)
     })
 
-    it('should return 0 when only bento items without 飯 are in cart', () => {
+    it('should return 0 when only bento items with includesSoup=false are in cart', () => {
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '加蛋', price: 15, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '加蛋', price: 15, typeId: 'bento', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '加菜', price: 20, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '加菜', price: 20, typeId: 'bento', includesSoup: false })
       expect(useOrderStore.getState().getSoupCount()).toBe(0)
     })
   })
@@ -644,7 +661,7 @@ describe('useOrderStore', () => {
       useOrderStore.getState().setOperator('emp-001', 'Alice')
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
@@ -659,40 +676,39 @@ describe('useOrderStore', () => {
       )
     })
 
-    it('should convert items to OrderData format', async () => {
+    it('should convert items to structured items array', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 1, includesSoup: false },
       ])
     })
 
-    it('should add quantity OrderData for items with quantity > 1', async () => {
+    it('should pass quantity directly in structured items (no separate qty entry)', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       // Add the same item again (quantity becomes 2)
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
-        { comID: 'com-1', res: 'qty', operator: '*', amount: '2' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 2, includesSoup: false },
       ])
     })
 
@@ -702,10 +718,10 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       const items = useOrderStore.getState().items
       useOrderStore.getState().updateNote(items[0]!.id, 'No egg')
       // Second item has no note (empty string)
@@ -722,7 +738,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
@@ -730,17 +746,17 @@ describe('useOrderStore', () => {
       expect(createCall.editor).toBe('')
     })
 
-    it('should set soups to getBentoCount when bento items exist', async () => {
+    it('should set soups to getBentoCount when bento items with includesSoup=true exist', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
-      // Add bento items with 飯 in name
+      // Add bento items with includesSoup=true
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '雞腿飯', price: 120, typeId: 'bento', includesSoup: true })
 
       await useOrderStore.getState().submitOrder()
 
@@ -748,13 +764,13 @@ describe('useOrderStore', () => {
       expect(createCall.soups).toBe(2)
     })
 
-    it('should set soups to 0 when no bento items exist', async () => {
+    it('should set soups to 0 when no bento items with soup exist', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '珍珠奶茶', price: 60, typeId: 'drink' })
+        .addItem({ id: 'com-1', name: '珍珠奶茶', price: 60, typeId: 'drink', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
@@ -762,21 +778,21 @@ describe('useOrderStore', () => {
       expect(createCall.soups).toBe(0)
     })
 
-    it('should not count bento items without 飯 in soup count', async () => {
+    it('should not count bento items with includesSoup=false in soup count', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: '排骨飯', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: '加蛋', price: 15, typeId: 'bento' })
+        .addItem({ id: 'com-2', name: '加蛋', price: 15, typeId: 'bento', includesSoup: false })
 
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      // Only 排骨飯 counts, not 加蛋
+      // Only 排骨飯 (includesSoup=true) counts, not 加蛋 (includesSoup=false)
       expect(createCall.soups).toBe(1)
     })
 
@@ -786,7 +802,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore.getState().addDiscount('Discount', 10)
 
       await useOrderStore.getState().submitOrder()
@@ -804,7 +820,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await expect(useOrderStore.getState().submitOrder()).rejects.toThrow(
         'DB error',
@@ -814,16 +830,16 @@ describe('useOrderStore', () => {
       expect(useOrderStore.getState().items).toHaveLength(1)
     })
 
-    it('should handle multiple items with different quantities', async () => {
+    it('should handle multiple items with different quantities in structured items', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore
         .getState()
-        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food' })
+        .addItem({ id: 'com-2', name: 'Noodles', price: 80, typeId: 'food', includesSoup: false })
       const items = useOrderStore.getState().items
       useOrderStore.getState().updateQuantity(items[0]!.id, 2)
       // com-2 stays at quantity 1
@@ -831,10 +847,9 @@ describe('useOrderStore', () => {
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      expect(createCall.data).toEqual([
-        { comID: 'com-1', value: 'Fried Rice', amount: '100' },
-        { comID: 'com-1', res: 'qty', operator: '*', amount: '2' },
-        { comID: 'com-2', value: 'Noodles', amount: '80' },
+      expect(createCall.items).toEqual([
+        { commodityId: 'com-1', name: 'Fried Rice', price: 100, quantity: 2, includesSoup: false },
+        { commodityId: 'com-2', name: 'Noodles', price: 80, quantity: 1, includesSoup: false },
       ])
     })
 
@@ -844,7 +859,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       useOrderStore.getState().addDiscount('Discount', 30)
 
       await useOrderStore.getState().submitOrder()
@@ -864,27 +879,21 @@ describe('useOrderStore', () => {
       expect(mockRepo.create).not.toHaveBeenCalled()
     })
 
-    it('should serialize discount entries into OrderData', async () => {
+    it('should pass discounts as structured discounts array', async () => {
       const mockRepo = createMockOrderRepo()
       mockedGetOrderRepo.mockReturnValue(mockRepo)
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Bento', price: 100, typeId: 'bento' })
+        .addItem({ id: 'com-1', name: 'Bento', price: 100, typeId: 'bento', includesSoup: true })
       useOrderStore.getState().addDiscount('會員折扣', 50)
 
       await useOrderStore.getState().submitOrder()
 
       const createCall = vi.mocked(mockRepo.create).mock.calls[0]![0]
-      const discountEntry = createCall.data.find(
-        d => d.type === 'discount',
-      )
-      expect(discountEntry).toEqual({
-        res: '會員折扣',
-        type: 'discount',
-        operator: '+',
-        amount: '-50',
-      })
+      expect(createCall.discounts).toEqual([
+        { label: '會員折扣', amount: 50 },
+      ])
     })
   })
 
@@ -909,7 +918,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const items = useOrderStore.getState().items
       useOrderStore.getState().updateNote(items[0]!.id, 'No egg')
 
@@ -926,7 +935,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
 
       await useOrderStore.getState().submitOrder(['攤位'])
 
@@ -940,7 +949,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const items = useOrderStore.getState().items
       useOrderStore.getState().updateNote(items[0]!.id, 'Extra spicy')
 
@@ -956,7 +965,7 @@ describe('useOrderStore', () => {
 
       useOrderStore
         .getState()
-        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food' })
+        .addItem({ id: 'com-1', name: 'Fried Rice', price: 100, typeId: 'food', includesSoup: false })
       const items = useOrderStore.getState().items
       useOrderStore.getState().updateNote(items[0]!.id, 'No egg')
 

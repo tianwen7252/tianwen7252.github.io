@@ -58,9 +58,19 @@ describe('schema', () => {
       // to support nanoid-generated IDs in V2
       const textPkPattern = /id TEXT PRIMARY KEY/g
       const matches = CREATE_TABLES.match(textPkPattern)
-      // 7 core tables use "id TEXT PRIMARY KEY"
+      // 9 core tables use "id TEXT PRIMARY KEY"
       // schema_meta uses "key TEXT PRIMARY KEY" (different column name)
-      expect(matches?.length).toBe(7)
+      expect(matches?.length).toBe(9)
+    })
+
+    it('should not include a data column in the orders table DDL', () => {
+      // V2-56: orders.data was removed — ensure it stays removed from fresh DDL
+      const ordersSection = CREATE_TABLES.slice(
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS orders'),
+        CREATE_TABLES.indexOf('CREATE TABLE IF NOT EXISTS order_types'),
+      )
+      expect(ordersSection).not.toContain('data TEXT')
+      expect(ordersSection).not.toContain('data BLOB')
     })
   })
 
@@ -77,4 +87,5 @@ describe('schema', () => {
       )
     })
   })
+
 })

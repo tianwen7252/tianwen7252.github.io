@@ -7,7 +7,6 @@ import { useState, useMemo, useRef, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { parseOrderItems } from '@/lib/parse-order-items'
 import type { Order } from '@/lib/schemas'
 import { buttonVariants } from '@/components/ui/button'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -51,8 +50,7 @@ function matchesQuery(order: Order, query: string): boolean {
   if (order.memo.some((tag) => tag.toLowerCase().includes(q))) return true
 
   // Check item names
-  const { items } = parseOrderItems(order.data)
-  if (items.some((item) => item.name.toLowerCase().includes(q))) return true
+  if (order.items.some((item) => item.name.toLowerCase().includes(q))) return true
 
   return false
 }

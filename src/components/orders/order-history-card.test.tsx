@@ -61,16 +61,16 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: 'test-1',
     number: 3,
-    data: [
-      { comID: 'c1', value: '雞腿飯', amount: '100' },
-      { comID: 'c1', res: 'qty', operator: '*', amount: '2' },
-      { comID: 'c2', value: '排骨飯', amount: '100' },
-    ],
     memo: ['攤位', '外送'],
     soups: 3,
     total: 250,
     originalTotal: 300,
     editor: 'admin',
+    items: [
+      { id: 'i1', orderId: 'test-1', commodityId: 'c1', name: '雞腿飯', price: 100, quantity: 2, includesSoup: false, createdAt: 1700000000000 },
+      { id: 'i2', orderId: 'test-1', commodityId: 'c2', name: '排骨飯', price: 100, quantity: 1, includesSoup: false, createdAt: 1700000000001 },
+    ],
+    discounts: [],
     createdAt: new Date('2026-03-24T12:45:00').getTime(),
     updatedAt: new Date('2026-03-24T12:45:00').getTime(),
     ...overrides,
@@ -79,12 +79,12 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
 
 function makeManyItemsOrder(): Order {
   return makeOrder({
-    data: [
-      { comID: 'c1', value: '雞腿飯', amount: '100' },
-      { comID: 'c2', value: '排骨飯', amount: '100' },
-      { comID: 'c3', value: '魚排飯', amount: '120' },
-      { comID: 'c4', value: '牛肉飯', amount: '150' },
-      { comID: 'c5', value: '豬排飯', amount: '110' },
+    items: [
+      { id: 'i1', orderId: 'test-1', commodityId: 'c1', name: '雞腿飯', price: 100, quantity: 1, includesSoup: false, createdAt: 1700000000000 },
+      { id: 'i2', orderId: 'test-1', commodityId: 'c2', name: '排骨飯', price: 100, quantity: 1, includesSoup: false, createdAt: 1700000000001 },
+      { id: 'i3', orderId: 'test-1', commodityId: 'c3', name: '魚排飯', price: 120, quantity: 1, includesSoup: false, createdAt: 1700000000002 },
+      { id: 'i4', orderId: 'test-1', commodityId: 'c4', name: '牛肉飯', price: 150, quantity: 1, includesSoup: false, createdAt: 1700000000003 },
+      { id: 'i5', orderId: 'test-1', commodityId: 'c5', name: '豬排飯', price: 110, quantity: 1, includesSoup: false, createdAt: 1700000000004 },
     ],
     total: 580,
     originalTotal: undefined,
@@ -109,9 +109,9 @@ describe('OrderHistoryCard', () => {
     expect(screen.getByText('12:45 PM')).toBeTruthy()
   })
 
-  it('should render item summary from parsed order data', () => {
+  it('should render item summary from normalized items', () => {
     render(<OrderHistoryCard {...defaultProps} />)
-    // parseOrderItems produces: 雞腿飯 x2, 排骨飯 x1
+    // items: 雞腿飯 x2, 排骨飯 x1
     expect(screen.getByTestId('order-history-card')).toBeTruthy()
     const card = screen.getByTestId('order-history-card')
     expect(card.textContent).toContain('雞腿飯')
@@ -203,4 +203,5 @@ describe('OrderHistoryCard', () => {
     render(<OrderHistoryCard {...defaultProps} />)
     expect(screen.getByTestId('order-history-card')).toBeTruthy()
   })
+
 })

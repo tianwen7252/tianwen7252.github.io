@@ -7,7 +7,12 @@
 
 import sqlite3InitModule from '@sqlite.org/sqlite-wasm'
 import { initSchema } from '@/lib/schema'
-import { seedEmployees, seedCommodities } from '@/lib/seed-data'
+import {
+  insertDefaultEmployees,
+  insertDefaultCommodities,
+  deleteDefaultData,
+  clearAllData,
+} from '@/lib/default-data'
 import type { WorkerRequest, WorkerResponse } from '@/lib/worker-database'
 import type { Database } from '@/lib/database'
 
@@ -67,28 +72,32 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       // Initialize schema + run migrations for existing DBs
       initSchema((sql: string) => db!.exec(sql))
 
-      // Clear all data if deleteSeedData is enabled (takes precedence)
-      if (msg.deleteSeedData) {
-        db.exec('DELETE FROM attendances')
-        db.exec('DELETE FROM commondities')
-        db.exec('DELETE FROM commondity_types')
-        db.exec('DELETE FROM employees')
+      // Full wipe takes highest precedence
+      if (msg.clearDbData) {
+        clearAllData(db)
+      } else if (msg.deleteDefaultData) {
+        // Delete only default data items, leaving user-created data intact
+        deleteDefaultData(db)
       }
 
-      // Seed each table independently if empty
-      if (msg.enableSeedData && !msg.deleteSeedData) {
-        const empCount = db.exec<{ cnt: number }>(
-          'SELECT COUNT(*) as cnt FROM employees',
-        )
-        if (empCount.rows[0]?.cnt === 0) {
-          seedEmployees(db)
-        }
+      // Insert default data when enabled and not in a destructive mode
+      if (msg.enableDefaultData && !msg.deleteDefaultData && !msg.clearDbData) {
+        if (msg.shouldResetData) {
+          // Version changed: clean slate for default items then re-insert
+          deleteDefaultData(db)
+          insertDefaultEmployees(db)
+          insertDefaultCommodities(db)
+        } else {
+          // Insert only into empty tables
+          const empCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM employees')
+          if (Number(empCount.rows[0]?.cnt) === 0) {
+            insertDefaultEmployees(db)
+          }
 
-        const comCount = db.exec<{ cnt: number }>(
-          'SELECT COUNT(*) as cnt FROM commondities',
-        )
-        if (comCount.rows[0]?.cnt === 0) {
-          seedCommodities(db)
+          const comCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM commondities')
+          if (Number(comCount.rows[0]?.cnt) === 0) {
+            insertDefaultCommodities(db)
+          }
         }
       }
 

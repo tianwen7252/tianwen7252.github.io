@@ -25,12 +25,22 @@ import {
   createOrderRepository,
   type OrderRepository,
 } from './order-repository'
+import {
+  createOrderItemRepository,
+  type OrderItemRepository,
+} from './order-item-repository'
+import {
+  createOrderDiscountRepository,
+  type OrderDiscountRepository,
+} from './order-discount-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
 let commondityTypeRepo: CommondityTypeRepository | null = null
 let commondityRepo: CommondityRepository | null = null
 let orderRepo: OrderRepository | null = null
+let orderItemRepo: OrderItemRepository | null = null
+let orderDiscountRepo: OrderDiscountRepository | null = null
 
 /**
  * Initialize all repositories with the given async database instance.
@@ -42,6 +52,8 @@ export function initRepositories(db: AsyncDatabase): void {
   commondityTypeRepo = createCommondityTypeRepository(db)
   commondityRepo = createCommondityRepository(db)
   orderRepo = createOrderRepository(db)
+  orderItemRepo = createOrderItemRepository(db)
+  orderDiscountRepo = createOrderDiscountRepository(db)
 }
 
 /**
@@ -110,6 +122,32 @@ export function getOrderRepo(): OrderRepository {
 }
 
 /**
+ * Get the OrderItemRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getOrderItemRepo(): OrderItemRepository {
+  if (!orderItemRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return orderItemRepo
+}
+
+/**
+ * Get the OrderDiscountRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getOrderDiscountRepo(): OrderDiscountRepository {
+  if (!orderDiscountRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return orderDiscountRepo
+}
+
+/**
  * Reset all repository singletons to null.
  * Useful for testing or app teardown.
  */
@@ -119,4 +157,6 @@ export function resetRepositories(): void {
   commondityTypeRepo = null
   commondityRepo = null
   orderRepo = null
+  orderItemRepo = null
+  orderDiscountRepo = null
 }

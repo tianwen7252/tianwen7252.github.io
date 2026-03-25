@@ -55,6 +55,7 @@ export function ProductGrid() {
     name: string
     price: number
     typeId: string
+    includesSoup: boolean
   }) => {
     addItem(commodity)
   }

@@ -27,6 +27,7 @@ function toCommondity(row: Record<string, unknown>): Commondity {
     hideOnMode:
       row['hide_on_mode'] != null ? String(row['hide_on_mode']) : undefined,
     editor: row['editor'] != null ? String(row['editor']) : undefined,
+    includesSoup: row['includes_soup'] === 1 || row['includes_soup'] === true,
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
@@ -71,8 +72,8 @@ export function createCommondityRepository(
       const id = nanoid()
       const now = Date.now()
       await db.exec(
-        `INSERT INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, includes_soup, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
           data.typeId,
@@ -83,6 +84,7 @@ export function createCommondityRepository(
           data.onMarket ? 1 : 0,
           data.hideOnMode ?? null,
           data.editor ?? null,
+          data.includesSoup ? 1 : 0,
           now,
           now,
         ],
@@ -130,6 +132,10 @@ export function createCommondityRepository(
       if (data.editor !== undefined) {
         fields.push('editor = ?')
         values.push(data.editor)
+      }
+      if (data.includesSoup !== undefined) {
+        fields.push('includes_soup = ?')
+        values.push(data.includesSoup ? 1 : 0)
       }
 
       if (fields.length === 0) return existing

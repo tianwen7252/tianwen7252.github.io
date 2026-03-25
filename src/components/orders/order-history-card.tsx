@@ -2,7 +2,6 @@ import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Trash2 } from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
-import { parseOrderItems } from '@/lib/parse-order-items'
 import type { Order } from '@/lib/schemas'
 import type { SwipeAction } from '@/components/ui/swipe-actions'
 
@@ -72,8 +71,7 @@ export function OrderHistoryCard({
   onEdit,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
-  const { items } = parseOrderItems(order.data)
-  const { visible, moreCount } = buildItemSummary(items)
+  const { visible, moreCount } = buildItemSummary(order.items)
   // AM/PM format for time display
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =

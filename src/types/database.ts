@@ -26,19 +26,9 @@ export interface Commondity {
   readonly updatedAt: number
 }
 
-export interface OrderData {
-  readonly comID?: string
-  readonly value?: string
-  readonly res?: string
-  readonly type?: string
-  readonly operator?: '+' | '*'
-  readonly amount?: string
-}
-
 export interface Order {
   readonly id: string
   readonly number: number
-  readonly data: readonly OrderData[]
   readonly memo: readonly string[]
   readonly soups: number
   readonly total: number

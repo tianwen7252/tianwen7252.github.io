@@ -14,6 +14,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
     price: 120,
     quantity: 1,
     note: '',
+    includesSoup: false,
     ...overrides,
   }
 }

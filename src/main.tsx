@@ -7,7 +7,8 @@ import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
-import { ENABLE_SEED_DATA, DELETE_SEED_DATA } from '@/constants/seed-data'
+import { ENABLE_DEFAULT_DATA, DELETE_DEFAULT_DATA, CLEAR_DB_DATA } from '@/constants/default-data'
+import { shouldResetDefaultData, markDefaultDataVersion } from '@/lib/default-data'
 import {
   createWorkerDatabase,
   initWorkerDb,
@@ -53,14 +54,30 @@ if (import.meta.env.DEV) {
 
 const rootElement = document.getElementById('root')!
 
-// Initialize SQLite WASM database via Web Worker, then render the app
+// ─── Dev-mode DB reset ──────────────────────────────────────────────────────
+
+const FORCE_RESET_KEY = 'FORCE_RESET_DB'
+
+// ─── Initialize SQLite WASM database via Web Worker, then render the app ───
+
 async function bootstrap() {
+  const forceReset = localStorage.getItem(FORCE_RESET_KEY) === '1'
+  if (forceReset) localStorage.removeItem(FORCE_RESET_KEY)
+
   const worker = new Worker(new URL('./lib/db-worker.ts', import.meta.url), {
     type: 'module',
   })
 
   await waitForWorkerReady(worker)
-  await initWorkerDb(worker, ENABLE_SEED_DATA, DELETE_SEED_DATA)
+  const resetData = shouldResetDefaultData()
+  await initWorkerDb(
+    worker,
+    ENABLE_DEFAULT_DATA,
+    DELETE_DEFAULT_DATA,
+    forceReset || CLEAR_DB_DATA,
+    resetData,
+  )
+  markDefaultDataVersion()
 
   const db = createWorkerDatabase(worker)
   initRepositories(db)
@@ -76,5 +93,26 @@ async function bootstrap() {
 }
 
 bootstrap().catch((err) => {
-  rootElement.textContent = `Failed to initialize database: ${err instanceof Error ? err.message : String(err)}`
+  const msg = err instanceof Error ? err.message : String(err)
+
+  const container = document.createElement('div')
+  container.style.cssText = 'padding:2rem;font-family:monospace;display:flex;flex-direction:column;gap:1rem;'
+
+  const p = document.createElement('p')
+  p.textContent = `Failed to initialize database: ${msg}`
+  container.appendChild(p)
+
+  if (import.meta.env.DEV) {
+    const btn = document.createElement('button')
+    btn.textContent = '重置資料庫'
+    btn.style.cssText =
+      'padding:0.5rem 1rem;background:#ef4444;color:#fff;border:none;border-radius:0.375rem;font-size:1rem;cursor:pointer;width:fit-content;'
+    btn.addEventListener('click', () => {
+      localStorage.setItem(FORCE_RESET_KEY, '1')
+      location.reload()
+    })
+    container.appendChild(btn)
+  }
+
+  rootElement.replaceChildren(container)
 })

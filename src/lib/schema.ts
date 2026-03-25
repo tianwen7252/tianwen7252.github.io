@@ -29,6 +29,7 @@ export const CREATE_TABLES = `
     on_market INTEGER NOT NULL DEFAULT 1,
     hide_on_mode TEXT,
     editor TEXT,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (type_id) REFERENCES commondity_types(type_id)
@@ -38,7 +39,6 @@ export const CREATE_TABLES = `
   CREATE TABLE IF NOT EXISTS orders (
     id TEXT PRIMARY KEY,
     number INTEGER NOT NULL,
-    data TEXT NOT NULL DEFAULT '[]',
     memo TEXT NOT NULL DEFAULT '[]',
     soups INTEGER NOT NULL DEFAULT 0,
     total REAL NOT NULL DEFAULT 0,
@@ -105,6 +105,33 @@ export const CREATE_TABLES = `
   CREATE INDEX IF NOT EXISTS idx_attendances_employee_date
     ON attendances(employee_id, date);
 
+  -- Order line items (normalized from orders.data JSON)
+  CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    commodity_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price REAL NOT NULL DEFAULT 0,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);
+
+  -- Order discounts (normalized from orders.data JSON)
+  CREATE TABLE IF NOT EXISTS order_discounts (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -126,6 +153,38 @@ function runMigrations(exec: (sql: string) => void): void {
   } catch {
     // Column already exists — safe to ignore
   }
+
+  // V2-52: Add includes_soup column to commondities (may not exist on older DBs)
+  try {
+    exec('ALTER TABLE commondities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0')
+  } catch {
+    // Column already exists — safe to ignore
+  }
+
+  // V2-53: Add order_items table
+  exec(`CREATE TABLE IF NOT EXISTS order_items (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    commodity_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    price REAL NOT NULL DEFAULT 0,
+    quantity INTEGER NOT NULL DEFAULT 1,
+    includes_soup INTEGER NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  )`)
+  exec('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)')
+
+  // V2-53: Add order_discounts table
+  exec(`CREATE TABLE IF NOT EXISTS order_discounts (
+    id TEXT PRIMARY KEY,
+    order_id TEXT NOT NULL,
+    label TEXT NOT NULL,
+    amount REAL NOT NULL DEFAULT 0,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
+    FOREIGN KEY (order_id) REFERENCES orders(id)
+  )`)
+  exec('CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id)')
 }
 
 /**
@@ -137,3 +196,4 @@ export function initSchema(exec: (sql: string) => void): void {
   exec(CREATE_TABLES)
   runMigrations(exec)
 }
+

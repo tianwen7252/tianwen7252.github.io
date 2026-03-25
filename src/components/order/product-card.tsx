@@ -10,6 +10,7 @@ interface ProductCardProps {
     name: string
     price: number
     typeId: string
+    includesSoup: boolean
   }) => void
 }
 
@@ -26,6 +27,7 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
       name: commodity.name,
       price: commodity.price,
       typeId: commodity.typeId,
+      includesSoup: commodity.includesSoup ?? false,
     })
   }
 

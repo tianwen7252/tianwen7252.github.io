@@ -5,18 +5,6 @@ import type { Order } from '@/lib/schemas'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-vi.mock('@/lib/parse-order-items', () => ({
-  parseOrderItems: vi.fn((data: Array<{ name?: string }>) => ({
-    items: data.map((d) => ({
-      name: d.name ?? 'Item',
-      quantity: 1,
-      unitPrice: 100,
-      total: 100,
-    })),
-    discounts: [],
-  })),
-}))
-
 vi.mock('./order-history-card', () => ({
   OrderHistoryCard: ({ order }: { order: Order }) => (
     <div data-testid="order-history-card" data-order-id={order.id}>
@@ -59,11 +47,12 @@ function makeOrder(overrides: Partial<Order> = {}): Order {
   return {
     id: 'test-1',
     number: 1,
-    data: [],
     memo: [],
     soups: 0,
     total: 100,
     editor: '',
+    items: [],
+    discounts: [],
     createdAt: dayjs('2026-03-24T10:00:00').valueOf(),
     updatedAt: dayjs('2026-03-24T10:00:00').valueOf(),
     ...overrides,
@@ -133,12 +122,12 @@ describe('OrdersSearch', () => {
       makeOrder({
         id: 'o1',
         number: 1,
-        data: [{ name: 'Chicken Bento' } as unknown as Order['data'][number]],
+        items: [{ id: 'i1', orderId: 'o1', commodityId: 'c1', name: 'Chicken Bento', price: 200, quantity: 1, includesSoup: false, createdAt: 1700000000000 }],
       }),
       makeOrder({
         id: 'o2',
         number: 2,
-        data: [{ name: 'Fish Soup' } as unknown as Order['data'][number]],
+        items: [{ id: 'i2', orderId: 'o2', commodityId: 'c2', name: 'Fish Soup', price: 100, quantity: 1, includesSoup: false, createdAt: 1700000000000 }],
       }),
     ]
     const { default: userEvent } = await import('@testing-library/user-event')
@@ -328,5 +317,37 @@ describe('OrdersSearch', () => {
     render(<OrdersSearch {...defaultProps} isLoading={true} />)
     // When loading and no query, should not show results
     expect(screen.queryByTestId('search-result-group')).toBeNull()
+  })
+
+  it('should filter by item name in order.items', async () => {
+    const orders = [
+      makeOrder({
+        id: 'o1',
+        number: 1,
+        items: [
+          {
+            id: 'i1',
+            orderId: 'o1',
+            commodityId: 'c1',
+            name: 'Dragon Roll',
+            price: 200,
+            quantity: 1,
+            includesSoup: false,
+            createdAt: 1700000000000,
+          },
+        ],
+      }),
+      makeOrder({ id: 'o2', number: 2, items: [] }),
+    ]
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(<OrdersSearch {...defaultProps} orders={orders} />)
+    const input = screen.getByTestId('orders-search-input')
+    await user.type(input, 'dragon')
+
+    const cards = screen.getAllByTestId('order-history-card')
+    expect(cards).toHaveLength(1)
+    expect(cards[0]!.getAttribute('data-order-id')).toBe('o1')
   })
 })

@@ -39,6 +39,60 @@ describe('CommondityRepository', () => {
       expect(result).toEqual([])
     })
 
+    it('maps includes_soup: 1 to includesSoup: true', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [
+          {
+            id: 'com-001',
+            type_id: 'bento',
+            name: '油淋雞腿飯',
+            image: null,
+            price: 140,
+            priority: 1,
+            on_market: 1,
+            hide_on_mode: null,
+            editor: null,
+            includes_soup: 1,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+          },
+        ],
+        changes: 0,
+      })
+
+      const repo = createCommondityRepository(db)
+      const result = await repo.findAll()
+
+      expect(result[0]!.includesSoup).toBe(true)
+    })
+
+    it('maps includes_soup: 0 to includesSoup: false', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [
+          {
+            id: 'com-015',
+            type_id: 'bento',
+            name: '雞胸肉沙拉',
+            image: null,
+            price: 160,
+            priority: 15,
+            on_market: 1,
+            hide_on_mode: null,
+            editor: null,
+            includes_soup: 0,
+            created_at: 1700000000000,
+            updated_at: 1700000000000,
+          },
+        ],
+        changes: 0,
+      })
+
+      const repo = createCommondityRepository(db)
+      const result = await repo.findAll()
+
+      expect(result[0]!.includesSoup).toBe(false)
+    })
+
     it('maps rows to Commondity objects with image field', async () => {
       const mockRows = [
         {
@@ -88,6 +142,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -101,6 +156,7 @@ describe('CommondityRepository', () => {
         onMarket: false,
         hideOnMode: 'takeout',
         editor: 'admin',
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -209,6 +265,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -295,6 +352,7 @@ describe('CommondityRepository', () => {
         price: 100,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       const insertCall = vi.mocked(db.exec).mock.calls[0]
@@ -334,6 +392,7 @@ describe('CommondityRepository', () => {
         price: 100,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       expect(result).toEqual({
@@ -346,6 +405,7 @@ describe('CommondityRepository', () => {
         onMarket: true,
         hideOnMode: undefined,
         editor: undefined,
+        includesSoup: false,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -380,11 +440,88 @@ describe('CommondityRepository', () => {
         price: 30,
         priority: 0,
         onMarket: true,
+        includesSoup: false,
       })
 
       expect(result.image).toBeUndefined()
       expect(result.hideOnMode).toBeUndefined()
       expect(result.editor).toBeUndefined()
+    })
+
+    it('encodes includesSoup as integer at correct param position (index 9)', async () => {
+      // includesSoup: true → 1
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 1 })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'generated-id',
+              type_id: 'bento',
+              name: '油淋雞腿飯',
+              image: null,
+              price: 140,
+              priority: 1,
+              on_market: 1,
+              hide_on_mode: null,
+              editor: null,
+              includes_soup: 1,
+              created_at: 1700000000000,
+              updated_at: 1700000000000,
+            },
+          ],
+          changes: 0,
+        })
+
+      const repo = createCommondityRepository(db)
+      await repo.create({
+        typeId: 'bento',
+        name: '油淋雞腿飯',
+        price: 140,
+        priority: 1,
+        onMarket: true,
+        includesSoup: true,
+      })
+
+      const insertCall = vi.mocked(db.exec).mock.calls[0]
+      // Params: [id, typeId, name, image, price, priority, onMarket, hideOnMode, editor, includesSoup, createdAt, updatedAt]
+      expect(insertCall![1]![9]).toBe(1)
+    })
+
+    it('encodes includesSoup: false as 0 at param position index 9', async () => {
+      vi.mocked(db.exec)
+        .mockResolvedValueOnce({ rows: [], changes: 1 })
+        .mockResolvedValueOnce({
+          rows: [
+            {
+              id: 'generated-id',
+              type_id: 'bento',
+              name: '雞胸肉沙拉',
+              image: null,
+              price: 160,
+              priority: 15,
+              on_market: 1,
+              hide_on_mode: null,
+              editor: null,
+              includes_soup: 0,
+              created_at: 1700000000000,
+              updated_at: 1700000000000,
+            },
+          ],
+          changes: 0,
+        })
+
+      const repo = createCommondityRepository(db)
+      await repo.create({
+        typeId: 'bento',
+        name: '雞胸肉沙拉',
+        price: 160,
+        priority: 15,
+        onMarket: true,
+        includesSoup: false,
+      })
+
+      const insertCall = vi.mocked(db.exec).mock.calls[0]
+      expect(insertCall![1]![9]).toBe(0)
     })
   })
 
