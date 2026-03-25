@@ -138,16 +138,6 @@ export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
 
 // ─── Order ───────────────────────────────────────────────────────────────────
 
-/** @deprecated Used only by migrate-data.ts. Remove when migrateData is removed (post-V2-56 cleanup). */
-export const orderDataSchema = z.object({
-  comID: z.string().optional(),
-  value: z.string().optional(),
-  res: z.string().optional(),
-  type: z.string().optional(),
-  operator: z.enum(['+', '*']).optional(),
-  amount: z.string().optional(),
-})
-
 export const orderSchema = z.object({
   id: z.string(),
   number: z.number(),
@@ -191,7 +181,6 @@ export const createOrderSchema = z.object({
   editor: z.string(),
 })
 
-export type OrderData = z.infer<typeof orderDataSchema>
 export type Order = z.infer<typeof orderSchema>
 export type CreateOrder = z.infer<typeof createOrderSchema>
 export type NewOrderItem = z.infer<typeof newOrderItemSchema>

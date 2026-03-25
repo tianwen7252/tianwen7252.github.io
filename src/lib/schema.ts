@@ -197,16 +197,3 @@ export function initSchema(exec: (sql: string) => void): void {
   runMigrations(exec)
 }
 
-/**
- * V2-56: Drop the legacy `data` JSON blob column from orders.
- * Must be called AFTER migrateData() completes — the migration reads this column,
- * so dropping it first would make migration permanently impossible.
- * Idempotent — safe to call when the column has already been dropped.
- */
-export function dropLegacyOrderDataColumn(exec: (sql: string) => void): void {
-  try {
-    exec('ALTER TABLE orders DROP COLUMN data')
-  } catch {
-    // Column already dropped or does not exist — safe to ignore
-  }
-}

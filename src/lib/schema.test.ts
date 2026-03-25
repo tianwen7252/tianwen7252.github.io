@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { CREATE_TABLES, initSchema, dropLegacyOrderDataColumn, SCHEMA_VERSION } from './schema'
+import { CREATE_TABLES, initSchema, SCHEMA_VERSION } from './schema'
 
 describe('schema', () => {
   describe('SCHEMA_VERSION', () => {
@@ -88,18 +88,4 @@ describe('schema', () => {
     })
   })
 
-  describe('dropLegacyOrderDataColumn', () => {
-    it('should execute ALTER TABLE orders DROP COLUMN data', () => {
-      const mockExec = vi.fn()
-      dropLegacyOrderDataColumn(mockExec)
-      expect(mockExec).toHaveBeenCalledWith('ALTER TABLE orders DROP COLUMN data')
-    })
-
-    it('should swallow errors when the column does not exist', () => {
-      const mockExec = vi.fn().mockImplementation(() => {
-        throw new Error('no such column: data')
-      })
-      expect(() => dropLegacyOrderDataColumn(mockExec)).not.toThrow()
-    })
-  })
 })
