@@ -15,6 +15,7 @@ import {
   getOrderRepo,
   getOrderItemRepo,
   getOrderDiscountRepo,
+  getStatisticsRepo,
   resetRepositories,
 } from './provider'
 
@@ -352,6 +353,56 @@ describe('Repository Provider', () => {
       // Should be a new instance since we used a different db
       expect(repoAfterReset).toBeDefined()
       expect(typeof repoAfterReset.findAll).toBe('function')
+    })
+  })
+
+  describe('getStatisticsRepo()', () => {
+    it('throws before initRepositories() is called', () => {
+      expect(() => getStatisticsRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('returns a repository after initRepositories() is called', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo = getStatisticsRepo()
+      expect(repo).toBeDefined()
+      expect(typeof repo.getProductKpis).toBe('function')
+      expect(typeof repo.getHourlyOrderDistribution).toBe('function')
+      expect(typeof repo.getTopProducts).toBe('function')
+      expect(typeof repo.getBottomBentos).toBe('function')
+      expect(typeof repo.getDailyRevenue).toBe('function')
+      expect(typeof repo.getAvgOrderValue).toBe('function')
+      expect(typeof repo.getStaffKpis).toBe('function')
+      expect(typeof repo.getEmployeeHours).toBe('function')
+      expect(typeof repo.getDailyHeadcount).toBe('function')
+      expect(typeof repo.getDailyAttendeeList).toBe('function')
+    })
+
+    it('returns the same instance on repeated calls', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo1 = getStatisticsRepo()
+      const repo2 = getStatisticsRepo()
+      expect(repo1).toBe(repo2)
+    })
+  })
+
+  describe('resetRepositories() — statisticsRepo', () => {
+    it('causes getStatisticsRepo() to throw after reset', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      expect(() => getStatisticsRepo()).not.toThrow()
+
+      resetRepositories()
+
+      expect(() => getStatisticsRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
     })
   })
 

@@ -23,6 +23,10 @@ vi.mock('@/pages/orders', () => ({
   OrdersPage: () => null,
 }))
 
+vi.mock('@/pages/analytics', () => ({
+  AnalyticsPage: () => null,
+}))
+
 vi.mock('@/pages/settings', () => ({
   SettingsPage: () => null,
 }))

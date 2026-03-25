@@ -33,6 +33,10 @@ import {
   createOrderDiscountRepository,
   type OrderDiscountRepository,
 } from './order-discount-repository'
+import {
+  createStatisticsRepository,
+  type StatisticsRepository,
+} from './statistics-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -41,6 +45,7 @@ let commondityRepo: CommondityRepository | null = null
 let orderRepo: OrderRepository | null = null
 let orderItemRepo: OrderItemRepository | null = null
 let orderDiscountRepo: OrderDiscountRepository | null = null
+let statisticsRepo: StatisticsRepository | null = null
 
 /**
  * Initialize all repositories with the given async database instance.
@@ -54,6 +59,7 @@ export function initRepositories(db: AsyncDatabase): void {
   orderRepo = createOrderRepository(db)
   orderItemRepo = createOrderItemRepository(db)
   orderDiscountRepo = createOrderDiscountRepository(db)
+  statisticsRepo = createStatisticsRepository(db)
 }
 
 /**
@@ -148,6 +154,19 @@ export function getOrderDiscountRepo(): OrderDiscountRepository {
 }
 
 /**
+ * Get the StatisticsRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getStatisticsRepo(): StatisticsRepository {
+  if (!statisticsRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return statisticsRepo
+}
+
+/**
  * Reset all repository singletons to null.
  * Useful for testing or app teardown.
  */
@@ -159,4 +178,5 @@ export function resetRepositories(): void {
   orderRepo = null
   orderItemRepo = null
   orderDiscountRepo = null
+  statisticsRepo = null
 }

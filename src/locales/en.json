@@ -18,7 +18,8 @@
     "staffAdmin": "Staff Admin",
     "settings": "Settings",
     "appTitle": "Tianwen V2",
-    "orders": "Orders"
+    "orders": "Orders",
+    "analytics": "Analytics"
   },
   "staff": {
     "title": "Staff Management",
