@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import type { Commondity } from '@/lib/schemas'
+import { RippleButton } from '@/components/ui/ripple-button'
 
 interface ProductCardProps {
   readonly commodity: Commondity
@@ -26,9 +27,9 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
   }
 
   return (
-    <button
-      type="button"
+    <RippleButton
       onClick={handleClick}
+      rippleColor="rgba(127, 149, 106, 0.25)"
       className={cn(
         'flex h-full w-full cursor-pointer flex-col items-center justify-between border border-[#efefef] rounded-xl bg-card p-2 shadow-sm',
         'transition-all ease-in-out duration-200 hover:shadow-md active:scale-[0.9]',
@@ -47,6 +48,6 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
       <span className="mt-1 text-base text-muted-foreground">
         ${commodity.price}
       </span>
-    </button>
+    </RippleButton>
   )
 }

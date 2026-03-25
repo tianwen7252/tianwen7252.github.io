@@ -6,7 +6,6 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview } from '@/pages/preview'
@@ -59,7 +58,7 @@ function RootLayout() {
       <SwUpdatePrompt />
 
       {/* Dev tools — only in development */}
-      <TanStackRouterDevtools position="bottom-right" />
+      {/* <TanStackRouterDevtools position="bottom-right" /> */}
     </div>
   )
 }

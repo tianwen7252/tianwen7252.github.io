@@ -2,8 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { ClipboardList, Trash2 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { notify } from '@/components/ui/sonner'
-import { Button } from '@/components/ui/button'
 import { ScrollArea, type ScrollAreaHandle } from '@/components/ui/scroll-area'
+import { RippleButton } from '@/components/ui/ripple-button'
 import { useOrderStore } from '@/stores/order-store'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
@@ -73,16 +73,15 @@ export function OrderPanel() {
         )}
         <div className="flex-1" />
         {itemCount > 0 && (
-          <Button
-            variant="outline"
-            size="icon-xs"
+          <RippleButton
             aria-label={t('order.clearCart')}
             disabled={isEmpty}
             onClick={clearCart}
-            className="border text-muted-foreground hover:text-destructive"
+            rippleColor="rgba(0, 0, 0, 0.1)"
+            className="size-6 rounded-md border border-border bg-background text-muted-foreground shadow-xs hover:text-destructive"
           >
-            <Trash2 className="size-4" />
-          </Button>
+            <Trash2 className="size-3" />
+          </RippleButton>
         )}
       </div>
 
@@ -125,14 +124,13 @@ export function OrderPanel() {
       />
 
       {/* Submit button — opens confirmation modal */}
-      <Button
-        className="w-full bg-primary text-primary-foreground text-md hover:bg-primary/90"
-        size="lg"
+      <RippleButton
+        className="h-10 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         disabled={isEmpty || isSubmitting}
         onClick={() => setConfirmOpen(true)}
       >
         {t('order.submit')}
-      </Button>
+      </RippleButton>
 
       {/* Confirm order modal */}
       <ConfirmOrderModal

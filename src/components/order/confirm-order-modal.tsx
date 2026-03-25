@@ -5,6 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { groupCartItems } from '@/lib/group-cart-items'
 import type { CartItem, Discount } from '@/stores/order-store'
 import { CircleCheckBig, Utensils, Soup, LoaderCircle } from 'lucide-react'
+import { RippleButton } from '@/components/ui/ripple-button'
 import { ChangePrediction } from './change-prediction'
 import { OrderNoteTags } from './order-note-tags'
 
@@ -85,22 +86,21 @@ export function ConfirmOrderModal({
       onClose={onClose}
       footer={
         <div className="flex w-full gap-3">
-          <button
-            type="button"
+          <RippleButton
             onClick={onClose}
+            rippleColor="rgba(0, 0, 0, 0.1)"
             className="flex-1 rounded-lg border border-black/8 bg-white/50 px-4 py-3 text-md text-gray-600 transition hover:-translate-y-0.5"
           >
             {t('common.cancel')}
-          </button>
-          <button
-            type="button"
+          </RippleButton>
+          <RippleButton
             onClick={() => onConfirm(selectedTags)}
             disabled={isSubmitting}
             className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-md text-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
             {t('order.confirmSubmit')}
-          </button>
+          </RippleButton>
         </div>
       }
     >
