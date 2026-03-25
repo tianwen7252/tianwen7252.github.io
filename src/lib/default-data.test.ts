@@ -156,6 +156,26 @@ describe('deleteDefaultData(db)', () => {
     const typesIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM commondity_types'))
     expect(comIdx).toBeLessThan(typesIdx)
   })
+
+  it('deletes attendances for default employees before deleting employees to respect FK constraint', () => {
+    const db = makeMockDb()
+    deleteDefaultData(db)
+
+    const attIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM attendances'))
+    const empIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM employees'))
+    expect(attIdx).toBeGreaterThanOrEqual(0)
+    expect(attIdx).toBeLessThan(empIdx)
+  })
+
+  it('issues DELETE for attendances with employee_id filter using default employee IDs', () => {
+    const db = makeMockDb()
+    deleteDefaultData(db)
+
+    const attCall = db.calls.find((c) => c.sql.includes('DELETE FROM attendances'))
+    expect(attCall).toBeDefined()
+    expect(attCall!.sql).toMatch(/DELETE FROM attendances WHERE employee_id IN/)
+    expect(attCall!.params).toHaveLength(11)
+  })
 })
 
 // ─── clearAllData ────────────────────────────────────────────────────────────

@@ -123,6 +123,13 @@ export function deleteDefaultData(db: Database): void {
     typeIds,
   )
 
+  // Delete attendances for default employees before deleting the employees
+  // (FK: attendances.employee_id → employees.id)
+  db.exec(
+    `DELETE FROM attendances WHERE employee_id IN (${placeholders(employeeIds)})`,
+    employeeIds,
+  )
+
   db.exec(
     `DELETE FROM employees WHERE id IN (${placeholders(employeeIds)})`,
     employeeIds,
