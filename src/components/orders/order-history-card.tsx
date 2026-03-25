@@ -81,10 +81,10 @@ export function OrderHistoryCard({
   const actions = buildSwipeActions(onDelete, onEdit)
 
   return (
-    <SwipeActions actions={actions} className="rounded-xl border border-border shadow-sm">
+    <SwipeActions actions={actions} className="rounded-xl border border-border">
       <div
         data-testid="order-history-card"
-        className="rounded-xl bg-card p-4"
+        className="rounded-xl bg-card p-4 flex flex-col h-full"
       >
         {/* Row 1: Order number + time */}
         <div className="flex items-center justify-between mb-1">
@@ -108,7 +108,7 @@ export function OrderHistoryCard({
             {order.memo.map((tag) => (
               <span
                 key={tag}
-                className="inline-block px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground"
+                className="inline-block px-2 py-0.5 text-xs rounded-lg bg-[#F8F4EC] text-muted-foreground"
               >
                 {tag}
               </span>
@@ -117,7 +117,7 @@ export function OrderHistoryCard({
         )}
 
         {/* Row 4: Total + original price */}
-        <div className="flex items-baseline justify-end gap-2">
+        <div className="flex items-baseline justify-end gap-2 mt-auto">
           {isDiscounted && (
             <span className="text-xs text-muted-foreground line-through">
               ${order.originalTotal}

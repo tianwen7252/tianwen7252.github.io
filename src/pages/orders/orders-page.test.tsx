@@ -19,6 +19,7 @@ vi.mock('@tanstack/react-query', () => ({
 vi.mock('@/lib/repositories/provider', () => ({
   getOrderRepo: vi.fn(() => ({
     findByDateRange: vi.fn(),
+    findAll: vi.fn(),
     remove: vi.fn(),
   })),
 }))
@@ -27,11 +28,16 @@ vi.mock('@/lib/repositories/provider', () => ({
 vi.mock('@/components/orders', () => ({
   OrdersDateHeader: ({
     selectedDate,
+    onSearchOpen,
   }: {
     selectedDate: import('dayjs').Dayjs
+    onSearchOpen: () => void
   }) => (
     <div data-testid="orders-date-header">
       {selectedDate.format('YYYY-MM-DD')}
+      <button data-testid="open-search-btn" onClick={onSearchOpen}>
+        Search
+      </button>
     </div>
   ),
   OrdersShiftSummary: ({ orders }: { orders: readonly Order[] }) => (
@@ -61,6 +67,13 @@ vi.mock('@/components/orders', () => ({
     open ? (
       <div data-testid="delete-order-modal">Delete #{orderNumber}</div>
     ) : null,
+  OrdersSearch: ({ onClose }: { onClose: () => void }) => (
+    <div data-testid="orders-search">
+      <button data-testid="search-close-btn" onClick={onClose}>
+        Close
+      </button>
+    </div>
+  ),
 }))
 
 // Mock sonner toast
@@ -116,6 +129,12 @@ describe('OrdersPage', () => {
     mockUseMutation.mockReturnValue({
       mutate: vi.fn(),
       isPending: false,
+    })
+    // Default useQuery returns empty data for both queries
+    mockUseQuery.mockReturnValue({
+      data: [],
+      isLoading: false,
+      isError: false,
     })
   })
 
@@ -213,5 +232,51 @@ describe('OrdersPage', () => {
     const { container } = render(<OrdersPage />)
     const wrapper = container.firstElementChild as HTMLElement
     expect(wrapper.classList.contains('overflow-y-auto')).toBe(true)
+  })
+
+  it('should not show OrdersSearch initially', () => {
+    render(<OrdersPage />)
+    expect(screen.queryByTestId('orders-search')).toBeNull()
+  })
+
+  it('should show OrdersSearch when search is opened', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(<OrdersPage />)
+    await user.click(screen.getByTestId('open-search-btn'))
+    expect(screen.getByTestId('orders-search')).toBeTruthy()
+  })
+
+  it('should hide date header content when search is open', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(<OrdersPage />)
+    // Date header is visible initially
+    expect(screen.getByTestId('orders-date-header')).toBeTruthy()
+
+    // Open search
+    await user.click(screen.getByTestId('open-search-btn'))
+
+    // Date header should no longer be visible (OrdersSearch replaced it)
+    expect(screen.queryByTestId('orders-date-header')).toBeNull()
+    expect(screen.getByTestId('orders-search')).toBeTruthy()
+  })
+
+  it('should close OrdersSearch when close is called', async () => {
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(<OrdersPage />)
+
+    // Open search
+    await user.click(screen.getByTestId('open-search-btn'))
+    expect(screen.getByTestId('orders-search')).toBeTruthy()
+
+    // Close search
+    await user.click(screen.getByTestId('search-close-btn'))
+    expect(screen.queryByTestId('orders-search')).toBeNull()
+    expect(screen.getByTestId('orders-date-header')).toBeTruthy()
   })
 })

@@ -87,7 +87,7 @@ export function ProductGrid() {
         <RippleButton
           aria-label={t('order.calculator')}
           rippleColor="rgba(0, 0, 0, 0.1)"
-          className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs"
+          className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center"
         >
           <Calculator className="size-5" />
         </RippleButton>

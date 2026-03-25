@@ -8,7 +8,6 @@ import dayjs from 'dayjs'
 import type { Employee, Attendance, CommondityType, Commondity } from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 import {
-  PRODUCT_IMAGES,
   EMPLOYEE_SEEDS,
   ATTENDANCE_SEEDS,
   COMMODITY_TYPE_SEEDS,
@@ -89,16 +88,11 @@ export const SEED_COMMONDITY_TYPES: readonly CommondityType[] = COMMODITY_TYPE_S
 
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
-/** Pick an image by index, cycling through available images */
-function img(index: number): string {
-  return PRODUCT_IMAGES[index % PRODUCT_IMAGES.length]!
-}
-
 export const SEED_COMMONDITIES: readonly Commondity[] = COMMODITY_SEEDS.map((seed) => ({
   id: seed.id,
   typeId: seed.typeId,
   name: seed.name,
-  image: seed.imageIndex != null ? img(seed.imageIndex) : undefined,
+  image: seed.imageKey,
   price: seed.price,
   priority: seed.priority,
   onMarket: true,

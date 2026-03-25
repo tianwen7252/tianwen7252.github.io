@@ -1,3 +1,4 @@
+import * as React from 'react'
 import { useCallback, useRef } from 'react'
 import type { MouseEvent } from 'react'
 import { cn } from '@/lib/cn'
@@ -17,16 +18,26 @@ interface RippleButtonProps
 /**
  * Magic UI-style button that creates a radial ripple at the tap/click position.
  * Drop-in replacement for <button> — accepts all standard button attributes.
+ * Supports ref forwarding for use with Radix UI asChild patterns.
  */
-export function RippleButton({
-  className,
-  children,
-  rippleColor = 'rgba(255, 255, 255, 0.4)',
-  duration = 600,
-  onClick,
-  ...props
-}: RippleButtonProps) {
+export const RippleButton = React.forwardRef<
+  HTMLButtonElement,
+  RippleButtonProps
+>(function RippleButton(
+  {
+    className,
+    children,
+    rippleColor = 'rgba(255, 255, 255, 0.4)',
+    duration = 600,
+    onClick,
+    ...props
+  },
+  ref,
+) {
   const buttonRef = useRef<HTMLButtonElement>(null)
+
+  // Expose the internal DOM ref through the forwarded ref
+  React.useImperativeHandle(ref, () => buttonRef.current!, [])
 
   const handleClick = useCallback(
     (event: MouseEvent<HTMLButtonElement>) => {
@@ -75,4 +86,4 @@ export function RippleButton({
       {children}
     </button>
   )
-}
+})

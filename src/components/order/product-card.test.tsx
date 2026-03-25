@@ -10,7 +10,7 @@ function makeCommodity(overrides: Partial<Commondity> = {}): Commondity {
     id: 'com-1',
     typeId: 'type-1',
     name: '滷肉便當',
-    image: '/images/braised-pork.png',
+    image: 'braised-pork-belly-rice',
     price: 100,
     priority: 0,
     onMarket: true,
@@ -37,7 +37,7 @@ describe('ProductCard', () => {
     render(<ProductCard commodity={defaultCommodity} onAdd={vi.fn()} />)
     const img = screen.getByRole('img', { name: '滷肉便當' })
     expect(img).toBeTruthy()
-    expect(img.getAttribute('src')).toBe('/images/braised-pork.png')
+    expect(img.getAttribute('src')).toBe('images/commodities/braised-pork-belly-rice.png')
   })
 
   it('should not render an img element when image is undefined', () => {

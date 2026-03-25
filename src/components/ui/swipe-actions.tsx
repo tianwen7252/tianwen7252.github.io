@@ -67,7 +67,10 @@ export function SwipeActions({
 
       // Determine swipe direction on first significant movement
       if (isHorizontalRef.current === null) {
-        if (Math.abs(deltaX) > SWIPE_DIRECTION_THRESHOLD || Math.abs(deltaY) > SWIPE_DIRECTION_THRESHOLD) {
+        if (
+          Math.abs(deltaX) > SWIPE_DIRECTION_THRESHOLD ||
+          Math.abs(deltaY) > SWIPE_DIRECTION_THRESHOLD
+        ) {
           isHorizontalRef.current = Math.abs(deltaX) > Math.abs(deltaY)
         }
         return
@@ -108,15 +111,12 @@ export function SwipeActions({
     }
   }, [totalActionWidth])
 
-  const handleActionClick = useCallback(
-    (action: SwipeAction) => {
-      action.onClick()
-      offsetXRef.current = 0
-      setOffsetX(0)
-      setIsOpen(false)
-    },
-    [],
-  )
+  const handleActionClick = useCallback((action: SwipeAction) => {
+    action.onClick()
+    offsetXRef.current = 0
+    setOffsetX(0)
+    setIsOpen(false)
+  }, [])
 
   const handleForegroundClick = useCallback(() => {
     if (isOpen) {
@@ -182,7 +182,7 @@ export function SwipeActions({
       {/* When swiped open, remove right border-radius for clean alignment with action buttons */}
       <div
         className={cn(
-          'relative bg-card',
+          'relative bg-card h-full',
           !isSwiping && 'transition-transform duration-200',
           (isOpen || offsetX < 0) && '[&>*]:rounded-r-none',
         )}

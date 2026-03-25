@@ -169,7 +169,15 @@
     "confirmDeleteMessage": "此操作無法復原",
     "toastDeleted": "訂單已刪除",
     "toastDeleteError": "刪除失敗，請重試",
-    "moreItems": "+{{count}} more"
+    "moreItems": "+{{count}} more",
+    "searchPlaceholder": "搜尋品項名稱、金額...",
+    "searchNoResults": "無符合的訂單",
+    "searchResultsCount": "共 {{count}} 筆結果",
+    "searchClose": "關閉搜尋",
+    "prevDay": "前一天",
+    "nextDay": "後一天",
+    "prevPage": "上一頁",
+    "nextPage": "下一頁"
   },
   "settings": {
     "tabs": {

@@ -13,10 +13,19 @@ vi.mock('@/lib/format-order-date', () => ({
   })),
 }))
 
-// Mock lucide-react CalendarDays icon
+// Mock lucide-react icons
 vi.mock('lucide-react', () => ({
   CalendarDays: (props: Record<string, unknown>) => (
     <span data-testid="calendar-icon" {...props} />
+  ),
+  ChevronLeft: (props: Record<string, unknown>) => (
+    <span data-testid="chevron-left-icon" {...props} />
+  ),
+  ChevronRight: (props: Record<string, unknown>) => (
+    <span data-testid="chevron-right-icon" {...props} />
+  ),
+  Search: (props: Record<string, unknown>) => (
+    <span data-testid="search-icon" {...props} />
   ),
 }))
 
@@ -63,15 +72,31 @@ vi.mock('@/components/ui/calendar', () => ({
   ),
 }))
 
+// Mock i18n
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const map: Record<string, string> = {
+        'orders.prevDay': '前一天',
+        'orders.nextDay': '後一天',
+        'common.search': '搜尋',
+      }
+      return map[key] ?? key
+    },
+  }),
+}))
+
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('OrdersDateHeader', () => {
   const selectedDate = dayjs('2026-03-24')
   const onDateChange = vi.fn()
+  const onSearchOpen = vi.fn()
 
   const defaultProps = {
     selectedDate,
     onDateChange,
+    onSearchOpen,
   }
 
   it('should render formatted date text with label', () => {
@@ -103,7 +128,11 @@ describe('OrdersDateHeader', () => {
     const user = userEvent.setup()
 
     render(
-      <OrdersDateHeader selectedDate={selectedDate} onDateChange={handleDateChange} />,
+      <OrdersDateHeader
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
+        onSearchOpen={vi.fn()}
+      />,
     )
 
     await user.click(screen.getByTestId('calendar-select-btn'))
@@ -111,5 +140,78 @@ describe('OrdersDateHeader', () => {
     // The argument should be a dayjs instance wrapping 2026-03-20
     const calledArg = handleDateChange.mock.calls[0]![0]
     expect(calledArg.format('YYYY-MM-DD')).toBe('2026-03-20')
+  })
+
+  it('should render prev day button', () => {
+    render(<OrdersDateHeader {...defaultProps} />)
+    const prevBtn = screen.getByRole('button', { name: /前一天/i })
+    expect(prevBtn).toBeTruthy()
+  })
+
+  it('should call onDateChange with previous day when prev button clicked', async () => {
+    const handleDateChange = vi.fn()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(
+      <OrdersDateHeader
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
+        onSearchOpen={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /前一天/i }))
+    expect(handleDateChange).toHaveBeenCalledOnce()
+    const calledArg = handleDateChange.mock.calls[0]![0]
+    expect(calledArg.format('YYYY-MM-DD')).toBe('2026-03-23')
+  })
+
+  it('should render next day button', () => {
+    render(<OrdersDateHeader {...defaultProps} />)
+    const nextBtn = screen.getByRole('button', { name: /後一天/i })
+    expect(nextBtn).toBeTruthy()
+  })
+
+  it('should call onDateChange with next day when next button clicked', async () => {
+    const handleDateChange = vi.fn()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(
+      <OrdersDateHeader
+        selectedDate={selectedDate}
+        onDateChange={handleDateChange}
+        onSearchOpen={vi.fn()}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /後一天/i }))
+    expect(handleDateChange).toHaveBeenCalledOnce()
+    const calledArg = handleDateChange.mock.calls[0]![0]
+    expect(calledArg.format('YYYY-MM-DD')).toBe('2026-03-25')
+  })
+
+  it('should render search button', () => {
+    render(<OrdersDateHeader {...defaultProps} />)
+    const searchBtn = screen.getByRole('button', { name: /搜尋/i })
+    expect(searchBtn).toBeTruthy()
+  })
+
+  it('should call onSearchOpen when search button is clicked', async () => {
+    const handleSearchOpen = vi.fn()
+    const { default: userEvent } = await import('@testing-library/user-event')
+    const user = userEvent.setup()
+
+    render(
+      <OrdersDateHeader
+        selectedDate={selectedDate}
+        onDateChange={vi.fn()}
+        onSearchOpen={handleSearchOpen}
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: /搜尋/i }))
+    expect(handleSearchOpen).toHaveBeenCalledOnce()
   })
 })

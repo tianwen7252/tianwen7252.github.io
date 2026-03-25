@@ -1,6 +1,7 @@
 import { cn } from '@/lib/cn'
 import type { Commondity } from '@/lib/schemas'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { resolveProductImage } from '@/lib/resolve-product-image'
 
 interface ProductCardProps {
   readonly commodity: Commondity
@@ -17,6 +18,8 @@ interface ProductCardProps {
  * The entire card is clickable to add the item to the cart.
  */
 export function ProductCard({ commodity, onAdd }: ProductCardProps) {
+  const imageSrc = resolveProductImage(commodity.image)
+
   const handleClick = () => {
     onAdd({
       id: commodity.id,
@@ -36,9 +39,9 @@ export function ProductCard({ commodity, onAdd }: ProductCardProps) {
       )}
     >
       <div className="flex flex-col items-center">
-        {commodity.image != null && (
+        {imageSrc != null && (
           <img
-            src={commodity.image}
+            src={imageSrc}
             alt={commodity.name}
             className="mb-2 size-15 rounded-full object-cover"
           />
