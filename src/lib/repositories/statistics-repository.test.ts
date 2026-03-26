@@ -395,3 +395,65 @@ describe('StatisticsRepository.getDailyAttendeeList()', () => {
     expect(params).toContain('2026-03-15')
   })
 })
+
+// ─── getProductDailyRevenue ───────────────────────────────────────────────────
+
+describe('StatisticsRepository.getProductDailyRevenue()', () => {
+  let db: AsyncDatabase
+
+  beforeEach(() => {
+    db = createMockDb()
+  })
+
+  it('returns empty array when DB returns no rows', async () => {
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getProductDailyRevenue(range, 'com-001')
+    expect(result).toEqual([])
+  })
+
+  it('maps DB rows to DailyRevenue with quantity as revenue field', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { date: '2026-03-01', revenue: 10 },
+        { date: '2026-03-02', revenue: 15 },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getProductDailyRevenue(range, 'com-001')
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ date: '2026-03-01', revenue: 10 })
+    expect(result[1]).toEqual({ date: '2026-03-02', revenue: 15 })
+  })
+
+  it('passes startDate, endDate, and commodityId to db.exec', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getProductDailyRevenue(range, 'com-abc')
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain(range.startDate)
+    expect(params).toContain(range.endDate)
+    expect(params).toContain('com-abc')
+  })
+
+  it('returns results ordered by date ascending', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { date: '2026-03-01', revenue: 5 },
+        { date: '2026-03-05', revenue: 12 },
+        { date: '2026-03-10', revenue: 8 },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getProductDailyRevenue(range, 'com-001')
+    expect(result[0]!.date).toBe('2026-03-01')
+    expect(result[2]!.date).toBe('2026-03-10')
+  })
+
+  it('handles different commodityId values independently', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getProductDailyRevenue(range, 'com-999')
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain('com-999')
+  })
+})

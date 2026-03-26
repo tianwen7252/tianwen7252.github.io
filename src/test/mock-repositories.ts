@@ -221,6 +221,9 @@ export const mockStatisticsRepo: StatisticsRepository = {
   async getAvgOrderValue(_range: DateRange) {
     return []
   },
+  async getProductDailyRevenue(_range: DateRange, _commodityId: string) {
+    return []
+  },
   async getStaffKpis(_range: DateRange) {
     return {
       activeEmployeeCount: 0,

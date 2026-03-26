@@ -11,6 +11,8 @@ import { cn } from '@/lib/cn'
 interface NeonGradientCardProps {
   children: ReactNode
   className?: string
+  /** Extra classes applied to the inner content surface (overrides default p-4). */
+  innerClassName?: string
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -18,7 +20,7 @@ interface NeonGradientCardProps {
 /**
  * Wraps children in a card with an animated neon gradient border glow.
  */
-export function NeonGradientCard({ children, className }: NeonGradientCardProps) {
+export function NeonGradientCard({ children, className, innerClassName }: NeonGradientCardProps) {
   return (
     <div
       data-testid="neon-gradient-card"
@@ -30,7 +32,7 @@ export function NeonGradientCard({ children, className }: NeonGradientCardProps)
       )}
     >
       {/* Inner card surface */}
-      <div className="relative rounded-[10px] bg-card p-4 h-full">
+      <div className={cn('relative rounded-[10px] bg-card p-4 h-full', innerClassName)}>
         {children}
       </div>
     </div>

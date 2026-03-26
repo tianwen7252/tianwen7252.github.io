@@ -79,6 +79,8 @@ export interface StatisticsRepository {
   getBottomBentos(range: DateRange, limit: number): Promise<ProductRanking[]>
   getDailyRevenue(range: DateRange): Promise<DailyRevenue[]>
   getAvgOrderValue(range: DateRange): Promise<DailyRevenue[]>
+  /** Returns daily sales quantity for a specific commodity as DailyRevenue (revenue = quantity). */
+  getProductDailyRevenue(range: DateRange, commodityId: string): Promise<DailyRevenue[]>
   getStaffKpis(range: DateRange): Promise<StaffKpis>
   getEmployeeHours(range: DateRange): Promise<EmployeeHours[]>
   getDailyHeadcount(range: DateRange): Promise<DailyHeadcount[]>
@@ -255,6 +257,22 @@ export function createStatisticsRepository(db: AsyncDatabase): StatisticsReposit
          GROUP BY date(created_at/1000,'unixepoch','localtime')
          ORDER BY date`,
         [range.startDate, range.endDate],
+      )
+      return result.rows.map(toDailyRevenue)
+    },
+
+    // ── Product daily revenue (quantity per day for a specific commodity) ────
+    async getProductDailyRevenue(range, commodityId) {
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT date(o.created_at/1000,'unixepoch','localtime') AS date,
+                SUM(oi.quantity) AS revenue
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         WHERE o.created_at >= ? AND o.created_at <= ?
+           AND oi.commodity_id = ?
+         GROUP BY date(o.created_at/1000,'unixepoch','localtime')
+         ORDER BY date`,
+        [range.startDate, range.endDate, commodityId],
       )
       return result.rows.map(toDailyRevenue)
     },
