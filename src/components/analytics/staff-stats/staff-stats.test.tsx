@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type {
   StatisticsRepository,
@@ -12,7 +12,7 @@ import type {
   EmployeeHours,
 } from '@/lib/repositories/statistics-repository'
 
-// Mock recharts to avoid JSDOM SVG rendering issues (used by StaffHoursChart)
+// Mock recharts to avoid JSDOM SVG rendering issues (used by StaffHoursChart and DailyHeadcountChart)
 vi.mock('recharts', () => ({
   BarChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="bar-chart">{children}</div>
@@ -20,9 +20,16 @@ vi.mock('recharts', () => ({
   Bar: ({ dataKey }: { dataKey: string }) => (
     <div data-testid={`bar-${dataKey}`} />
   ),
+  LineChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="line-chart">{children}</div>
+  ),
+  Line: ({ dataKey }: { dataKey: string }) => (
+    <div data-testid={`line-${dataKey}`} />
+  ),
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
+  CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
@@ -149,12 +156,13 @@ describe('StaffStats', () => {
       })
     })
 
-    it('renders StaffHoursChart after data loads (shows responsive-container)', async () => {
+    it('renders StaffHoursChart after data loads (shows bar-chart in 員工工時分布)', async () => {
       const repo = buildMockRepo()
       render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
 
       await waitFor(() => {
-        expect(screen.getByTestId('responsive-container')).toBeTruthy()
+        const hoursSection = screen.getByRole('region', { name: '員工工時分布' })
+        expect(within(hoursSection).getByTestId('bar-chart')).toBeTruthy()
       })
     })
 
@@ -259,6 +267,47 @@ describe('StaffStats', () => {
         expect(screen.getByRole('region', { name: '出勤明細表' })).toBeTruthy()
         const rows = screen.getAllByRole('row')
         expect(rows).toHaveLength(1) // header only
+      })
+    })
+  })
+
+  describe('daily headcount chart (V2-66)', () => {
+    it('calls getDailyHeadcount with correct date range', async () => {
+      const repo = buildMockRepo()
+      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+
+      await waitFor(() => {
+        expect(repo.getDailyHeadcount).toHaveBeenCalledWith({
+          startDate: START_DATE.getTime(),
+          endDate: END_DATE.getTime(),
+        })
+      })
+    })
+
+    it('renders DailyHeadcountChart after data loads (shows 每日到班人數 region)', async () => {
+      const repo = buildMockRepo()
+      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('region', { name: '每日到班人數' })).toBeTruthy()
+      })
+    })
+
+    it('renders AttendanceCalendar after data loads (shows 月曆出勤全覽 region)', async () => {
+      const repo = buildMockRepo()
+      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+
+      await waitFor(() => {
+        expect(screen.getByRole('region', { name: '月曆出勤全覽' })).toBeTruthy()
+      })
+    })
+
+    it('getDailyHeadcount is called once per render', async () => {
+      const repo = buildMockRepo()
+      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+
+      await waitFor(() => {
+        expect(repo.getDailyHeadcount).toHaveBeenCalledTimes(1)
       })
     })
   })

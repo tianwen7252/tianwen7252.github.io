@@ -364,6 +364,7 @@ export function createStatisticsRepository(db: AsyncDatabase): StatisticsReposit
          FROM attendances a
          LEFT JOIN employees e ON e.id = a.employee_id
          WHERE a.date = ?
+           AND a.type = 'regular'
          ORDER BY e.name`,
         [date],
       )
