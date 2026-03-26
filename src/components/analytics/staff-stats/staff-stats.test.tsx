@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type {
   StatisticsRepository,
@@ -26,6 +26,12 @@ vi.mock('recharts', () => ({
   Line: ({ dataKey }: { dataKey: string }) => (
     <div data-testid={`line-${dataKey}`} />
   ),
+  AreaChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="area-chart">{children}</div>
+  ),
+  Area: ({ dataKey }: { dataKey: string }) => (
+    <div data-testid={`area-${dataKey}`} />
+  ),
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
@@ -34,6 +40,12 @@ vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
+  LabelList: () => null,
+  Cell: () => null,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { StaffStats } from './staff-stats'
@@ -156,32 +168,13 @@ describe('StaffStats', () => {
       })
     })
 
-    it('renders StaffHoursChart after data loads (shows bar-chart in 員工工時分布)', async () => {
+    it('renders StaffHoursChart after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
       render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
 
       await waitFor(() => {
-        const hoursSection = screen.getByRole('region', { name: '員工工時分布' })
-        expect(within(hoursSection).getByTestId('bar-chart')).toBeTruthy()
-      })
-    })
-
-    it('renders AttendanceSummaryTable after loading (shows 出勤明細表 region)', async () => {
-      const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
-
-      await waitFor(() => {
-        expect(screen.getByRole('region', { name: '出勤明細表' })).toBeTruthy()
-      })
-    })
-
-    it('renders employee names in the table after load', async () => {
-      const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
-
-      await waitFor(() => {
-        expect(screen.getByText('陳小明')).toBeTruthy()
-        expect(screen.getByText('王大華')).toBeTruthy()
+        expect(screen.getByText('員工工時排行')).toBeTruthy()
+        expect(screen.getByTestId('bar-chart')).toBeTruthy()
       })
     })
 
@@ -256,21 +249,6 @@ describe('StaffStats', () => {
     })
   })
 
-  describe('empty employee hours', () => {
-    it('renders table with empty data (only header row) when no employee hours', async () => {
-      const repo = buildMockRepo({
-        getEmployeeHours: vi.fn().mockResolvedValue([]),
-      })
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
-
-      await waitFor(() => {
-        expect(screen.getByRole('region', { name: '出勤明細表' })).toBeTruthy()
-        const rows = screen.getAllByRole('row')
-        expect(rows).toHaveLength(1) // header only
-      })
-    })
-  })
-
   describe('daily headcount chart (V2-66)', () => {
     it('calls getDailyHeadcount with correct date range', async () => {
       const repo = buildMockRepo()
@@ -284,21 +262,21 @@ describe('StaffStats', () => {
       })
     })
 
-    it('renders DailyHeadcountChart after data loads (shows 每日到班人數 region)', async () => {
+    it('renders DailyHeadcountChart after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
       render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
 
       await waitFor(() => {
-        expect(screen.getByRole('region', { name: '每日到班人數' })).toBeTruthy()
+        expect(screen.getByText('每日出勤率')).toBeTruthy()
       })
     })
 
-    it('renders AttendanceCalendar after data loads (shows 月曆出勤全覽 region)', async () => {
+    it('renders AttendanceCalendar after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
       render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
 
       await waitFor(() => {
-        expect(screen.getByRole('region', { name: '月曆出勤全覽' })).toBeTruthy()
+        expect(screen.getByText('月曆出勤全覽')).toBeTruthy()
       })
     })
 

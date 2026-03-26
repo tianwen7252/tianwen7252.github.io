@@ -63,6 +63,7 @@ html {
   --color-gold: #d4af37;
   --color-blue: #6aa3d4;
   --color-yellow: #f5c842;
+  --font-size: 18px;
   /* --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -116,11 +117,11 @@ html {
   --border: #e7e7ee;
   --input: #ebebeb;
   --ring: #afbea5;
-  --chart-1: oklch(0.648 0.2 131.684);
-  --chart-2: oklch(0.808 0.114 19.571);
-  --chart-3: #ffda1a;
-  --chart-4: #0051ba;
-  --chart-5: oklch(0.709 0.01 56.259);
+  --chart-1: #7f956a;
+  --chart-2: #c2785c;
+  --chart-3: #5b8f9b;
+  --chart-4: #c9a84c;
+  --chart-5: #8b6f9b;
   --radius: 1.4rem;
   --sidebar: #f5f8fb;
   --sidebar-foreground: #000000;
@@ -172,7 +173,7 @@ html {
     @apply border-border outline-ring/50;
   }
   html {
-    font-size: 18px;
+    font-size: var(--font-size);
   }
   body {
     @apply bg-background text-foreground;

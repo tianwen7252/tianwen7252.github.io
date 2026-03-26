@@ -1,12 +1,44 @@
 /**
- * Tests for Bottom5Bentos component.
- * Verifies ranking display, warning colors, and aria label.
+ * Tests for Bottom10Bentos component (horizontal bar chart).
+ * Verifies card structure, chart rendering, and edge cases.
  */
 
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import type { ProductRanking } from '@/lib/repositories/statistics-repository'
-import { Bottom5Bentos } from './bottom5-bentos'
+
+// Mock recharts
+vi.mock('recharts', () => ({
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: ({ dataKey }: { dataKey: string }) => (
+    <div data-testid={`bar-${dataKey}`} />
+  ),
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  LabelList: () => null,
+  Cell: () => null,
+  ResponsiveContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="responsive-container">{children}</div>
+  ),
+}))
+
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
+}))
+
+import { Bottom10Bentos } from './bottom5-bentos'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -19,84 +51,49 @@ function buildItems(count: number): ProductRanking[] {
   }))
 }
 
-const FIVE_ITEMS = buildItems(5)
-const THREE_ITEMS = buildItems(3)
+const TEN_ITEMS = buildItems(10)
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('Bottom5Bentos', () => {
-  describe('accessibility', () => {
-    it('renders the aria-label "銷量最低便當" on the outer element', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      expect(screen.getByRole('region', { name: '銷量最低便當' })).toBeTruthy()
+describe('Bottom10Bentos', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
+      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      expect(screen.getByText('便當銷售末 10 名')).toBeTruthy()
     })
   })
 
-  describe('item rendering', () => {
-    it('renders all 5 items when given 5 items', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      for (const item of FIVE_ITEMS) {
-        expect(screen.getByText(item.name)).toBeTruthy()
-      }
+  describe('chart rendering', () => {
+    it('renders a ChartContainer', () => {
+      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
-    it('renders 3 items correctly when given fewer than 5', () => {
-      render(<Bottom5Bentos items={THREE_ITEMS} />)
-      for (const item of THREE_ITEMS) {
-        expect(screen.getByText(item.name)).toBeTruthy()
-      }
+    it('renders a BarChart', () => {
+      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
-    it('renders quantity for each item', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      // First item (rank 1) has quantity 2 — query by data-rank + text content
-      const firstRankEl = document.querySelector('[data-rank="1"]')
-      expect(firstRankEl?.textContent).toContain('2')
-    })
-
-    it('renders rank numbers (1 through 5)', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      for (let rank = 1; rank <= 5; rank++) {
-        // Each [data-rank] element should include the rank number in its text
-        const rankEl = document.querySelector(`[data-rank="${rank}"]`)
-        expect(rankEl).toBeTruthy()
-        expect(rankEl?.textContent).toContain(String(rank))
-      }
-    })
-  })
-
-  describe('warning colors', () => {
-    it('applies text-destructive class to the first item (lowest sales)', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      // The first item wrapper should have text-destructive
-      const firstItem = screen.getByText('便當 1').closest('[data-rank="1"]')
-      expect(firstItem?.className).toContain('text-destructive')
-    })
-
-    it('applies text-orange-500 class to the second item', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      const secondItem = screen.getByText('便當 2').closest('[data-rank="2"]')
-      expect(secondItem?.className).toContain('text-orange-500')
-    })
-
-    it('applies text-yellow-500 class to items ranked 3–5', () => {
-      render(<Bottom5Bentos items={FIVE_ITEMS} />)
-      for (let rank = 3; rank <= 5; rank++) {
-        const item = screen.getByText(`便當 ${rank}`).closest(`[data-rank="${rank}"]`)
-        expect(item?.className).toContain('text-yellow-500')
-      }
+    it('renders the value bar', () => {
+      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      expect(screen.getByTestId('bar-value')).toBeTruthy()
     })
   })
 
   describe('edge cases', () => {
-    it('renders without crashing when items array is empty', () => {
-      const { container } = render(<Bottom5Bentos items={[]} />)
+    it('does not crash when items is empty', () => {
+      const { container } = render(<Bottom10Bentos items={[]} />)
       expect(container).toBeTruthy()
     })
 
-    it('renders a single item without crashing', () => {
-      render(<Bottom5Bentos items={buildItems(1)} />)
-      expect(screen.getByText('便當 1')).toBeTruthy()
+    it('renders with a single item', () => {
+      render(<Bottom10Bentos items={buildItems(1)} />)
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
+    })
+
+    it('renders with 3 items', () => {
+      render(<Bottom10Bentos items={buildItems(3)} />)
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
   })
 })

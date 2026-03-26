@@ -59,7 +59,7 @@ describe('AttendanceCalendar', () => {
           startDate={START_DATE}
         />,
       )
-      expect(screen.getByRole('region', { name: '月曆出勤全覽' })).toBeTruthy()
+      expect(screen.getByText('月曆出勤全覽')).toBeTruthy()
     })
   })
 
@@ -316,7 +316,7 @@ describe('AttendanceCalendar', () => {
           startDate={START_DATE}
         />,
       )
-      expect(screen.getByRole('region', { name: '月曆出勤全覽' })).toBeTruthy()
+      expect(screen.getByText('月曆出勤全覽')).toBeTruthy()
     })
   })
 })

@@ -1,12 +1,44 @@
 /**
  * Tests for Top10ProductsChart component.
- * Verifies item rendering, sort toggle buttons, and aria label.
- * After i18n: sort buttons use t('analytics.sortByQuantity') and t('analytics.sortByRevenue').
+ * Verifies chart rendering, sort toggle buttons, and card structure.
  */
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import type { ReactNode } from 'react'
 import type { ProductRanking } from '@/lib/repositories/statistics-repository'
+
+// Mock recharts so SVG elements don't fail in JSDOM
+vi.mock('recharts', () => ({
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: ({ dataKey }: { dataKey: string }) => (
+    <div data-testid={`bar-${dataKey}`} />
+  ),
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  ResponsiveContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="responsive-container">{children}</div>
+  ),
+  LabelList: () => null,
+  Cell: () => null,
+}))
+
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
+}))
+
 import { Top10ProductsChart } from './top10-products-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -26,8 +58,8 @@ const FIVE_ITEMS = buildItems(5)
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('Top10ProductsChart', () => {
-  describe('accessibility', () => {
-    it('renders the aria-label "商品排行" on the outer element', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
       render(
         <Top10ProductsChart
           items={TEN_ITEMS}
@@ -35,12 +67,12 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('region', { name: '商品排行' })).toBeTruthy()
+      expect(screen.getByText('熱銷商品 Top 10')).toBeTruthy()
     })
   })
 
-  describe('item rendering', () => {
-    it('renders all 10 items when given 10 items', () => {
+  describe('chart rendering', () => {
+    it('renders a ChartContainer', () => {
       render(
         <Top10ProductsChart
           items={TEN_ITEMS}
@@ -48,50 +80,10 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      for (const item of TEN_ITEMS) {
-        expect(screen.getByText(item.name)).toBeTruthy()
-      }
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
-    it('renders 5 items correctly when given fewer than 10', () => {
-      render(
-        <Top10ProductsChart
-          items={FIVE_ITEMS}
-          sortBy="quantity"
-          onSortChange={vi.fn()}
-        />,
-      )
-      for (const item of FIVE_ITEMS) {
-        expect(screen.getByText(item.name)).toBeTruthy()
-      }
-    })
-
-    it('displays quantity with 份 suffix when sortBy is quantity', () => {
-      render(
-        <Top10ProductsChart
-          items={FIVE_ITEMS}
-          sortBy="quantity"
-          onSortChange={vi.fn()}
-        />,
-      )
-      // First item has quantity 50 (5 items, first is (5-0)*10=50)
-      const quantityTexts = screen.getAllByText(/份/)
-      expect(quantityTexts.length).toBeGreaterThan(0)
-    })
-
-    it('displays revenue with $ prefix when sortBy is revenue', () => {
-      render(
-        <Top10ProductsChart
-          items={FIVE_ITEMS}
-          sortBy="revenue"
-          onSortChange={vi.fn()}
-        />,
-      )
-      const revenueTexts = screen.getAllByText(/\$/)
-      expect(revenueTexts.length).toBeGreaterThan(0)
-    })
-
-    it('renders rank numbers starting at #1', () => {
+    it('renders a BarChart', () => {
       render(
         <Top10ProductsChart
           items={TEN_ITEMS}
@@ -99,8 +91,18 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      expect(screen.getByText('#1')).toBeTruthy()
-      expect(screen.getByText('#10')).toBeTruthy()
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
+    })
+
+    it('renders the value bar', () => {
+      render(
+        <Top10ProductsChart
+          items={TEN_ITEMS}
+          sortBy="quantity"
+          onSortChange={vi.fn()}
+        />,
+      )
+      expect(screen.getByTestId('bar-value')).toBeTruthy()
     })
   })
 
@@ -113,7 +115,6 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      // After i18n: sortByQuantity = "依數量", sortByRevenue = "依營收"
       expect(screen.getByRole('button', { name: '依數量' })).toBeTruthy()
       expect(screen.getByRole('button', { name: '依營收' })).toBeTruthy()
     })
@@ -165,7 +166,18 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      expect(screen.getByText('商品 1')).toBeTruthy()
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
+    })
+
+    it('renders with 5 items', () => {
+      render(
+        <Top10ProductsChart
+          items={FIVE_ITEMS}
+          sortBy="quantity"
+          onSortChange={vi.fn()}
+        />,
+      )
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
   })
 })

@@ -99,16 +99,6 @@ describe('ProductKpiGrid', () => {
     })
   })
 
-  describe('NeonGradientCard for totalRevenue', () => {
-    it('wraps 總營業額 in a neon-gradient-card element', () => {
-      render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)
-      const card = screen.getByTestId('neon-gradient-card')
-      expect(card).toBeTruthy()
-      // The title should be inside the neon card
-      expect(card.textContent).toContain('總營業額')
-    })
-  })
-
   describe('layout', () => {
     it('renders exactly 6 KPI cards', () => {
       render(<ProductKpiGrid kpis={SAMPLE_KPIS} />)

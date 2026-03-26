@@ -1,13 +1,10 @@
 /**
  * StaffKpiGrid — 4-column grid of staff KPI cards.
- * Shows active employee count, total attendance days,
- * average monthly hours, and leave count.
- * All numeric values animate via NumberTicker.
+ * Uses the same PlainCard article style as ProductKpiGrid.
  */
 
 import { useTranslation } from 'react-i18next'
 import type { StaffKpis } from '@/lib/repositories/statistics-repository'
-import { NumberTicker } from '@/components/ui/number-ticker'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -19,53 +16,48 @@ interface StaffKpiGridProps {
 
 interface KpiCardProps {
   title: string
-  children: React.ReactNode
+  value: string
+  testId: string
 }
 
-function KpiCard({ title, children }: KpiCardProps) {
+function KpiCard({ title, value, testId }: KpiCardProps) {
   return (
     <article className="rounded-xl border bg-card p-4">
       <p className="text-muted-foreground text-base">{title}</p>
-      <div className="mt-1 text-2xl font-medium">{children}</div>
+      <div className="mt-1 text-2xl font-normal" data-testid={testId}>
+        {value}
+      </div>
     </article>
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-/**
- * Renders 4 staff KPI cards in a grid-cols-4 layout.
- * avgMonthlyHours is displayed with 1 decimal place and an "h" suffix.
- */
 export function StaffKpiGrid({ kpis }: StaffKpiGridProps) {
   const { t } = useTranslation()
 
   return (
     <div className="grid grid-cols-4 gap-4">
-      <KpiCard title={t('analytics.activeEmployees')}>
-        <span data-testid="kpi-activeEmployeeCount">
-          <NumberTicker value={kpis.activeEmployeeCount} />
-        </span>
-      </KpiCard>
-
-      <KpiCard title={t('analytics.totalAttendanceDays')}>
-        <span data-testid="kpi-totalAttendanceDays">
-          <NumberTicker value={kpis.totalAttendanceDays} />
-        </span>
-      </KpiCard>
-
-      <KpiCard title={t('analytics.avgMonthlyHours')}>
-        <span data-testid="kpi-avgMonthlyHours">
-          <NumberTicker value={kpis.avgMonthlyHours} decimalPlaces={1} />
-          {' h'}
-        </span>
-      </KpiCard>
-
-      <KpiCard title={t('analytics.leaveCount')}>
-        <span data-testid="kpi-leaveCount">
-          <NumberTicker value={kpis.leaveCount} />
-        </span>
-      </KpiCard>
+      <KpiCard
+        title={t('analytics.activeEmployees')}
+        value={kpis.activeEmployeeCount.toLocaleString()}
+        testId="kpi-activeEmployeeCount"
+      />
+      <KpiCard
+        title={t('analytics.totalAttendanceDays')}
+        value={kpis.totalAttendanceDays.toLocaleString()}
+        testId="kpi-totalAttendanceDays"
+      />
+      <KpiCard
+        title={t('analytics.avgMonthlyHours')}
+        value={`${kpis.avgMonthlyHours.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })} h`}
+        testId="kpi-avgMonthlyHours"
+      />
+      <KpiCard
+        title={t('analytics.leaveCount')}
+        value={kpis.leaveCount.toLocaleString()}
+        testId="kpi-leaveCount"
+      />
     </div>
   )
 }

@@ -43,7 +43,7 @@ describe('RevenueHeatmap', () => {
       render(
         <RevenueHeatmap data={buildFullMonthData()} year={2026} month={3} />,
       )
-      expect(screen.getByRole('region', { name: '月營收熱力圖' })).toBeTruthy()
+      expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
     })
   })
 
@@ -108,15 +108,14 @@ describe('RevenueHeatmap', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders 31 cells even when data is empty (zero revenue)', () => {
+    it('shows empty state when data is empty', () => {
       render(<RevenueHeatmap data={[]} year={2026} month={3} />)
-      const cells = screen.getAllByTestId('heatmap-cell')
-      expect(cells).toHaveLength(31)
+      expect(screen.getByText('目前沒有資料')).toBeTruthy()
     })
 
     it('renders aria-label even with empty data', () => {
       render(<RevenueHeatmap data={[]} year={2026} month={3} />)
-      expect(screen.getByRole('region', { name: '月營收熱力圖' })).toBeTruthy()
+      expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
     })
 
     it('renders no NeonGradientCard when all revenues are zero', () => {

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Pencil, Trash2 } from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
 import type { Order } from '@/lib/schemas'
+import { formatCurrency } from '@/lib/currency'
 import type { SwipeAction } from '@/components/ui/swipe-actions'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -58,10 +59,6 @@ function buildSwipeActions(
   ]
 }
 
-/** Format currency with thousands separators */
-function formatCurrency(amount: number | undefined): string {
-  return amount ? `$${amount.toLocaleString()}` : ''
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
@@ -123,7 +120,7 @@ export function OrderHistoryCard({
         <div className="flex items-baseline justify-end gap-2 mt-auto">
           {isDiscounted && (
             <span className="text-xs text-muted-foreground line-through">
-              {formatCurrency(order.originalTotal)}
+              {formatCurrency(order.originalTotal, { allowEmpty: true })}
             </span>
           )}
           <span className="text-lg font-semibold">

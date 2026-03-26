@@ -1,70 +1,128 @@
 /**
- * Bottom5Bentos — warning list of the 5 lowest-selling bento items.
- * Uses AnimatedList for stagger entrance; color-codes by rank severity.
+ * Bottom10Bentos — horizontal bar chart of the 10 lowest-selling bento items.
+ * Uses the same layout pattern as Top10ProductsChart.
  */
 
 import { useTranslation } from 'react-i18next'
-import { cn } from '@/lib/cn'
-import { AnimatedList } from '@/components/ui/animated-list'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { useAppStore } from '@/stores/app-store'
+import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
 import type { ProductRanking } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Bottom5BentosProps {
-  /** Up to 5 bento items sorted lowest → highest quantity. */
+interface Bottom10BentosProps {
   items: ProductRanking[]
 }
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MIN_CHART_HEIGHT = 300
+const ROW_HEIGHT = 40
+
+// Palette 3: Sunset Harvest
+const PALETTE = CHART_PALETTES.sunsetHarvest
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Returns the Tailwind color class for a given 1-based rank. */
-function rankColorClass(rank: number): string {
-  if (rank === 1) return 'text-destructive'
-  if (rank === 2) return 'text-orange-500'
-  return 'text-yellow-500'
+interface ChartRow {
+  name: string
+  value: number
+}
+
+function buildChartData(items: ProductRanking[]): ChartRow[] {
+  return items.map(item => ({
+    name: item.name,
+    value: item.quantity,
+  }))
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-/**
- * Renders a staggered list of the bottom 5 bento items.
- * The lowest-selling item is ranked #1 and shown in destructive red.
- */
-export function Bottom5Bentos({ items }: Bottom5BentosProps) {
+export function Bottom10Bentos({ items }: Bottom10BentosProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
+
+  const chartConfig = {
+    value: {
+      label: t('analytics.quantity'),
+      color: 'var(--chart-4)',
+    },
+  } satisfies ChartConfig
+
+  const chartData = buildChartData(items)
+  const minHeight = Math.max(MIN_CHART_HEIGHT, items.length * ROW_HEIGHT)
+  const maxValue = Math.max(...chartData.map(d => d.value), 1)
 
   return (
-    <section aria-label={t('analytics.lowestSalesBentos')}>
-      <AnimatedList>
-        {items.map((item, index) => {
-          const rank = index + 1
-          return (
-            <div
-              key={item.comId}
-              data-rank={rank}
-              className={cn(
-                'flex items-center gap-3 py-2',
-                rankColorClass(rank),
-              )}
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.bottom10Title')}</CardTitle>
+        <CardDescription>{t('analytics.bottom10Desc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {chartData.length === 0 ? <ChartEmpty /> : (
+        <ChartContainer
+          config={chartConfig}
+          className="w-full"
+          style={{ minHeight }}
+        >
+          <BarChart
+            layout="vertical"
+            data={chartData}
+            margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
+            accessibilityLayer
+          >
+            <CartesianGrid horizontal={false} />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={100}
+              tickLine={false}
+              tick={{ fontSize }}
+              axisLine={false}
+            />
+            <XAxis
+              type="number"
+              domain={[0, maxValue * 1.13]}
+              tick={{ fontSize }}
+              hide
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <Bar
+              dataKey="value"
+              name={t('analytics.quantity')}
+              radius={[0, 4, 4, 0]}
             >
-              {/* Rank badge */}
-              <span className="w-6 shrink-0 text-center text-base font-medium">
-                {rank}
-              </span>
-
-              {/* Name */}
-              <span className="min-w-0 flex-1 truncate text-base">
-                {item.name}
-              </span>
-
-              {/* Quantity */}
-              <span className="shrink-0 text-base tabular-nums">
-                {item.quantity}
-              </span>
-            </div>
-          )
-        })}
-      </AnimatedList>
-    </section>
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={getColor(PALETTE, i)} />
+              ))}
+              <LabelList
+                dataKey="value"
+                position="right"
+                offset={8}
+                className="fill-foreground"
+                fontSize="var(--font-size)"
+              />
+            </Bar>
+          </BarChart>
+        </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -11,7 +11,7 @@ import { AnalyticsTabBar } from '@/components/analytics/analytics-tab-bar'
 import { AnalyticsDatePicker } from '@/components/analytics/analytics-date-picker'
 import { ProductKpiGrid } from '@/components/analytics/product-stats/product-kpi-grid'
 import { OrderTimeChart } from '@/components/analytics/product-stats/order-time-chart'
-import { Bottom5Bentos } from '@/components/analytics/product-stats/bottom5-bentos'
+import { Bottom10Bentos } from '@/components/analytics/product-stats/bottom5-bentos'
 import { Top10ProductsChart } from '@/components/analytics/product-stats/top10-products-chart'
 import { RevenueComparisonChart } from '@/components/analytics/product-stats/revenue-comparison-chart'
 import { AvgOrderValueChart } from '@/components/analytics/product-stats/avg-order-value-chart'
@@ -37,7 +37,11 @@ interface ProductStatsProps {
   statisticsRepo: StatisticsRepository
 }
 
-function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps) {
+function ProductStats({
+  startDate,
+  endDate,
+  statisticsRepo,
+}: ProductStatsProps) {
   const { t } = useTranslation()
   const [kpis, setKpis] = useState<ProductKpis | null>(null)
   const [hourlyData, setHourlyData] = useState<HourBucket[]>([])
@@ -49,7 +53,9 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
   const [prevMonthData, setPrevMonthData] = useState<DailyRevenue[]>([])
   const [avgOrderValue, setAvgOrderValue] = useState<DailyRevenue[]>([])
   const [productTrendData, setProductTrendData] = useState<DailyRevenue[]>([])
-  const [commodities, setCommodities] = useState<Array<{ id: string; name: string }>>([])
+  const [commodities, setCommodities] = useState<
+    Array<{ id: string; name: string }>
+  >([])
   const [selectedCommodityId, setSelectedCommodityId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
 
@@ -72,8 +78,14 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
     }
 
     // Previous month range derived from the start of the current range.
-    const prevStart = dayjs(startDate).subtract(1, 'month').startOf('month').toDate()
-    const prevEnd = dayjs(startDate).subtract(1, 'month').endOf('month').toDate()
+    const prevStart = dayjs(startDate)
+      .subtract(1, 'month')
+      .startOf('month')
+      .toDate()
+    const prevEnd = dayjs(startDate)
+      .subtract(1, 'month')
+      .endOf('month')
+      .toDate()
     const prevRange = {
       startDate: prevStart.getTime(),
       endDate: prevEnd.getTime(),
@@ -82,24 +94,35 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
     Promise.all([
       statisticsRepo.getProductKpis(range),
       statisticsRepo.getHourlyOrderDistribution(range),
-      statisticsRepo.getBottomBentos(range, 5),
+      statisticsRepo.getBottomBentos(range, 10),
       statisticsRepo.getDailyRevenue(range),
       statisticsRepo.getDailyRevenue(prevRange),
       statisticsRepo.getAvgOrderValue(range),
     ])
-      .then(([kpisResult, hourlyResult, bottomResult, currentRev, prevRev, avgResult]) => {
-        if (cancelled) return
-        setKpis(kpisResult)
-        setHourlyData(hourlyResult)
-        setBottomBentos(bottomResult)
-        // Pad both series to fill the full date range.
-        setDailyRevenue(formatWeekDays(currentRev, startDate, endDate))
-        setPrevMonthData(formatWeekDays(prevRev, prevStart, prevEnd))
-        setAvgOrderValue(formatWeekDays(avgResult, startDate, endDate))
-      })
+      .then(
+        ([
+          kpisResult,
+          hourlyResult,
+          bottomResult,
+          currentRev,
+          prevRev,
+          avgResult,
+        ]) => {
+          if (cancelled) return
+          setKpis(kpisResult)
+          setHourlyData(hourlyResult)
+          setBottomBentos(bottomResult)
+          // Pad both series to fill the full date range.
+          setDailyRevenue(formatWeekDays(currentRev, startDate, endDate))
+          setPrevMonthData(formatWeekDays(prevRev, prevStart, prevEnd))
+          setAvgOrderValue(formatWeekDays(avgResult, startDate, endDate))
+        },
+      )
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('analytics.loadError'))
+          setError(
+            err instanceof Error ? err.message : t('analytics.loadError'),
+          )
         }
       })
 
@@ -121,12 +144,14 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
 
     statisticsRepo
       .getTopProducts(range, 10, sortBy)
-      .then(result => {
+      .then((result) => {
         if (!cancelled) setTopItems(result)
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('analytics.rankLoadError'))
+          setError(
+            err instanceof Error ? err.message : t('analytics.rankLoadError'),
+          )
         }
       })
 
@@ -147,9 +172,9 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
           return []
         }
       })
-      .then(items => {
+      .then((items) => {
         if (cancelled) return
-        const opts = items.map(c => ({ id: c.id, name: c.name }))
+        const opts = items.map((c) => ({ id: c.id, name: c.name }))
         setCommodities(opts)
         if (opts.length > 0 && selectedCommodityId === '') {
           setSelectedCommodityId(opts[0]!.id)
@@ -181,14 +206,16 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
 
     statisticsRepo
       .getProductDailyRevenue(range, selectedCommodityId)
-      .then(result => {
+      .then((result) => {
         if (!cancelled) {
           setProductTrendData(formatWeekDays(result, startDate, endDate))
         }
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('analytics.trendLoadError'))
+          setError(
+            err instanceof Error ? err.message : t('analytics.trendLoadError'),
+          )
         }
       })
 
@@ -201,18 +228,15 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
   const currentYear = startDate.getFullYear()
 
   return (
-    <section aria-label={t('analytics.productStats')} className="flex flex-col gap-6">
-      {error !== null && (
-        <p className="text-destructive text-base">{error}</p>
-      )}
+    <section
+      aria-label={t('analytics.productStats')}
+      className="flex flex-col gap-6"
+    >
+      {error !== null && <p className="text-destructive text-base">{error}</p>}
 
       {kpis !== null && <ProductKpiGrid kpis={kpis} />}
 
       <OrderTimeChart data={hourlyData} />
-
-      {bottomBentos.length > 0 && (
-        <Bottom5Bentos items={bottomBentos} />
-      )}
 
       <Top10ProductsChart
         items={topItems}
@@ -241,10 +265,11 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
         year={currentYear}
         month={currentMonth}
       />
+
+      {bottomBentos.length > 0 && <Bottom10Bentos items={bottomBentos} />}
     </section>
   )
 }
-
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -260,17 +285,20 @@ interface AnalyticsPageProps {
 
 /**
  * Analytics page scaffold: tab bar + date picker + conditional stats sections.
+ * Default date is today (single day).
  */
-export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps = {}) {
+export function AnalyticsPage({
+  statisticsRepo: repoProp,
+}: AnalyticsPageProps = {}) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('product')
   const [startDate, setStartDate] = useState<Date>(
-    dayjs().startOf('month').toDate(),
+    dayjs().startOf('day').toDate(),
   )
-  const [endDate, setEndDate] = useState<Date>(
-    dayjs().endOf('month').toDate(),
+  const [endDate, setEndDate] = useState<Date>(dayjs().endOf('day').toDate())
+  const [dynamicRepo, setDynamicRepo] = useState<StatisticsRepository | null>(
+    null,
   )
-  const [dynamicRepo, setDynamicRepo] = useState<StatisticsRepository | null>(null)
   const [providerError, setProviderError] = useState<string | null>(null)
 
   // Lazily resolve the global singleton on first render when no prop is given.
@@ -281,7 +309,11 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
         try {
           setDynamicRepo(getStatisticsRepo())
         } catch (err) {
-          setProviderError(err instanceof Error ? err.message : t('analytics.providerInitError'))
+          setProviderError(
+            err instanceof Error
+              ? err.message
+              : t('analytics.providerInitError'),
+          )
         }
       })
       .catch(() => {
@@ -297,24 +329,14 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
     setEndDate(end)
   }
 
-  function handleTabChange(tab: AnalyticsTab) {
-    setActiveTab(tab)
-    // When switching to staff mode, snap to the current month
-    if (tab === 'staff') {
-      setStartDate(dayjs().startOf('month').toDate())
-      setEndDate(dayjs().endOf('month').toDate())
-    }
-  }
-
   return (
     <div className="flex flex-col gap-6 p-6">
-      <AnalyticsTabBar activeTab={activeTab} onTabChange={handleTabChange} />
+      <AnalyticsTabBar activeTab={activeTab} onTabChange={setActiveTab} />
 
       <AnalyticsDatePicker
         startDate={startDate}
         endDate={endDate}
         onChange={handleDateChange}
-        mode={activeTab === 'staff' ? 'month' : 'range'}
       />
 
       {activeTab === 'product' ? (

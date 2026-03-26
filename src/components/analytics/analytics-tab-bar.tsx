@@ -42,7 +42,7 @@ export function AnalyticsTabBar({ activeTab, onTabChange }: AnalyticsTabBarProps
           aria-selected={activeTab === tab.value}
           onClick={() => onTabChange(tab.value)}
           className={cn(
-            'flex-1 rounded-md px-4 py-2 text-base font-medium transition-colors',
+            'flex-1 rounded-md px-4 py-2 text-base font-normal transition-colors',
             activeTab === tab.value
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',

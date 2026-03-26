@@ -80,15 +80,6 @@ export function OrdersDateHeader({
           <ChevronLeft className="h-5 w-5" />
         </RippleButton>
 
-        {/* Next day button */}
-        <RippleButton
-          className={buttonVariants({ variant: 'ghost', size: 'icon' })}
-          aria-label={t('orders.nextDay')}
-          onClick={handleNextDay}
-        >
-          <ChevronRight className="h-5 w-5" />
-        </RippleButton>
-
         {/* Calendar popover */}
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
@@ -110,6 +101,15 @@ export function OrdersDateHeader({
             />
           </PopoverContent>
         </Popover>
+
+        {/* Next day button */}
+        <RippleButton
+          className={buttonVariants({ variant: 'ghost', size: 'icon' })}
+          aria-label={t('orders.nextDay')}
+          onClick={handleNextDay}
+        >
+          <ChevronRight className="h-5 w-5" />
+        </RippleButton>
       </div>
 
       {/* Right: search button */}

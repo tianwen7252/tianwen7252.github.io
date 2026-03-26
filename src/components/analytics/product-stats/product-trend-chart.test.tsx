@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
@@ -17,6 +17,7 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
+  CartesianGrid: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -29,6 +30,21 @@ vi.mock('@/components/ui/chart', () => ({
   ),
   ChartTooltip: () => null,
   ChartTooltipContent: () => null,
+}))
+
+// Mock the shadcn select components (Radix-based, no native <select>)
+vi.mock('@/components/ui/select', () => ({
+  Select: ({ children }: { children: ReactNode }) => <div data-testid="select-root">{children}</div>,
+  SelectTrigger: ({ children }: { children: ReactNode }) => <button data-testid="select-trigger">{children}</button>,
+  SelectValue: () => <span data-testid="select-value" />,
+  SelectContent: ({ children }: { children: ReactNode }) => <div data-testid="select-content">{children}</div>,
+  SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
+    <div data-testid={`select-item-${value}`}>{children}</div>
+  ),
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { ProductTrendChart } from './product-trend-chart'
@@ -51,8 +67,8 @@ function buildTrendData(): DailyRevenue[] {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('ProductTrendChart', () => {
-  describe('accessibility', () => {
-    it('renders aria-label "商品銷售趨勢" on the outer div', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
       render(
         <ProductTrendChart
           data={buildTrendData()}
@@ -61,7 +77,7 @@ describe('ProductTrendChart', () => {
           onSelectChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('region', { name: '商品銷售趨勢' })).toBeTruthy()
+      expect(screen.getByText('商品銷售趨勢')).toBeTruthy()
     })
   })
 
@@ -104,7 +120,7 @@ describe('ProductTrendChart', () => {
   })
 
   describe('commodity select', () => {
-    it('renders a select element', () => {
+    it('renders a select trigger', () => {
       render(
         <ProductTrendChart
           data={buildTrendData()}
@@ -113,10 +129,10 @@ describe('ProductTrendChart', () => {
           onSelectChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('combobox')).toBeTruthy()
+      expect(screen.getByTestId('select-trigger')).toBeTruthy()
     })
 
-    it('renders an option for each commodity', () => {
+    it('renders select items for each commodity', () => {
       render(
         <ProductTrendChart
           data={buildTrendData()}
@@ -126,36 +142,8 @@ describe('ProductTrendChart', () => {
         />,
       )
       for (const c of COMMODITIES) {
-        expect(screen.getByRole('option', { name: c.name })).toBeTruthy()
+        expect(screen.getByTestId(`select-item-${c.id}`)).toBeTruthy()
       }
-    })
-
-    it('shows the selectedId as the current value', () => {
-      render(
-        <ProductTrendChart
-          data={buildTrendData()}
-          commodities={COMMODITIES}
-          selectedId="com-002"
-          onSelectChange={vi.fn()}
-        />,
-      )
-      const select = screen.getByRole('combobox') as HTMLSelectElement
-      expect(select.value).toBe('com-002')
-    })
-
-    it('calls onSelectChange with new id when user changes selection', () => {
-      const onSelectChange = vi.fn()
-      render(
-        <ProductTrendChart
-          data={buildTrendData()}
-          commodities={COMMODITIES}
-          selectedId="com-001"
-          onSelectChange={onSelectChange}
-        />,
-      )
-      const select = screen.getByRole('combobox')
-      fireEvent.change(select, { target: { value: 'com-003' } })
-      expect(onSelectChange).toHaveBeenCalledWith('com-003')
     })
   })
 
@@ -184,7 +172,7 @@ describe('ProductTrendChart', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders aria-label even with empty data', () => {
+    it('renders card title even with empty data', () => {
       render(
         <ProductTrendChart
           data={[]}
@@ -193,7 +181,7 @@ describe('ProductTrendChart', () => {
           onSelectChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('region', { name: '商品銷售趨勢' })).toBeTruthy()
+      expect(screen.getByText('商品銷售趨勢')).toBeTruthy()
     })
   })
 
@@ -207,7 +195,7 @@ describe('ProductTrendChart', () => {
           onSelectChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('option', { name: '招牌便當' })).toBeTruthy()
+      expect(screen.getByText('招牌便當')).toBeTruthy()
     })
   })
 })

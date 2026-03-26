@@ -1,70 +1,105 @@
 /**
- * DailyHeadcountChart — line chart showing daily attendance headcount.
- * X axis: date, Y axis: number of employees who attended.
- * Uses Recharts LineChart with monotone interpolation.
+ * DailyHeadcountChart — area chart showing daily attendance rate as percentage.
+ * X axis: date, Y axis: attendance rate (headcount / totalEmployees * 100).
  */
 
 import { useTranslation } from 'react-i18next'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from 'recharts'
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { useAppStore } from '@/stores/app-store'
+import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
 import type { DailyHeadcount } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface DailyHeadcountChartProps {
   data: DailyHeadcount[]
+  totalEmployees: number
 }
 
-// ─── Static chart color ───────────────────────────────────────────────────────
+interface ChartRow {
+  date: string
+  rate: number
+}
 
-const CHART_COLOR = 'hsl(var(--chart-1))'
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-// ─── Main component ───────────────────────────────────────────────────────────
+function buildChartData(data: DailyHeadcount[], totalEmployees: number): ChartRow[] {
+  return data.map(d => ({
+    date: d.date.slice(5),
+    rate: totalEmployees > 0 ? Math.round((d.count / totalEmployees) * 100) : 0,
+  }))
+}
 
-/**
- * Renders a line chart with one point per day showing attendance headcount.
- * The caller is responsible for zero-filling missing dates before passing data.
- */
-export function DailyHeadcountChart({ data }: DailyHeadcountChartProps) {
+// ─── Component ───────────────────────────────────────────────────────────────
+
+export function DailyHeadcountChart({ data, totalEmployees }: DailyHeadcountChartProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
 
-  // Chart config built inside component so labels use translated strings.
+  // Palette 2: Ocean Breeze
+  const palette = CHART_PALETTES.oceanBreeze
+
   const chartConfig = {
-    count: {
-      label: t('analytics.headcount'),
-      color: CHART_COLOR,
+    rate: {
+      label: t('analytics.attendanceRate'),
+      color: palette[0],
     },
   } satisfies ChartConfig
 
+  const chartData = buildChartData(data, totalEmployees)
+
   return (
-    <section aria-label={t('analytics.dailyHeadcount')}>
-      <ChartContainer config={chartConfig} className="min-h-[280px] w-full">
-        <LineChart data={data} accessibilityLayer>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-          <YAxis allowDecimals={false} />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Line
-            type="monotone"
-            dataKey="count"
-            name={t('analytics.headcount')}
-            stroke="var(--color-count)"
-            dot={false}
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ChartContainer>
-    </section>
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.attendanceRateTitle')}</CardTitle>
+        <CardDescription>{t('analytics.attendanceRateDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {chartData.length === 0 || chartData.every(d => d.rate === 0) ? <ChartEmpty /> : (
+        <ChartContainer config={chartConfig} className="min-h-[280px] w-full">
+          <AreaChart data={chartData} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize }} />
+            <YAxis
+              tick={{ fontSize }}
+              allowDecimals={false}
+              domain={[0, 100]}
+              tickFormatter={(v: number) => `${v}%`}
+              hide
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <defs>
+              <linearGradient id="fillRate" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-rate)" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="var(--color-rate)" stopOpacity={0.1} />
+              </linearGradient>
+            </defs>
+            <Area
+              type="monotone"
+              dataKey="rate"
+              name={t('analytics.attendanceRate')}
+              stroke="var(--color-rate)"
+              fill="url(#fillRate)"
+              strokeWidth={2}
+            />
+          </AreaChart>
+        </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }

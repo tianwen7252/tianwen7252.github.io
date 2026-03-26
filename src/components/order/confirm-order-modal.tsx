@@ -89,14 +89,14 @@ export function ConfirmOrderModal({
           <RippleButton
             onClick={onClose}
             rippleColor="rgba(0, 0, 0, 0.1)"
-            className="flex-1 rounded-lg border border-black/8 bg-white/50 px-4 py-3 text-md text-gray-600 transition hover:-translate-y-0.5"
+            className="flex-1 rounded-lg border h-14 border-black/8 bg-white/50 px-4 py-3 text-md text-gray-600 transition hover:-translate-y-0.5"
           >
             {t('common.cancel')}
           </RippleButton>
           <RippleButton
             onClick={() => onConfirm(selectedTags)}
             disabled={isSubmitting}
-            className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-md text-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="flex flex-1 items-center h-14 justify-center gap-2 rounded-lg bg-primary px-4 py-3 text-md text-white transition hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting && <LoaderCircle className="size-4 animate-spin" />}
             {t('order.confirmSubmit')}

@@ -1,24 +1,26 @@
 /**
- * StaffHoursChart — horizontal stacked bar chart showing per-employee
- * working hours broken down by attendance type.
- * Uses Recharts BarChart with layout="vertical".
+ * StaffHoursChart — horizontal bar chart showing total working hours per employee.
+ * Follows the same layout pattern as Top10ProductsChart.
  */
 
 import { useTranslation } from 'react-i18next'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { useAppStore } from '@/stores/app-store'
+import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
 import type { EmployeeHours } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,85 +32,99 @@ interface StaffHoursChartProps {
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const MIN_CHART_HEIGHT = 300
-const ROW_HEIGHT = 48
+const ROW_HEIGHT = 40
 
-// ─── Static segment keys ──────────────────────────────────────────────────────
+// Palette 5: Mineral Stone
+const PALETTE = CHART_PALETTES.mineralStone
 
-type SegmentKey = 'regular' | 'paidLeave' | 'sickLeave' | 'personalLeave' | 'absent'
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const SEGMENT_KEYS: SegmentKey[] = ['regular', 'paidLeave', 'sickLeave', 'personalLeave', 'absent']
-
-const SEGMENT_LABEL_KEYS: Record<SegmentKey, string> = {
-  regular: 'analytics.regularLabel',
-  paidLeave: 'analytics.paidLeave',
-  sickLeave: 'analytics.sickLeave',
-  personalLeave: 'analytics.personalLeave',
-  absent: 'analytics.absent',
+interface ChartRow {
+  name: string
+  totalHours: number
 }
 
-const SEGMENT_COLORS: Record<SegmentKey, string> = {
-  regular: 'hsl(var(--chart-1))',
-  paidLeave: 'hsl(var(--chart-2))',
-  sickLeave: 'hsl(var(--chart-3))',
-  personalLeave: 'hsl(var(--chart-4))',
-  absent: 'hsl(var(--chart-5))',
+function buildChartData(data: EmployeeHours[]): ChartRow[] {
+  return data
+    .map(row => ({
+      name: row.employeeName,
+      totalHours: row.regular + row.paidLeave + row.sickLeave + row.personalLeave,
+    }))
+    .sort((a, b) => b.totalHours - a.totalHours)
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// ─── Component ───────────────────────────────────────────────────────────────
 
-/**
- * Renders a horizontal stacked bar chart with one row per employee.
- * Each bar is split into 5 colored segments: regular, paidLeave, sickLeave, personalLeave, absent.
- */
 export function StaffHoursChart({ data }: StaffHoursChartProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
 
-  // Chart config built inside component so labels use translated strings.
-  const chartConfig = Object.fromEntries(
-    SEGMENT_KEYS.map(key => [
-      key,
-      {
-        label: t(SEGMENT_LABEL_KEYS[key]),
-        color: SEGMENT_COLORS[key],
-      },
-    ]),
-  ) as ChartConfig
+  const chartConfig = {
+    totalHours: {
+      label: t('analytics.totalHours'),
+      color: 'var(--chart-3)',
+    },
+  } satisfies ChartConfig
 
-  // Map to recharts-compatible format keyed by employeeName
-  const chartData = data.map(row => ({
-    name: row.employeeName,
-    regular: row.regular,
-    paidLeave: row.paidLeave,
-    sickLeave: row.sickLeave,
-    personalLeave: row.personalLeave,
-    absent: row.absent,
-  }))
-
+  const chartData = buildChartData(data)
   const minHeight = Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT)
+  const maxValue = Math.max(...chartData.map(d => d.totalHours), 1)
 
   return (
-    <section aria-label={t('analytics.staffHoursDistribution')}>
-      <ChartContainer
-        config={chartConfig}
-        className="w-full"
-        style={{ minHeight }}
-      >
-        <BarChart layout="vertical" data={chartData} accessibilityLayer>
-          <XAxis type="number" />
-          <YAxis type="category" dataKey="name" width={80} />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-          {SEGMENT_KEYS.map(key => (
-            <Bar
-              key={key}
-              dataKey={key}
-              name={t(SEGMENT_LABEL_KEYS[key])}
-              stackId="hours"
-              fill={`var(--color-${key})`}
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.staffHoursTitle')}</CardTitle>
+        <CardDescription>{t('analytics.staffHoursDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {chartData.length === 0 ? <ChartEmpty /> : (
+        <ChartContainer
+          config={chartConfig}
+          className="w-full"
+          style={{ minHeight }}
+        >
+          <BarChart
+            layout="vertical"
+            data={chartData}
+            margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
+            accessibilityLayer
+          >
+            <CartesianGrid horizontal={false} />
+            <YAxis
+              type="category"
+              dataKey="name"
+              width={80}
+              tickLine={false}
+              tick={{ fontSize }}
+              axisLine={false}
             />
-          ))}
-        </BarChart>
-      </ChartContainer>
-    </section>
+            <XAxis
+              type="number"
+              domain={[0, maxValue * 1.13]}
+              tick={{ fontSize }}
+              hide
+            />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <Bar
+              dataKey="totalHours"
+              name={t('analytics.totalHours')}
+              radius={[0, 4, 4, 0]}
+            >
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={getColor(PALETTE, i)} />
+              ))}
+              <LabelList
+                dataKey="totalHours"
+                position="right"
+                offset={8}
+                className="fill-foreground"
+                fontSize="var(--font-size)"
+              />
+            </Bar>
+          </BarChart>
+        </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -8,6 +8,7 @@ import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Sun, MoonStar, CircleDollarSign } from 'lucide-react'
 import type { Order } from '@/lib/schemas'
+import { formatCurrency } from '@/lib/currency'
 import { MORNING_SHIFT } from '@/constants/app'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -71,10 +72,6 @@ function computeShiftStats(orders: readonly Order[]): {
   }
 }
 
-/** Format currency with thousands separators */
-function formatCurrency(amount: number): string {
-  return `$${amount.toLocaleString()}`
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 

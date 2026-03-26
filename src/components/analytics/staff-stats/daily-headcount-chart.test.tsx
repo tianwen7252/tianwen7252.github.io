@@ -10,11 +10,11 @@ import type { DailyHeadcount } from '@/lib/repositories/statistics-repository'
 
 // Mock recharts to avoid JSDOM SVG rendering issues
 vi.mock('recharts', () => ({
-  LineChart: ({ children }: { children: ReactNode }) => (
-    <div data-testid="line-chart">{children}</div>
+  AreaChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="area-chart">{children}</div>
   ),
-  Line: ({ dataKey }: { dataKey: string }) => (
-    <div data-testid={`line-${dataKey}`} />
+  Area: ({ dataKey }: { dataKey: string }) => (
+    <div data-testid={`area-${dataKey}`} />
   ),
   XAxis: () => null,
   YAxis: () => null,
@@ -34,6 +34,10 @@ vi.mock('@/components/ui/chart', () => ({
   ChartTooltipContent: () => null,
 }))
 
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
+}))
+
 import { DailyHeadcountChart } from './daily-headcount-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -48,37 +52,35 @@ const SAMPLE_DATA: DailyHeadcount[] = [
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('DailyHeadcountChart', () => {
-  describe('accessibility', () => {
-    it('renders aria-label "每日到班人數" section', () => {
-      render(<DailyHeadcountChart data={SAMPLE_DATA} />)
-      expect(screen.getByRole('region', { name: '每日到班人數' })).toBeTruthy()
-    })
-  })
-
   describe('chart rendering', () => {
     it('renders a ChartContainer', () => {
-      render(<DailyHeadcountChart data={SAMPLE_DATA} />)
+      render(<DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={10} />)
       expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
-    it('renders line chart element', () => {
-      render(<DailyHeadcountChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('line-chart')).toBeTruthy()
+    it('renders area chart element', () => {
+      render(<DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={10} />)
+      expect(screen.getByTestId('area-chart')).toBeTruthy()
     })
 
-    it('renders the count data line', () => {
-      render(<DailyHeadcountChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('line-count')).toBeTruthy()
+    it('renders the rate data area', () => {
+      render(<DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={10} />)
+      expect(screen.getByTestId('area-rate')).toBeTruthy()
     })
 
     it('does not crash with empty data', () => {
-      const { container } = render(<DailyHeadcountChart data={[]} />)
+      const { container } = render(<DailyHeadcountChart data={[]} totalEmployees={10} />)
       expect(container).toBeTruthy()
     })
 
     it('renders with single data point', () => {
-      render(<DailyHeadcountChart data={[{ date: '2026-03-01', count: 5 }]} />)
-      expect(screen.getByTestId('line-chart')).toBeTruthy()
+      render(<DailyHeadcountChart data={[{ date: '2026-03-01', count: 5 }]} totalEmployees={10} />)
+      expect(screen.getByTestId('area-chart')).toBeTruthy()
+    })
+
+    it('handles zero totalEmployees without errors', () => {
+      const { container } = render(<DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={0} />)
+      expect(container).toBeTruthy()
     })
   })
 })

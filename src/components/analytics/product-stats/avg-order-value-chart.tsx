@@ -1,15 +1,10 @@
 /**
  * AvgOrderValueChart — line chart showing daily average order value with a
- * 7-day moving average overlay.
+ * 7-day moving average overlay. Two lines use different colors.
  */
 
 import { useTranslation } from 'react-i18next'
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
@@ -18,16 +13,24 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { useAppStore } from '@/stores/app-store'
+import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface AvgOrderValueChartProps {
-  /** Daily average order value series (revenue field = avg order value). */
   data: DailyRevenue[]
 }
 
-/** Merged row with raw value and 7-day moving average. */
 interface ChartRow {
   day: number
   avgOrderValue: number
@@ -38,19 +41,8 @@ interface ChartRow {
 
 const WINDOW_SIZE = 7
 
-// ─── Chart config (static colors — labels resolved inside component) ──────────
-
-const CHART_COLORS = {
-  avgOrderValue: 'hsl(var(--chart-1))',
-  movingAvg7d: 'hsl(var(--chart-2))',
-} as const
-
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/**
- * Compute a 7-day trailing moving average over the revenue series.
- * Returns null for positions with fewer than WINDOW_SIZE preceding points.
- */
 function computeMovingAverage(values: number[], window: number): (number | null)[] {
   return values.map((_, i) => {
     if (i < window - 1) return null
@@ -60,9 +52,6 @@ function computeMovingAverage(values: number[], window: number): (number | null)
   })
 }
 
-/**
- * Transform DailyRevenue array into recharts-compatible rows with moving avg.
- */
 function buildChartData(data: DailyRevenue[]): ChartRow[] {
   const values = data.map(d => d.revenue)
   const ma = computeMovingAverage(values, WINDOW_SIZE)
@@ -75,54 +64,61 @@ function buildChartData(data: DailyRevenue[]): ChartRow[] {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-/**
- * Renders a LineChart with raw average order value and a 7-day moving average.
- */
 export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
   const chartData = buildChartData(data)
 
-  // Chart config built inside component so labels use translated strings.
+  // Palette 4: Berry Garden
+  const palette = CHART_PALETTES.berryGarden
+
   const chartConfig = {
     avgOrderValue: {
       label: t('analytics.avgOrderValue'),
-      color: CHART_COLORS.avgOrderValue,
+      color: palette[0],
     },
     movingAvg7d: {
       label: t('analytics.movingAvg7d'),
-      color: CHART_COLORS.movingAvg7d,
+      color: palette[1],
     },
   } satisfies ChartConfig
 
   return (
-    <div aria-label={t('analytics.avgOrderValueTrend')} role="region">
-      <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-        <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }} accessibilityLayer>
-          <XAxis dataKey="day" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <ChartLegend content={<ChartLegendContent />} />
-          <Line
-            type="monotone"
-            dataKey="avgOrderValue"
-            name={t('analytics.avgOrderValue')}
-            stroke="var(--color-avgOrderValue)"
-            strokeWidth={2}
-            dot={false}
-            connectNulls={false}
-          />
-          <Line
-            type="monotone"
-            dataKey="movingAvg7d"
-            name={t('analytics.movingAvg7d')}
-            stroke="var(--color-movingAvg7d)"
-            strokeWidth={2}
-            dot={false}
-            connectNulls={false}
-            strokeDasharray="4 2"
-          />
-        </LineChart>
-      </ChartContainer>
-    </div>
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.avgOrderValueTitle')}</CardTitle>
+        <CardDescription>{t('analytics.avgOrderValueDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {chartData.length === 0 || chartData.every(d => d.avgOrderValue === 0) ? <ChartEmpty /> : (
+        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+          <LineChart data={chartData} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+            <YAxis tick={{ fontSize }} allowDecimals={false} hide />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Line
+              type="monotone"
+              dataKey="avgOrderValue"
+              name={t('analytics.avgOrderValue')}
+              stroke="var(--color-avgOrderValue)"
+              strokeWidth={2}
+              dot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="movingAvg7d"
+              name={t('analytics.movingAvg7d')}
+              stroke="var(--color-movingAvg7d)"
+              strokeWidth={2}
+              dot={false}
+              strokeDasharray="4 2"
+            />
+          </LineChart>
+        </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }

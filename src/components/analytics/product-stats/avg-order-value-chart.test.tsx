@@ -19,6 +19,7 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
+  CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
@@ -38,6 +39,10 @@ vi.mock('@/components/ui/chart', () => ({
   ChartLegendContent: () => <div data-testid="chart-legend-content" />,
 }))
 
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
+}))
+
 import { AvgOrderValueChart } from './avg-order-value-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -52,10 +57,10 @@ function buildAvgData(days = 30): DailyRevenue[] {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('AvgOrderValueChart', () => {
-  describe('accessibility', () => {
-    it('renders aria-label "平均客單價趨勢" on the outer div', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
       render(<AvgOrderValueChart data={buildAvgData()} />)
-      expect(screen.getByRole('region', { name: '平均客單價趨勢' })).toBeTruthy()
+      expect(screen.getByText('平均客單價趨勢')).toBeTruthy()
     })
   })
 
@@ -89,9 +94,9 @@ describe('AvgOrderValueChart', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders aria-label even with empty data', () => {
+    it('renders card title even with empty data', () => {
       render(<AvgOrderValueChart data={[]} />)
-      expect(screen.getByRole('region', { name: '平均客單價趨勢' })).toBeTruthy()
+      expect(screen.getByText('平均客單價趨勢')).toBeTruthy()
     })
   })
 

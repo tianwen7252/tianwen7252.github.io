@@ -6,6 +6,13 @@
 
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
 import type { DailyHeadcount, StatisticsRepository } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -62,17 +69,14 @@ function buildCells(year: number, month: number): Array<DayCell | null> {
 
   const cells: Array<DayCell | null> = []
 
-  // Leading blank cells for alignment
   for (let i = 0; i < firstDayOfWeek; i++) {
     cells.push(null)
   }
 
-  // Day cells
   for (let day = 1; day <= daysInMonth; day++) {
     cells.push({ day, dateStr: formatDateStr(year, month, day) })
   }
 
-  // Trailing blanks to complete the last row
   const remainder = cells.length % 7
   if (remainder !== 0) {
     for (let i = 0; i < 7 - remainder; i++) {
@@ -85,10 +89,6 @@ function buildCells(year: number, month: number): Array<DayCell | null> {
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-/**
- * Renders a calendar grid for the month of startDate.
- * Colors cells by attendance ratio and shows an attendee list on click.
- */
 export function AttendanceCalendar({
   data,
   statisticsRepo,
@@ -135,81 +135,84 @@ export function AttendanceCalendar({
   }, [selectedDate, statisticsRepo])
 
   return (
-    <section aria-label={t('analytics.attendanceCalendar')} className="flex flex-col gap-4">
-      <div className="overflow-x-auto rounded-xl border">
-        <div className="grid grid-cols-7">
-          {DAY_HEADER_KEYS.map(key => (
-            <div
-              key={key}
-              className="border-b p-2 text-center text-base font-medium text-muted-foreground"
-            >
-              {t(key)}
-            </div>
-          ))}
-
-          {cells.map((cell, idx) => {
-            if (cell === null) {
-              return (
-                <div
-                  key={`blank-${idx}`}
-                  className="border-b border-r p-2 last:border-r-0"
-                />
-              )
-            }
-
-            const count = countByDate.get(cell.dateStr) ?? 0
-            const level = getAttendanceLevel(count, totalEmployees)
-            const isSelected = selectedDate === cell.dateStr
-
-            return (
-              <button
-                key={cell.dateStr}
-                data-testid={`day-${cell.dateStr}`}
-                data-attendance={level}
-                onClick={() => setSelectedDate(cell.dateStr)}
-                aria-label={t('analytics.dayCount', { day: cell.day, count })}
-                aria-pressed={isSelected}
-                className={[
-                  'cursor-pointer border-b border-r p-2 text-left transition-opacity last:border-r-0 hover:opacity-80',
-                  LEVEL_BG[level],
-                  isSelected ? 'ring-2 ring-inset ring-primary' : '',
-                ].join(' ')}
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.attendanceCalendarTitle')}</CardTitle>
+        <CardDescription>{t('analytics.attendanceCalendarDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        <div className="overflow-x-auto rounded-lg border">
+          <div className="grid grid-cols-7">
+            {DAY_HEADER_KEYS.map(key => (
+              <div
+                key={key}
+                className="border-b p-2 text-center text-base font-normal text-muted-foreground"
               >
-                <div className="text-base font-medium">{cell.day}</div>
-                <div className="text-base text-muted-foreground">{t('analytics.personCount', { count })}</div>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+                {t(key)}
+              </div>
+            ))}
 
-      {selectedDate !== null && (
-        <section
-          aria-label={t('analytics.attendeesOnDate', { date: selectedDate })}
-          className="rounded-xl border p-4"
-        >
-          <h3 className="mb-2 text-base font-medium">
-            {t('analytics.attendeesOnDate', { date: selectedDate })}
-          </h3>
-          {loadingAttendees ? (
-            <p className="text-base text-muted-foreground" role="status">
-              {t('analytics.loading')}
-            </p>
-          ) : attendeeError !== null ? (
-            <p className="text-base text-destructive">{attendeeError}</p>
-          ) : attendees.length === 0 ? (
-            <p className="text-base text-muted-foreground">{t('analytics.noAttendees')}</p>
-          ) : (
-            <ul className="flex flex-col gap-1">
-              {attendees.map(name => (
-                <li key={name} className="text-base">
-                  {name}
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      )}
-    </section>
+            {cells.map((cell, idx) => {
+              if (cell === null) {
+                return (
+                  <div
+                    key={`blank-${idx}`}
+                    className="border-b border-r p-2 last:border-r-0"
+                  />
+                )
+              }
+
+              const count = countByDate.get(cell.dateStr) ?? 0
+              const level = getAttendanceLevel(count, totalEmployees)
+              const isSelected = selectedDate === cell.dateStr
+
+              return (
+                <button
+                  key={cell.dateStr}
+                  data-testid={`day-${cell.dateStr}`}
+                  data-attendance={level}
+                  onClick={() => setSelectedDate(cell.dateStr)}
+                  aria-label={t('analytics.dayCount', { day: cell.day, count })}
+                  aria-pressed={isSelected}
+                  className={[
+                    'cursor-pointer border-b border-r p-2 text-left transition-opacity last:border-r-0 hover:opacity-80',
+                    LEVEL_BG[level],
+                    isSelected ? 'ring-2 ring-inset ring-primary' : '',
+                  ].join(' ')}
+                >
+                  <div className="text-base font-normal">{cell.day}</div>
+                  <div className="text-base text-muted-foreground">{t('analytics.personCount', { count })}</div>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {selectedDate !== null && (
+          <div className="rounded-lg border p-4">
+            <h3 className="mb-2 text-base font-normal">
+              {t('analytics.attendeesOnDate', { date: selectedDate })}
+            </h3>
+            {loadingAttendees ? (
+              <p className="text-base text-muted-foreground" role="status">
+                {t('analytics.loading')}
+              </p>
+            ) : attendeeError !== null ? (
+              <p className="text-base text-destructive">{attendeeError}</p>
+            ) : attendees.length === 0 ? (
+              <p className="text-base text-muted-foreground">{t('analytics.noAttendees')}</p>
+            ) : (
+              <ul className="flex flex-col gap-1">
+                {attendees.map(name => (
+                  <li key={name} className="text-base">
+                    {name}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

@@ -6,7 +6,17 @@
  */
 
 import { useTranslation } from 'react-i18next'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
 import { NeonGradientCard } from '@/components/ui/neon-gradient-card'
+import { formatCurrency } from '@/lib/currency'
+import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,12 +36,10 @@ const MAX_OPACITY = 0.85
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Returns the number of days in the given year/month (1-indexed month). */
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate()
 }
 
-/** Build a Map from day-of-month to revenue. */
 function buildRevenueMap(data: DailyRevenue[]): Map<number, number> {
   const map = new Map<number, number>()
   for (const d of data) {
@@ -41,7 +49,6 @@ function buildRevenueMap(data: DailyRevenue[]): Map<number, number> {
   return map
 }
 
-/** Compute opacity [MIN_OPACITY, MAX_OPACITY] proportional to revenue share. */
 function computeOpacity(revenue: number, maxRevenue: number): number {
   if (maxRevenue <= 0) return MIN_OPACITY
   return MIN_OPACITY + (revenue / maxRevenue) * (MAX_OPACITY - MIN_OPACITY)
@@ -49,10 +56,6 @@ function computeOpacity(revenue: number, maxRevenue: number): number {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-/**
- * Renders a calendar-like grid where each day cell's background opacity
- * represents its revenue share of the month's maximum.
- */
 export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
   const { t } = useTranslation()
   const totalDays = daysInMonth(year, month)
@@ -60,7 +63,6 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
 
   const maxRevenue = Math.max(...Array.from(revenueMap.values()), 0)
 
-  // Find peak day (first occurrence of max revenue among days that have data).
   const peakDay = maxRevenue > 0
     ? Array.from(revenueMap.entries()).reduce<number | null>(
         (best, [day, rev]) => (rev === maxRevenue && best === null ? day : best),
@@ -69,38 +71,50 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
     : null
 
   return (
-    <div aria-label={t('analytics.monthlyRevenueHeatmap')} role="region">
-      <div className="grid grid-cols-7 gap-1">
-        {Array.from({ length: totalDays }, (_, i) => {
-          const day = i + 1
-          const revenue = revenueMap.get(day) ?? 0
-          const opacity = computeOpacity(revenue, maxRevenue)
-          const isPeak = day === peakDay
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.heatmapTitle')}</CardTitle>
+        <CardDescription>{t('analytics.heatmapDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data.length === 0 || data.every(d => d.revenue === 0) ? <ChartEmpty /> : (
+        <div className="grid grid-cols-7 gap-1">
+          {Array.from({ length: totalDays }, (_, i) => {
+            const day = i + 1
+            const revenue = revenueMap.get(day) ?? 0
+            const opacity = computeOpacity(revenue, maxRevenue)
+            const isPeak = day === peakDay
 
-          const cellContent = (
-            <div
-              data-testid="heatmap-cell"
-              className="flex aspect-square items-center justify-center rounded-md text-base"
-              style={{
-                backgroundColor: `hsl(var(--chart-1) / ${isPeak ? 1 : opacity})`,
-                color: opacity > 0.5 ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
-              }}
-            >
-              {day}
-            </div>
-          )
-
-          if (isPeak) {
-            return (
-              <NeonGradientCard key={day} innerClassName="p-0">
-                {cellContent}
-              </NeonGradientCard>
+            const cellContent = (
+              <div
+                data-testid="heatmap-cell"
+                className="flex aspect-square flex-col items-center justify-center rounded-md text-base"
+                style={{
+                  // Palette 1: Moss Forest
+                  backgroundColor: `color-mix(in srgb, ${CHART_PALETTES.mossForest[0]} ${Math.round((isPeak ? 1 : opacity) * 100)}%, transparent)`,
+                  color: opacity > 0.5 ? 'var(--primary-foreground)' : 'var(--foreground)',
+                }}
+              >
+                <span>{day}</span>
+                {revenue > 0 && (
+                  <span className="text-xs opacity-80">{formatCurrency(revenue)}</span>
+                )}
+              </div>
             )
-          }
 
-          return <div key={day}>{cellContent}</div>
-        })}
-      </div>
-    </div>
+            if (isPeak) {
+              return (
+                <NeonGradientCard key={day} innerClassName="p-0">
+                  {cellContent}
+                </NeonGradientCard>
+              )
+            }
+
+            return <div key={day}>{cellContent}</div>
+          })}
+        </div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

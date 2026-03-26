@@ -3,7 +3,6 @@
  * Fetches staff KPIs, employee hours, and daily headcount in parallel, then renders:
  *   - StaffKpiGrid (when kpis available)
  *   - StaffHoursChart (when employee hours available)
- *   - AttendanceSummaryTable (always, empty state handled inside)
  *   - DailyHeadcountChart (always, zero-filled)
  *   - AttendanceCalendar (when kpis available)
  */
@@ -18,7 +17,6 @@ import type {
 } from '@/lib/repositories/statistics-repository'
 import { StaffKpiGrid } from './staff-kpi-grid'
 import { StaffHoursChart } from './staff-hours-chart'
-import { AttendanceSummaryTable } from './attendance-summary-table'
 import { DailyHeadcountChart } from './daily-headcount-chart'
 import { AttendanceCalendar } from './attendance-calendar'
 
@@ -119,9 +117,9 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
 
       {!loading && employeeHours.length > 0 && <StaffHoursChart data={employeeHours} />}
 
-      {!loading && <AttendanceSummaryTable data={employeeHours} />}
-
-      {!loading && <DailyHeadcountChart data={filledHeadcount} />}
+      {!loading && kpis !== null && (
+        <DailyHeadcountChart data={filledHeadcount} totalEmployees={kpis.activeEmployeeCount} />
+      )}
 
       {!loading && kpis !== null && (
         <AttendanceCalendar

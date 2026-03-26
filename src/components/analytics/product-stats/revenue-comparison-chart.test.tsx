@@ -19,6 +19,7 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
+  CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
@@ -36,6 +37,10 @@ vi.mock('@/components/ui/chart', () => ({
     <div data-testid="chart-legend">{content}</div>
   ),
   ChartLegendContent: () => <div data-testid="chart-legend-content" />,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { RevenueComparisonChart } from './revenue-comparison-chart'
@@ -59,15 +64,15 @@ function buildPrevMonthData(): DailyRevenue[] {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('RevenueComparisonChart', () => {
-  describe('accessibility', () => {
-    it('renders aria-label "本月 vs 上月比較" on the outer div', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
       render(
         <RevenueComparisonChart
           currentData={buildMonthData()}
           prevData={buildPrevMonthData()}
         />,
       )
-      expect(screen.getByRole('region', { name: '本月 vs 上月比較' })).toBeTruthy()
+      expect(screen.getByText('本月 vs 上月營收')).toBeTruthy()
     })
   })
 
@@ -140,9 +145,9 @@ describe('RevenueComparisonChart', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders aria-label even with empty data', () => {
+    it('renders card title even with empty data', () => {
       render(<RevenueComparisonChart currentData={[]} prevData={[]} />)
-      expect(screen.getByRole('region', { name: '本月 vs 上月比較' })).toBeTruthy()
+      expect(screen.getByText('本月 vs 上月營收')).toBeTruthy()
     })
   })
 

@@ -80,14 +80,10 @@ describe('StaffKpiGrid', () => {
   })
 
   describe('avgMonthlyHours formatting', () => {
-    it('renders avgMonthlyHours with a NumberTicker (1 decimal) and "h" suffix', () => {
+    it('renders avgMonthlyHours with 1 decimal and "h" suffix', () => {
       render(<StaffKpiGrid kpis={DECIMAL_KPIS} />)
       const el = screen.getByTestId('kpi-avgMonthlyHours')
-      // NumberTicker animates via rAF in JSDOM — value may be 0.0 in test env.
-      // Assert structural presence: suffix "h" is always rendered statically.
       expect(el.textContent).toContain('h')
-      // The NumberTicker span should be present inside the wrapper
-      expect(el.querySelector('.tabular-nums')).toBeTruthy()
     })
 
     it('renders "h" suffix for avgMonthlyHours of 7.5', () => {
@@ -100,7 +96,7 @@ describe('StaffKpiGrid', () => {
   describe('layout', () => {
     it('renders exactly 4 KPI cards in a grid', () => {
       render(<StaffKpiGrid kpis={SAMPLE_KPIS} />)
-      const cards = screen.getAllByRole('article')
+      const cards = screen.getAllByTestId(/^kpi-/)
       expect(cards).toHaveLength(4)
     })
 

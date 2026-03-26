@@ -19,10 +19,12 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
-  Legend: () => <div data-testid="legend" />,
+  CartesianGrid: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
+  LabelList: () => null,
+  Cell: () => null,
 }))
 
 // Mock the shadcn chart components
@@ -32,10 +34,10 @@ vi.mock('@/components/ui/chart', () => ({
   ),
   ChartTooltip: () => null,
   ChartTooltipContent: () => null,
-  ChartLegend: ({ content }: { content: ReactNode }) => (
-    <div data-testid="chart-legend">{content}</div>
-  ),
-  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { StaffHoursChart } from './staff-hours-chart'
@@ -59,13 +61,6 @@ const SAMPLE_DATA = buildEmployeeHours(3)
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('StaffHoursChart', () => {
-  describe('accessibility', () => {
-    it('renders aria-label "員工工時分布" on the outer element', () => {
-      render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByRole('region', { name: '員工工時分布' })).toBeTruthy()
-    })
-  })
-
   describe('chart rendering', () => {
     it('renders a ChartContainer', () => {
       render(<StaffHoursChart data={SAMPLE_DATA} />)
@@ -77,39 +72,14 @@ describe('StaffHoursChart', () => {
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
-    it('renders a Bar for regular hours (dataKey="regular")', () => {
+    it('renders a single Bar for totalHours', () => {
       render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('bar-regular')).toBeTruthy()
+      expect(screen.getByTestId('bar-totalHours')).toBeTruthy()
     })
 
-    it('renders a Bar for paid leave (dataKey="paidLeave")', () => {
+    it('renders card title', () => {
       render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('bar-paidLeave')).toBeTruthy()
-    })
-
-    it('renders a Bar for sick leave (dataKey="sickLeave")', () => {
-      render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('bar-sickLeave')).toBeTruthy()
-    })
-
-    it('renders a Bar for personal leave (dataKey="personalLeave")', () => {
-      render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('bar-personalLeave')).toBeTruthy()
-    })
-
-    it('renders a Bar for absent (dataKey="absent")', () => {
-      render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('bar-absent')).toBeTruthy()
-    })
-
-    it('renders all 5 bar segments', () => {
-      render(<StaffHoursChart data={SAMPLE_DATA} />)
-      // regular, paidLeave, sickLeave, personalLeave, absent
-      expect(screen.getByTestId('bar-regular')).toBeTruthy()
-      expect(screen.getByTestId('bar-paidLeave')).toBeTruthy()
-      expect(screen.getByTestId('bar-sickLeave')).toBeTruthy()
-      expect(screen.getByTestId('bar-personalLeave')).toBeTruthy()
-      expect(screen.getByTestId('bar-absent')).toBeTruthy()
+      expect(screen.getByText('員工工時排行')).toBeTruthy()
     })
   })
 
@@ -119,14 +89,9 @@ describe('StaffHoursChart', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders aria-label even with empty data', () => {
+    it('shows empty state with empty data', () => {
       render(<StaffHoursChart data={[]} />)
-      expect(screen.getByRole('region', { name: '員工工時分布' })).toBeTruthy()
-    })
-
-    it('still renders ChartContainer with empty data', () => {
-      render(<StaffHoursChart data={[]} />)
-      expect(screen.getByTestId('chart-container')).toBeTruthy()
+      expect(screen.getByText('目前沒有資料')).toBeTruthy()
     })
   })
 

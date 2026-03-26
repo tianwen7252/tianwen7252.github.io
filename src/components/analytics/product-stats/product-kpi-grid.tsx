@@ -8,7 +8,7 @@ import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProductKpis } from '@/lib/repositories/statistics-repository'
 import { NumberTicker } from '@/components/ui/number-ticker'
-import { NeonGradientCard } from '@/components/ui/neon-gradient-card'
+import { formatCurrency } from '@/lib/currency'
 import { cn } from '@/lib/cn'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -28,7 +28,7 @@ function KpiCardInner({ title, children }: KpiCardInnerProps) {
   return (
     <>
       <p className="text-muted-foreground text-base">{title}</p>
-      <div className="mt-1 text-2xl font-medium">{children}</div>
+      <div className="mt-1 text-2xl font-normal">{children}</div>
     </>
   )
 }
@@ -40,12 +40,7 @@ interface PlainCardProps extends KpiCardInnerProps {
 
 function PlainCard({ title, children, className }: PlainCardProps) {
   return (
-    <article
-      className={cn(
-        'rounded-xl border bg-card p-4',
-        className,
-      )}
-    >
+    <article className={cn('rounded-xl border bg-card p-4', className)}>
       <KpiCardInner title={title}>{children}</KpiCardInner>
     </article>
   )
@@ -63,12 +58,7 @@ interface TwdTickerProps {
 }
 
 function TwdTicker({ value, testId }: TwdTickerProps) {
-  return (
-    <span data-testid={testId}>
-      <span aria-hidden>$</span>
-      <NumberTicker value={value} />
-    </span>
-  )
+  return <span data-testid={testId}>{formatCurrency(value)}</span>
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
@@ -84,14 +74,9 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
     <div className="grid grid-cols-3 gap-4">
       {/* Row 1 — revenue KPIs */}
 
-      {/* totalRevenue: NeonGradientCard highlight */}
-      <article>
-        <NeonGradientCard>
-          <KpiCardInner title={t('analytics.totalRevenue')}>
-            <TwdTicker value={kpis.totalRevenue} testId="kpi-totalRevenue" />
-          </KpiCardInner>
-        </NeonGradientCard>
-      </article>
+      <PlainCard title={t('analytics.totalRevenue')}>
+        <TwdTicker value={kpis.totalRevenue} testId="kpi-totalRevenue" />
+      </PlainCard>
 
       <PlainCard title={t('analytics.orderCount')}>
         <span data-testid="kpi-orderCount">
@@ -106,7 +91,10 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
       {/* Row 2 */}
 
       <PlainCard title={t('analytics.afternoonRevenue')}>
-        <TwdTicker value={kpis.afternoonRevenue} testId="kpi-afternoonRevenue" />
+        <TwdTicker
+          value={kpis.afternoonRevenue}
+          testId="kpi-afternoonRevenue"
+        />
       </PlainCard>
 
       <PlainCard title={t('analytics.totalQuantity')}>

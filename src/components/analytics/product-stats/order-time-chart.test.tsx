@@ -19,10 +19,12 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
+  CartesianGrid: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
   Cell: () => null,
+  LabelList: () => null,
 }))
 
 // Mock the shadcn chart components
@@ -32,6 +34,10 @@ vi.mock('@/components/ui/chart', () => ({
   ),
   ChartTooltip: () => null,
   ChartTooltipContent: () => null,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { OrderTimeChart } from './order-time-chart'
@@ -48,10 +54,10 @@ function buildFullHourlyData(peakHour = 12): HourBucket[] {
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('OrderTimeChart', () => {
-  describe('accessibility', () => {
-    it('renders the aria-label "訂單時間分布" on the outer div', () => {
+  describe('card structure', () => {
+    it('renders the card title', () => {
       render(<OrderTimeChart data={buildFullHourlyData()} />)
-      expect(screen.getByRole('region', { name: '訂單時間分布' })).toBeTruthy()
+      expect(screen.getByText('訂單時段分布')).toBeTruthy()
     })
   })
 
@@ -74,9 +80,9 @@ describe('OrderTimeChart', () => {
       expect(container).toBeTruthy()
     })
 
-    it('renders the aria-label even with empty data', () => {
+    it('renders the card title even with empty data', () => {
       render(<OrderTimeChart data={[]} />)
-      expect(screen.getByRole('region', { name: '訂單時間分布' })).toBeTruthy()
+      expect(screen.getByText('訂單時段分布')).toBeTruthy()
     })
   })
 

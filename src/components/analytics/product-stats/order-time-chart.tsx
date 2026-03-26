@@ -4,75 +4,78 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Cell,
-} from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell } from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
 } from '@/components/ui/chart'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+} from '@/components/ui/card'
+import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { useAppStore } from '@/stores/app-store'
+import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
 import type { HourBucket } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OrderTimeChartProps {
-  /** Full 24-element array of hourly order counts (hours 0–23). */
   data: HourBucket[]
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Constants — Palette 1: Moss Forest ───────────────────────────────────────
 
-const BAR_COLOR_DEFAULT = 'hsl(var(--chart-1) / 0.4)'
-const BAR_COLOR_PEAK = 'hsl(var(--chart-1))'
+const PALETTE = CHART_PALETTES.mossForest
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-/**
- * Renders a responsive BarChart for hourly order distribution.
- * The hour with the highest count is highlighted with a full-opacity color.
- */
 export function OrderTimeChart({ data }: OrderTimeChartProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
 
-  // Chart config built inside component so labels use translated strings.
   const chartConfig = {
     count: {
       label: t('analytics.orderCountLabel'),
-      color: 'hsl(var(--chart-1))',
+      color: 'var(--chart-1)',
     },
   } satisfies ChartConfig
 
-  // Find the peak hour index (first occurrence of the maximum count)
-  const maxCount = data.reduce((max, b) => Math.max(max, b.count), 0)
-
   return (
-    <div aria-label={t('analytics.orderTimeDistribution')} role="region">
-      <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-        <BarChart data={data} margin={{ top: 4, right: 8, bottom: 4, left: 0 }} accessibilityLayer>
-          <XAxis
-            dataKey="hour"
-            tick={{ fontSize: 12 }}
-            tickFormatter={(v: number) => String(v)}
-          />
-          <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <ChartTooltip content={<ChartTooltipContent />} />
-          <Bar dataKey="count">
-            {data.map((entry, index) => (
-              <Cell
-                // biome-ignore lint/suspicious/noArrayIndexKey: hour index is stable positional key
-                key={index}
-                fill={entry.count === maxCount && maxCount > 0 ? BAR_COLOR_PEAK : BAR_COLOR_DEFAULT}
-              />
-            ))}
-          </Bar>
-        </BarChart>
-      </ChartContainer>
-    </div>
+    <Card className="shadow-none">
+      <CardHeader>
+        <CardTitle className="font-normal">{t('analytics.orderTimeTitle')}</CardTitle>
+        <CardDescription>{t('analytics.orderTimeDesc')}</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {data.length === 0 || data.every(d => d.count === 0) ? <ChartEmpty /> : (
+        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+          <BarChart data={data} accessibilityLayer>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="hour"
+              tickLine={false}
+              axisLine={false}
+              tick={{ fontSize }}
+              tickFormatter={(v: number) => `${v}:00`}
+            />
+            <YAxis tick={{ fontSize }} allowDecimals={false} hide />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+            <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+              <LabelList dataKey="count" position="top" offset={6} className="fill-foreground" fontSize={fontSize} />
+              {data.map((_, index) => (
+                <Cell key={index} fill={getColor(PALETTE, index)} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ChartContainer>
+        )}
+      </CardContent>
+    </Card>
   )
 }
