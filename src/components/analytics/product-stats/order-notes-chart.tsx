@@ -5,8 +5,21 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell, PieChart, Pie } from 'recharts'
-import { BarChart3, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+  PieChart,
+  Pie,
+} from 'recharts'
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -62,9 +75,13 @@ export function OrderNotesChart({ data }: OrderNotesChartProps) {
 
   const minHeight = Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT)
   const fontSize = useAppStore().fontSize
-  const maxValue = data.length > 0 ? Math.max(...data.map((d) => d.count)) : 0
+  const maxValue = data.length > 0 ? Math.max(...data.map(d => d.count)) : 0
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -73,7 +90,9 @@ export function OrderNotesChart({ data }: OrderNotesChartProps) {
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.orderNotesTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.orderNotesTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.orderNotesDesc')}</CardDescription>
         <CardAction>
           <div className="flex gap-2">
@@ -99,9 +118,16 @@ export function OrderNotesChart({ data }: OrderNotesChartProps) {
         {data.length === 0 ? (
           <ChartEmpty />
         ) : viewMode === 'bar' ? (
-          <BarView data={data} chartConfig={chartConfig} minHeight={minHeight} fontSize={fontSize} maxValue={maxValue} t={t} />
+          <BarView
+            data={data}
+            chartConfig={chartConfig}
+            minHeight={minHeight}
+            fontSize={fontSize}
+            maxValue={maxValue}
+            t={t}
+          />
         ) : viewMode === 'pie' ? (
-          <PieView data={data} />
+          <PieView data={data} fontSize={fontSize} />
         ) : (
           <TableView data={data} />
         )}
@@ -121,7 +147,19 @@ interface BarViewProps {
   t: (key: string) => string
 }
 
-function BarView({ data, chartConfig, minHeight, fontSize, maxValue, t }: BarViewProps) {
+function BarView({
+  data,
+  chartConfig,
+  minHeight,
+  fontSize,
+  maxValue,
+  t,
+}: BarViewProps) {
+  const coloredData = data.map((item, i) => ({
+    ...item,
+    fill: getColor(PALETTE, i),
+  }))
+
   return (
     <ChartContainer
       config={chartConfig}
@@ -130,7 +168,7 @@ function BarView({ data, chartConfig, minHeight, fontSize, maxValue, t }: BarVie
     >
       <BarChart
         layout="vertical"
-        data={data}
+        data={coloredData}
         margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
         accessibilityLayer
       >
@@ -158,9 +196,6 @@ function BarView({ data, chartConfig, minHeight, fontSize, maxValue, t }: BarVie
           name={t('analytics.noteCount')}
           radius={[0, 4, 4, 0]}
         >
-          {data.map((_, i) => (
-            <Cell key={i} fill={getColor(PALETTE, i)} />
-          ))}
           <LabelList
             dataKey="count"
             position="insideRight"
@@ -178,13 +213,22 @@ function BarView({ data, chartConfig, minHeight, fontSize, maxValue, t }: BarVie
 
 interface PieViewProps {
   data: OrderNoteCount[]
+  fontSize: number
 }
 
-function PieView({ data }: PieViewProps) {
-  const config = data.reduce<ChartConfig>((acc, item, i) => ({
-    ...acc,
-    [item.note]: { label: item.note, color: getColor(PALETTE, i) },
-  }), {})
+function PieView({ data, fontSize }: PieViewProps) {
+  const coloredData = data.map((item, i) => ({
+    ...item,
+    fill: getColor(PALETTE, i),
+  }))
+
+  const config = data.reduce<ChartConfig>(
+    (acc, item, i) => ({
+      ...acc,
+      [item.note]: { label: item.note, color: getColor(PALETTE, i) },
+    }),
+    {},
+  )
 
   return (
     <ChartContainer config={config} className="min-h-[250px] w-full">
@@ -192,18 +236,35 @@ function PieView({ data }: PieViewProps) {
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Pie
-          data={data}
+          data={coloredData}
           dataKey="count"
           nameKey="note"
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${value ?? 0}`}
-        >
-          {data.map((item, i) => (
-            <Cell key={item.note} fill={getColor(PALETTE, i)} />
-          ))}
-        </Pie>
+          label={({
+            name,
+            value,
+            x,
+            y,
+          }: {
+            name?: string
+            value?: number
+            x?: number
+            y?: number
+          }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="fill-foreground"
+              fontSize={fontSize}
+            >
+              {`${name ?? ''}: ${value ?? 0}`}
+            </text>
+          )}
+        />
       </PieChart>
     </ChartContainer>
   )
@@ -230,7 +291,7 @@ function TableView({ data }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {data.map((item) => (
+        {data.map(item => (
           <tr key={item.note} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.note}</td>
             <td className="py-3 text-right text-base">{item.count}</td>

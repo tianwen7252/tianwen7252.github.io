@@ -5,8 +5,21 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, PieChart, Pie, Cell } from 'recharts'
-import { BarChart3, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+  PieChart,
+  Pie,
+} from 'recharts'
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -78,11 +91,15 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
   } satisfies ChartConfig
 
   // Format data with day label and computed total for top label
-  const chartData = useMemo(() => data.map(d => ({
-    ...d,
-    day: formatDay(d.date),
-    total: d.amRevenue + d.pmRevenue,
-  })), [data])
+  const chartData = useMemo(
+    () =>
+      data.map(d => ({
+        ...d,
+        day: formatDay(d.date),
+        total: d.amRevenue + d.pmRevenue,
+      })),
+    [data],
+  )
 
   // Aggregate AM vs PM totals for pie chart
   const pieTotals = useMemo(() => {
@@ -96,7 +113,11 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
 
   const isEmpty = data.length === 0 || isAllZero(data)
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -105,8 +126,12 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.revenueTimeSeriesTitle')}</CardTitle>
-        <CardDescription>{t('analytics.revenueTimeSeriesDesc')}</CardDescription>
+        <CardTitle className="font-normal">
+          {t('analytics.revenueTimeSeriesTitle')}
+        </CardTitle>
+        <CardDescription>
+          {t('analytics.revenueTimeSeriesDesc')}
+        </CardDescription>
         <CardAction>
           <div className="flex gap-2">
             {viewButtons.map(({ mode, label, icon: Icon }) => (
@@ -131,9 +156,18 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
         {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'bar' ? (
-          <BarView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} t={t} />
+          <BarView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+            t={t}
+          />
         ) : viewMode === 'pie' ? (
-          <PieView pieTotals={pieTotals} palette={palette} />
+          <PieView
+            pieTotals={pieTotals}
+            palette={palette}
+            fontSize={fontSize}
+          />
         ) : (
           <TableView chartData={chartData} />
         )}
@@ -145,7 +179,12 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
 // ─── Bar sub-component ──────────────────────────────────────────────────────
 
 interface BarViewProps {
-  chartData: Array<{ day: string; amRevenue: number; pmRevenue: number; total: number }>
+  chartData: Array<{
+    day: string
+    amRevenue: number
+    pmRevenue: number
+    total: number
+  }>
   chartConfig: ChartConfig
   fontSize: number
   t: (key: string) => string
@@ -156,7 +195,12 @@ function BarView({ chartData, chartConfig, fontSize, t }: BarViewProps) {
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <BarChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize }}
+        />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
@@ -167,7 +211,16 @@ function BarView({ chartData, chartConfig, fontSize, t }: BarViewProps) {
           fill="var(--color-amRevenue)"
           radius={[0, 0, 0, 0]}
         >
-          <LabelList dataKey="amRevenue" position="center" className="fill-white" fontSize={fontSize - 2} formatter={(v: unknown) => { const n = Number(v); return n > 0 ? `$${n.toLocaleString()}` : '' }} />
+          <LabelList
+            dataKey="amRevenue"
+            position="center"
+            className="fill-white"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => {
+              const n = Number(v)
+              return n > 0 ? `$${n.toLocaleString()}` : ''
+            }}
+          />
         </Bar>
         <Bar
           dataKey="pmRevenue"
@@ -176,8 +229,24 @@ function BarView({ chartData, chartConfig, fontSize, t }: BarViewProps) {
           fill="var(--color-pmRevenue)"
           radius={[4, 4, 0, 0]}
         >
-          <LabelList dataKey="pmRevenue" position="center" className="fill-white" fontSize={fontSize - 2} formatter={(v: unknown) => { const n = Number(v); return n > 0 ? `$${n.toLocaleString()}` : '' }} />
-          <LabelList dataKey="total" position="top" offset={6} className="fill-foreground" fontSize={fontSize - 2} formatter={(v: unknown) => `$${Number(v).toLocaleString()}`} />
+          <LabelList
+            dataKey="pmRevenue"
+            position="center"
+            className="fill-white"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => {
+              const n = Number(v)
+              return n > 0 ? `$${n.toLocaleString()}` : ''
+            }}
+          />
+          <LabelList
+            dataKey="total"
+            position="top"
+            offset={6}
+            className="fill-foreground"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => `$${Number(v).toLocaleString()}`}
+          />
         </Bar>
       </BarChart>
     </ChartContainer>
@@ -189,13 +258,22 @@ function BarView({ chartData, chartConfig, fontSize, t }: BarViewProps) {
 interface PieViewProps {
   pieTotals: Array<{ name: string; value: number }>
   palette: readonly string[]
+  fontSize: number
 }
 
-function PieView({ pieTotals, palette }: PieViewProps) {
-  const config = pieTotals.reduce<ChartConfig>((acc, item, i) => ({
-    ...acc,
-    [item.name]: { label: item.name, color: getColor(palette, i) },
-  }), {})
+function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
+  const coloredData = pieTotals.map((item, i) => ({
+    ...item,
+    fill: getColor(palette, i),
+  }))
+
+  const config = pieTotals.reduce<ChartConfig>(
+    (acc, item, i) => ({
+      ...acc,
+      [item.name]: { label: item.name, color: getColor(palette, i) },
+    }),
+    {},
+  )
 
   return (
     <ChartContainer config={config} className="min-h-[250px] w-full">
@@ -203,18 +281,35 @@ function PieView({ pieTotals, palette }: PieViewProps) {
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Pie
-          data={pieTotals}
+          data={coloredData}
           dataKey="value"
           nameKey="name"
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${formatCurrency(value ?? 0)}`}
-        >
-          {pieTotals.map((item, i) => (
-            <Cell key={item.name} fill={getColor(palette, i)} />
-          ))}
-        </Pie>
+          label={({
+            name,
+            value,
+            x,
+            y,
+          }: {
+            name?: string
+            value?: number
+            x?: number
+            y?: number
+          }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="fill-foreground"
+              fontSize={fontSize}
+            >
+              {`${name ?? ''}: ${formatCurrency(value ?? 0)}`}
+            </text>
+          )}
+        />
       </PieChart>
     </ChartContainer>
   )
@@ -223,7 +318,12 @@ function PieView({ pieTotals, palette }: PieViewProps) {
 // ─── Table sub-component ────────────────────────────────────────────────────
 
 interface TableViewProps {
-  chartData: Array<{ day: string; amRevenue: number; pmRevenue: number; total: number }>
+  chartData: Array<{
+    day: string
+    amRevenue: number
+    pmRevenue: number
+    total: number
+  }>
 }
 
 function TableView({ chartData }: TableViewProps) {
@@ -247,12 +347,18 @@ function TableView({ chartData }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {chartData.map((item) => (
+        {chartData.map(item => (
           <tr key={item.day} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.day}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.amRevenue)}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.pmRevenue)}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.total)}</td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.amRevenue)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.pmRevenue)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.total)}
+            </td>
           </tr>
         ))}
       </tbody>

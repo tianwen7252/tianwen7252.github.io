@@ -1,6 +1,6 @@
 /**
  * Tests for DeliveryOrdersChart component.
- * Verifies pie chart rendering, card structure, empty state, and Cell elements.
+ * Verifies pie chart rendering, card structure, and empty state.
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -14,9 +14,10 @@ vi.mock('recharts', () => ({
     <div data-testid="pie-chart">{children}</div>
   ),
   Pie: ({ children, data }: { children: ReactNode; data: unknown[] }) => (
-    <div data-testid="pie" data-count={data?.length ?? 0}>{children}</div>
+    <div data-testid="pie" data-count={data?.length ?? 0}>
+      {children}
+    </div>
   ),
-  Cell: ({ fill }: { fill?: string }) => <div data-testid="cell" data-fill={fill ?? ''} />,
   BarChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="bar-chart">{children}</div>
   ),
@@ -54,9 +55,24 @@ import { DeliveryOrdersChart } from './delivery-orders-chart'
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const SAMPLE_DATA: DeliveryProductRow[] = [
-  { commodityId: 'com-1', commodityName: '招牌便當', quantity: 20, revenue: 3000 },
-  { commodityId: 'com-2', commodityName: '排骨便當', quantity: 15, revenue: 2250 },
-  { commodityId: 'com-3', commodityName: '雞腿便當', quantity: 10, revenue: 1800 },
+  {
+    commodityId: 'com-1',
+    commodityName: '招牌便當',
+    quantity: 20,
+    revenue: 3000,
+  },
+  {
+    commodityId: 'com-2',
+    commodityName: '排骨便當',
+    quantity: 15,
+    revenue: 2250,
+  },
+  {
+    commodityId: 'com-3',
+    commodityName: '雞腿便當',
+    quantity: 10,
+    revenue: 1800,
+  },
 ]
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
@@ -91,21 +107,6 @@ describe('DeliveryOrdersChart', () => {
       render(<DeliveryOrdersChart data={SAMPLE_DATA} />)
       expect(screen.getByTestId('pie')).toBeTruthy()
     })
-
-    it('renders a Cell for each product', () => {
-      render(<DeliveryOrdersChart data={SAMPLE_DATA} />)
-      const cells = screen.getAllByTestId('cell')
-      expect(cells).toHaveLength(SAMPLE_DATA.length)
-    })
-
-    it('assigns unique fill colors from the palette to each Cell', () => {
-      render(<DeliveryOrdersChart data={SAMPLE_DATA} />)
-      const cells = screen.getAllByTestId('cell')
-      const fills = cells.map(cell => cell.dataset['fill'])
-      // All fills should be defined and unique
-      const uniqueFills = new Set(fills)
-      expect(uniqueFills.size).toBe(SAMPLE_DATA.length)
-    })
   })
 
   describe('empty state', () => {
@@ -128,12 +129,15 @@ describe('DeliveryOrdersChart', () => {
     })
 
     it('renders without crashing with many items', () => {
-      const manyItems: DeliveryProductRow[] = Array.from({ length: 25 }, (_, i) => ({
-        commodityId: `com-${i}`,
-        commodityName: `Product ${i}`,
-        quantity: 10 + i,
-        revenue: (10 + i) * 150,
-      }))
+      const manyItems: DeliveryProductRow[] = Array.from(
+        { length: 25 },
+        (_, i) => ({
+          commodityId: `com-${i}`,
+          commodityName: `Product ${i}`,
+          quantity: 10 + i,
+          revenue: (10 + i) * 150,
+        }),
+      )
       render(<DeliveryOrdersChart data={manyItems} />)
       expect(screen.getByTestId('pie-chart')).toBeTruthy()
     })

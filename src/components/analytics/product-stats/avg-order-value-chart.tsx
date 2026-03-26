@@ -6,8 +6,21 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { LineChart as LineChartIcon, BarChart3, Table as TableIcon } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+} from 'recharts'
+import {
+  LineChart as LineChartIcon,
+  BarChart3,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -51,7 +64,10 @@ const WINDOW_SIZE = 7
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function computeMovingAverage(values: number[], window: number): (number | null)[] {
+function computeMovingAverage(
+  values: number[],
+  window: number,
+): (number | null)[] {
   return values.map((_, i) => {
     if (i < window - 1) return null
     const slice = values.slice(i - window + 1, i + 1)
@@ -102,9 +118,14 @@ export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
     },
   } satisfies ChartConfig
 
-  const isEmpty = chartData.length === 0 || chartData.every(d => d.avgOrderValue === 0)
+  const isEmpty =
+    chartData.length === 0 || chartData.every(d => d.avgOrderValue === 0)
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'line', label: t('analytics.viewLine'), icon: LineChartIcon },
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -113,7 +134,9 @@ export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.avgOrderValueTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.avgOrderValueTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.avgOrderValueDesc')}</CardDescription>
         <CardAction>
           <div className="flex gap-2">
@@ -139,9 +162,19 @@ export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
         {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'line' ? (
-          <LineView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} t={t} />
+          <LineView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+            t={t}
+          />
         ) : viewMode === 'bar' ? (
-          <BarView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} t={t} />
+          <BarView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+            t={t}
+          />
         ) : (
           <TableView chartData={chartData} />
         )}
@@ -164,9 +197,17 @@ function LineView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <LineChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize }}
+        />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
-        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent indicator="line" />}
+        />
         <ChartLegend content={<ChartLegendContent />} />
         <Line
           type="monotone"
@@ -175,7 +216,16 @@ function LineView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
           stroke="var(--color-avgOrderValue)"
           strokeWidth={2}
           dot={false}
-        />
+        >
+          <LabelList
+            dataKey="avgOrderValue"
+            position="top"
+            offset={8}
+            className="fill-foreground"
+            fontSize={fontSize}
+            formatter={(v: unknown) => `$${Number(v).toLocaleString()}`}
+          />
+        </Line>
         <Line
           type="monotone"
           dataKey="movingAvg7d"
@@ -197,7 +247,12 @@ function BarView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <BarChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize }}
+        />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
@@ -242,12 +297,16 @@ function TableView({ chartData }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {chartData.map((item) => (
+        {chartData.map(item => (
           <tr key={item.day} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.day}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.avgOrderValue)}</td>
             <td className="py-3 text-right text-base">
-              {item.movingAvg7d !== null ? formatCurrency(item.movingAvg7d) : '-'}
+              {formatCurrency(item.avgOrderValue)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {item.movingAvg7d !== null
+                ? formatCurrency(item.movingAvg7d)
+                : '-'}
             </td>
           </tr>
         ))}

@@ -30,7 +30,6 @@ vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
-  Cell: () => null,
   LabelList: () => null,
 }))
 

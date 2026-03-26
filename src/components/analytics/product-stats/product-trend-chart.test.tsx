@@ -22,6 +22,7 @@ vi.mock('recharts', () => ({
   YAxis: () => null,
   Tooltip: () => null,
   CartesianGrid: () => null,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -38,10 +39,16 @@ vi.mock('@/components/ui/chart', () => ({
 
 // Mock the shadcn select components (Radix-based, no native <select>)
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ children }: { children: ReactNode }) => <div data-testid="select-root">{children}</div>,
-  SelectTrigger: ({ children }: { children: ReactNode }) => <button data-testid="select-trigger">{children}</button>,
+  Select: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-root">{children}</div>
+  ),
+  SelectTrigger: ({ children }: { children: ReactNode }) => (
+    <button data-testid="select-trigger">{children}</button>
+  ),
   SelectValue: () => <span data-testid="select-value" />,
-  SelectContent: ({ children }: { children: ReactNode }) => <div data-testid="select-content">{children}</div>,
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid={`select-item-${value}`}>{children}</div>
   ),

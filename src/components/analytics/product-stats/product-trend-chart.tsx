@@ -6,8 +6,21 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
-import { LineChart as LineChartIcon, BarChart3, Table as TableIcon } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+} from 'recharts'
+import {
+  LineChart as LineChartIcon,
+  BarChart3,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -65,7 +78,7 @@ function formatDateAsMD(date: string): string {
 }
 
 function buildChartData(data: DailyRevenue[]): ChartRow[] {
-  return data.map((d) => ({
+  return data.map(d => ({
     day: formatDateAsMD(d.date),
     salesQuantity: d.revenue,
   }))
@@ -92,9 +105,14 @@ export function ProductTrendChart({
     },
   } satisfies ChartConfig
 
-  const isEmpty = chartData.length === 0 || chartData.every((d) => d.salesQuantity === 0)
+  const isEmpty =
+    chartData.length === 0 || chartData.every(d => d.salesQuantity === 0)
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'line', label: t('analytics.viewLine'), icon: LineChartIcon },
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -117,7 +135,7 @@ export function ProductTrendChart({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {commodities.map((c) => (
+                {commodities.map(c => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
                   </SelectItem>
@@ -147,9 +165,17 @@ export function ProductTrendChart({
         {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'line' ? (
-          <LineView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} />
+          <LineView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+          />
         ) : viewMode === 'bar' ? (
-          <BarView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} />
+          <BarView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+          />
         ) : (
           <TableView chartData={chartData} />
         )}
@@ -188,7 +214,15 @@ function LineView({ chartData, chartConfig, fontSize }: ChartViewProps) {
           stroke="var(--color-salesQuantity)"
           strokeWidth={2}
           dot={false}
-        />
+        >
+          <LabelList
+            dataKey="salesQuantity"
+            position="top"
+            offset={8}
+            className="fill-foreground"
+            fontSize={fontSize}
+          />
+        </Line>
       </LineChart>
     </ChartContainer>
   )
@@ -243,7 +277,7 @@ function TableView({ chartData }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {chartData.map((item) => (
+        {chartData.map(item => (
           <tr key={item.day} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.day}</td>
             <td className="py-3 text-right text-base">{item.salesQuantity}</td>

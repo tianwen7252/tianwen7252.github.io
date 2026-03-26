@@ -5,8 +5,20 @@
 
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, PieChart, Pie, Cell } from 'recharts'
-import { BarChart3, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  PieChart,
+  Pie,
+} from 'recharts'
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -62,13 +74,18 @@ function pivotForBar(
   const dateMap = new Map<string, Record<string, string | number>>()
   for (const row of data) {
     const parts = row.date.split('-')
-      const day = parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : row.date
+    const day =
+      parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : row.date
     const existing = dateMap.get(row.date)
     if (existing) {
       dateMap.set(row.date, { ...existing, [row.commodityName]: row.quantity })
     } else {
       const zeroEntries = Object.fromEntries(commodityNames.map(n => [n, 0]))
-      dateMap.set(row.date, { date: day, ...zeroEntries, [row.commodityName]: row.quantity })
+      dateMap.set(row.date, {
+        date: day,
+        ...zeroEntries,
+        [row.commodityName]: row.quantity,
+      })
     }
   }
   return Array.from(dateMap.values())
@@ -81,7 +98,9 @@ interface AggregatedCommodity {
   revenue: number
 }
 
-function aggregateTotals(data: readonly CategorySalesRow[]): AggregatedCommodity[] {
+function aggregateTotals(
+  data: readonly CategorySalesRow[],
+): AggregatedCommodity[] {
   const map = new Map<string, AggregatedCommodity>()
   for (const row of data) {
     const existing = map.get(row.commodityName)
@@ -120,7 +139,10 @@ export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
   const [viewMode, setViewMode] = useState<ViewMode>('pie')
 
   const commodityNames = useMemo(() => extractCommodityNames(data), [data])
-  const barData = useMemo(() => pivotForBar(data, commodityNames), [data, commodityNames])
+  const barData = useMemo(
+    () => pivotForBar(data, commodityNames),
+    [data, commodityNames],
+  )
   const aggregated = useMemo(() => aggregateTotals(data), [data])
 
   // Build chart config for bar mode (one entry per commodity)
@@ -137,7 +159,11 @@ export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
 
   const isEmpty = data.length === 0
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -179,7 +205,7 @@ export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
             fontSize={fontSize}
           />
         ) : viewMode === 'pie' ? (
-          <PieView aggregated={aggregated} />
+          <PieView aggregated={aggregated} fontSize={fontSize} />
         ) : (
           <TableView aggregated={aggregated} />
         )}
@@ -197,12 +223,22 @@ interface BarViewProps {
   fontSize: number
 }
 
-function BarView({ barData, commodityNames, chartConfig, fontSize }: BarViewProps) {
+function BarView({
+  barData,
+  commodityNames,
+  chartConfig,
+  fontSize,
+}: BarViewProps) {
   return (
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <BarChart data={barData} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <XAxis
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize }}
+        />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
@@ -213,7 +249,9 @@ function BarView({ barData, commodityNames, chartConfig, fontSize }: BarViewProp
             name={name}
             stackId="sales"
             fill={getColor(PALETTE, i)}
-            radius={i === commodityNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+            radius={
+              i === commodityNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
+            }
           />
         ))}
       </BarChart>
@@ -225,13 +263,22 @@ function BarView({ barData, commodityNames, chartConfig, fontSize }: BarViewProp
 
 interface PieViewProps {
   aggregated: AggregatedCommodity[]
+  fontSize: number
 }
 
-function PieView({ aggregated }: PieViewProps) {
-  const config = aggregated.reduce<ChartConfig>((acc, item, i) => ({
-    ...acc,
-    [item.name]: { label: item.name, color: getColor(PALETTE, i) },
-  }), {})
+function PieView({ aggregated, fontSize }: PieViewProps) {
+  const coloredData = aggregated.map((item, i) => ({
+    ...item,
+    fill: getColor(PALETTE, i),
+  }))
+
+  const config = aggregated.reduce<ChartConfig>(
+    (acc, item, i) => ({
+      ...acc,
+      [item.name]: { label: item.name, color: getColor(PALETTE, i) },
+    }),
+    {},
+  )
 
   return (
     <ChartContainer config={config} className="min-h-[250px] w-full">
@@ -239,18 +286,35 @@ function PieView({ aggregated }: PieViewProps) {
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Pie
-          data={aggregated}
+          data={coloredData}
           dataKey="quantity"
           nameKey="name"
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, quantity }: { name?: string; quantity?: number }) => `${name ?? ''}: ${quantity ?? 0}`}
-        >
-          {aggregated.map((item, i) => (
-            <Cell key={item.name} fill={getColor(PALETTE, i)} />
-          ))}
-        </Pie>
+          label={({
+            name,
+            value,
+            x,
+            y,
+          }: {
+            name?: string
+            value?: number
+            x?: number
+            y?: number
+          }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="fill-foreground"
+              fontSize={fontSize}
+            >
+              {`${name ?? ''}: ${value ?? 0}`}
+            </text>
+          )}
+        />
       </PieChart>
     </ChartContainer>
   )
@@ -280,11 +344,13 @@ function TableView({ aggregated }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {aggregated.map((item) => (
+        {aggregated.map(item => (
           <tr key={item.name} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.name}</td>
             <td className="py-3 text-right text-base">{item.quantity}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.revenue)}</td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.revenue)}
+            </td>
           </tr>
         ))}
       </tbody>

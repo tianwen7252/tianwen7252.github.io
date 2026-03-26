@@ -14,12 +14,13 @@ vi.mock('recharts', () => ({
   BarChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="bar-chart">{children}</div>
   ),
-  Bar: ({ name }: { name?: string }) => <div data-testid={`bar-${name ?? 'unnamed'}`} />,
+  Bar: ({ name }: { name?: string }) => (
+    <div data-testid={`bar-${name ?? 'unnamed'}`} />
+  ),
   PieChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="pie-chart">{children}</div>
   ),
   Pie: () => <div data-testid="pie" />,
-  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
@@ -48,7 +49,10 @@ vi.mock('@/stores/app-store', () => ({
 
 // Mock RippleButton as a simple button
 vi.mock('@/components/ui/ripple-button', () => ({
-  RippleButton: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+  RippleButton: ({
+    children,
+    ...props
+  }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
     <button {...props}>{children}</button>
   ),
 }))
@@ -59,10 +63,34 @@ import { CategorySalesChart } from './category-sales-chart'
 
 function buildSampleData(): CategorySalesRow[] {
   return [
-    { date: '2026-03-01', commodityId: 'com-1', commodityName: '招牌便當', quantity: 10, revenue: 1500 },
-    { date: '2026-03-01', commodityId: 'com-2', commodityName: '排骨便當', quantity: 8, revenue: 1200 },
-    { date: '2026-03-02', commodityId: 'com-1', commodityName: '招牌便當', quantity: 12, revenue: 1800 },
-    { date: '2026-03-02', commodityId: 'com-2', commodityName: '排骨便當', quantity: 5, revenue: 750 },
+    {
+      date: '2026-03-01',
+      commodityId: 'com-1',
+      commodityName: '招牌便當',
+      quantity: 10,
+      revenue: 1500,
+    },
+    {
+      date: '2026-03-01',
+      commodityId: 'com-2',
+      commodityName: '排骨便當',
+      quantity: 8,
+      revenue: 1200,
+    },
+    {
+      date: '2026-03-02',
+      commodityId: 'com-1',
+      commodityName: '招牌便當',
+      quantity: 12,
+      revenue: 1800,
+    },
+    {
+      date: '2026-03-02',
+      commodityId: 'com-2',
+      commodityName: '排骨便當',
+      quantity: 5,
+      revenue: 750,
+    },
   ]
 }
 

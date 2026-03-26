@@ -50,7 +50,11 @@ describe('RevenueHeatmap', () => {
 
     it('renders 28 day cells for February (non-leap year)', () => {
       render(
-        <RevenueHeatmap data={buildFullMonthData(2026, 2)} year={2026} month={2} />,
+        <RevenueHeatmap
+          data={buildFullMonthData(2026, 2)}
+          year={2026}
+          month={2}
+        />,
       )
       const cells = screen.getAllByTestId('heatmap-cell')
       expect(cells).toHaveLength(28)
@@ -58,7 +62,11 @@ describe('RevenueHeatmap', () => {
 
     it('renders 29 day cells for February in a leap year', () => {
       render(
-        <RevenueHeatmap data={buildFullMonthData(2024, 2)} year={2024} month={2} />,
+        <RevenueHeatmap
+          data={buildFullMonthData(2024, 2)}
+          year={2024}
+          month={2}
+        />,
       )
       const cells = screen.getAllByTestId('heatmap-cell')
       expect(cells).toHaveLength(29)
@@ -100,7 +108,6 @@ describe('RevenueHeatmap', () => {
       render(<RevenueHeatmap data={[]} year={2026} month={3} />)
       expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
     })
-
   })
 
   describe('single day data', () => {

@@ -22,7 +22,6 @@ vi.mock('recharts', () => ({
   Pie: ({ children }: { children: ReactNode }) => (
     <div data-testid="pie">{children}</div>
   ),
-  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
@@ -54,7 +53,16 @@ import { OrderNotesChart } from './order-notes-chart'
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 function buildData(count: number): OrderNoteCount[] {
-  const tags = ['攤位', '外送', '加飯', '不要辣', '加湯', '打包', '內用', '素食']
+  const tags = [
+    '攤位',
+    '外送',
+    '加飯',
+    '不要辣',
+    '加湯',
+    '打包',
+    '內用',
+    '素食',
+  ]
   return Array.from({ length: count }, (_, i) => ({
     note: tags[i % tags.length]!,
     count: (count - i) * 5,

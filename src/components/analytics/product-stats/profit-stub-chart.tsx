@@ -22,16 +22,12 @@ export function ProfitStubChart() {
         <CardTitle className="font-normal">
           {t('analytics.profitAnalysisTitle')}
         </CardTitle>
-        <CardDescription>
-          {t('analytics.profitAnalysisDesc')}
-        </CardDescription>
+        <CardDescription>{t('analytics.profitAnalysisDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col items-center justify-center gap-4 py-12 text-muted-foreground">
           <Construction className="h-12 w-12" />
-          <p className="text-base">
-            {t('analytics.profitAnalysisDesc')}
-          </p>
+          <p className="text-base">{t('analytics.profitAnalysisDesc')}</p>
         </div>
       </CardContent>
     </Card>

@@ -26,12 +26,12 @@ vi.mock('recharts', () => ({
   Pie: ({ children }: { children: ReactNode }) => (
     <div data-testid="pie">{children}</div>
   ),
-  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
   CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -151,7 +151,10 @@ describe('RevenueComparisonChart', () => {
 
     it('does not crash when currentData is empty but prevData has values', () => {
       const { container } = render(
-        <RevenueComparisonChart currentData={[]} prevData={buildPrevMonthData()} />,
+        <RevenueComparisonChart
+          currentData={[]}
+          prevData={buildPrevMonthData()}
+        />,
       )
       expect(container).toBeTruthy()
     })

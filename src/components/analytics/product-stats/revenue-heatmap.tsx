@@ -62,48 +62,59 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
 
   const maxRevenue = Math.max(...Array.from(revenueMap.values()), 0)
 
-  const peakDay = maxRevenue > 0
-    ? Array.from(revenueMap.entries()).reduce<number | null>(
-        (best, [day, rev]) => (rev === maxRevenue && best === null ? day : best),
-        null,
-      )
-    : null
+  const peakDay =
+    maxRevenue > 0
+      ? Array.from(revenueMap.entries()).reduce<number | null>(
+          (best, [day, rev]) =>
+            rev === maxRevenue && best === null ? day : best,
+          null,
+        )
+      : null
 
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.heatmapTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.heatmapTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.heatmapDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {data.length === 0 || data.every(d => d.revenue === 0) ? <ChartEmpty /> : (
-        <div className="grid grid-cols-7 gap-1">
-          {Array.from({ length: totalDays }, (_, i) => {
-            const day = i + 1
-            const revenue = revenueMap.get(day) ?? 0
-            const opacity = computeOpacity(revenue, maxRevenue)
-            const isPeak = day === peakDay
+        {data.length === 0 || data.every(d => d.revenue === 0) ? (
+          <ChartEmpty />
+        ) : (
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: totalDays }, (_, i) => {
+              const day = i + 1
+              const revenue = revenueMap.get(day) ?? 0
+              const opacity = computeOpacity(revenue, maxRevenue)
+              const isPeak = day === peakDay
 
-            const cellContent = (
-              <div
-                data-testid="heatmap-cell"
-                className="flex aspect-square flex-col items-center justify-center rounded-md text-base"
-                style={{
-                  // Palette 1: Moss Forest
-                  backgroundColor: `color-mix(in srgb, ${CHART_PALETTES.mossForest[0]} ${Math.round((isPeak ? 1 : opacity) * 100)}%, transparent)`,
-                  color: opacity > 0.5 ? 'var(--primary-foreground)' : 'var(--foreground)',
-                }}
-              >
-                <span>{day}</span>
-                {revenue > 0 && (
-                  <span className="text-xs opacity-80">{formatCurrency(revenue)}</span>
-                )}
-              </div>
-            )
+              const cellContent = (
+                <div
+                  data-testid="heatmap-cell"
+                  className="flex aspect-square flex-col items-center justify-center rounded-md text-base"
+                  style={{
+                    // Palette 1: Moss Forest
+                    backgroundColor: `color-mix(in srgb, ${CHART_PALETTES.mossForest[0]} ${Math.round((isPeak ? 1 : opacity) * 100)}%, transparent)`,
+                    color:
+                      opacity > 0.5
+                        ? 'var(--primary-foreground)'
+                        : 'var(--foreground)',
+                  }}
+                >
+                  <span>{day}</span>
+                  {revenue > 0 && (
+                    <span className="text-xs opacity-80">
+                      {formatCurrency(revenue)}
+                    </span>
+                  )}
+                </div>
+              )
 
-            return <div key={day}>{cellContent}</div>
-          })}
-        </div>
+              return <div key={day}>{cellContent}</div>
+            })}
+          </div>
         )}
       </CardContent>
     </Card>

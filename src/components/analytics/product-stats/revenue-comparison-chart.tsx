@@ -6,10 +6,20 @@
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid,
-  PieChart, Pie, Cell,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+  PieChart,
+  Pie,
 } from 'recharts'
-import { LineChart as LineChartIcon, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  LineChart as LineChartIcon,
+  PieChart as PieChartIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -50,7 +60,10 @@ interface MergedRow {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function mergeByDay(current: DailyRevenue[], prev: DailyRevenue[]): MergedRow[] {
+function mergeByDay(
+  current: DailyRevenue[],
+  prev: DailyRevenue[],
+): MergedRow[] {
   const currentByDay = new Map<number, number>()
   for (const d of current) {
     const day = Number(d.date.split('-')[2])
@@ -121,9 +134,15 @@ export function RevenueComparisonChart({
     ]
   }, [chartData, t])
 
-  const isEmpty = chartData.length === 0 || chartData.every(d => d.currentMonth === 0 && d.previousMonth === 0)
+  const isEmpty =
+    chartData.length === 0 ||
+    chartData.every(d => d.currentMonth === 0 && d.previousMonth === 0)
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof LineChartIcon }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof LineChartIcon
+  }[] = [
     { mode: 'line', label: t('analytics.viewLine'), icon: LineChartIcon },
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -132,8 +151,12 @@ export function RevenueComparisonChart({
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.revenueComparisonTitle')}</CardTitle>
-        <CardDescription>{t('analytics.revenueComparisonDesc')}</CardDescription>
+        <CardTitle className="font-normal">
+          {t('analytics.revenueComparisonTitle')}
+        </CardTitle>
+        <CardDescription>
+          {t('analytics.revenueComparisonDesc')}
+        </CardDescription>
         <CardAction>
           <div className="flex gap-2">
             {viewButtons.map(({ mode, label, icon: Icon }) => (
@@ -158,9 +181,18 @@ export function RevenueComparisonChart({
         {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'line' ? (
-          <AreaView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} t={t} />
+          <AreaView
+            chartData={chartData}
+            chartConfig={chartConfig}
+            fontSize={fontSize}
+            t={t}
+          />
         ) : viewMode === 'pie' ? (
-          <PieView pieTotals={pieTotals} palette={palette} />
+          <PieView
+            pieTotals={pieTotals}
+            palette={palette}
+            fontSize={fontSize}
+          />
         ) : (
           <TableView chartData={chartData} />
         )}
@@ -183,18 +215,42 @@ function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <AreaChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
-        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <XAxis
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
+          tick={{ fontSize }}
+        />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
-        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+        <ChartTooltip
+          cursor={false}
+          content={<ChartTooltipContent indicator="line" />}
+        />
         <ChartLegend content={<ChartLegendContent />} />
         <defs>
           <linearGradient id="fillCurrent" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-currentMonth)" stopOpacity={0.8} />
-            <stop offset="95%" stopColor="var(--color-currentMonth)" stopOpacity={0.1} />
+            <stop
+              offset="5%"
+              stopColor="var(--color-currentMonth)"
+              stopOpacity={0.8}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-currentMonth)"
+              stopOpacity={0.1}
+            />
           </linearGradient>
           <linearGradient id="fillPrevious" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-previousMonth)" stopOpacity={0.8} />
-            <stop offset="95%" stopColor="var(--color-previousMonth)" stopOpacity={0.1} />
+            <stop
+              offset="5%"
+              stopColor="var(--color-previousMonth)"
+              stopOpacity={0.8}
+            />
+            <stop
+              offset="95%"
+              stopColor="var(--color-previousMonth)"
+              stopOpacity={0.1}
+            />
           </linearGradient>
         </defs>
         <Area
@@ -204,7 +260,16 @@ function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
           stroke="var(--color-currentMonth)"
           fill="url(#fillCurrent)"
           strokeWidth={2}
-        />
+        >
+          <LabelList
+            dataKey="currentMonth"
+            position="top"
+            offset={8}
+            className="fill-foreground"
+            fontSize={fontSize}
+            formatter={(v: unknown) => `$${Number(v).toLocaleString()}`}
+          />
+        </Area>
         <Area
           type="monotone"
           dataKey="previousMonth"
@@ -212,7 +277,16 @@ function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
           stroke="var(--color-previousMonth)"
           fill="url(#fillPrevious)"
           strokeWidth={2}
-        />
+        >
+          <LabelList
+            dataKey="previousMonth"
+            position="top"
+            offset={8}
+            className="fill-foreground"
+            fontSize={fontSize}
+            formatter={(v: unknown) => `$${Number(v).toLocaleString()}`}
+          />
+        </Area>
       </AreaChart>
     </ChartContainer>
   )
@@ -223,13 +297,22 @@ function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
 interface PieViewProps {
   pieTotals: Array<{ name: string; value: number }>
   palette: readonly string[]
+  fontSize: number
 }
 
-function PieView({ pieTotals, palette }: PieViewProps) {
-  const config = pieTotals.reduce<ChartConfig>((acc, item, i) => ({
-    ...acc,
-    [item.name]: { label: item.name, color: getColor(palette, i) },
-  }), {})
+function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
+  const coloredData = pieTotals.map((item, i) => ({
+    ...item,
+    fill: getColor(palette, i),
+  }))
+
+  const config = pieTotals.reduce<ChartConfig>(
+    (acc, item, i) => ({
+      ...acc,
+      [item.name]: { label: item.name, color: getColor(palette, i) },
+    }),
+    {},
+  )
 
   return (
     <ChartContainer config={config} className="min-h-[250px] w-full">
@@ -237,18 +320,35 @@ function PieView({ pieTotals, palette }: PieViewProps) {
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Pie
-          data={pieTotals}
+          data={coloredData}
           dataKey="value"
           nameKey="name"
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${formatCurrency(value ?? 0)}`}
-        >
-          {pieTotals.map((item, i) => (
-            <Cell key={item.name} fill={getColor(palette, i)} />
-          ))}
-        </Pie>
+          label={({
+            name,
+            value,
+            x,
+            y,
+          }: {
+            name?: string
+            value?: number
+            x?: number
+            y?: number
+          }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="fill-foreground"
+              fontSize={fontSize}
+            >
+              {`${name ?? ''}: ${formatCurrency(value ?? 0)}`}
+            </text>
+          )}
+        />
       </PieChart>
     </ChartContainer>
   )
@@ -278,11 +378,15 @@ function TableView({ chartData }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {chartData.map((item) => (
+        {chartData.map(item => (
           <tr key={item.day} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.day}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.currentMonth)}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.previousMonth)}</td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.currentMonth)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.previousMonth)}
+            </td>
           </tr>
         ))}
       </tbody>

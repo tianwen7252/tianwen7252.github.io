@@ -5,8 +5,21 @@
 
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList } from 'recharts'
-import { BarChart3, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+} from 'recharts'
+import {
+  BarChart3,
+  PieChart as PieChartIcon,
+  Table as TableIcon,
+} from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -63,15 +76,22 @@ export function DeliveryOrdersChart({ data }: DeliveryOrdersChartProps) {
   const fontSize = useAppStore().fontSize
 
   // Build chartConfig immutably using reduce (not forEach mutation)
-  const chartConfig = data.reduce<ChartConfig>((acc, item, i) => ({
-    ...acc,
-    [item.commodityName]: {
-      label: item.commodityName,
-      color: getColor(PALETTE, i),
-    },
-  }), {})
+  const chartConfig = data.reduce<ChartConfig>(
+    (acc, item, i) => ({
+      ...acc,
+      [item.commodityName]: {
+        label: item.commodityName,
+        color: getColor(PALETTE, i),
+      },
+    }),
+    {},
+  )
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
+  const viewButtons: {
+    mode: ViewMode
+    label: string
+    icon: typeof BarChart3
+  }[] = [
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
@@ -80,7 +100,9 @@ export function DeliveryOrdersChart({ data }: DeliveryOrdersChartProps) {
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.deliveryOrdersTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.deliveryOrdersTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.deliveryOrdersDesc')}</CardDescription>
         <CardAction>
           <div className="flex gap-2">
@@ -106,7 +128,7 @@ export function DeliveryOrdersChart({ data }: DeliveryOrdersChartProps) {
         {data.length === 0 ? (
           <ChartEmpty />
         ) : viewMode === 'pie' ? (
-          <PieView data={data} chartConfig={chartConfig} />
+          <PieView data={data} chartConfig={chartConfig} fontSize={fontSize} />
         ) : viewMode === 'bar' ? (
           <BarView data={data} fontSize={fontSize} />
         ) : (
@@ -122,27 +144,50 @@ export function DeliveryOrdersChart({ data }: DeliveryOrdersChartProps) {
 interface PieViewProps {
   data: DeliveryProductRow[]
   chartConfig: ChartConfig
+  fontSize: number
 }
 
-function PieView({ data, chartConfig }: PieViewProps) {
+function PieView({ data, chartConfig, fontSize }: PieViewProps) {
+  const coloredData = data.map((item, i) => ({
+    ...item,
+    fill: getColor(PALETTE, i),
+  }))
+
   return (
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
         <Pie
-          data={data}
+          data={coloredData}
           dataKey="quantity"
           nameKey="commodityName"
           cx="50%"
           cy="50%"
           outerRadius={100}
-          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${value ?? 0}`}
-        >
-          {data.map((item, i) => (
-            <Cell key={item.commodityName} fill={getColor(PALETTE, i)} />
-          ))}
-        </Pie>
+          label={({
+            name,
+            value,
+            x,
+            y,
+          }: {
+            name?: string
+            value?: number
+            x?: number
+            y?: number
+          }) => (
+            <text
+              x={x}
+              y={y}
+              textAnchor="middle"
+              dominantBaseline="central"
+              className="fill-foreground"
+              fontSize={fontSize}
+            >
+              {`${name ?? ''}: ${value ?? 0}`}
+            </text>
+          )}
+        />
       </PieChart>
     </ChartContainer>
   )
@@ -156,8 +201,12 @@ interface BarViewProps {
 }
 
 function BarView({ data, fontSize }: BarViewProps) {
+  const coloredData = data.map((item, i) => ({
+    ...item,
+    fill: getColor(PALETTE, i),
+  }))
   const minHeight = Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT)
-  const maxValue = data.length > 0 ? Math.max(...data.map((d) => d.quantity)) : 0
+  const maxValue = data.length > 0 ? Math.max(...data.map(d => d.quantity)) : 0
 
   const barConfig = {
     quantity: {
@@ -167,14 +216,10 @@ function BarView({ data, fontSize }: BarViewProps) {
   } satisfies ChartConfig
 
   return (
-    <ChartContainer
-      config={barConfig}
-      className="w-full"
-      style={{ minHeight }}
-    >
+    <ChartContainer config={barConfig} className="w-full" style={{ minHeight }}>
       <BarChart
         layout="vertical"
-        data={data}
+        data={coloredData}
         margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
         accessibilityLayer
       >
@@ -197,13 +242,7 @@ function BarView({ data, fontSize }: BarViewProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
         />
-        <Bar
-          dataKey="quantity"
-          radius={[0, 4, 4, 0]}
-        >
-          {data.map((_, i) => (
-            <Cell key={i} fill={getColor(PALETTE, i)} />
-          ))}
+        <Bar dataKey="quantity" radius={[0, 4, 4, 0]}>
           <LabelList
             dataKey="quantity"
             position="insideRight"
@@ -241,11 +280,13 @@ function TableView({ data }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {data.map((item) => (
+        {data.map(item => (
           <tr key={item.commodityName} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.commodityName}</td>
             <td className="py-3 text-right text-base">{item.quantity}</td>
-            <td className="py-3 text-right text-base">{formatCurrency(item.revenue)}</td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.revenue)}
+            </td>
           </tr>
         ))}
       </tbody>

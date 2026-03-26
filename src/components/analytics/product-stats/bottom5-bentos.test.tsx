@@ -22,7 +22,6 @@ vi.mock('recharts', () => ({
   Pie: ({ children }: { children: ReactNode }) => (
     <div data-testid="pie">{children}</div>
   ),
-  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,

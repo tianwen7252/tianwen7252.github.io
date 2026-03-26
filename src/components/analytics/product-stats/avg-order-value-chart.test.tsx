@@ -25,6 +25,7 @@ vi.mock('recharts', () => ({
   Tooltip: () => null,
   CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -106,12 +107,16 @@ describe('AvgOrderValueChart', () => {
 
   describe('moving average computation', () => {
     it('renders without crashing with fewer than 7 data points', () => {
-      const { container } = render(<AvgOrderValueChart data={buildAvgData(3)} />)
+      const { container } = render(
+        <AvgOrderValueChart data={buildAvgData(3)} />,
+      )
       expect(container).toBeTruthy()
     })
 
     it('renders without crashing with exactly 7 data points', () => {
-      const { container } = render(<AvgOrderValueChart data={buildAvgData(7)} />)
+      const { container } = render(
+        <AvgOrderValueChart data={buildAvgData(7)} />,
+      )
       expect(container).toBeTruthy()
     })
 
