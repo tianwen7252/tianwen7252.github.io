@@ -14,13 +14,13 @@ import {
   type AttendanceRepository,
 } from './attendance-repository'
 import {
-  createCommondityTypeRepository,
-  type CommondityTypeRepository,
-} from './commondity-type-repository'
+  createCommodityTypeRepository,
+  type CommodityTypeRepository,
+} from './commodity-type-repository'
 import {
-  createCommondityRepository,
-  type CommondityRepository,
-} from './commondity-repository'
+  createCommodityRepository,
+  type CommodityRepository,
+} from './commodity-repository'
 import {
   createOrderRepository,
   type OrderRepository,
@@ -40,8 +40,8 @@ import {
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
-let commondityTypeRepo: CommondityTypeRepository | null = null
-let commondityRepo: CommondityRepository | null = null
+let commodityTypeRepo: CommodityTypeRepository | null = null
+let commodityRepo: CommodityRepository | null = null
 let orderRepo: OrderRepository | null = null
 let orderItemRepo: OrderItemRepository | null = null
 let orderDiscountRepo: OrderDiscountRepository | null = null
@@ -54,8 +54,8 @@ let statisticsRepo: StatisticsRepository | null = null
 export function initRepositories(db: AsyncDatabase): void {
   employeeRepo = createEmployeeRepository(db)
   attendanceRepo = createAttendanceRepository(db)
-  commondityTypeRepo = createCommondityTypeRepository(db)
-  commondityRepo = createCommondityRepository(db)
+  commodityTypeRepo = createCommodityTypeRepository(db)
+  commodityRepo = createCommodityRepository(db)
   orderRepo = createOrderRepository(db)
   orderItemRepo = createOrderItemRepository(db)
   orderDiscountRepo = createOrderDiscountRepository(db)
@@ -89,29 +89,29 @@ export function getAttendanceRepo(): AttendanceRepository {
 }
 
 /**
- * Get the CommondityTypeRepository singleton.
+ * Get the CommodityTypeRepository singleton.
  * Throws if initRepositories() has not been called.
  */
-export function getCommondityTypeRepo(): CommondityTypeRepository {
-  if (!commondityTypeRepo) {
+export function getCommodityTypeRepo(): CommodityTypeRepository {
+  if (!commodityTypeRepo) {
     throw new Error(
       'Repositories not initialized. Call initRepositories(db) first.',
     )
   }
-  return commondityTypeRepo
+  return commodityTypeRepo
 }
 
 /**
- * Get the CommondityRepository singleton.
+ * Get the CommodityRepository singleton.
  * Throws if initRepositories() has not been called.
  */
-export function getCommondityRepo(): CommondityRepository {
-  if (!commondityRepo) {
+export function getCommodityRepo(): CommodityRepository {
+  if (!commodityRepo) {
     throw new Error(
       'Repositories not initialized. Call initRepositories(db) first.',
     )
   }
-  return commondityRepo
+  return commodityRepo
 }
 
 /**
@@ -173,8 +173,8 @@ export function getStatisticsRepo(): StatisticsRepository {
 export function resetRepositories(): void {
   employeeRepo = null
   attendanceRepo = null
-  commondityTypeRepo = null
-  commondityRepo = null
+  commodityTypeRepo = null
+  commodityRepo = null
   orderRepo = null
   orderItemRepo = null
   orderDiscountRepo = null

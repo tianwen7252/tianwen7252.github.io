@@ -1,10 +1,10 @@
 import { cn } from '@/lib/cn'
-import type { Commondity } from '@/lib/schemas'
+import type { Commodity } from '@/lib/schemas'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { resolveProductImage } from '@/lib/resolve-product-image'
 
 interface ProductCardProps {
-  readonly commodity: Commondity
+  readonly commodity: Commodity
   readonly onAdd: (commodity: {
     id: string
     name: string

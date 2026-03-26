@@ -2,12 +2,12 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CategoryTabs } from './category-tabs'
-import type { CommondityType } from '@/lib/schemas'
+import type { CommodityType } from '@/lib/schemas'
 
-/** Factory to create mock CommondityType objects */
+/** Factory to create mock CommodityType objects */
 function makeCategoryType(
-  overrides: Partial<CommondityType> = {},
-): CommondityType {
+  overrides: Partial<CommodityType> = {},
+): CommodityType {
   return {
     id: 'ct-1',
     typeId: 'type-1',
@@ -20,7 +20,7 @@ function makeCategoryType(
   }
 }
 
-const mockCategories: readonly CommondityType[] = [
+const mockCategories: readonly CommodityType[] = [
   makeCategoryType({ id: 'ct-1', typeId: 'type-1', label: '便當' }),
   makeCategoryType({ id: 'ct-2', typeId: 'type-2', label: '單點' }),
   makeCategoryType({ id: 'ct-3', typeId: 'type-3', label: '飲料' }),

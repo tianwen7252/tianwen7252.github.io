@@ -137,9 +137,9 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
   useEffect(() => {
     let cancelled = false
     import('@/lib/repositories/provider')
-      .then(({ getCommondityRepo }) => {
+      .then(({ getCommodityRepo }) => {
         try {
-          const repo = getCommondityRepo()
+          const repo = getCommodityRepo()
           return repo.findOnMarket()
         } catch {
           return []

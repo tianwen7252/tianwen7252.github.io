@@ -2,10 +2,10 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductCard } from './product-card'
-import type { Commondity } from '@/lib/schemas'
+import type { Commodity } from '@/lib/schemas'
 
-/** Factory to create mock Commondity objects */
-function makeCommodity(overrides: Partial<Commondity> = {}): Commondity {
+/** Factory to create mock Commodity objects */
+function makeCommodity(overrides: Partial<Commodity> = {}): Commodity {
   return {
     id: 'com-1',
     typeId: 'type-1',

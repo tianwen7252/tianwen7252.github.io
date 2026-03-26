@@ -10,8 +10,8 @@ import {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
-  getCommondityTypeRepo,
-  getCommondityRepo,
+  getCommodityTypeRepo,
+  getCommodityRepo,
   getOrderRepo,
   getOrderItemRepo,
   getOrderDiscountRepo,
@@ -97,9 +97,9 @@ describe('Repository Provider', () => {
     })
   })
 
-  describe('getCommondityTypeRepo()', () => {
+  describe('getCommodityTypeRepo()', () => {
     it('throws before initRepositories() is called', () => {
-      expect(() => getCommondityTypeRepo()).toThrow(
+      expect(() => getCommodityTypeRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })
@@ -108,7 +108,7 @@ describe('Repository Provider', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      const repo = getCommondityTypeRepo()
+      const repo = getCommodityTypeRepo()
       expect(repo).toBeDefined()
       expect(typeof repo.findAll).toBe('function')
       expect(typeof repo.findById).toBe('function')
@@ -121,15 +121,15 @@ describe('Repository Provider', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      const repo1 = getCommondityTypeRepo()
-      const repo2 = getCommondityTypeRepo()
+      const repo1 = getCommodityTypeRepo()
+      const repo2 = getCommodityTypeRepo()
       expect(repo1).toBe(repo2)
     })
   })
 
-  describe('getCommondityRepo()', () => {
+  describe('getCommodityRepo()', () => {
     it('throws before initRepositories() is called', () => {
-      expect(() => getCommondityRepo()).toThrow(
+      expect(() => getCommodityRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })
@@ -138,7 +138,7 @@ describe('Repository Provider', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      const repo = getCommondityRepo()
+      const repo = getCommodityRepo()
       expect(repo).toBeDefined()
       expect(typeof repo.findAll).toBe('function')
       expect(typeof repo.findById).toBe('function')
@@ -153,8 +153,8 @@ describe('Repository Provider', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      const repo1 = getCommondityRepo()
-      const repo2 = getCommondityRepo()
+      const repo1 = getCommodityRepo()
+      const repo2 = getCommodityRepo()
       expect(repo1).toBe(repo2)
     })
   })
@@ -273,28 +273,28 @@ describe('Repository Provider', () => {
       )
     })
 
-    it('causes getCommondityTypeRepo() to throw after reset', () => {
+    it('causes getCommodityTypeRepo() to throw after reset', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      expect(() => getCommondityTypeRepo()).not.toThrow()
+      expect(() => getCommodityTypeRepo()).not.toThrow()
 
       resetRepositories()
 
-      expect(() => getCommondityTypeRepo()).toThrow(
+      expect(() => getCommodityTypeRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })
 
-    it('causes getCommondityRepo() to throw after reset', () => {
+    it('causes getCommodityRepo() to throw after reset', () => {
       const db = createMockAsyncDb()
       initRepositories(db)
 
-      expect(() => getCommondityRepo()).not.toThrow()
+      expect(() => getCommodityRepo()).not.toThrow()
 
       resetRepositories()
 
-      expect(() => getCommondityRepo()).toThrow(
+      expect(() => getCommodityRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })

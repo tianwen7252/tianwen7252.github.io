@@ -3,19 +3,19 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ProductGrid } from './product-grid'
-import type { Commondity, CommondityType } from '@/lib/schemas'
+import type { Commodity, CommodityType } from '@/lib/schemas'
 
 // ─── Mock repositories ──────────────────────────────────────────────────────
 
-const mockFindAllTypes = vi.fn<() => Promise<CommondityType[]>>()
-const mockFindOnMarket = vi.fn<() => Promise<Commondity[]>>()
-const mockFindByTypeId = vi.fn<(typeId: string) => Promise<Commondity[]>>()
+const mockFindAllTypes = vi.fn<() => Promise<CommodityType[]>>()
+const mockFindOnMarket = vi.fn<() => Promise<Commodity[]>>()
+const mockFindByTypeId = vi.fn<(typeId: string) => Promise<Commodity[]>>()
 
 vi.mock('@/lib/repositories/provider', () => ({
-  getCommondityTypeRepo: () => ({
+  getCommodityTypeRepo: () => ({
     findAll: mockFindAllTypes,
   }),
-  getCommondityRepo: () => ({
+  getCommodityRepo: () => ({
     findOnMarket: mockFindOnMarket,
     findByTypeId: mockFindByTypeId,
   }),
@@ -35,8 +35,8 @@ vi.mock('@/stores/order-store', () => {
 // ─── Test data factories ─────────────────────────────────────────────────────
 
 function makeCategoryType(
-  overrides: Partial<CommondityType> = {},
-): CommondityType {
+  overrides: Partial<CommodityType> = {},
+): CommodityType {
   return {
     id: 'ct-1',
     typeId: 'type-1',
@@ -49,7 +49,7 @@ function makeCategoryType(
   }
 }
 
-function makeCommodity(overrides: Partial<Commondity> = {}): Commondity {
+function makeCommodity(overrides: Partial<Commodity> = {}): Commodity {
   return {
     id: 'com-1',
     typeId: 'type-1',
@@ -65,12 +65,12 @@ function makeCommodity(overrides: Partial<Commondity> = {}): Commondity {
   }
 }
 
-const mockCategories: CommondityType[] = [
+const mockCategories: CommodityType[] = [
   makeCategoryType({ id: 'ct-1', typeId: 'type-1', label: '便當' }),
   makeCategoryType({ id: 'ct-2', typeId: 'type-2', label: '單點' }),
 ]
 
-const mockCommodities: Commondity[] = [
+const mockCommodities: Commodity[] = [
   makeCommodity({ id: 'com-1', name: '滷肉便當', price: 100 }),
   makeCommodity({ id: 'com-2', name: '炸雞腿便當', price: 130 }),
   makeCommodity({ id: 'com-3', name: '排骨便當', price: 120 }),

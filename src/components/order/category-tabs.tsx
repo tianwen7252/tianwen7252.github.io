@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
-import type { CommondityType } from '@/lib/schemas'
+import type { CommodityType } from '@/lib/schemas'
 
 interface CategoryTabsProps {
-  readonly categories: readonly CommondityType[]
+  readonly categories: readonly CommodityType[]
   readonly selectedTypeId: string | null
   readonly onSelect: (typeId: string) => void
 }

@@ -4,7 +4,7 @@
  * This file builds typed domain objects and handles database insertion and cleanup.
  */
 
-import type { Employee, CommondityType, Commondity } from '@/lib/schemas'
+import type { Employee, CommodityType, Commodity } from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 import {
   EMPLOYEE_SEEDS,
@@ -52,17 +52,17 @@ export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map((seed) 
 
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
-export const DEFAULT_COMMODITY_TYPES: readonly CommondityType[] = COMMODITY_TYPE_SEEDS.map(
+export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] = COMMODITY_TYPE_SEEDS.map(
   (seed) => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
   }),
-) as readonly CommondityType[]
+) as readonly CommodityType[]
 
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
-export const DEFAULT_COMMODITIES: readonly Commondity[] = COMMODITY_SEEDS.map((seed) => ({
+export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map((seed) => ({
   id: seed.id,
   typeId: seed.typeId,
   name: seed.name,
@@ -74,7 +74,7 @@ export const DEFAULT_COMMODITIES: readonly Commondity[] = COMMODITY_SEEDS.map((s
   includesSoup: seed.includesSoup ?? false,
   createdAt: BASE_TS,
   updatedAt: BASE_TS,
-})) as readonly Commondity[]
+})) as readonly Commodity[]
 
 // ─── LocalStorage version check ──────────────────────────────────────────────
 
@@ -107,7 +107,7 @@ export function markDefaultDataVersion(): void {
  * well-known IDs. User-created data with other IDs is left untouched.
  *
  * FK-safe deletion order:
- *   commondities → commondity_types (if no user commondities reference them)
+ *   commodities → commodity_types (if no user commodities reference them)
  *   attendances (for default employees) → employees
  */
 export function deleteDefaultData(db: Database): void {
@@ -118,21 +118,21 @@ export function deleteDefaultData(db: Database): void {
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 
-  // Delete default commondities first (child of commondity_types via type_id FK)
+  // Delete default commodities first (child of commodity_types via type_id FK)
   db.exec(
-    `DELETE FROM commondities WHERE id IN (${placeholders(commodityIds)})`,
+    `DELETE FROM commodities WHERE id IN (${placeholders(commodityIds)})`,
     commodityIds,
   )
 
-  // Only delete commondity_types if no user-created commondities still reference them.
+  // Only delete commodity_types if no user-created commodities still reference them.
   // Skipped when users have added custom menu items using the default type IDs.
   const remaining = db.exec<{ cnt: number }>(
-    `SELECT COUNT(*) as cnt FROM commondities WHERE type_id IN (${placeholders(typeIdValues)})`,
+    `SELECT COUNT(*) as cnt FROM commodities WHERE type_id IN (${placeholders(typeIdValues)})`,
     typeIdValues,
   )
   if (Number(remaining.rows[0]?.cnt ?? 0) === 0) {
     db.exec(
-      `DELETE FROM commondity_types WHERE id IN (${placeholders(typeIds)})`,
+      `DELETE FROM commodity_types WHERE id IN (${placeholders(typeIds)})`,
       typeIds,
     )
   }
@@ -159,8 +159,8 @@ export function clearAllData(db: Database): void {
   db.exec('DELETE FROM order_items')
   db.exec('DELETE FROM order_discounts')
   db.exec('DELETE FROM orders')
-  db.exec('DELETE FROM commondities')
-  db.exec('DELETE FROM commondity_types')
+  db.exec('DELETE FROM commodities')
+  db.exec('DELETE FROM commodity_types')
   db.exec('DELETE FROM order_types')
   db.exec('DELETE FROM daily_data')
   db.exec('DELETE FROM employees')
@@ -195,7 +195,7 @@ export function insertDefaultEmployees(db: Database): void {
 export function insertDefaultCommodities(db: Database): void {
   for (const ct of DEFAULT_COMMODITY_TYPES) {
     db.exec(
-      `INSERT OR IGNORE INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
+      `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [ct.id, ct.typeId, ct.type, ct.label, ct.color, ct.createdAt, ct.updatedAt],
     )
@@ -203,7 +203,7 @@ export function insertDefaultCommodities(db: Database): void {
 
   for (const com of DEFAULT_COMMODITIES) {
     db.exec(
-      `INSERT OR IGNORE INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, includes_soup, created_at, updated_at)
+      `INSERT OR IGNORE INTO commodities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, includes_soup, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         com.id,
