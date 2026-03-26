@@ -8,6 +8,11 @@ import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
 import { DEFAULT_EMPLOYEES } from '@/lib/default-data'
 import type { Employee, CreateEmployee, Attendance, CreateAttendance } from '@/lib/schemas'
+import type {
+  StatisticsRepository,
+  ProductKpis,
+  DateRange,
+} from '@/lib/repositories/statistics-repository'
 
 // ─── Test attendance patterns ──────────────────────────────────────────────
 
@@ -186,6 +191,58 @@ export function resetMockRepositories(): void {
   resetState()
 }
 
+// ─── Mock Statistics Repository ────────────────────────────────────────────
+
+const ZERO_PRODUCT_KPIS: ProductKpis = {
+  totalRevenue: 0,
+  orderCount: 0,
+  morningRevenue: 0,
+  afternoonRevenue: 0,
+  totalQuantity: 0,
+  bentoQuantity: 0,
+}
+
+export const mockStatisticsRepo: StatisticsRepository = {
+  async getProductKpis(_range: DateRange): Promise<ProductKpis> {
+    return { ...ZERO_PRODUCT_KPIS }
+  },
+  async getHourlyOrderDistribution(_range: DateRange) {
+    return []
+  },
+  async getTopProducts(_range: DateRange, _limit: number, _orderBy: 'quantity' | 'revenue') {
+    return []
+  },
+  async getBottomBentos(_range: DateRange, _limit: number) {
+    return []
+  },
+  async getDailyRevenue(_range: DateRange) {
+    return []
+  },
+  async getAvgOrderValue(_range: DateRange) {
+    return []
+  },
+  async getProductDailyRevenue(_range: DateRange, _commodityId: string) {
+    return []
+  },
+  async getStaffKpis(_range: DateRange) {
+    return {
+      activeEmployeeCount: 0,
+      totalAttendanceDays: 0,
+      avgMonthlyHours: 0,
+      leaveCount: 0,
+    }
+  },
+  async getEmployeeHours(_range: DateRange) {
+    return []
+  },
+  async getDailyHeadcount(_range: DateRange) {
+    return []
+  },
+  async getDailyAttendeeList(_date: string) {
+    return []
+  },
+}
+
 // ─── Provider mock functions ───────────────────────────────────────────────
 
 export function getEmployeeRepo() {
@@ -194,4 +251,8 @@ export function getEmployeeRepo() {
 
 export function getAttendanceRepo() {
   return mockAttendanceRepo
+}
+
+export function getStatisticsRepo() {
+  return mockStatisticsRepo
 }

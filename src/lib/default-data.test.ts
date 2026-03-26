@@ -94,37 +94,37 @@ describe('markDefaultDataVersion()', () => {
 // ─── deleteDefaultData ───────────────────────────────────────────────────────
 
 describe('deleteDefaultData(db)', () => {
-  it('issues SELECT COUNT to check for non-default commondities before deleting commondity_types', () => {
+  it('issues SELECT COUNT to check for non-default commodities before deleting commodity_types', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
     const selectCall = db.calls.find(
-      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commondities'),
+      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
     )
     expect(selectCall).toBeDefined()
-    expect(selectCall!.sql).toMatch(/SELECT COUNT\(\*\) as cnt FROM commondities WHERE type_id IN/)
+    expect(selectCall!.sql).toMatch(/SELECT COUNT\(\*\) as cnt FROM commodities WHERE type_id IN/)
     expect(selectCall!.params).toHaveLength(4) // 4 default typeId values
   })
 
-  it('issues DELETE for commondity_types when SELECT COUNT returns 0', () => {
+  it('issues DELETE for commodity_types when SELECT COUNT returns 0', () => {
     // Default mock returns rows:[] which means cnt=undefined→0, so deletion proceeds
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const typesSql = db.calls.find((c) => c.sql.includes('DELETE FROM commondity_types'))
+    const typesSql = db.calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
     expect(typesSql).toBeDefined()
-    expect(typesSql!.sql).toMatch(/DELETE FROM commondity_types WHERE id IN/)
+    expect(typesSql!.sql).toMatch(/DELETE FROM commodity_types WHERE id IN/)
   })
 
-  it('skips DELETE for commondity_types when non-default commondities still reference them', () => {
+  it('skips DELETE for commodity_types when non-default commodities still reference them', () => {
     const calls: Array<{ sql: string; params: readonly unknown[] }> = []
     const mockDb: Database & { calls: typeof calls } = {
       isReady: true,
       calls,
       exec<T = Record<string, unknown>>(sql: string, params?: readonly unknown[]): QueryResult<T> {
         calls.push({ sql: sql.trim(), params: params ?? [] })
-        // Simulate COUNT(*) returning 2 (user has custom commondities)
-        if (sql.includes('SELECT COUNT') && sql.includes('commondities')) {
+        // Simulate COUNT(*) returning 2 (user has custom commodities)
+        if (sql.includes('SELECT COUNT') && sql.includes('commodities')) {
           return { rows: [{ cnt: 2 }] as unknown as readonly T[], changes: 0 }
         }
         return { rows: [] as readonly T[], changes: 0 }
@@ -133,17 +133,17 @@ describe('deleteDefaultData(db)', () => {
     }
     deleteDefaultData(mockDb)
 
-    const typesSql = calls.find((c) => c.sql.includes('DELETE FROM commondity_types'))
+    const typesSql = calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
     expect(typesSql).toBeUndefined()
   })
 
-  it('issues DELETE for commondities using default commodity IDs', () => {
+  it('issues DELETE for commodities using default commodity IDs', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const comSql = db.calls.find((c) => c.sql.includes('commondities') && !c.sql.includes('commondity_types'))
+    const comSql = db.calls.find((c) => c.sql.includes('commodities') && !c.sql.includes('commodity_types'))
     expect(comSql).toBeDefined()
-    expect(comSql!.sql).toMatch(/DELETE FROM commondities WHERE id IN/)
+    expect(comSql!.sql).toMatch(/DELETE FROM commodities WHERE id IN/)
   })
 
   it('issues DELETE for employees using default employee IDs', () => {
@@ -173,24 +173,24 @@ describe('deleteDefaultData(db)', () => {
     const empCall = db.calls.find((c) => c.sql.includes('DELETE FROM employees'))
     expect(empCall!.params).toHaveLength(11) // EMPLOYEE_SEEDS has 11 entries
 
-    const typesCall = db.calls.find((c) => c.sql.includes('DELETE FROM commondity_types'))
+    const typesCall = db.calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
     expect(typesCall!.params).toHaveLength(4) // COMMODITY_TYPE_SEEDS has 4 entries
 
-    const comCall = db.calls.find((c) => c.sql.includes('DELETE FROM commondities') && !c.sql.includes('commondity_types'))
+    const comCall = db.calls.find((c) => c.sql.includes('DELETE FROM commodities') && !c.sql.includes('commodity_types'))
     expect(comCall!.params).toHaveLength(46) // COMMODITY_SEEDS has 46 entries
   })
 
-  it('deletes commondities before SELECT-checking and deleting commondity_types', () => {
+  it('deletes commodities before SELECT-checking and deleting commodity_types', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
     const comIdx = db.calls.findIndex(
-      (c) => c.sql.includes('DELETE FROM commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('DELETE FROM commodities') && !c.sql.includes('commodity_types'),
     )
     const selectIdx = db.calls.findIndex(
-      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commondities'),
+      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
     )
-    const typesIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM commondity_types'))
+    const typesIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM commodity_types'))
     expect(comIdx).toBeLessThan(selectIdx)
     expect(selectIdx).toBeLessThan(typesIdx)
   })
@@ -226,18 +226,18 @@ describe('clearAllData(db)', () => {
     expect(db.calls.some((c) => c.sql === 'DELETE FROM attendances')).toBe(true)
   })
 
-  it('deletes from commondities table', () => {
+  it('deletes from commodities table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM commondities')).toBe(true)
+    expect(db.calls.some((c) => c.sql === 'DELETE FROM commodities')).toBe(true)
   })
 
-  it('deletes from commondity_types table', () => {
+  it('deletes from commodity_types table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM commondity_types')).toBe(true)
+    expect(db.calls.some((c) => c.sql === 'DELETE FROM commodity_types')).toBe(true)
   })
 
   it('deletes from employees table', () => {
@@ -365,7 +365,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const typeInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
     )
     expect(typeInserts).toHaveLength(4)
   })
@@ -377,8 +377,8 @@ describe('insertDefaultCommodities(db)', () => {
     const comInserts = db.calls.filter(
       (c) =>
         c.sql.includes('INSERT') &&
-        c.sql.includes('commondities') &&
-        !c.sql.includes('commondity_types'),
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     expect(comInserts).toHaveLength(46)
   })
@@ -387,9 +387,9 @@ describe('insertDefaultCommodities(db)', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
-    const typeInserts = db.calls.filter((c) => c.sql.includes('commondity_types'))
+    const typeInserts = db.calls.filter((c) => c.sql.includes('commodity_types'))
     for (const call of typeInserts) {
-      expect(call.sql).toMatch(/INSERT OR IGNORE INTO commondity_types/)
+      expect(call.sql).toMatch(/INSERT OR IGNORE INTO commodity_types/)
     }
   })
 
@@ -398,10 +398,10 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     for (const call of comInserts) {
-      expect(call.sql).toMatch(/INSERT OR IGNORE INTO commondities/)
+      expect(call.sql).toMatch(/INSERT OR IGNORE INTO commodities/)
     }
   })
 
@@ -419,7 +419,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     // on_market should be 1 (all default commodities are on market)
     for (const call of comInserts) {
@@ -433,7 +433,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     for (const call of comInserts) {
       expect(call.sql).toMatch(/includes_soup/)
@@ -445,7 +445,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     // First 14 inserts are the rice bentos (com-001 to com-014)
     for (let i = 0; i < 14; i++) {
@@ -460,7 +460,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commondities') && !c.sql.includes('commondity_types'),
+      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     // com-015 is the 15th commodity insert
     const com015Insert = comInserts[14]

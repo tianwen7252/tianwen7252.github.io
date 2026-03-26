@@ -3,8 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { Calculator } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import {
-  getCommondityTypeRepo,
-  getCommondityRepo,
+  getCommodityTypeRepo,
+  getCommodityRepo,
 } from '@/lib/repositories/provider'
 import { useOrderStore } from '@/stores/order-store'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -28,8 +28,8 @@ export function ProductGrid() {
     isLoading: isLoadingTypes,
     isError: isTypesError,
   } = useQuery({
-    queryKey: ['commondity-types'],
-    queryFn: () => getCommondityTypeRepo().findAll(),
+    queryKey: ['commodity-types'],
+    queryFn: () => getCommodityTypeRepo().findAll(),
   })
 
   // Fetch commodities based on selected category
@@ -41,9 +41,9 @@ export function ProductGrid() {
     queryKey: ['commodities', selectedTypeId],
     queryFn: () => {
       if (selectedTypeId === null) {
-        return getCommondityRepo().findOnMarket()
+        return getCommodityRepo().findOnMarket()
       }
-      return getCommondityRepo().findByTypeId(selectedTypeId)
+      return getCommodityRepo().findByTypeId(selectedTypeId)
     },
   })
 

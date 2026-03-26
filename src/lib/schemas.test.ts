@@ -4,7 +4,7 @@ import {
   createEmployeeSchema,
   attendanceSchema,
   createAttendanceSchema,
-  commonditySchema,
+  commoditySchema,
   orderSchema,
   dailyDataSchema,
 } from './schemas'
@@ -100,9 +100,9 @@ describe('schemas', () => {
     })
   })
 
-  describe('commonditySchema', () => {
+  describe('commoditySchema', () => {
     it('should validate a product', () => {
-      const result = commonditySchema.safeParse({
+      const result = commoditySchema.safeParse({
         id: 'com-001',
         typeId: 'main-dish',
         name: '炒飯',
@@ -116,7 +116,7 @@ describe('schemas', () => {
     })
 
     it('should reject negative price', () => {
-      const result = commonditySchema.safeParse({
+      const result = commoditySchema.safeParse({
         id: 'com-001',
         typeId: 'main-dish',
         name: '炒飯',

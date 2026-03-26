@@ -8,13 +8,13 @@ export {
   type AttendanceRepository,
 } from './attendance-repository'
 export {
-  createCommondityTypeRepository,
-  type CommondityTypeRepository,
-} from './commondity-type-repository'
+  createCommodityTypeRepository,
+  type CommodityTypeRepository,
+} from './commodity-type-repository'
 export {
-  createCommondityRepository,
-  type CommondityRepository,
-} from './commondity-repository'
+  createCommodityRepository,
+  type CommodityRepository,
+} from './commodity-repository'
 export {
   createOrderRepository,
   type OrderRepository,
@@ -31,8 +31,8 @@ export {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
-  getCommondityTypeRepo,
-  getCommondityRepo,
+  getCommodityTypeRepo,
+  getCommodityRepo,
   getOrderRepo,
   getOrderItemRepo,
   getOrderDiscountRepo,

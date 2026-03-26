@@ -6,6 +6,7 @@
 
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
+import { Sun, MoonStar, CircleDollarSign } from 'lucide-react'
 import type { Order } from '@/lib/schemas'
 import { MORNING_SHIFT } from '@/constants/app'
 
@@ -92,12 +93,19 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
         data-testid="morning-card"
         className="rounded-xl border border-border bg-card p-3 shadow-sm"
       >
-        <div className="text-sm text-muted-foreground">
-          {t('orders.morningShift')}
+        <div className="text-md text-muted-foreground">
+          <div className="flex justify-between">
+            {t('orders.morningShift')}
+            <Sun />
+          </div>
         </div>
         <div className="mt-1 text-base text-primary">
-          {t('orders.orderCount', { count: morning.count })}{' '}
-          {formatCurrency(morning.revenue)}
+          <div className="flex justify-between">
+            {t('orders.orderCount', { count: morning.count })}
+            <span className="text-(--color-gold)">
+              {formatCurrency(morning.revenue)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -106,12 +114,19 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
         data-testid="afternoon-card"
         className="rounded-xl border border-border bg-card p-3 shadow-sm"
       >
-        <div className="text-sm text-muted-foreground">
-          {t('orders.afternoonShift')}
+        <div className="text-md text-muted-foreground">
+          <div className="flex justify-between">
+            {t('orders.afternoonShift')}
+            <MoonStar />
+          </div>
         </div>
         <div className="mt-1 text-base text-primary">
-          {t('orders.orderCount', { count: afternoon.count })}{' '}
-          {formatCurrency(afternoon.revenue)}
+          <div className="flex justify-between">
+            {t('orders.orderCount', { count: afternoon.count })}
+            <span className="text-(--color-gold)">
+              {formatCurrency(afternoon.revenue)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -120,12 +135,19 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
         data-testid="total-card"
         className="rounded-xl border border-border bg-card p-3 shadow-sm"
       >
-        <div className="text-sm text-muted-foreground">
-          {t('orders.grandTotal')}
+        <div className="text-md text-muted-foreground">
+          <div className="flex justify-between">
+            {t('orders.grandTotal')}
+            <CircleDollarSign />
+          </div>
         </div>
         <div className="mt-1 text-base text-primary">
-          {t('orders.orderCount', { count: total.count })}{' '}
-          {formatCurrency(total.revenue)}
+          <div className="flex justify-between">
+            {t('orders.orderCount', { count: total.count })}
+            <span className="text-(--color-gold)">
+              {formatCurrency(total.revenue)}
+            </span>
+          </div>
         </div>
       </div>
     </div>

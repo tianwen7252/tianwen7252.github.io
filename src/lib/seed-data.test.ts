@@ -7,23 +7,23 @@ import { describe, it, expect } from 'vitest'
 import {
   SEED_EMPLOYEES,
   buildSeedAttendances,
-  SEED_COMMONDITY_TYPES,
-  SEED_COMMONDITIES,
+  SEED_COMMODITY_TYPES,
+  SEED_COMMODITIES,
 } from './seed-data'
 
 describe('Seed Data', () => {
-  describe('SEED_COMMONDITY_TYPES', () => {
+  describe('SEED_COMMODITY_TYPES', () => {
     it('has 4 categories', () => {
-      expect(SEED_COMMONDITY_TYPES).toHaveLength(4)
+      expect(SEED_COMMODITY_TYPES).toHaveLength(4)
     })
 
     it('contains bento, single, drink, dumpling typeIds', () => {
-      const typeIds = SEED_COMMONDITY_TYPES.map((ct) => ct.typeId)
+      const typeIds = SEED_COMMODITY_TYPES.map((ct) => ct.typeId)
       expect(typeIds).toEqual(['bento', 'single', 'drink', 'dumpling'])
     })
 
     it('each item has required fields', () => {
-      for (const ct of SEED_COMMONDITY_TYPES) {
+      for (const ct of SEED_COMMODITY_TYPES) {
         expect(ct.id).toBeTruthy()
         expect(ct.typeId).toBeTruthy()
         expect(ct.type).toBeTruthy()
@@ -34,21 +34,21 @@ describe('Seed Data', () => {
     })
 
     it('has correct labels from V1', () => {
-      const labels = SEED_COMMONDITY_TYPES.map((ct) => ct.label)
+      const labels = SEED_COMMODITY_TYPES.map((ct) => ct.label)
       expect(labels).toEqual(['餐盒', '單點', '飲料', '水餃'])
     })
   })
 
-  describe('SEED_COMMONDITIES', () => {
+  describe('SEED_COMMODITIES', () => {
     it('has 46 total items (17 bento + 15 single + 9 drink + 5 dumpling)', () => {
-      expect(SEED_COMMONDITIES).toHaveLength(46)
+      expect(SEED_COMMODITIES).toHaveLength(46)
     })
 
     it('has correct item counts per category', () => {
-      const bento = SEED_COMMONDITIES.filter((c) => c.typeId === 'bento')
-      const single = SEED_COMMONDITIES.filter((c) => c.typeId === 'single')
-      const drink = SEED_COMMONDITIES.filter((c) => c.typeId === 'drink')
-      const dumpling = SEED_COMMONDITIES.filter((c) => c.typeId === 'dumpling')
+      const bento = SEED_COMMODITIES.filter((c) => c.typeId === 'bento')
+      const single = SEED_COMMODITIES.filter((c) => c.typeId === 'single')
+      const drink = SEED_COMMODITIES.filter((c) => c.typeId === 'drink')
+      const dumpling = SEED_COMMODITIES.filter((c) => c.typeId === 'dumpling')
       expect(bento).toHaveLength(17)
       expect(single).toHaveLength(15)
       expect(drink).toHaveLength(9)
@@ -56,30 +56,30 @@ describe('Seed Data', () => {
     })
 
     it('all items have unique ids', () => {
-      const ids = SEED_COMMONDITIES.map((com) => com.id)
+      const ids = SEED_COMMODITIES.map((com) => com.id)
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(ids.length)
     })
 
     it('all items have positive prices', () => {
-      for (const com of SEED_COMMONDITIES) {
+      for (const com of SEED_COMMODITIES) {
         expect(com.price).toBeGreaterThan(0)
       }
     })
 
     it('all items are on market by default', () => {
-      for (const com of SEED_COMMONDITIES) {
+      for (const com of SEED_COMMODITIES) {
         expect(com.onMarket).toBe(true)
       }
     })
 
     it('first bento item is 油淋雞腿飯 at $140', () => {
-      expect(SEED_COMMONDITIES[0]!.name).toBe('油淋雞腿飯')
-      expect(SEED_COMMONDITIES[0]!.price).toBe(140)
+      expect(SEED_COMMODITIES[0]!.name).toBe('油淋雞腿飯')
+      expect(SEED_COMMODITIES[0]!.price).toBe(140)
     })
 
     it('bento 加蛋 and 加菜 have hideOnMode', () => {
-      const hidden = SEED_COMMONDITIES.filter((c) => c.hideOnMode != null)
+      const hidden = SEED_COMMODITIES.filter((c) => c.hideOnMode != null)
       expect(hidden).toHaveLength(2)
       expect(hidden.map((c) => c.name)).toEqual(['加蛋', '加菜'])
     })

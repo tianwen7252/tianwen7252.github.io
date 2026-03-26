@@ -12,6 +12,7 @@ import { ModalPreview, NotifyPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { OrdersPage } from '@/pages/orders'
+import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
@@ -39,6 +40,7 @@ function RootLayout() {
             <NavLink to="/">{t('nav.home')}</NavLink>
             <NavLink to="/orders">{t('nav.orders')}</NavLink>
             <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
+            <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
             <NavLink to="/settings">{t('nav.settings')}</NavLink>
             {import.meta.env.DEV && <NavLink to="/preview">Preview</NavLink>}
           </div>
@@ -152,6 +154,13 @@ const ordersRoute = createRoute({
   component: OrdersPage,
 })
 
+// Analytics page
+const analyticsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/analytics',
+  component: AnalyticsPage,
+})
+
 // Settings page with tabs (ClockIn, Records, StaffAdmin)
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
@@ -163,6 +172,7 @@ const settingsRoute = createRoute({
 export const routeTree = rootRoute.addChildren([
   indexRoute,
   ordersRoute,
+  analyticsRoute,
   clockInRoute,
   settingsRoute,
   previewRoute.addChildren([

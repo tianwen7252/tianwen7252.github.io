@@ -57,9 +57,9 @@ export type AttendanceType = z.infer<typeof attendanceTypeEnum>
 export type Attendance = z.infer<typeof attendanceSchema>
 export type CreateAttendance = z.infer<typeof createAttendanceSchema>
 
-// ─── Commondity ──────────────────────────────────────────────────────────────
+// ─── Commodity ───────────────────────────────────────────────────────────────
 
-export const commondityTypeSchema = z.object({
+export const commodityTypeSchema = z.object({
   id: z.string(),
   typeId: z.string(),
   type: z.string(),
@@ -69,13 +69,13 @@ export const commondityTypeSchema = z.object({
   updatedAt: z.number(),
 })
 
-export const createCommondityTypeSchema = commondityTypeSchema.omit({
+export const createCommodityTypeSchema = commodityTypeSchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
 
-export const commonditySchema = z.object({
+export const commoditySchema = z.object({
   id: z.string(),
   typeId: z.string(),
   name: z.string().min(1),
@@ -90,16 +90,16 @@ export const commonditySchema = z.object({
   updatedAt: z.number(),
 })
 
-export const createCommonditySchema = commonditySchema.omit({
+export const createCommoditySchema = commoditySchema.omit({
   id: true,
   createdAt: true,
   updatedAt: true,
 })
 
-export type CommondityType = z.infer<typeof commondityTypeSchema>
-export type CreateCommondityType = z.infer<typeof createCommondityTypeSchema>
-export type Commondity = z.infer<typeof commonditySchema>
-export type CreateCommondity = z.infer<typeof createCommonditySchema>
+export type CommodityType = z.infer<typeof commodityTypeSchema>
+export type CreateCommodityType = z.infer<typeof createCommodityTypeSchema>
+export type Commodity = z.infer<typeof commoditySchema>
+export type CreateCommodity = z.infer<typeof createCommoditySchema>
 
 // ─── OrderItem ───────────────────────────────────────────────────────────────
 // Defined before Order so it can be referenced in orderSchema directly.

@@ -1,11 +1,11 @@
 /**
- * Tests for CommondityRepository.
+ * Tests for CommodityRepository.
  * Uses a mock AsyncDatabase since SQLite WASM cannot run in Node/Vitest.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import type { AsyncDatabase } from '@/lib/worker-database'
-import { createCommondityRepository } from './commondity-repository'
+import { createCommodityRepository } from './commodity-repository'
 
 function createMockAsyncDb(): AsyncDatabase {
   return {
@@ -13,7 +13,7 @@ function createMockAsyncDb(): AsyncDatabase {
   }
 }
 
-describe('CommondityRepository', () => {
+describe('CommodityRepository', () => {
   let db: AsyncDatabase
 
   beforeEach(() => {
@@ -24,16 +24,16 @@ describe('CommondityRepository', () => {
 
   describe('findAll()', () => {
     it('calls db.exec with correct SQL', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.findAll()
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commondities ORDER BY priority ASC, name ASC',
+        'SELECT * FROM commodities ORDER BY priority ASC, name ASC',
       )
     })
 
     it('returns empty array when no rows exist', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findAll()
 
       expect(result).toEqual([])
@@ -60,7 +60,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findAll()
 
       expect(result[0]!.includesSoup).toBe(true)
@@ -87,13 +87,13 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findAll()
 
       expect(result[0]!.includesSoup).toBe(false)
     })
 
-    it('maps rows to Commondity objects with image field', async () => {
+    it('maps rows to Commodity objects with image field', async () => {
       const mockRows = [
         {
           id: 'com-001',
@@ -128,7 +128,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findAll()
 
       expect(result).toHaveLength(2)
@@ -167,17 +167,17 @@ describe('CommondityRepository', () => {
 
   describe('findByTypeId()', () => {
     it('calls db.exec with correct SQL and param', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.findByTypeId('bento')
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commondities WHERE type_id = ? ORDER BY priority ASC, name ASC',
+        'SELECT * FROM commodities WHERE type_id = ? ORDER BY priority ASC, name ASC',
         ['bento'],
       )
     })
 
     it('returns empty array when no rows match', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findByTypeId('non-existent')
 
       expect(result).toEqual([])
@@ -203,7 +203,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findByTypeId('bento')
 
       expect(result).toHaveLength(1)
@@ -216,23 +216,23 @@ describe('CommondityRepository', () => {
 
   describe('findById()', () => {
     it('calls db.exec with correct SQL and param', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.findById('com-001')
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commondities WHERE id = ?',
+        'SELECT * FROM commodities WHERE id = ?',
         ['com-001'],
       )
     })
 
     it('returns undefined when no row found', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findById('non-existent')
 
       expect(result).toBeUndefined()
     })
 
-    it('returns mapped Commondity when row found', async () => {
+    it('returns mapped Commodity when row found', async () => {
       vi.mocked(db.exec).mockResolvedValueOnce({
         rows: [
           {
@@ -252,7 +252,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findById('com-001')
 
       expect(result).toEqual({
@@ -276,16 +276,16 @@ describe('CommondityRepository', () => {
 
   describe('findOnMarket()', () => {
     it('calls db.exec with correct SQL (on_market = 1)', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.findOnMarket()
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commondities WHERE on_market = 1 ORDER BY priority ASC, name ASC',
+        'SELECT * FROM commodities WHERE on_market = 1 ORDER BY priority ASC, name ASC',
       )
     })
 
     it('returns empty array when no on-market items exist', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findOnMarket()
 
       expect(result).toEqual([])
@@ -311,7 +311,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.findOnMarket()
 
       expect(result).toHaveLength(1)
@@ -344,7 +344,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.create({
         typeId: 'bento',
         name: '滷肉便當',
@@ -356,13 +356,13 @@ describe('CommondityRepository', () => {
       })
 
       const insertCall = vi.mocked(db.exec).mock.calls[0]
-      expect(insertCall![0]).toContain('INSERT INTO commondities')
+      expect(insertCall![0]).toContain('INSERT INTO commodities')
       expect(insertCall![1]).toEqual(
         expect.arrayContaining(['bento', '滷肉便當', 'images/commodities/lu-rou.png', 100]),
       )
     })
 
-    it('returns the created Commondity', async () => {
+    it('returns the created Commodity', async () => {
       vi.mocked(db.exec)
         .mockResolvedValueOnce({ rows: [], changes: 1 })
         .mockResolvedValueOnce({
@@ -384,7 +384,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.create({
         typeId: 'bento',
         name: '滷肉便當',
@@ -433,7 +433,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.create({
         typeId: 'drink',
         name: '紅茶',
@@ -472,7 +472,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.create({
         typeId: 'bento',
         name: '油淋雞腿飯',
@@ -510,7 +510,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.create({
         typeId: 'bento',
         name: '雞胸肉沙拉',
@@ -529,7 +529,7 @@ describe('CommondityRepository', () => {
 
   describe('update()', () => {
     it('returns undefined when item does not exist', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.update('non-existent', { name: '新名稱' })
 
       expect(result).toBeUndefined()
@@ -555,7 +555,7 @@ describe('CommondityRepository', () => {
         changes: 0,
       })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.update('com-001', {})
 
       expect(result).toBeDefined()
@@ -605,12 +605,12 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.update('com-001', { name: '紅燒肉便當', price: 120 })
 
       // Verify UPDATE SQL was called
       const updateCall = vi.mocked(db.exec).mock.calls[1]
-      expect(updateCall![0]).toContain('UPDATE commondities SET')
+      expect(updateCall![0]).toContain('UPDATE commodities SET')
       expect(updateCall![0]).toContain('name = ?')
       expect(updateCall![0]).toContain('price = ?')
       expect(updateCall![0]).toContain('updated_at = ?')
@@ -660,7 +660,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.update('com-001', { onMarket: false })
 
       // Verify onMarket is converted to integer 0
@@ -710,7 +710,7 @@ describe('CommondityRepository', () => {
           changes: 0,
         })
 
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.update('com-001', {
         image: 'images/commodities/lu-rou.png',
       })
@@ -725,18 +725,18 @@ describe('CommondityRepository', () => {
 
   describe('remove()', () => {
     it('calls db.exec with DELETE SQL and correct param', async () => {
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       await repo.remove('com-001')
 
       expect(db.exec).toHaveBeenCalledWith(
-        'DELETE FROM commondities WHERE id = ?',
+        'DELETE FROM commodities WHERE id = ?',
         ['com-001'],
       )
     })
 
     it('returns true when row was deleted', async () => {
       db.exec = vi.fn(async () => ({ rows: [], changes: 1 }))
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.remove('com-001')
 
       expect(result).toBe(true)
@@ -744,7 +744,7 @@ describe('CommondityRepository', () => {
 
     it('returns false when row did not exist', async () => {
       db.exec = vi.fn(async () => ({ rows: [], changes: 0 }))
-      const repo = createCommondityRepository(db)
+      const repo = createCommodityRepository(db)
       const result = await repo.remove('non-existent')
 
       expect(result).toBe(false)

@@ -5,7 +5,7 @@
  */
 
 import dayjs from 'dayjs'
-import type { Employee, Attendance, CommondityType, Commondity } from '@/lib/schemas'
+import type { Employee, Attendance, CommodityType, Commodity } from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 import {
   EMPLOYEE_SEEDS,
@@ -78,17 +78,17 @@ export function buildSeedAttendances(): readonly Attendance[] {
 
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
-export const SEED_COMMONDITY_TYPES: readonly CommondityType[] = COMMODITY_TYPE_SEEDS.map(
+export const SEED_COMMODITY_TYPES: readonly CommodityType[] = COMMODITY_TYPE_SEEDS.map(
   (seed) => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
   }),
-) as readonly CommondityType[]
+) as readonly CommodityType[]
 
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
-export const SEED_COMMONDITIES: readonly Commondity[] = COMMODITY_SEEDS.map((seed) => ({
+export const SEED_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map((seed) => ({
   id: seed.id,
   typeId: seed.typeId,
   name: seed.name,
@@ -100,7 +100,7 @@ export const SEED_COMMONDITIES: readonly Commondity[] = COMMODITY_SEEDS.map((see
   hideOnMode: seed.hideOnMode,
   createdAt: BASE_TS,
   updatedAt: BASE_TS,
-})) as readonly Commondity[]
+})) as readonly Commodity[]
 
 // ─── Database Seeding ───────────────────────────────────────────────────────
 
@@ -145,9 +145,9 @@ export function seedEmployees(db: Database): void {
 
 /** Seed commodity types and commodities into an empty database. */
 export function seedCommodities(db: Database): void {
-  for (const ct of SEED_COMMONDITY_TYPES) {
+  for (const ct of SEED_COMMODITY_TYPES) {
     db.exec(
-      `INSERT OR IGNORE INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
+      `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
       [
         ct.id,
@@ -161,9 +161,9 @@ export function seedCommodities(db: Database): void {
     )
   }
 
-  for (const com of SEED_COMMONDITIES) {
+  for (const com of SEED_COMMODITIES) {
     db.exec(
-      `INSERT OR IGNORE INTO commondities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
+      `INSERT OR IGNORE INTO commodities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         com.id,

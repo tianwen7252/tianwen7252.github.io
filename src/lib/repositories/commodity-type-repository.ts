@@ -1,19 +1,19 @@
 import { nanoid } from 'nanoid'
 import type { AsyncDatabase } from '@/lib/worker-database'
-import type { CommondityType, CreateCommondityType } from '@/lib/schemas'
+import type { CommodityType, CreateCommodityType } from '@/lib/schemas'
 
-export interface CommondityTypeRepository {
-  findAll(): Promise<CommondityType[]>
-  findById(id: string): Promise<CommondityType | undefined>
-  findByTypeId(typeId: string): Promise<CommondityType | undefined>
-  create(data: CreateCommondityType): Promise<CommondityType>
+export interface CommodityTypeRepository {
+  findAll(): Promise<CommodityType[]>
+  findById(id: string): Promise<CommodityType | undefined>
+  findByTypeId(typeId: string): Promise<CommodityType | undefined>
+  create(data: CreateCommodityType): Promise<CommodityType>
   remove(id: string): Promise<boolean>
 }
 
 /**
- * Parse a raw DB row into a CommondityType object.
+ * Parse a raw DB row into a CommodityType object.
  */
-function toCommondityType(row: Record<string, unknown>): CommondityType {
+function toCommodityType(row: Record<string, unknown>): CommodityType {
   return {
     id: String(row['id']),
     typeId: String(row['type_id']),
@@ -25,40 +25,40 @@ function toCommondityType(row: Record<string, unknown>): CommondityType {
   }
 }
 
-export function createCommondityTypeRepository(
+export function createCommodityTypeRepository(
   db: AsyncDatabase,
-): CommondityTypeRepository {
+): CommodityTypeRepository {
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commondity_types ORDER BY id ASC',
+        'SELECT * FROM commodity_types ORDER BY id ASC',
       )
-      return result.rows.map(toCommondityType)
+      return result.rows.map(toCommodityType)
     },
 
     async findById(id: string) {
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commondity_types WHERE id = ?',
+        'SELECT * FROM commodity_types WHERE id = ?',
         [id],
       )
       const row = result.rows[0]
-      return row ? toCommondityType(row) : undefined
+      return row ? toCommodityType(row) : undefined
     },
 
     async findByTypeId(typeId: string) {
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commondity_types WHERE type_id = ?',
+        'SELECT * FROM commodity_types WHERE type_id = ?',
         [typeId],
       )
       const row = result.rows[0]
-      return row ? toCommondityType(row) : undefined
+      return row ? toCommodityType(row) : undefined
     },
 
-    async create(data: CreateCommondityType) {
+    async create(data: CreateCommodityType) {
       const id = nanoid()
       const now = Date.now()
       await db.exec(
-        `INSERT INTO commondity_types (id, type_id, type, label, color, created_at, updated_at)
+        `INSERT INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
         [
           id,
@@ -71,12 +71,12 @@ export function createCommondityTypeRepository(
         ],
       )
       const created = await this.findById(id)
-      if (!created) throw new Error(`Failed to retrieve created commondity type with id: ${id}`)
+      if (!created) throw new Error(`Failed to retrieve created commodity type with id: ${id}`)
       return created
     },
 
     async remove(id: string) {
-      const result = await db.exec('DELETE FROM commondity_types WHERE id = ?', [id])
+      const result = await db.exec('DELETE FROM commodity_types WHERE id = ?', [id])
       return result.changes > 0
     },
   }

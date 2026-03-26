@@ -8,7 +8,7 @@ export const SCHEMA_VERSION = 1
 // SQL statements for creating the database schema
 export const CREATE_TABLES = `
   -- Product categories
-  CREATE TABLE IF NOT EXISTS commondity_types (
+  CREATE TABLE IF NOT EXISTS commodity_types (
     id TEXT PRIMARY KEY,
     type_id TEXT NOT NULL UNIQUE,
     type TEXT NOT NULL,
@@ -18,8 +18,8 @@ export const CREATE_TABLES = `
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
 
-  -- Products (keeps 'commondity' spelling for V1 compatibility)
-  CREATE TABLE IF NOT EXISTS commondities (
+  -- Products
+  CREATE TABLE IF NOT EXISTS commodities (
     id TEXT PRIMARY KEY,
     type_id TEXT NOT NULL,
     name TEXT NOT NULL,
@@ -32,7 +32,7 @@ export const CREATE_TABLES = `
     includes_soup INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
-    FOREIGN KEY (type_id) REFERENCES commondity_types(type_id)
+    FOREIGN KEY (type_id) REFERENCES commodity_types(type_id)
   );
 
   -- Orders
@@ -147,16 +147,28 @@ export const CREATE_TABLES = `
  * Each migration is idempotent — safe to run on any database state.
  */
 function runMigrations(exec: (sql: string) => void): void {
-  // V2-29: Add image column to commondities (may not exist on older DBs)
+  // V2-76: Rename misspelled table names from V1
   try {
-    exec('ALTER TABLE commondities ADD COLUMN image TEXT')
+    exec('ALTER TABLE commondity_types RENAME TO commodity_types')
+  } catch {
+    // Table already renamed or was created with correct name
+  }
+  try {
+    exec('ALTER TABLE commondities RENAME TO commodities')
+  } catch {
+    // Table already renamed or was created with correct name
+  }
+
+  // V2-29: Add image column to commodities (may not exist on older DBs)
+  try {
+    exec('ALTER TABLE commodities ADD COLUMN image TEXT')
   } catch {
     // Column already exists — safe to ignore
   }
 
-  // V2-52: Add includes_soup column to commondities (may not exist on older DBs)
+  // V2-52: Add includes_soup column to commodities (may not exist on older DBs)
   try {
-    exec('ALTER TABLE commondities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0')
+    exec('ALTER TABLE commodities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0')
   } catch {
     // Column already exists — safe to ignore
   }
@@ -196,4 +208,3 @@ export function initSchema(exec: (sql: string) => void): void {
   exec(CREATE_TABLES)
   runMigrations(exec)
 }
-
