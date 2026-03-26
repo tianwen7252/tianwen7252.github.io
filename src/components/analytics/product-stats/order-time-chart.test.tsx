@@ -1,6 +1,7 @@
 /**
  * Tests for OrderTimeChart component.
  * Uses a recharts mock to avoid JSDOM SVG rendering issues.
+ * Default view mode is line chart.
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -10,11 +11,11 @@ import type { HourBucket } from '@/lib/repositories/statistics-repository'
 
 // Mock recharts so SVG elements don't fail in JSDOM
 vi.mock('recharts', () => ({
-  BarChart: ({ children }: { children: ReactNode }) => (
-    <div data-testid="bar-chart">{children}</div>
+  LineChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="line-chart">{children}</div>
   ),
-  Bar: ({ children }: { children: ReactNode }) => (
-    <div data-testid="bar">{children}</div>
+  Line: ({ children }: { children: ReactNode }) => (
+    <div data-testid="line">{children}</div>
   ),
   PieChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="pie-chart">{children}</div>
@@ -72,15 +73,15 @@ describe('OrderTimeChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ChartContainer wrapping a BarChart', () => {
+    it('renders a ChartContainer wrapping a LineChart by default', () => {
       render(<OrderTimeChart data={buildFullHourlyData()} />)
       expect(screen.getByTestId('chart-container')).toBeTruthy()
-      expect(screen.getByTestId('bar-chart')).toBeTruthy()
+      expect(screen.getByTestId('line-chart')).toBeTruthy()
     })
 
-    it('renders a Bar element', () => {
+    it('renders a Line element', () => {
       render(<OrderTimeChart data={buildFullHourlyData()} />)
-      expect(screen.getByTestId('bar')).toBeTruthy()
+      expect(screen.getByTestId('line')).toBeTruthy()
     })
   })
 
@@ -116,7 +117,7 @@ describe('OrderTimeChart', () => {
   describe('view mode buttons', () => {
     it('renders view mode toggle buttons', () => {
       render(<OrderTimeChart data={buildFullHourlyData()} />)
-      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
       expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
       expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })

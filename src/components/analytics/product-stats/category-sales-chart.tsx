@@ -61,7 +61,8 @@ function pivotForBar(
 ): Record<string, string | number>[] {
   const dateMap = new Map<string, Record<string, string | number>>()
   for (const row of data) {
-    const day = row.date.split('-').pop() ?? row.date
+    const parts = row.date.split('-')
+      const day = parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : row.date
     const existing = dateMap.get(row.date)
     if (existing) {
       dateMap.set(row.date, { ...existing, [row.commodityName]: row.quantity })

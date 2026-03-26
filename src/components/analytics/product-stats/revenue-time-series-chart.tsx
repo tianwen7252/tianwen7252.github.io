@@ -40,9 +40,10 @@ interface RevenueTimeSeriesChartProps {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-/** Extract day number from YYYY-MM-DD string for the XAxis label. */
+/** Format YYYY-MM-DD as M/D for XAxis label. */
 function formatDay(date: string): string {
-  return date.split('-').pop() ?? date
+  const parts = date.split('-')
+  return parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : date
 }
 
 /** Check whether all data points have zero revenue. */

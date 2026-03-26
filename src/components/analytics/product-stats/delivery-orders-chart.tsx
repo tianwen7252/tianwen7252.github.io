@@ -206,9 +206,9 @@ function BarView({ data, fontSize }: BarViewProps) {
           ))}
           <LabelList
             dataKey="quantity"
-            position="right"
+            position="insideRight"
             offset={8}
-            className="fill-foreground"
+            className="fill-white"
             fontSize="var(--font-size)"
           />
         </Bar>

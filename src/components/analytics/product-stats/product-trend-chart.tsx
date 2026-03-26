@@ -53,15 +53,20 @@ interface ProductTrendChartProps {
 }
 
 interface ChartRow {
-  day: number
+  day: string
   salesQuantity: number
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
+function formatDateAsMD(date: string): string {
+  const parts = date.split('-')
+  return parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : date
+}
+
 function buildChartData(data: DailyRevenue[]): ChartRow[] {
   return data.map((d) => ({
-    day: Number(d.date.split('-')[2]),
+    day: formatDateAsMD(d.date),
     salesQuantity: d.revenue,
   }))
 }

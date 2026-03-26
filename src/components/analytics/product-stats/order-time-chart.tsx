@@ -1,13 +1,15 @@
 /**
- * OrderTimeChart — bar chart showing order count distribution
- * for business hours (10AM-8PM), aggregated into 2-hour buckets.
- * Supports 3 view modes: bar (default), pie, and table.
+ * OrderTimeChart — line/bar chart showing order count distribution
+ * for business hours (10AM–8PM) with V1-style time slot labels.
+ * Supports 3 view modes: line (default), pie, and table.
  */
 
 import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell, PieChart, Pie } from 'recharts'
-import { BarChart3, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, LabelList, Cell, PieChart, Pie,
+} from 'recharts'
+import { LineChart as LineChartIcon, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -33,7 +35,7 @@ import type { HourBucket } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ViewMode = 'bar' | 'pie' | 'table'
+type ViewMode = 'line' | 'pie' | 'table'
 
 interface OrderTimeChartProps {
   data: HourBucket[]
@@ -48,21 +50,25 @@ interface TwoHourBucket {
 
 const PALETTE = CHART_PALETTES.mossForest
 
-// Business hour range: 10AM-8PM in 2-hour increments
-const BUSINESS_HOURS: Array<{ start: number; label: string }> = [
-  { start: 10, label: '10AM' },
-  { start: 12, label: '12PM' },
-  { start: 14, label: '2PM' },
-  { start: 16, label: '4PM' },
-  { start: 18, label: '6PM' },
+// V1-style time slot definitions: 10AM–8PM, 1-hour each, with lunch break 2–4 PM
+const TIME_SLOTS: Array<{ hours: number[]; label: string; isBreak?: boolean }> = [
+  { hours: [10], label: '10-11 AM' },
+  { hours: [11], label: '11-12 PM' },
+  { hours: [12], label: '12-1 PM' },
+  { hours: [13], label: '1-2 PM' },
+  { hours: [14, 15], label: '午休 (2-4 PM)', isBreak: true },
+  { hours: [16], label: '4-5 PM' },
+  { hours: [17], label: '5-6 PM' },
+  { hours: [18], label: '6-7 PM' },
+  { hours: [19], label: '7-8 PM' },
 ]
 
-// Aggregate 24-hour data into 2-hour business-hour buckets (10AM-8PM)
-function aggregateToTwoHourBuckets(data: HourBucket[]): TwoHourBucket[] {
+// Aggregate 24-hour data into V1-style time slots
+function aggregateToTimeSlots(data: HourBucket[]): TwoHourBucket[] {
   const countByHour = new Map<number, number>(data.map(b => [b.hour, b.count]))
-  return BUSINESS_HOURS.map(({ start, label }) => ({
+  return TIME_SLOTS.map(({ hours, label }) => ({
     label,
-    count: (countByHour.get(start) ?? 0) + (countByHour.get(start + 1) ?? 0),
+    count: hours.reduce((sum, h) => sum + (countByHour.get(h) ?? 0), 0),
   }))
 }
 
@@ -71,7 +77,7 @@ function aggregateToTwoHourBuckets(data: HourBucket[]): TwoHourBucket[] {
 export function OrderTimeChart({ data }: OrderTimeChartProps) {
   const { t } = useTranslation()
   const fontSize = useAppStore().fontSize
-  const [viewMode, setViewMode] = useState<ViewMode>('bar')
+  const [viewMode, setViewMode] = useState<ViewMode>('line')
 
   const chartConfig = {
     count: {
@@ -80,11 +86,11 @@ export function OrderTimeChart({ data }: OrderTimeChartProps) {
     },
   } satisfies ChartConfig
 
-  const buckets = useMemo(() => aggregateToTwoHourBuckets(data), [data])
+  const buckets = useMemo(() => aggregateToTimeSlots(data), [data])
   const isEmpty = data.length === 0 || buckets.every(b => b.count === 0)
 
-  const viewButtons: { mode: ViewMode; label: string; icon: typeof BarChart3 }[] = [
-    { mode: 'bar', label: t('analytics.viewBar'), icon: BarChart3 },
+  const viewButtons: { mode: ViewMode; label: string; icon: typeof LineChartIcon }[] = [
+    { mode: 'line', label: t('analytics.viewLine'), icon: LineChartIcon },
     { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
     { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
   ]
@@ -117,8 +123,8 @@ export function OrderTimeChart({ data }: OrderTimeChartProps) {
       <CardContent>
         {isEmpty ? (
           <ChartEmpty />
-        ) : viewMode === 'bar' ? (
-          <BarView buckets={buckets} chartConfig={chartConfig} fontSize={fontSize} />
+        ) : viewMode === 'line' ? (
+          <LineView buckets={buckets} chartConfig={chartConfig} fontSize={fontSize} />
         ) : viewMode === 'pie' ? (
           <PieView buckets={buckets} />
         ) : (
@@ -129,34 +135,41 @@ export function OrderTimeChart({ data }: OrderTimeChartProps) {
   )
 }
 
-// ─── Bar sub-component ──────────────────────────────────────────────────────
+// ─── Line sub-component ─────────────────────────────────────────────────────
 
-interface BarViewProps {
+interface LineViewProps {
   buckets: TwoHourBucket[]
   chartConfig: ChartConfig
   fontSize: number
 }
 
-function BarView({ buckets, chartConfig, fontSize }: BarViewProps) {
+function LineView({ buckets, chartConfig, fontSize }: LineViewProps) {
   return (
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-      <BarChart data={buckets} accessibilityLayer>
+      <LineChart data={buckets} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
           dataKey="label"
           tickLine={false}
           axisLine={false}
-          tick={{ fontSize }}
+          tick={{ fontSize: fontSize - 2 }}
+          interval={0}
+          angle={-30}
+          textAnchor="end"
+          height={60}
         />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-        <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-          <LabelList dataKey="count" position="top" offset={6} className="fill-foreground" fontSize={fontSize} />
-          {buckets.map((_, index) => (
-            <Cell key={index} fill={getColor(PALETTE, index)} />
-          ))}
-        </Bar>
-      </BarChart>
+        <Line
+          type="monotone"
+          dataKey="count"
+          stroke={getColor(PALETTE, 0)}
+          strokeWidth={2}
+          dot={{ r: 5, fill: getColor(PALETTE, 0) }}
+        >
+          <LabelList dataKey="count" position="top" offset={8} className="fill-foreground" fontSize={fontSize} />
+        </Line>
+      </LineChart>
     </ChartContainer>
   )
 }

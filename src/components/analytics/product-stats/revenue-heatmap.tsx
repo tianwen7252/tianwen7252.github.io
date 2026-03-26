@@ -7,7 +7,6 @@
 
 import { useTranslation } from 'react-i18next'
 import { ChartEmpty } from '@/components/analytics/chart-empty'
-import { NeonGradientCard } from '@/components/ui/neon-gradient-card'
 import { formatCurrency } from '@/lib/currency'
 import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
 import {
@@ -101,14 +100,6 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
                 )}
               </div>
             )
-
-            if (isPeak) {
-              return (
-                <NeonGradientCard key={day} innerClassName="p-0">
-                  {cellContent}
-                </NeonGradientCard>
-              )
-            }
 
             return <div key={day}>{cellContent}</div>
           })}

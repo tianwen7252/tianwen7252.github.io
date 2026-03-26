@@ -27,14 +27,6 @@ function buildFullMonthData(year = 2026, month = 3): DailyRevenue[] {
   }))
 }
 
-function buildSparseMonthData(): DailyRevenue[] {
-  return [
-    { date: '2026-03-05', revenue: 5000 },
-    { date: '2026-03-15', revenue: 10000 },
-    { date: '2026-03-25', revenue: 3000 },
-  ]
-}
-
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe('RevenueHeatmap', () => {
@@ -83,20 +75,11 @@ describe('RevenueHeatmap', () => {
   })
 
   describe('peak day highlighting', () => {
-    it('renders a NeonGradientCard for the highest revenue day', () => {
+    it('renders all cells as plain divs (no NeonGradientCard)', () => {
       render(
         <RevenueHeatmap data={buildFullMonthData()} year={2026} month={3} />,
       )
-      // Day 31 has the highest revenue (31000)
-      expect(screen.getByTestId('neon-gradient-card')).toBeTruthy()
-    })
-
-    it('renders exactly one NeonGradientCard when data has one clear peak', () => {
-      render(
-        <RevenueHeatmap data={buildSparseMonthData()} year={2026} month={3} />,
-      )
-      const cards = screen.getAllByTestId('neon-gradient-card')
-      expect(cards).toHaveLength(1)
+      expect(screen.queryByTestId('neon-gradient-card')).toBeNull()
     })
   })
 
@@ -118,22 +101,18 @@ describe('RevenueHeatmap', () => {
       expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
     })
 
-    it('renders no NeonGradientCard when all revenues are zero', () => {
-      render(<RevenueHeatmap data={[]} year={2026} month={3} />)
-      expect(screen.queryByTestId('neon-gradient-card')).toBeNull()
-    })
   })
 
   describe('single day data', () => {
-    it('renders NeonGradientCard for the only data point', () => {
-      render(
+    it('renders cells without crashing for single data point', () => {
+      const { container } = render(
         <RevenueHeatmap
           data={[{ date: '2026-03-15', revenue: 9999 }]}
           year={2026}
           month={3}
         />,
       )
-      expect(screen.getByTestId('neon-gradient-card')).toBeTruthy()
+      expect(container).toBeTruthy()
     })
   })
 })

@@ -179,9 +179,9 @@ function BarView({ chartData, chartConfig, minHeight, fontSize, maxValue, t }: B
           ))}
           <LabelList
             dataKey="value"
-            position="right"
+            position="insideRight"
             offset={8}
-            className="fill-foreground"
+            className="fill-white"
             fontSize="var(--font-size)"
           />
         </Bar>

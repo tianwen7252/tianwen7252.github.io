@@ -40,7 +40,7 @@ interface AvgOrderValueChartProps {
 }
 
 interface ChartRow {
-  day: number
+  day: string
   avgOrderValue: number
   movingAvg7d: number | null
 }
@@ -60,11 +60,16 @@ function computeMovingAverage(values: number[], window: number): (number | null)
   })
 }
 
+function formatDateAsMD(date: string): string {
+  const parts = date.split('-')
+  return parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : date
+}
+
 function buildChartData(data: DailyRevenue[]): ChartRow[] {
   const values = data.map(d => d.revenue)
   const ma = computeMovingAverage(values, WINDOW_SIZE)
   return data.map((d, i) => ({
-    day: Number(d.date.split('-')[2]),
+    day: formatDateAsMD(d.date),
     avgOrderValue: d.revenue,
     movingAvg7d: ma[i] ?? null,
   }))
