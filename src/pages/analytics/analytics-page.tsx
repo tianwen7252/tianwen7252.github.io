@@ -16,6 +16,7 @@ import { RevenueComparisonChart } from '@/components/analytics/product-stats/rev
 import { AvgOrderValueChart } from '@/components/analytics/product-stats/avg-order-value-chart'
 import { ProductTrendChart } from '@/components/analytics/product-stats/product-trend-chart'
 import { RevenueHeatmap } from '@/components/analytics/product-stats/revenue-heatmap'
+import { StaffStats } from '@/components/analytics/staff-stats/staff-stats'
 import { formatWeekDays } from '@/lib/analytics/format-week-days'
 import type { AnalyticsTab } from '@/components/analytics/analytics-tab-bar'
 import type {
@@ -242,18 +243,6 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
   )
 }
 
-// ─── StaffStats ───────────────────────────────────────────────────────────────
-
-function StaffStats({ startDate, endDate: _endDate }: { startDate: Date; endDate: Date }) {
-  void _endDate
-  return (
-    <section aria-label="員工統計">
-      <p className="text-muted-foreground text-base">
-        員工統計 — {dayjs(startDate).format('YYYY-MM')}
-      </p>
-    </section>
-  )
-}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
@@ -339,8 +328,18 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
         ) : (
           <section aria-label="商品統計" />
         )
+      ) : providerError !== null ? (
+        <section aria-label="員工統計">
+          <p className="text-destructive text-base">{providerError}</p>
+        </section>
+      ) : resolvedRepo !== null ? (
+        <StaffStats
+          startDate={startDate}
+          endDate={endDate}
+          statisticsRepo={resolvedRepo}
+        />
       ) : (
-        <StaffStats startDate={startDate} endDate={endDate} />
+        <section aria-label="員工統計" />
       )}
     </div>
   )
