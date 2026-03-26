@@ -201,7 +201,7 @@ export function useProductChartData({
     return () => {
       cancelled = true
     }
-  }, [statisticsRepo, startDate, endDate, sortBy])
+  }, [statisticsRepo, startDate, endDate, sortBy, t])
 
   // ── Commodities list + commodity types (once on mount) ──────────────────────
   // Combined into a single effect to avoid multiple dynamic imports, which
@@ -283,7 +283,7 @@ export function useProductChartData({
     return () => {
       cancelled = true
     }
-  }, [statisticsRepo, startDate, endDate, selectedCommodityId])
+  }, [statisticsRepo, startDate, endDate, selectedCommodityId, t])
 
   // ── Category sales per type (depends on commodity types + date range) ──────
 
