@@ -29,6 +29,7 @@ interface UseProductChartDataParams {
 }
 
 export interface ProductChartData {
+  loading: boolean
   kpis: ProductKpis | null
   hourlyData: HourBucket[]
   topItems: ProductRanking[]
@@ -62,6 +63,9 @@ export function useProductChartData({
 }: UseProductChartDataParams): ProductChartData {
   const { t } = useTranslation()
 
+  // Loading state
+  const [loading, setLoading] = useState(true)
+
   // Existing states
   const [kpis, setKpis] = useState<ProductKpis | null>(null)
   const [hourlyData, setHourlyData] = useState<HourBucket[]>([])
@@ -94,6 +98,7 @@ export function useProductChartData({
   useEffect(() => {
     let cancelled = false
 
+    setLoading(true)
     setKpis(null)
     setHourlyData([])
     setBottomBentos([])
@@ -158,6 +163,7 @@ export function useProductChartData({
           setAmPmRevenue(amPmData)
           setOrderNotes(notesData)
           setDeliveryProducts(deliveryData)
+          setLoading(false)
         },
       )
       .catch((err: unknown) => {
@@ -165,6 +171,7 @@ export function useProductChartData({
           setError(
             err instanceof Error ? err.message : t('analytics.loadError'),
           )
+          setLoading(false)
         }
       })
 
@@ -326,6 +333,7 @@ export function useProductChartData({
   const currentYear = startDate.getFullYear()
 
   return {
+    loading,
     kpis,
     hourlyData,
     topItems,

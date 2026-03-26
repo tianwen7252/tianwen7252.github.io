@@ -113,7 +113,7 @@ export function RevenueComparisonChart({
   const chartData = mergeByDay(currentData, prevData)
 
   // Palette 3: Sunset Harvest
-  const palette = CHART_PALETTES.sunsetHarvest
+  const palette = CHART_PALETTES.mossForest
 
   const chartConfig = {
     currentMonth: {
@@ -214,7 +214,7 @@ interface AreaViewProps {
 
 function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
       <AreaChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -228,7 +228,7 @@ function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <defs>
           <linearGradient id="fillCurrent" x1="0" y1="0" x2="0" y2="1">
             <stop
@@ -317,7 +317,7 @@ function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[250px] w-full">
+    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
@@ -327,7 +327,7 @@ function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={100}
+          outerRadius={180}
           activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
             <Sector {...props} outerRadius={outerRadius + 10} />
           )}
@@ -336,20 +336,18 @@ function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
             value,
             x,
             y,
-            fill,
           }: {
             name?: string
             value?: number
             x?: number
             y?: number
-            fill?: string
           }) => (
             <text
               x={x}
               y={y}
               textAnchor="middle"
               dominantBaseline="central"
-              fill={fill ?? 'currentColor'}
+              className="fill-foreground"
               fontSize={fontSize}
             >
               {`${name ?? ''}: ${formatCurrency(value ?? 0)}`}

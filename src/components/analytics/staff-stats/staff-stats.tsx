@@ -19,6 +19,7 @@ import { StaffKpiGrid } from './staff-kpi-grid'
 import { StaffHoursChart } from './staff-hours-chart'
 import { DailyHeadcountChart } from './daily-headcount-chart'
 import { AttendanceCalendar } from './attendance-calendar'
+import { StaffStatsSkeleton } from '@/components/analytics/chart-card-skeleton'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,9 +110,7 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
         <p className="text-destructive text-base">{error}</p>
       )}
 
-      {loading && error === null && (
-        <p className="text-muted-foreground text-base" role="status">{t('analytics.loading')}</p>
-      )}
+      {loading && error === null && <StaffStatsSkeleton />}
 
       {!loading && kpis !== null && <StaffKpiGrid kpis={kpis} />}
 

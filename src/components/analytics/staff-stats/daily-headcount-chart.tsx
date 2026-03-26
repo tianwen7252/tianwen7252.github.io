@@ -51,7 +51,7 @@ export function DailyHeadcountChart({ data, totalEmployees }: DailyHeadcountChar
   const fontSize = useAppStore().fontSize
 
   // Palette 2: Ocean Breeze
-  const palette = CHART_PALETTES.oceanBreeze
+  const palette = CHART_PALETTES.sunsetHarvest
 
   const chartConfig = {
     rate: {

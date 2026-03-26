@@ -131,7 +131,7 @@ function formatCurrency(value: number): string {
 
 // ─── Palette ────────────────────────────────────────────────────────────────
 
-const PALETTE = CHART_PALETTES.mossForest
+const PALETTE = CHART_PALETTES.berryGarden
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
@@ -243,7 +243,7 @@ function BarView({
         />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         {commodityNames.map((name, i) => (
           <Bar
             key={name}
@@ -283,7 +283,7 @@ function PieView({ aggregated, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[250px] w-full">
+    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
@@ -293,7 +293,7 @@ function PieView({ aggregated, fontSize }: PieViewProps) {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={100}
+          outerRadius={180}
           activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
             <Sector {...props} outerRadius={outerRadius + 10} />
           )}
@@ -302,20 +302,18 @@ function PieView({ aggregated, fontSize }: PieViewProps) {
             value,
             x,
             y,
-            fill,
           }: {
             name?: string
             value?: number
             x?: number
             y?: number
-            fill?: string
           }) => (
             <text
               x={x}
               y={y}
               textAnchor="middle"
               dominantBaseline="central"
-              fill={fill ?? 'currentColor'}
+              className="fill-foreground"
               fontSize={fontSize}
             >
               {`${name ?? ''}: ${value ?? 0}`}

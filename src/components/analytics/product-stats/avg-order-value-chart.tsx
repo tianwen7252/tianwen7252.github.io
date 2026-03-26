@@ -105,7 +105,7 @@ export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
   const chartData = buildChartData(data)
 
   // Palette 4: Berry Garden
-  const palette = CHART_PALETTES.berryGarden
+  const palette = CHART_PALETTES.oceanBreeze
 
   const chartConfig = {
     avgOrderValue: {
@@ -194,7 +194,7 @@ interface ChartViewProps {
 
 function LineView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
       <LineChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -208,7 +208,7 @@ function LineView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
           cursor={false}
           content={<ChartTooltipContent indicator="line" />}
         />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <Line
           type="monotone"
           dataKey="avgOrderValue"
@@ -255,7 +255,7 @@ function BarView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
         />
         <YAxis tick={{ fontSize }} allowDecimals={false} hide />
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <Bar
           dataKey="avgOrderValue"
           name={t('analytics.avgOrderValue')}

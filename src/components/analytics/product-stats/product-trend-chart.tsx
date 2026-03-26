@@ -101,7 +101,7 @@ export function ProductTrendChart({
   const chartConfig = {
     salesQuantity: {
       label: t('analytics.salesQuantity'),
-      color: CHART_PALETTES.mossForest[0],
+      color: CHART_PALETTES.berryGarden[0],
     },
   } satisfies ChartConfig
 
@@ -194,7 +194,7 @@ interface ChartViewProps {
 
 function LineView({ chartData, chartConfig, fontSize }: ChartViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
       <LineChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis

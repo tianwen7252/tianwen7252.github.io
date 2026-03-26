@@ -59,7 +59,7 @@ const MIN_CHART_HEIGHT = 300
 const ROW_HEIGHT = 40
 
 // Palette 3: Sunset Harvest
-const PALETTE = CHART_PALETTES.sunsetHarvest
+const PALETTE = CHART_PALETTES.berryGarden
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -252,7 +252,7 @@ function PieView({ chartData, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[250px] w-full">
+    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
@@ -262,7 +262,7 @@ function PieView({ chartData, fontSize }: PieViewProps) {
           nameKey="name"
           cx="50%"
           cy="50%"
-          outerRadius={100}
+          outerRadius={180}
           activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
             <Sector {...props} outerRadius={outerRadius + 10} />
           )}
@@ -271,20 +271,18 @@ function PieView({ chartData, fontSize }: PieViewProps) {
             value,
             x,
             y,
-            fill,
           }: {
             name?: string
             value?: number
             x?: number
             y?: number
-            fill?: string
           }) => (
             <text
               x={x}
               y={y}
               textAnchor="middle"
               dominantBaseline="central"
-              fill={fill ?? 'currentColor'}
+              className="fill-foreground"
               fontSize={fontSize}
             >
               {`${name ?? ''}: ${value ?? 0}`}

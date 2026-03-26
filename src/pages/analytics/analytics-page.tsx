@@ -23,6 +23,7 @@ import { OrderNotesChart } from '@/components/analytics/product-stats/order-note
 import { DeliveryOrdersChart } from '@/components/analytics/product-stats/delivery-orders-chart'
 import { ProfitStubChart } from '@/components/analytics/product-stats/profit-stub-chart'
 import { StaffStats } from '@/components/analytics/staff-stats/staff-stats'
+import { ProductStatsSkeleton } from '@/components/analytics/chart-card-skeleton'
 import { useProductChartData } from '@/hooks/use-product-chart-data'
 import type { AnalyticsTab } from '@/components/analytics/analytics-tab-bar'
 import type { StatisticsRepository } from '@/lib/repositories/statistics-repository'
@@ -43,6 +44,14 @@ function ProductStats({
 }: ProductStatsProps) {
   const { t } = useTranslation()
   const data = useProductChartData({ startDate, endDate, statisticsRepo })
+
+  if (data.loading) {
+    return (
+      <section aria-label={t('analytics.productStats')}>
+        <ProductStatsSkeleton />
+      </section>
+    )
+  }
 
   return (
     <section

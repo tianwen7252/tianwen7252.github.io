@@ -2,7 +2,7 @@
  * AnalyticsDatePicker — date selector for the analytics page.
  * Supports single-date and date-range modes with a Switch toggle.
  * Includes quick presets (today, this week, this month, last month)
- * and prev/next month navigation.
+ * and prev/next day navigation.
  */
 
 import { useState } from 'react'
@@ -100,7 +100,7 @@ function formatDisplay(date: Date): string {
 
 /**
  * Date picker with quick preset buttons, a calendar popover for custom date
- * selection, and prev/next month navigation arrows.
+ * selection, and prev/next day navigation arrows.
  * Includes a Switch to toggle between single date and date range modes.
  */
 export function AnalyticsDatePicker({
@@ -120,18 +120,15 @@ export function AnalyticsDatePicker({
     onChange(start, end)
   }
 
-  function handlePrevMonth() {
-    const newStart = dayjs(startDate)
-      .subtract(1, 'month')
-      .startOf('month')
-      .toDate()
-    const newEnd = dayjs(startDate).subtract(1, 'month').endOf('month').toDate()
+  function handlePrevDay() {
+    const newStart = dayjs(startDate).subtract(1, 'day').startOf('day').toDate()
+    const newEnd = dayjs(startDate).subtract(1, 'day').endOf('day').toDate()
     onChange(newStart, newEnd)
   }
 
-  function handleNextMonth() {
-    const newStart = dayjs(startDate).add(1, 'month').startOf('month').toDate()
-    const newEnd = dayjs(startDate).add(1, 'month').endOf('month').toDate()
+  function handleNextDay() {
+    const newStart = dayjs(startDate).add(1, 'day').startOf('day').toDate()
+    const newEnd = dayjs(startDate).add(1, 'day').endOf('day').toDate()
     onChange(newStart, newEnd)
   }
 
@@ -202,9 +199,9 @@ export function AnalyticsDatePicker({
       <div className="flex items-center gap-1">
         <RippleButton
           type="button"
-          aria-label={t('analytics.prevMonth')}
-          onClick={handlePrevMonth}
-          className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          aria-label={t('analytics.prevDay')}
+          onClick={handlePrevDay}
+          className="rounded-md p-2.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <ChevronLeft className="h-4 w-4" />
         </RippleButton>
@@ -259,9 +256,9 @@ export function AnalyticsDatePicker({
 
         <RippleButton
           type="button"
-          aria-label={t('analytics.nextMonth')}
-          onClick={handleNextMonth}
-          className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          aria-label={t('analytics.nextDay')}
+          onClick={handleNextDay}
+          className="rounded-md p-2.5 text-muted-foreground hover:bg-accent hover:text-accent-foreground"
         >
           <ChevronRight className="h-4 w-4" />
         </RippleButton>

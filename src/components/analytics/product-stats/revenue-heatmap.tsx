@@ -96,7 +96,7 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
                   className="flex aspect-square flex-col items-center justify-center rounded-md text-base"
                   style={{
                     // Palette 1: Moss Forest
-                    backgroundColor: `color-mix(in srgb, ${CHART_PALETTES.mossForest[0]} ${Math.round((isPeak ? 1 : opacity) * 100)}%, transparent)`,
+                    backgroundColor: `color-mix(in srgb, ${CHART_PALETTES.mineralStone[0]} ${Math.round((isPeak ? 1 : opacity) * 100)}%, transparent)`,
                     color:
                       opacity > 0.5
                         ? 'var(--primary-foreground)'
