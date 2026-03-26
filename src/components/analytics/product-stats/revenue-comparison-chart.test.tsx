@@ -16,6 +16,17 @@ vi.mock('recharts', () => ({
     <div data-testid="area-chart">{children}</div>
   ),
   Area: ({ name }: { name: string }) => <div data-testid={`area-${name}`} />,
+  LineChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="line-chart">{children}</div>
+  ),
+  Line: ({ name }: { name: string }) => <div data-testid={`line-${name}`} />,
+  PieChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie-chart">{children}</div>
+  ),
+  Pie: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie">{children}</div>
+  ),
+  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
@@ -160,6 +171,20 @@ describe('RevenueComparisonChart', () => {
         />,
       )
       expect(container).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons', () => {
+      render(
+        <RevenueComparisonChart
+          currentData={buildMonthData()}
+          prevData={buildPrevMonthData()}
+        />,
+      )
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

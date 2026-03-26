@@ -315,6 +315,24 @@
     "deliveryOrdersTitle": "外送訂單分析",
     "deliveryOrdersDesc": "外送訂單商品佔比分布",
     "profitAnalysisTitle": "淨利分析",
-    "profitAnalysisDesc": "此功能開發中，敬請期待"
+    "profitAnalysisDesc": "此功能開發中，敬請期待",
+    "salesStatsSuffix": "銷售統計",
+    "viewLine": "折線圖",
+    "timeSlotCol": "時段",
+    "orderCountCol": "訂單數",
+    "dateCol": "日期",
+    "amRevenueCol": "上午營收",
+    "pmRevenueCol": "下午營收",
+    "totalRevenueShortCol": "合計",
+    "productNameCol": "品項名稱",
+    "quantityCol": "數量",
+    "revenueCol": "營收",
+    "dayCol": "日",
+    "currentMonthCol": "本月營收",
+    "previousMonthCol": "上月營收",
+    "avgOrderValueCol": "平均客單價",
+    "movingAvg7dCol": "7日均線",
+    "noteCol": "備註",
+    "countCol": "次數"
   }
 }

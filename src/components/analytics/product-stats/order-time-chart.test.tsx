@@ -16,6 +16,12 @@ vi.mock('recharts', () => ({
   Bar: ({ children }: { children: ReactNode }) => (
     <div data-testid="bar">{children}</div>
   ),
+  PieChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie-chart">{children}</div>
+  ),
+  Pie: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie">{children}</div>
+  ),
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
@@ -34,6 +40,10 @@ vi.mock('@/components/ui/chart', () => ({
   ),
   ChartTooltip: () => null,
   ChartTooltipContent: () => null,
+  ChartLegend: ({ content }: { content: ReactNode }) => (
+    <div data-testid="chart-legend">{content}</div>
+  ),
+  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
 }))
 
 vi.mock('@/stores/app-store', () => ({
@@ -100,6 +110,15 @@ describe('OrderTimeChart', () => {
       const sparse: HourBucket[] = [{ hour: 10, count: 20 }]
       const { container } = render(<OrderTimeChart data={sparse} />)
       expect(container).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons', () => {
+      render(<OrderTimeChart data={buildFullHourlyData()} />)
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

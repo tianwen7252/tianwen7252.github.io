@@ -315,6 +315,24 @@
     "deliveryOrdersTitle": "Delivery Orders Analysis",
     "deliveryOrdersDesc": "Delivery order product distribution",
     "profitAnalysisTitle": "Profit Analysis",
-    "profitAnalysisDesc": "This feature is under development"
+    "profitAnalysisDesc": "This feature is under development",
+    "salesStatsSuffix": " Sales Statistics",
+    "viewLine": "Line Chart",
+    "timeSlotCol": "Time Slot",
+    "orderCountCol": "Order Count",
+    "dateCol": "Date",
+    "amRevenueCol": "AM Revenue",
+    "pmRevenueCol": "PM Revenue",
+    "totalRevenueShortCol": "Total",
+    "productNameCol": "Product Name",
+    "quantityCol": "Quantity",
+    "revenueCol": "Revenue",
+    "dayCol": "Day",
+    "currentMonthCol": "This Month",
+    "previousMonthCol": "Last Month",
+    "avgOrderValueCol": "Avg Order Value",
+    "movingAvg7dCol": "7-Day Moving Avg",
+    "noteCol": "Note",
+    "countCol": "Count"
   }
 }

@@ -14,6 +14,10 @@ vi.mock('recharts', () => ({
     <div data-testid="line-chart">{children}</div>
   ),
   Line: () => <div data-testid="line" />,
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: () => <div data-testid="bar" />,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
@@ -196,6 +200,22 @@ describe('ProductTrendChart', () => {
         />,
       )
       expect(screen.getByText('招牌便當')).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons (line, bar, table)', () => {
+      render(
+        <ProductTrendChart
+          data={buildTrendData()}
+          commodities={COMMODITIES}
+          selectedId="com-001"
+          onSelectChange={vi.fn()}
+        />,
+      )
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

@@ -116,7 +116,7 @@ const PALETTE = CHART_PALETTES.mossForest
 export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
   const { t } = useTranslation()
   const fontSize = useAppStore().fontSize
-  const [viewMode, setViewMode] = useState<ViewMode>('bar')
+  const [viewMode, setViewMode] = useState<ViewMode>('pie')
 
   const commodityNames = useMemo(() => extractCommodityNames(data), [data])
   const barData = useMemo(() => pivotForBar(data, commodityNames), [data, commodityNames])
@@ -244,6 +244,7 @@ function PieView({ aggregated }: PieViewProps) {
           cx="50%"
           cy="50%"
           outerRadius={100}
+          label={({ name, quantity }: { name?: string; quantity?: number }) => `${name ?? ''}: ${quantity ?? 0}`}
         >
           {aggregated.map((item, i) => (
             <Cell key={item.name} fill={getColor(PALETTE, i)} />

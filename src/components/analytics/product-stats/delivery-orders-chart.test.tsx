@@ -17,6 +17,16 @@ vi.mock('recharts', () => ({
     <div data-testid="pie" data-count={data?.length ?? 0}>{children}</div>
   ),
   Cell: ({ fill }: { fill?: string }) => <div data-testid="cell" data-fill={fill ?? ''} />,
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar">{children}</div>
+  ),
+  XAxis: () => null,
+  YAxis: () => null,
+  CartesianGrid: () => null,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -33,6 +43,10 @@ vi.mock('@/components/ui/chart', () => ({
     <div data-testid="chart-legend">{content}</div>
   ),
   ChartLegendContent: () => <div data-testid="chart-legend-content" />,
+}))
+
+vi.mock('@/stores/app-store', () => ({
+  useAppStore: () => ({ fontSize: 14 }),
 }))
 
 import { DeliveryOrdersChart } from './delivery-orders-chart'
@@ -122,6 +136,15 @@ describe('DeliveryOrdersChart', () => {
       }))
       render(<DeliveryOrdersChart data={manyItems} />)
       expect(screen.getByTestId('pie-chart')).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons', () => {
+      render(<DeliveryOrdersChart data={SAMPLE_DATA} />)
+      expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

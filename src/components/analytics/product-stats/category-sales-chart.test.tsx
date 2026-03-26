@@ -83,16 +83,16 @@ describe('CategorySalesChart', () => {
   })
 
   describe('view mode switching', () => {
-    it('default view mode is bar (BarChart rendered)', () => {
+    it('default view mode is pie (PieChart rendered)', () => {
       render(<CategorySalesChart title="分類" data={buildSampleData()} />)
-      expect(screen.getByTestId('bar-chart')).toBeTruthy()
+      expect(screen.getByTestId('pie-chart')).toBeTruthy()
     })
 
-    it('switching to pie mode renders PieChart', () => {
+    it('switching to bar mode renders BarChart', () => {
       render(<CategorySalesChart title="分類" data={buildSampleData()} />)
-      // Click the pie button (zh-TW: 圓餅圖)
-      fireEvent.click(screen.getByText('圓餅圖'))
-      expect(screen.getByTestId('pie-chart')).toBeTruthy()
+      // Click the bar button (zh-TW: 長條圖)
+      fireEvent.click(screen.getByText('長條圖'))
+      expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
     it('switching to table mode renders a table element', () => {
@@ -133,14 +133,16 @@ describe('CategorySalesChart', () => {
   })
 
   describe('bar mode', () => {
-    it('renders a ChartContainer with bar chart', () => {
+    it('renders a ChartContainer with bar chart after clicking bar button', () => {
       render(<CategorySalesChart title="分類" data={buildSampleData()} />)
+      fireEvent.click(screen.getByText('長條圖'))
       expect(screen.getByTestId('chart-container')).toBeTruthy()
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
     it('renders a Bar for each unique commodity', () => {
       render(<CategorySalesChart title="分類" data={buildSampleData()} />)
+      fireEvent.click(screen.getByText('長條圖'))
       // Two unique commodities: 招牌便當 and 排骨便當
       expect(screen.getByTestId('bar-招牌便當')).toBeTruthy()
       expect(screen.getByTestId('bar-排骨便當')).toBeTruthy()

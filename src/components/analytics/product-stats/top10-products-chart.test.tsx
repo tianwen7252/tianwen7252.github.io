@@ -16,6 +16,13 @@ vi.mock('recharts', () => ({
   Bar: ({ dataKey }: { dataKey: string }) => (
     <div data-testid={`bar-${dataKey}`} />
   ),
+  PieChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie-chart">{children}</div>
+  ),
+  Pie: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie">{children}</div>
+  ),
+  Cell: () => null,
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
@@ -23,7 +30,6 @@ vi.mock('recharts', () => ({
     <div data-testid="responsive-container">{children}</div>
   ),
   LabelList: () => null,
-  Cell: () => null,
 }))
 
 // Mock the shadcn chart components
@@ -33,6 +39,10 @@ vi.mock('@/components/ui/chart', () => ({
   ),
   ChartTooltip: () => null,
   ChartTooltipContent: () => null,
+  ChartLegend: ({ content }: { content: ReactNode }) => (
+    <div data-testid="chart-legend">{content}</div>
+  ),
+  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
 }))
 
 vi.mock('@/stores/app-store', () => ({
@@ -178,6 +188,21 @@ describe('Top10ProductsChart', () => {
         />,
       )
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons', () => {
+      render(
+        <Top10ProductsChart
+          items={TEN_ITEMS}
+          sortBy="quantity"
+          onSortChange={vi.fn()}
+        />,
+      )
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

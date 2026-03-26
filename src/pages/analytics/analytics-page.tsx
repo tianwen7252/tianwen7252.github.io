@@ -70,7 +70,7 @@ function ProductStats({
         return (
           <CategorySalesChart
             key={ct.typeId}
-            title={ct.label}
+            title={`${ct.label}${t('analytics.salesStatsSuffix')}`}
             data={salesRows}
           />
         )

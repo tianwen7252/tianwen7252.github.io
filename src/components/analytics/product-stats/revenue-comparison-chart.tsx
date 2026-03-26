@@ -1,10 +1,15 @@
 /**
  * RevenueComparisonChart — overlapping area chart comparing current month vs
- * previous month daily revenue. Two areas use different colors.
+ * previous month daily revenue. Supports line (default), pie, and table views.
  */
 
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts'
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  PieChart, Pie, Cell,
+} from 'recharts'
+import { LineChart as LineChartIcon, PieChart as PieChartIcon, Table as TableIcon } from 'lucide-react'
 import {
   ChartContainer,
   ChartTooltip,
@@ -18,14 +23,19 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
+  CardAction,
   CardContent,
 } from '@/components/ui/card'
 import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { cn } from '@/lib/cn'
 import { useAppStore } from '@/stores/app-store'
-import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
+import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+
+type ViewMode = 'line' | 'pie' | 'table'
 
 interface RevenueComparisonChartProps {
   currentData: DailyRevenue[]
@@ -71,6 +81,11 @@ function mergeByDay(current: DailyRevenue[], prev: DailyRevenue[]): MergedRow[] 
   })
 }
 
+/** Format number as currency string. */
+function formatCurrency(value: number): string {
+  return `$${value.toLocaleString()}`
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function RevenueComparisonChart({
@@ -79,6 +94,7 @@ export function RevenueComparisonChart({
 }: RevenueComparisonChartProps) {
   const { t } = useTranslation()
   const fontSize = useAppStore().fontSize
+  const [viewMode, setViewMode] = useState<ViewMode>('line')
   const chartData = mergeByDay(currentData, prevData)
 
   // Palette 3: Sunset Harvest
@@ -95,51 +111,181 @@ export function RevenueComparisonChart({
     },
   } satisfies ChartConfig
 
+  // Aggregate totals for pie chart
+  const pieTotals = useMemo(() => {
+    const totalCurrent = chartData.reduce((sum, d) => sum + d.currentMonth, 0)
+    const totalPrev = chartData.reduce((sum, d) => sum + d.previousMonth, 0)
+    return [
+      { name: t('analytics.currentMonth'), value: totalCurrent },
+      { name: t('analytics.previousMonth'), value: totalPrev },
+    ]
+  }, [chartData, t])
+
+  const isEmpty = chartData.length === 0 || chartData.every(d => d.currentMonth === 0 && d.previousMonth === 0)
+
+  const viewButtons: { mode: ViewMode; label: string; icon: typeof LineChartIcon }[] = [
+    { mode: 'line', label: t('analytics.viewLine'), icon: LineChartIcon },
+    { mode: 'pie', label: t('analytics.viewPie'), icon: PieChartIcon },
+    { mode: 'table', label: t('analytics.viewTable'), icon: TableIcon },
+  ]
+
   return (
     <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="font-normal">{t('analytics.revenueComparisonTitle')}</CardTitle>
         <CardDescription>{t('analytics.revenueComparisonDesc')}</CardDescription>
+        <CardAction>
+          <div className="flex gap-2">
+            {viewButtons.map(({ mode, label, icon: Icon }) => (
+              <RippleButton
+                key={mode}
+                className={cn(
+                  'flex items-center gap-1 rounded-lg px-4 py-2 text-base transition-colors',
+                  viewMode === mode
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted text-muted-foreground',
+                )}
+                onClick={() => setViewMode(mode)}
+              >
+                <Icon className="h-4 w-4" />
+                {label}
+              </RippleButton>
+            ))}
+          </div>
+        </CardAction>
       </CardHeader>
       <CardContent>
-        {chartData.length === 0 || chartData.every(d => d.currentMonth === 0 && d.previousMonth === 0) ? <ChartEmpty /> : (
-        <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
-          <AreaChart data={chartData} accessibilityLayer>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
-            <YAxis tick={{ fontSize }} allowDecimals={false} hide />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <defs>
-              <linearGradient id="fillCurrent" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-currentMonth)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-currentMonth)" stopOpacity={0.1} />
-              </linearGradient>
-              <linearGradient id="fillPrevious" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-previousMonth)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-previousMonth)" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="currentMonth"
-              name={t('analytics.currentMonth')}
-              stroke="var(--color-currentMonth)"
-              fill="url(#fillCurrent)"
-              strokeWidth={2}
-            />
-            <Area
-              type="monotone"
-              dataKey="previousMonth"
-              name={t('analytics.previousMonth')}
-              stroke="var(--color-previousMonth)"
-              fill="url(#fillPrevious)"
-              strokeWidth={2}
-            />
-          </AreaChart>
-        </ChartContainer>
+        {isEmpty ? (
+          <ChartEmpty />
+        ) : viewMode === 'line' ? (
+          <AreaView chartData={chartData} chartConfig={chartConfig} fontSize={fontSize} t={t} />
+        ) : viewMode === 'pie' ? (
+          <PieView pieTotals={pieTotals} palette={palette} />
+        ) : (
+          <TableView chartData={chartData} />
         )}
       </CardContent>
     </Card>
+  )
+}
+
+// ─── Area sub-component (line/area default view) ────────────────────────────
+
+interface AreaViewProps {
+  chartData: MergedRow[]
+  chartConfig: ChartConfig
+  fontSize: number
+  t: (key: string) => string
+}
+
+function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
+  return (
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+      <AreaChart data={chartData} accessibilityLayer>
+        <CartesianGrid vertical={false} />
+        <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize }} />
+        <YAxis tick={{ fontSize }} allowDecimals={false} hide />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <defs>
+          <linearGradient id="fillCurrent" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-currentMonth)" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="var(--color-currentMonth)" stopOpacity={0.1} />
+          </linearGradient>
+          <linearGradient id="fillPrevious" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="var(--color-previousMonth)" stopOpacity={0.8} />
+            <stop offset="95%" stopColor="var(--color-previousMonth)" stopOpacity={0.1} />
+          </linearGradient>
+        </defs>
+        <Area
+          type="monotone"
+          dataKey="currentMonth"
+          name={t('analytics.currentMonth')}
+          stroke="var(--color-currentMonth)"
+          fill="url(#fillCurrent)"
+          strokeWidth={2}
+        />
+        <Area
+          type="monotone"
+          dataKey="previousMonth"
+          name={t('analytics.previousMonth')}
+          stroke="var(--color-previousMonth)"
+          fill="url(#fillPrevious)"
+          strokeWidth={2}
+        />
+      </AreaChart>
+    </ChartContainer>
+  )
+}
+
+// ─── Pie sub-component ──────────────────────────────────────────────────────
+
+interface PieViewProps {
+  pieTotals: Array<{ name: string; value: number }>
+  palette: readonly string[]
+}
+
+function PieView({ pieTotals, palette }: PieViewProps) {
+  const config = pieTotals.reduce<ChartConfig>((acc, item, i) => ({
+    ...acc,
+    [item.name]: { label: item.name, color: getColor(palette, i) },
+  }), {})
+
+  return (
+    <ChartContainer config={config} className="min-h-[250px] w-full">
+      <PieChart>
+        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Pie
+          data={pieTotals}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          outerRadius={100}
+          label={({ name, value }: { name?: string; value?: number }) => `${name ?? ''}: ${formatCurrency(value ?? 0)}`}
+        >
+          {pieTotals.map((item, i) => (
+            <Cell key={item.name} fill={getColor(palette, i)} />
+          ))}
+        </Pie>
+      </PieChart>
+    </ChartContainer>
+  )
+}
+
+// ─── Table sub-component ────────────────────────────────────────────────────
+
+interface TableViewProps {
+  chartData: MergedRow[]
+}
+
+function TableView({ chartData }: TableViewProps) {
+  const { t } = useTranslation()
+  return (
+    <table className="w-full text-left">
+      <thead>
+        <tr className="border-b">
+          <th className="pb-3 text-base text-muted-foreground">
+            {t('analytics.dayCol')}
+          </th>
+          <th className="pb-3 text-right text-base text-muted-foreground">
+            {t('analytics.currentMonthCol')}
+          </th>
+          <th className="pb-3 text-right text-base text-muted-foreground">
+            {t('analytics.previousMonthCol')}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {chartData.map((item) => (
+          <tr key={item.day} className="border-b last:border-b-0">
+            <td className="py-3 text-base">{item.day}</td>
+            <td className="py-3 text-right text-base">{formatCurrency(item.currentMonth)}</td>
+            <td className="py-3 text-right text-base">{formatCurrency(item.previousMonth)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   )
 }
