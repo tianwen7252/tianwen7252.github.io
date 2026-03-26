@@ -25,6 +25,15 @@ vi.mock('recharts', () => ({
   Cell: () => null,
 }))
 
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
 import { OrderTimeChart } from './order-time-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -47,9 +56,9 @@ describe('OrderTimeChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ResponsiveContainer wrapping a BarChart', () => {
+    it('renders a ChartContainer wrapping a BarChart', () => {
       render(<OrderTimeChart data={buildFullHourlyData()} />)
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 

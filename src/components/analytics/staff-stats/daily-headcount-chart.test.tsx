@@ -25,6 +25,15 @@ vi.mock('recharts', () => ({
   ),
 }))
 
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
 import { DailyHeadcountChart } from './daily-headcount-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -47,9 +56,9 @@ describe('DailyHeadcountChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders responsive container', () => {
+    it('renders a ChartContainer', () => {
       render(<DailyHeadcountChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders line chart element', () => {

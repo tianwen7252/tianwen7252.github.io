@@ -1,6 +1,8 @@
 /**
  * Tests for RevenueComparisonChart component.
  * Uses a recharts mock to avoid JSDOM SVG rendering issues.
+ * After i18n: Area data keys are English (currentMonth, previousMonth),
+ * labels come from t() returning zh-TW translations.
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -21,6 +23,19 @@ vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
+}))
+
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+  ChartLegend: ({ content }: { content: ReactNode }) => (
+    <div data-testid="chart-legend">{content}</div>
+  ),
+  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
 }))
 
 import { RevenueComparisonChart } from './revenue-comparison-chart'
@@ -57,14 +72,14 @@ describe('RevenueComparisonChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ResponsiveContainer', () => {
+    it('renders a ChartContainer', () => {
       render(
         <RevenueComparisonChart
           currentData={buildMonthData()}
           prevData={buildPrevMonthData()}
         />,
       )
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders an AreaChart', () => {
@@ -77,34 +92,36 @@ describe('RevenueComparisonChart', () => {
       expect(screen.getByTestId('area-chart')).toBeTruthy()
     })
 
-    it('renders the 本月 Area', () => {
+    it('renders the currentMonth Area', () => {
       render(
         <RevenueComparisonChart
           currentData={buildMonthData()}
           prevData={buildPrevMonthData()}
         />,
       )
+      // After i18n: name prop uses translated label from t('analytics.currentMonth') = "本月"
       expect(screen.getByTestId('area-本月')).toBeTruthy()
     })
 
-    it('renders the 上月 Area', () => {
+    it('renders the previousMonth Area', () => {
       render(
         <RevenueComparisonChart
           currentData={buildMonthData()}
           prevData={buildPrevMonthData()}
         />,
       )
+      // After i18n: name prop uses translated label from t('analytics.previousMonth') = "上月"
       expect(screen.getByTestId('area-上月')).toBeTruthy()
     })
 
-    it('renders a Legend', () => {
+    it('renders a ChartLegend', () => {
       render(
         <RevenueComparisonChart
           currentData={buildMonthData()}
           prevData={buildPrevMonthData()}
         />,
       )
-      expect(screen.getByTestId('legend')).toBeTruthy()
+      expect(screen.getByTestId('chart-legend')).toBeTruthy()
     })
   })
 

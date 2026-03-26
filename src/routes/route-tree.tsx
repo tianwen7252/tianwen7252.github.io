@@ -39,8 +39,8 @@ function RootLayout() {
           <div className="flex gap-2">
             <NavLink to="/">{t('nav.home')}</NavLink>
             <NavLink to="/orders">{t('nav.orders')}</NavLink>
-            <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
             <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
+            <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
             <NavLink to="/settings">{t('nav.settings')}</NavLink>
             {import.meta.env.DEV && <NavLink to="/preview">Preview</NavLink>}
           </div>

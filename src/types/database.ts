@@ -3,7 +3,7 @@
  * These mirror the SQL schema in src/lib/schema.ts.
  */
 
-export interface CommondityType {
+export interface CommodityType {
   readonly id: string
   readonly typeId: string
   readonly type: string
@@ -13,7 +13,7 @@ export interface CommondityType {
   readonly updatedAt: number
 }
 
-export interface Commondity {
+export interface Commodity {
   readonly id: string
   readonly typeId: string
   readonly name: string

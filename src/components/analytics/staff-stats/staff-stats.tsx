@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type {
   StatisticsRepository,
   StaffKpis,
@@ -57,6 +58,7 @@ function fillHeadcount(data: DailyHeadcount[], start: Date, end: Date): DailyHea
  * Uses the cancelled-flag pattern to prevent state updates after unmount.
  */
 export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsProps) {
+  const { t } = useTranslation()
   const [kpis, setKpis] = useState<StaffKpis | null>(null)
   const [employeeHours, setEmployeeHours] = useState<EmployeeHours[]>([])
   const [dailyHeadcount, setDailyHeadcount] = useState<DailyHeadcount[]>([])
@@ -91,7 +93,7 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : '載入失敗')
+          setError(err instanceof Error ? err.message : t('analytics.loadError'))
           setLoading(false)
         }
       })
@@ -99,18 +101,18 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
     return () => {
       cancelled = true
     }
-  }, [statisticsRepo, startDate, endDate])
+  }, [statisticsRepo, startDate, endDate, t])
 
   const filledHeadcount = fillHeadcount(dailyHeadcount, startDate, endDate)
 
   return (
-    <section aria-label="員工統計" className="flex flex-col gap-6">
+    <section aria-label={t('analytics.staffStats')} className="flex flex-col gap-6">
       {error !== null && (
         <p className="text-destructive text-base">{error}</p>
       )}
 
       {loading && error === null && (
-        <p className="text-muted-foreground text-base" role="status">載入中...</p>
+        <p className="text-muted-foreground text-base" role="status">{t('analytics.loading')}</p>
       )}
 
       {!loading && kpis !== null && <StaffKpiGrid kpis={kpis} />}

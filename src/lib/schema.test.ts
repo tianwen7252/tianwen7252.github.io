@@ -11,8 +11,8 @@ describe('schema', () => {
   describe('CREATE_TABLES', () => {
     it('should include all 7 core tables', () => {
       const tables = [
-        'commondity_types',
-        'commondities',
+        'commodity_types',
+        'commodities',
         'orders',
         'order_types',
         'daily_data',
@@ -41,9 +41,9 @@ describe('schema', () => {
       expect(CREATE_TABLES).toContain('idx_attendances_employee_date')
     })
 
-    it('should define foreign key from commondities to commondity_types', () => {
+    it('should define foreign key from commodities to commodity_types', () => {
       expect(CREATE_TABLES).toContain(
-        'FOREIGN KEY (type_id) REFERENCES commondity_types(type_id)',
+        'FOREIGN KEY (type_id) REFERENCES commodity_types(type_id)',
       )
     })
 
@@ -80,10 +80,10 @@ describe('schema', () => {
       initSchema(mockExec)
       expect(mockExec).toHaveBeenNthCalledWith(1, 'PRAGMA foreign_keys = ON')
       expect(mockExec).toHaveBeenNthCalledWith(2, CREATE_TABLES)
-      // Third call is the ALTER TABLE migration for image column
+      // Third call is the V2-76 rename migration for commodity_types
       expect(mockExec).toHaveBeenNthCalledWith(
         3,
-        'ALTER TABLE commondities ADD COLUMN image TEXT',
+        'ALTER TABLE commondity_types RENAME TO commodity_types',
       )
     })
   })

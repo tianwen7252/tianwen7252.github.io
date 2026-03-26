@@ -25,6 +25,19 @@ vi.mock('recharts', () => ({
   ),
 }))
 
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+  ChartLegend: ({ content }: { content: ReactNode }) => (
+    <div data-testid="chart-legend">{content}</div>
+  ),
+  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
+}))
+
 import { StaffHoursChart } from './staff-hours-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -54,9 +67,9 @@ describe('StaffHoursChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ResponsiveContainer', () => {
+    it('renders a ChartContainer', () => {
       render(<StaffHoursChart data={SAMPLE_DATA} />)
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders a BarChart', () => {
@@ -111,9 +124,9 @@ describe('StaffHoursChart', () => {
       expect(screen.getByRole('region', { name: '員工工時分布' })).toBeTruthy()
     })
 
-    it('still renders ResponsiveContainer with empty data', () => {
+    it('still renders ChartContainer with empty data', () => {
       render(<StaffHoursChart data={[]} />)
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
   })
 

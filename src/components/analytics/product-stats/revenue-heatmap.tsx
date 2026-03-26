@@ -5,6 +5,7 @@
  * with a NeonGradientCard.
  */
 
+import { useTranslation } from 'react-i18next'
 import { NeonGradientCard } from '@/components/ui/neon-gradient-card'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
@@ -53,6 +54,7 @@ function computeOpacity(revenue: number, maxRevenue: number): number {
  * represents its revenue share of the month's maximum.
  */
 export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
+  const { t } = useTranslation()
   const totalDays = daysInMonth(year, month)
   const revenueMap = buildRevenueMap(data)
 
@@ -67,7 +69,7 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
     : null
 
   return (
-    <div aria-label="月營收熱力圖" role="region">
+    <div aria-label={t('analytics.monthlyRevenueHeatmap')} role="region">
       <div className="grid grid-cols-7 gap-1">
         {Array.from({ length: totalDays }, (_, i) => {
           const day = i + 1
@@ -78,10 +80,10 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
           const cellContent = (
             <div
               data-testid="heatmap-cell"
-              className="flex aspect-square items-center justify-center rounded-md text-sm"
+              className="flex aspect-square items-center justify-center rounded-md text-base"
               style={{
-                backgroundColor: `hsl(221 83% 53% / ${isPeak ? 1 : opacity})`,
-                color: opacity > 0.5 ? 'white' : 'hsl(var(--foreground))',
+                backgroundColor: `hsl(var(--chart-1) / ${isPeak ? 1 : opacity})`,
+                color: opacity > 0.5 ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))',
               }}
             >
               {day}

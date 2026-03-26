@@ -1,6 +1,8 @@
 /**
  * Tests for AvgOrderValueChart component.
  * Uses a recharts mock to avoid JSDOM SVG rendering issues.
+ * After i18n: Line data keys are English (avgOrderValue, movingAvg7d),
+ * labels come from t() returning zh-TW translations.
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -21,6 +23,19 @@ vi.mock('recharts', () => ({
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
+}))
+
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+  ChartLegend: ({ content }: { content: ReactNode }) => (
+    <div data-testid="chart-legend">{content}</div>
+  ),
+  ChartLegendContent: () => <div data-testid="chart-legend-content" />,
 }))
 
 import { AvgOrderValueChart } from './avg-order-value-chart'
@@ -45,9 +60,9 @@ describe('AvgOrderValueChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ResponsiveContainer', () => {
+    it('renders a ChartContainer', () => {
       render(<AvgOrderValueChart data={buildAvgData()} />)
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders a LineChart', () => {
@@ -55,13 +70,15 @@ describe('AvgOrderValueChart', () => {
       expect(screen.getByTestId('line-chart')).toBeTruthy()
     })
 
-    it('renders the 客單價 Line (raw values)', () => {
+    it('renders the avgOrderValue Line (raw values)', () => {
       render(<AvgOrderValueChart data={buildAvgData()} />)
+      // After i18n: name prop = t('analytics.avgOrderValue') = "客單價"
       expect(screen.getByTestId('line-客單價')).toBeTruthy()
     })
 
-    it('renders the 7日均線 Line (moving average)', () => {
+    it('renders the movingAvg7d Line (moving average)', () => {
       render(<AvgOrderValueChart data={buildAvgData()} />)
+      // After i18n: name prop = t('analytics.movingAvg7d') = "7日均線"
       expect(screen.getByTestId('line-7日均線')).toBeTruthy()
     })
   })

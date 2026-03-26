@@ -9,8 +9,8 @@ vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, opts?: Record<string, unknown>) => {
       const map: Record<string, string> = {
-        'orders.morningShift': '早班 (13:30前)',
-        'orders.afternoonShift': '晚班 (13:30後)',
+        'orders.morningShift': '早班',
+        'orders.afternoonShift': '晚班',
         'orders.grandTotal': '合計',
       }
       if (key === 'orders.orderCount') return `${opts?.count} 筆`

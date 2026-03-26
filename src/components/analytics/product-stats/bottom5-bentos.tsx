@@ -3,6 +3,7 @@
  * Uses AnimatedList for stagger entrance; color-codes by rank severity.
  */
 
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { AnimatedList } from '@/components/ui/animated-list'
 import type { ProductRanking } from '@/lib/repositories/statistics-repository'
@@ -30,8 +31,10 @@ function rankColorClass(rank: number): string {
  * The lowest-selling item is ranked #1 and shown in destructive red.
  */
 export function Bottom5Bentos({ items }: Bottom5BentosProps) {
+  const { t } = useTranslation()
+
   return (
-    <section aria-label="銷量最低便當">
+    <section aria-label={t('analytics.lowestSalesBentos')}>
       <AnimatedList>
         {items.map((item, index) => {
           const rank = index + 1

@@ -3,15 +3,21 @@
  * 7-day moving average overlay.
  */
 
+import { useTranslation } from 'react-i18next'
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -24,16 +30,20 @@ interface AvgOrderValueChartProps {
 /** Merged row with raw value and 7-day moving average. */
 interface ChartRow {
   day: number
-  客單價: number
-  '7日均線': number | null
+  avgOrderValue: number
+  movingAvg7d: number | null
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const CHART_HEIGHT = 250
 const WINDOW_SIZE = 7
-const COLOR_RAW = 'hsl(221 83% 53%)'
-const COLOR_MA = 'hsl(38 92% 50%)'
+
+// ─── Chart config (static colors — labels resolved inside component) ──────────
+
+const CHART_COLORS = {
+  avgOrderValue: 'hsl(var(--chart-1))',
+  movingAvg7d: 'hsl(var(--chart-2))',
+} as const
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -58,8 +68,8 @@ function buildChartData(data: DailyRevenue[]): ChartRow[] {
   const ma = computeMovingAverage(values, WINDOW_SIZE)
   return data.map((d, i) => ({
     day: Number(d.date.split('-')[2]),
-    客單價: d.revenue,
-    '7日均線': ma[i] ?? null,
+    avgOrderValue: d.revenue,
+    movingAvg7d: ma[i] ?? null,
   }))
 }
 
@@ -69,37 +79,50 @@ function buildChartData(data: DailyRevenue[]): ChartRow[] {
  * Renders a LineChart with raw average order value and a 7-day moving average.
  */
 export function AvgOrderValueChart({ data }: AvgOrderValueChartProps) {
+  const { t } = useTranslation()
   const chartData = buildChartData(data)
 
+  // Chart config built inside component so labels use translated strings.
+  const chartConfig = {
+    avgOrderValue: {
+      label: t('analytics.avgOrderValue'),
+      color: CHART_COLORS.avgOrderValue,
+    },
+    movingAvg7d: {
+      label: t('analytics.movingAvg7d'),
+      color: CHART_COLORS.movingAvg7d,
+    },
+  } satisfies ChartConfig
+
   return (
-    <div aria-label="平均客單價趨勢" role="region">
-      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+    <div aria-label={t('analytics.avgOrderValueTrend')} role="region">
+      <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+        <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }} accessibilityLayer>
           <XAxis dataKey="day" tick={{ fontSize: 12 }} />
           <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <Tooltip formatter={(value) => [value, '']} labelFormatter={(label) => `第 ${label} 日`} />
-          <Legend />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartLegend content={<ChartLegendContent />} />
           <Line
             type="monotone"
-            dataKey="客單價"
-            name="客單價"
-            stroke={COLOR_RAW}
+            dataKey="avgOrderValue"
+            name={t('analytics.avgOrderValue')}
+            stroke="var(--color-avgOrderValue)"
             strokeWidth={2}
             dot={false}
             connectNulls={false}
           />
           <Line
             type="monotone"
-            dataKey="7日均線"
-            name="7日均線"
-            stroke={COLOR_MA}
+            dataKey="movingAvg7d"
+            name={t('analytics.movingAvg7d')}
+            stroke="var(--color-movingAvg7d)"
             strokeWidth={2}
             dot={false}
             connectNulls={false}
             strokeDasharray="4 2"
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   )
 }

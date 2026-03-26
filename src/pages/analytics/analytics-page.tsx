@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { AnalyticsTabBar } from '@/components/analytics/analytics-tab-bar'
 import { AnalyticsDatePicker } from '@/components/analytics/analytics-date-picker'
@@ -37,6 +38,7 @@ interface ProductStatsProps {
 }
 
 function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps) {
+  const { t } = useTranslation()
   const [kpis, setKpis] = useState<ProductKpis | null>(null)
   const [hourlyData, setHourlyData] = useState<HourBucket[]>([])
   const [topItems, setTopItems] = useState<ProductRanking[]>([])
@@ -97,14 +99,14 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : '載入失敗')
+          setError(err instanceof Error ? err.message : t('analytics.loadError'))
         }
       })
 
     return () => {
       cancelled = true
     }
-  }, [statisticsRepo, startDate, endDate])
+  }, [statisticsRepo, startDate, endDate, t])
 
   // Fetch top products separately so sortBy changes only re-fetch this slice.
   useEffect(() => {
@@ -124,7 +126,7 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : '排行載入失敗')
+          setError(err instanceof Error ? err.message : t('analytics.rankLoadError'))
         }
       })
 
@@ -186,7 +188,7 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : '商品趨勢載入失敗')
+          setError(err instanceof Error ? err.message : t('analytics.trendLoadError'))
         }
       })
 
@@ -199,7 +201,7 @@ function ProductStats({ startDate, endDate, statisticsRepo }: ProductStatsProps)
   const currentYear = startDate.getFullYear()
 
   return (
-    <section aria-label="商品統計" className="flex flex-col gap-6">
+    <section aria-label={t('analytics.productStats')} className="flex flex-col gap-6">
       {error !== null && (
         <p className="text-destructive text-base">{error}</p>
       )}
@@ -260,6 +262,7 @@ interface AnalyticsPageProps {
  * Analytics page scaffold: tab bar + date picker + conditional stats sections.
  */
 export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps = {}) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<AnalyticsTab>('product')
   const [startDate, setStartDate] = useState<Date>(
     dayjs().startOf('month').toDate(),
@@ -278,13 +281,13 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
         try {
           setDynamicRepo(getStatisticsRepo())
         } catch (err) {
-          setProviderError(err instanceof Error ? err.message : '統計模組初始化失敗')
+          setProviderError(err instanceof Error ? err.message : t('analytics.providerInitError'))
         }
       })
       .catch(() => {
-        setProviderError('統計模組載入失敗')
+        setProviderError(t('analytics.providerLoadError'))
       })
-  }, [repoProp])
+  }, [repoProp, t])
 
   // repoProp always takes precedence; fall back to the lazily resolved singleton.
   const resolvedRepo = repoProp ?? dynamicRepo
@@ -316,7 +319,7 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
 
       {activeTab === 'product' ? (
         providerError !== null ? (
-          <section aria-label="商品統計">
+          <section aria-label={t('analytics.productStats')}>
             <p className="text-destructive text-base">{providerError}</p>
           </section>
         ) : resolvedRepo !== null ? (
@@ -326,10 +329,10 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
             statisticsRepo={resolvedRepo}
           />
         ) : (
-          <section aria-label="商品統計" />
+          <section aria-label={t('analytics.productStats')} />
         )
       ) : providerError !== null ? (
-        <section aria-label="員工統計">
+        <section aria-label={t('analytics.staffStats')}>
           <p className="text-destructive text-base">{providerError}</p>
         </section>
       ) : resolvedRepo !== null ? (
@@ -339,7 +342,7 @@ export function AnalyticsPage({ statisticsRepo: repoProp }: AnalyticsPageProps =
           statisticsRepo={resolvedRepo}
         />
       ) : (
-        <section aria-label="員工統計" />
+        <section aria-label={t('analytics.staffStats')} />
       )}
     </div>
   )

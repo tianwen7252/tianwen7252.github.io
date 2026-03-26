@@ -6,6 +6,39 @@
 
 ---
 
+### 技術堆疊
+
+| 類別         | V1（現有）               | V2（目標）                                                             |
+| ------------ | ------------------------ | ---------------------------------------------------------------------- |
+| 框架         | React 18                 | React 19                                                               |
+| 路由         | React Router v7          | TanStack Router                                                        |
+| UI 元件庫    | Ant Design v5            | shadcn/ui + Radix UI (primitives) + Magic UI                           |
+| UI 主題      | （無）                   | Moss Theme (https://tweakcn.com/themes/cmmi1gb4a000204jl8c300w9a)      |
+| CSS          | Emotion CSS-in-JS        | Tailwind CSS v4 + @tailwindcss/vite                                    |
+| CSS 工具     | （無）                   | clsx + tailwind-merge (cn utility) + class-variance-authority          |
+| 狀態管理     | （無明確方案）           | Zustand + TanStack Query                                               |
+| 表單         | antd Form                | React Hook Form + Zod                                                  |
+| 動畫         | （無）                   | tw-animate-css + CSS keyframes（取代 Framer Motion，減少 bundle size） |
+| 圖示         | （無統一方案）           | lucide-react                                                           |
+| 通知         | （無）                   | Sonner（取代原定 Magic UI Animated List）                              |
+| 錯誤邊界     | （無）                   | react-error-boundary                                                   |
+| 客戶端 DB    | Dexie v4（IndexedDB）    | @sqlite.org/sqlite-wasm + OPFS (opfs-sahpool VFS)                      |
+| 備份         | （無）                   | @supabase/supabase-js → Supabase Storage（手動上傳）                   |
+| ID 生成      | （無）                   | nanoid                                                                 |
+| 多語系       | （無）                   | react-i18next                                                          |
+| 圖表         | Chart.js                 | Recharts                                                               |
+| Lint         | ESLint                   | Oxlint                                                                 |
+| 格式化       | Prettier                 | Oxfmt                                                                  |
+| 測試         | Vitest + Testing Library | Vitest + Testing Library + Playwright                                  |
+| 部署         | GitHub Pages             | Vercel                                                                 |
+| 建置         | Vite 7                   | Vite 8 + @vitejs/plugin-react-swc                                      |
+| Repo         | 同 repo，新 branch       | 同 repo，新 branch                                                     |
+| Jira         | V1 Project               | V2 Project                                                             |
+| 版本發布     | （無）                   | release-please                                                         |
+| Import Alias | src/                     | @/ → ./src/                                                            |
+
+---
+
 ## Git Hooks
 
 `pre-commit` runs automatically:

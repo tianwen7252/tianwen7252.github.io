@@ -3,14 +3,19 @@
  * commodity, with a native select for switching between commodities.
  */
 
+import { useTranslation } from 'react-i18next'
 import {
   LineChart,
   Line,
   XAxis,
   YAxis,
-  Tooltip,
-  ResponsiveContainer,
 } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -34,20 +39,19 @@ interface ProductTrendChartProps {
 /** Row used by recharts — day number and quantity value. */
 interface ChartRow {
   day: number
-  銷量: number
+  salesQuantity: number
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Chart config color (static — label resolved inside component) ────────────
 
-const CHART_HEIGHT = 250
-const COLOR_LINE = 'hsl(221 83% 53%)'
+const CHART_COLOR = 'hsl(var(--chart-1))'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function buildChartData(data: DailyRevenue[]): ChartRow[] {
   return data.map(d => ({
     day: Number(d.date.split('-')[2]),
-    銷量: d.revenue,
+    salesQuantity: d.revenue,
   }))
 }
 
@@ -62,18 +66,27 @@ export function ProductTrendChart({
   selectedId,
   onSelectChange,
 }: ProductTrendChartProps) {
+  const { t } = useTranslation()
   const chartData = buildChartData(data)
+
+  // Chart config built inside component so labels use translated strings.
+  const chartConfig = {
+    salesQuantity: {
+      label: t('analytics.salesQuantity'),
+      color: CHART_COLOR,
+    },
+  } satisfies ChartConfig
 
   function handleChange(e: React.ChangeEvent<HTMLSelectElement>) {
     onSelectChange(e.target.value)
   }
 
   return (
-    <div aria-label="商品銷售趨勢" role="region" className="flex flex-col gap-3">
+    <div aria-label={t('analytics.productTrend')} role="region" className="flex flex-col gap-3">
       <select
         value={selectedId}
         onChange={handleChange}
-        aria-label="選擇商品"
+        aria-label={t('analytics.selectProduct')}
         className="rounded-lg border border-border bg-background px-3 py-2 text-base focus:outline-none focus:ring-2 focus:ring-primary"
       >
         {commodities.map(c => (
@@ -83,20 +96,20 @@ export function ProductTrendChart({
         ))}
       </select>
 
-      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+      <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+        <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }} accessibilityLayer>
           <XAxis dataKey="day" tick={{ fontSize: 12 }} />
           <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <Tooltip formatter={(value) => [value, '銷量']} labelFormatter={(label) => `第 ${label} 日`} />
+          <ChartTooltip content={<ChartTooltipContent />} />
           <Line
             type="monotone"
-            dataKey="銷量"
-            stroke={COLOR_LINE}
+            dataKey="salesQuantity"
+            stroke="var(--color-salesQuantity)"
             strokeWidth={2}
             dot={false}
           />
         </LineChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   )
 }

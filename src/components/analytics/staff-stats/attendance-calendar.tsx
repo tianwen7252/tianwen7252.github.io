@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DailyHeadcount, StatisticsRepository } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -20,7 +21,15 @@ type AttendanceLevel = 'full' | 'partial' | 'none'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DAY_HEADERS = ['日', '一', '二', '三', '四', '五', '六'] as const
+const DAY_HEADER_KEYS = [
+  'analytics.daySun',
+  'analytics.dayMon',
+  'analytics.dayTue',
+  'analytics.dayWed',
+  'analytics.dayThu',
+  'analytics.dayFri',
+  'analytics.daySat',
+] as const
 
 const LEVEL_BG: Record<AttendanceLevel, string> = {
   full: 'bg-green-100 dark:bg-green-950',
@@ -86,6 +95,7 @@ export function AttendanceCalendar({
   totalEmployees,
   startDate,
 }: AttendanceCalendarProps) {
+  const { t } = useTranslation()
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [attendees, setAttendees] = useState<string[]>([])
   const [loadingAttendees, setLoadingAttendees] = useState(false)
@@ -115,7 +125,7 @@ export function AttendanceCalendar({
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setAttendeeError(err instanceof Error ? err.message : '載入失敗')
+        setAttendeeError(err instanceof Error ? err.message : t('analytics.loadError'))
         setLoadingAttendees(false)
       })
 
@@ -125,15 +135,15 @@ export function AttendanceCalendar({
   }, [selectedDate, statisticsRepo])
 
   return (
-    <section aria-label="月曆出勤全覽" className="flex flex-col gap-4">
+    <section aria-label={t('analytics.attendanceCalendar')} className="flex flex-col gap-4">
       <div className="overflow-x-auto rounded-xl border">
         <div className="grid grid-cols-7">
-          {DAY_HEADERS.map(h => (
+          {DAY_HEADER_KEYS.map(key => (
             <div
-              key={h}
-              className="border-b p-2 text-center text-sm font-medium text-muted-foreground"
+              key={key}
+              className="border-b p-2 text-center text-base font-medium text-muted-foreground"
             >
-              {h}
+              {t(key)}
             </div>
           ))}
 
@@ -157,7 +167,7 @@ export function AttendanceCalendar({
                 data-testid={`day-${cell.dateStr}`}
                 data-attendance={level}
                 onClick={() => setSelectedDate(cell.dateStr)}
-                aria-label={`${cell.day}日 ${count}人`}
+                aria-label={t('analytics.dayCount', { day: cell.day, count })}
                 aria-pressed={isSelected}
                 className={[
                   'cursor-pointer border-b border-r p-2 text-left transition-opacity last:border-r-0 hover:opacity-80',
@@ -165,8 +175,8 @@ export function AttendanceCalendar({
                   isSelected ? 'ring-2 ring-inset ring-primary' : '',
                 ].join(' ')}
               >
-                <div className="text-sm font-medium">{cell.day}</div>
-                <div className="text-xs text-muted-foreground">{count} 人</div>
+                <div className="text-base font-medium">{cell.day}</div>
+                <div className="text-base text-muted-foreground">{t('analytics.personCount', { count })}</div>
               </button>
             )
           })}
@@ -175,18 +185,20 @@ export function AttendanceCalendar({
 
       {selectedDate !== null && (
         <section
-          aria-label={`${selectedDate} 出勤名單`}
+          aria-label={t('analytics.attendeesOnDate', { date: selectedDate })}
           className="rounded-xl border p-4"
         >
-          <h3 className="mb-2 text-base font-medium">{selectedDate} 出勤名單</h3>
+          <h3 className="mb-2 text-base font-medium">
+            {t('analytics.attendeesOnDate', { date: selectedDate })}
+          </h3>
           {loadingAttendees ? (
-            <p className="text-sm text-muted-foreground" role="status">
-              載入中...
+            <p className="text-base text-muted-foreground" role="status">
+              {t('analytics.loading')}
             </p>
           ) : attendeeError !== null ? (
-            <p className="text-sm text-destructive">{attendeeError}</p>
+            <p className="text-base text-destructive">{attendeeError}</p>
           ) : attendees.length === 0 ? (
-            <p className="text-sm text-muted-foreground">無出勤記錄</p>
+            <p className="text-base text-muted-foreground">{t('analytics.noAttendees')}</p>
           ) : (
             <ul className="flex flex-col gap-1">
               {attendees.map(name => (

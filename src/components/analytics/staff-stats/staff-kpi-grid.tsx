@@ -5,6 +5,7 @@
  * All numeric values animate via NumberTicker.
  */
 
+import { useTranslation } from 'react-i18next'
 import type { StaffKpis } from '@/lib/repositories/statistics-repository'
 import { NumberTicker } from '@/components/ui/number-ticker'
 
@@ -37,28 +38,30 @@ function KpiCard({ title, children }: KpiCardProps) {
  * avgMonthlyHours is displayed with 1 decimal place and an "h" suffix.
  */
 export function StaffKpiGrid({ kpis }: StaffKpiGridProps) {
+  const { t } = useTranslation()
+
   return (
     <div className="grid grid-cols-4 gap-4">
-      <KpiCard title="在職員工數">
+      <KpiCard title={t('analytics.activeEmployees')}>
         <span data-testid="kpi-activeEmployeeCount">
           <NumberTicker value={kpis.activeEmployeeCount} />
         </span>
       </KpiCard>
 
-      <KpiCard title="總出勤天">
+      <KpiCard title={t('analytics.totalAttendanceDays')}>
         <span data-testid="kpi-totalAttendanceDays">
           <NumberTicker value={kpis.totalAttendanceDays} />
         </span>
       </KpiCard>
 
-      <KpiCard title="平均月工時">
+      <KpiCard title={t('analytics.avgMonthlyHours')}>
         <span data-testid="kpi-avgMonthlyHours">
           <NumberTicker value={kpis.avgMonthlyHours} decimalPlaces={1} />
           {' h'}
         </span>
       </KpiCard>
 
-      <KpiCard title="休假次數">
+      <KpiCard title={t('analytics.leaveCount')}>
         <span data-testid="kpi-leaveCount">
           <NumberTicker value={kpis.leaveCount} />
         </span>

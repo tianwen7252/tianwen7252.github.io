@@ -58,6 +58,11 @@ function buildSwipeActions(
   ]
 }
 
+/** Format currency with thousands separators */
+function formatCurrency(amount: number | undefined): string {
+  return amount ? `$${amount.toLocaleString()}` : ''
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 /**
@@ -118,10 +123,12 @@ export function OrderHistoryCard({
         <div className="flex items-baseline justify-end gap-2 mt-auto">
           {isDiscounted && (
             <span className="text-xs text-muted-foreground line-through">
-              ${order.originalTotal}
+              {formatCurrency(order.originalTotal)}
             </span>
           )}
-          <span className="text-lg font-semibold">${order.total}</span>
+          <span className="text-lg font-semibold">
+            {formatCurrency(order.total)}
+          </span>
         </div>
       </div>
     </SwipeActions>

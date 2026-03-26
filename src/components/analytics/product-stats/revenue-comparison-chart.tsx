@@ -3,15 +3,21 @@
  * previous month daily revenue.
  */
 
+import { useTranslation } from 'react-i18next'
 import {
   AreaChart,
   Area,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,15 +32,16 @@ interface RevenueComparisonChartProps {
 /** Merged row used by recharts — keyed by day-of-month (1–31). */
 interface MergedRow {
   day: number
-  本月: number
-  上月: number
+  currentMonth: number
+  previousMonth: number
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Chart config (static colors — labels resolved inside component) ──────────
 
-const CHART_HEIGHT = 250
-const COLOR_CURRENT = 'hsl(221 83% 53%)'
-const COLOR_PREV = 'hsl(142 71% 45%)'
+const CHART_COLORS = {
+  currentMonth: 'hsl(var(--chart-1))',
+  previousMonth: 'hsl(var(--chart-2))',
+} as const
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -71,8 +78,8 @@ function mergeByDay(
     const day = i + 1
     return {
       day,
-      本月: currentByDay.get(day) ?? 0,
-      上月: prevByDay.get(day) ?? 0,
+      currentMonth: currentByDay.get(day) ?? 0,
+      previousMonth: prevByDay.get(day) ?? 0,
     }
   })
 }
@@ -86,36 +93,49 @@ export function RevenueComparisonChart({
   currentData,
   prevData,
 }: RevenueComparisonChartProps) {
+  const { t } = useTranslation()
   const chartData = mergeByDay(currentData, prevData)
 
+  // Chart config built inside component so labels use translated strings.
+  const chartConfig = {
+    currentMonth: {
+      label: t('analytics.currentMonth'),
+      color: CHART_COLORS.currentMonth,
+    },
+    previousMonth: {
+      label: t('analytics.previousMonth'),
+      color: CHART_COLORS.previousMonth,
+    },
+  } satisfies ChartConfig
+
   return (
-    <div aria-label="本月 vs 上月比較" role="region">
-      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
-        <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }}>
+    <div aria-label={t('analytics.currentVsPrevMonth')} role="region">
+      <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+        <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 4, left: 0 }} accessibilityLayer>
           <XAxis dataKey="day" tick={{ fontSize: 12 }} />
           <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-          <Tooltip formatter={(value) => [value, '']} labelFormatter={(label) => `第 ${label} 日`} />
-          <Legend />
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartLegend content={<ChartLegendContent />} />
           <Area
             type="monotone"
-            dataKey="本月"
-            name="本月"
-            stroke={COLOR_CURRENT}
-            fill={COLOR_CURRENT}
+            dataKey="currentMonth"
+            name={t('analytics.currentMonth')}
+            stroke="var(--color-currentMonth)"
+            fill="var(--color-currentMonth)"
             fillOpacity={0.2}
             strokeWidth={2}
           />
           <Area
             type="monotone"
-            dataKey="上月"
-            name="上月"
-            stroke={COLOR_PREV}
-            fill={COLOR_PREV}
+            dataKey="previousMonth"
+            name={t('analytics.previousMonth')}
+            stroke="var(--color-previousMonth)"
+            fill="var(--color-previousMonth)"
             fillOpacity={0.2}
             strokeWidth={2}
           />
         </AreaChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </div>
   )
 }

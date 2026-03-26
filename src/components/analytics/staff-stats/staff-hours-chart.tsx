@@ -4,15 +4,21 @@
  * Uses Recharts BarChart with layout="vertical".
  */
 
+import { useTranslation } from 'react-i18next'
 import {
   BarChart,
   Bar,
   XAxis,
   YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts'
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart'
 import type { EmployeeHours } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -26,32 +32,48 @@ interface StaffHoursChartProps {
 const MIN_CHART_HEIGHT = 300
 const ROW_HEIGHT = 48
 
-/** Color palette for each attendance type segment. */
-const COLORS = {
-  regular: 'hsl(221 83% 53%)',
-  paidLeave: 'hsl(142 72% 45%)',
-  sickLeave: 'hsl(25 95% 53%)',
-  personalLeave: 'hsl(48 96% 53%)',
-  absent: 'hsl(0 84% 60%)',
-} as const
+// ─── Static segment keys ──────────────────────────────────────────────────────
 
-// ─── Bar segments config ──────────────────────────────────────────────────────
+type SegmentKey = 'regular' | 'paidLeave' | 'sickLeave' | 'personalLeave' | 'absent'
 
-const SEGMENTS: Array<{ dataKey: keyof typeof COLORS; name: string }> = [
-  { dataKey: 'regular', name: '正班' },
-  { dataKey: 'paidLeave', name: '特休' },
-  { dataKey: 'sickLeave', name: '病假' },
-  { dataKey: 'personalLeave', name: '事假' },
-  { dataKey: 'absent', name: '缺席' },
-]
+const SEGMENT_KEYS: SegmentKey[] = ['regular', 'paidLeave', 'sickLeave', 'personalLeave', 'absent']
+
+const SEGMENT_LABEL_KEYS: Record<SegmentKey, string> = {
+  regular: 'analytics.regularLabel',
+  paidLeave: 'analytics.paidLeave',
+  sickLeave: 'analytics.sickLeave',
+  personalLeave: 'analytics.personalLeave',
+  absent: 'analytics.absent',
+}
+
+const SEGMENT_COLORS: Record<SegmentKey, string> = {
+  regular: 'hsl(var(--chart-1))',
+  paidLeave: 'hsl(var(--chart-2))',
+  sickLeave: 'hsl(var(--chart-3))',
+  personalLeave: 'hsl(var(--chart-4))',
+  absent: 'hsl(var(--chart-5))',
+}
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
  * Renders a horizontal stacked bar chart with one row per employee.
- * Each bar is split into 5 colored segments: 正班, 特休, 病假, 事假, 缺席.
+ * Each bar is split into 5 colored segments: regular, paidLeave, sickLeave, personalLeave, absent.
  */
 export function StaffHoursChart({ data }: StaffHoursChartProps) {
+  const { t } = useTranslation()
+
+  // Chart config built inside component so labels use translated strings.
+  const chartConfig = Object.fromEntries(
+    SEGMENT_KEYS.map(key => [
+      key,
+      {
+        label: t(SEGMENT_LABEL_KEYS[key]),
+        color: SEGMENT_COLORS[key],
+      },
+    ]),
+  ) as ChartConfig
+
   // Map to recharts-compatible format keyed by employeeName
   const chartData = data.map(row => ({
     name: row.employeeName,
@@ -62,27 +84,31 @@ export function StaffHoursChart({ data }: StaffHoursChartProps) {
     absent: row.absent,
   }))
 
-  const chartHeight = Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT)
+  const minHeight = Math.max(MIN_CHART_HEIGHT, data.length * ROW_HEIGHT)
 
   return (
-    <section aria-label="員工工時分布">
-      <ResponsiveContainer width="100%" height={chartHeight}>
-        <BarChart layout="vertical" data={chartData}>
+    <section aria-label={t('analytics.staffHoursDistribution')}>
+      <ChartContainer
+        config={chartConfig}
+        className="w-full"
+        style={{ minHeight }}
+      >
+        <BarChart layout="vertical" data={chartData} accessibilityLayer>
           <XAxis type="number" />
           <YAxis type="category" dataKey="name" width={80} />
-          <Tooltip />
-          <Legend />
-          {SEGMENTS.map(({ dataKey, name }) => (
+          <ChartTooltip content={<ChartTooltipContent />} />
+          <ChartLegend content={<ChartLegendContent />} />
+          {SEGMENT_KEYS.map(key => (
             <Bar
-              key={dataKey}
-              dataKey={dataKey}
-              name={name}
+              key={key}
+              dataKey={key}
+              name={t(SEGMENT_LABEL_KEYS[key])}
               stackId="hours"
-              fill={COLORS[dataKey]}
+              fill={`var(--color-${key})`}
             />
           ))}
         </BarChart>
-      </ResponsiveContainer>
+      </ChartContainer>
     </section>
   )
 }

@@ -1,6 +1,7 @@
 /**
  * Tests for Top10ProductsChart component.
  * Verifies item rendering, sort toggle buttons, and aria label.
+ * After i18n: sort buttons use t('analytics.sortByQuantity') and t('analytics.sortByRevenue').
  */
 
 import { describe, it, expect, vi } from 'vitest'
@@ -104,7 +105,7 @@ describe('Top10ProductsChart', () => {
   })
 
   describe('sort toggle buttons', () => {
-    it('renders both 銷量 and 金額 toggle buttons', () => {
+    it('renders both sort toggle buttons (依數量 and 依營收)', () => {
       render(
         <Top10ProductsChart
           items={TEN_ITEMS}
@@ -112,11 +113,12 @@ describe('Top10ProductsChart', () => {
           onSortChange={vi.fn()}
         />,
       )
-      expect(screen.getByRole('button', { name: '銷量' })).toBeTruthy()
-      expect(screen.getByRole('button', { name: '金額' })).toBeTruthy()
+      // After i18n: sortByQuantity = "依數量", sortByRevenue = "依營收"
+      expect(screen.getByRole('button', { name: '依數量' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: '依營收' })).toBeTruthy()
     })
 
-    it('calls onSortChange with "revenue" when 金額 button is clicked', () => {
+    it('calls onSortChange with "revenue" when 依營收 button is clicked', () => {
       const onSortChange = vi.fn()
       render(
         <Top10ProductsChart
@@ -125,11 +127,11 @@ describe('Top10ProductsChart', () => {
           onSortChange={onSortChange}
         />,
       )
-      fireEvent.click(screen.getByRole('button', { name: '金額' }))
+      fireEvent.click(screen.getByRole('button', { name: '依營收' }))
       expect(onSortChange).toHaveBeenCalledWith('revenue')
     })
 
-    it('calls onSortChange with "quantity" when 銷量 button is clicked', () => {
+    it('calls onSortChange with "quantity" when 依數量 button is clicked', () => {
       const onSortChange = vi.fn()
       render(
         <Top10ProductsChart
@@ -138,7 +140,7 @@ describe('Top10ProductsChart', () => {
           onSortChange={onSortChange}
         />,
       )
-      fireEvent.click(screen.getByRole('button', { name: '銷量' }))
+      fireEvent.click(screen.getByRole('button', { name: '依數量' }))
       expect(onSortChange).toHaveBeenCalledWith('quantity')
     })
   })

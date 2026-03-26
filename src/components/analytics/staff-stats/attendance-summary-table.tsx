@@ -1,11 +1,12 @@
 /**
  * AttendanceSummaryTable — sortable table of per-employee attendance data.
- * Columns: 員工姓名, 出勤天, 特休, 病假, 事假, 缺席.
+ * Columns: employee name, regular hours, paidLeave, sickLeave, personalLeave, absent.
  * Clicking a column header toggles asc/desc for that column.
- * Default sort: 員工姓名 ascending.
+ * Default sort: employeeName ascending.
  */
 
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { EmployeeHours } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -22,20 +23,20 @@ interface SortState {
   dir: SortDir
 }
 
-// ─── Column config ────────────────────────────────────────────────────────────
+// ─── Column key config ────────────────────────────────────────────────────────
 
 interface ColumnDef {
   key: SortKey
-  label: string
+  labelKey: string
 }
 
-const COLUMNS: ColumnDef[] = [
-  { key: 'employeeName', label: '員工姓名' },
-  { key: 'regular', label: '正班工時' },
-  { key: 'paidLeave', label: '特休' },
-  { key: 'sickLeave', label: '病假' },
-  { key: 'personalLeave', label: '事假' },
-  { key: 'absent', label: '缺席' },
+const COLUMN_DEFS: ColumnDef[] = [
+  { key: 'employeeName', labelKey: 'analytics.employeeName' },
+  { key: 'regular', labelKey: 'analytics.regularHours' },
+  { key: 'paidLeave', labelKey: 'analytics.paidLeave' },
+  { key: 'sickLeave', labelKey: 'analytics.sickLeave' },
+  { key: 'personalLeave', labelKey: 'analytics.personalLeave' },
+  { key: 'absent', labelKey: 'analytics.absent' },
 ]
 
 // ─── Sort helper ──────────────────────────────────────────────────────────────
@@ -63,10 +64,11 @@ function sortRows(rows: EmployeeHours[], key: SortKey, dir: SortDir): EmployeeHo
 // ─── Main component ───────────────────────────────────────────────────────────
 
 /**
- * Renders an attendace detail table with clickable column headers for sorting.
+ * Renders an attendance detail table with clickable column headers for sorting.
  * Defaults to ascending sort by employee name.
  */
 export function AttendanceSummaryTable({ data }: AttendanceSummaryTableProps) {
+  const { t } = useTranslation()
   const [sort, setSort] = useState<SortState>({ key: 'employeeName', dir: 'asc' })
 
   function handleHeaderClick(key: SortKey): void {
@@ -83,12 +85,12 @@ export function AttendanceSummaryTable({ data }: AttendanceSummaryTableProps) {
   const sorted = sortRows(data, sort.key, sort.dir)
 
   return (
-    <section aria-label="出勤明細表">
+    <section aria-label={t('analytics.attendanceDetail')}>
       <div className="overflow-x-auto rounded-xl border">
         <table className="w-full text-base">
           <thead>
             <tr className="border-b bg-muted/50">
-              {COLUMNS.map(col => {
+              {COLUMN_DEFS.map(col => {
                 const isActive = sort.key === col.key
                 const ariaSort = isActive
                   ? (sort.dir === 'asc' ? 'ascending' : 'descending')
@@ -108,7 +110,7 @@ export function AttendanceSummaryTable({ data }: AttendanceSummaryTableProps) {
                     aria-sort={ariaSort}
                     className="cursor-pointer select-none px-4 py-3 text-left font-medium text-muted-foreground hover:text-foreground"
                   >
-                    {col.label}
+                    {t(col.labelKey)}
                     {isActive && (
                       <span className="ml-1 text-xs" aria-hidden>
                         {sort.dir === 'asc' ? '▲' : '▼'}

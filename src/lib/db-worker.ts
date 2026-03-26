@@ -94,7 +94,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
             insertDefaultEmployees(db)
           }
 
-          const comCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM commondities')
+          const comCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM commodities')
           if (Number(comCount.rows[0]?.cnt) === 0) {
             insertDefaultCommodities(db)
           }

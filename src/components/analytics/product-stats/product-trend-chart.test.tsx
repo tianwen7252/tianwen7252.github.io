@@ -22,6 +22,15 @@ vi.mock('recharts', () => ({
   ),
 }))
 
+// Mock the shadcn chart components
+vi.mock('@/components/ui/chart', () => ({
+  ChartContainer: ({ children }: { children: ReactNode }) => (
+    <div data-testid="chart-container">{children}</div>
+  ),
+  ChartTooltip: () => null,
+  ChartTooltipContent: () => null,
+}))
+
 import { ProductTrendChart } from './product-trend-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -57,7 +66,7 @@ describe('ProductTrendChart', () => {
   })
 
   describe('chart rendering', () => {
-    it('renders a ResponsiveContainer', () => {
+    it('renders a ChartContainer', () => {
       render(
         <ProductTrendChart
           data={buildTrendData()}
@@ -66,7 +75,7 @@ describe('ProductTrendChart', () => {
           onSelectChange={vi.fn()}
         />,
       )
-      expect(screen.getByTestId('responsive-container')).toBeTruthy()
+      expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders a LineChart', () => {

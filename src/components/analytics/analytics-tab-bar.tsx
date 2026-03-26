@@ -3,6 +3,7 @@
  * Provides "商品統計" and "員工統計" tab options.
  */
 
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { RippleButton } from '@/components/ui/ripple-button'
 
@@ -15,11 +16,11 @@ interface AnalyticsTabBarProps {
   readonly onTabChange: (tab: AnalyticsTab) => void
 }
 
-// ─── Tab definitions ──────────────────────────────────────────────────────────
+// ─── Tab key definitions ──────────────────────────────────────────────────────
 
-const TABS: { value: AnalyticsTab; label: string }[] = [
-  { value: 'product', label: '商品統計' },
-  { value: 'staff', label: '員工統計' },
+const TAB_KEYS: { value: AnalyticsTab; labelKey: string }[] = [
+  { value: 'product', labelKey: 'analytics.productStats' },
+  { value: 'staff', labelKey: 'analytics.staffStats' },
 ]
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -29,9 +30,11 @@ const TABS: { value: AnalyticsTab; label: string }[] = [
  * Uses RippleButton for each tab per project conventions.
  */
 export function AnalyticsTabBar({ activeTab, onTabChange }: AnalyticsTabBarProps) {
+  const { t } = useTranslation()
+
   return (
     <div role="tablist" className="flex gap-1 rounded-lg bg-muted p-1">
-      {TABS.map(tab => (
+      {TAB_KEYS.map(tab => (
         <RippleButton
           key={tab.value}
           role="tab"
@@ -45,7 +48,7 @@ export function AnalyticsTabBar({ activeTab, onTabChange }: AnalyticsTabBarProps
               : 'text-muted-foreground hover:text-foreground',
           )}
         >
-          {tab.label}
+          {t(tab.labelKey)}
         </RippleButton>
       ))}
     </div>

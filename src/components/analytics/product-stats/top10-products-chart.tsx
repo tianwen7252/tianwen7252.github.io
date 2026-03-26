@@ -4,6 +4,7 @@
  * Changing sortBy re-keys the AnimatedList to replay entrance animations.
  */
 
+import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { AnimatedList } from '@/components/ui/animated-list'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -31,8 +32,10 @@ export function Top10ProductsChart({
   sortBy,
   onSortChange,
 }: Top10ProductsChartProps) {
+  const { t } = useTranslation()
+
   return (
-    <section aria-label="商品排行">
+    <section aria-label={t('analytics.productRanking')}>
       {/* Sort toggle */}
       <div className="mb-4 flex gap-2">
         <RippleButton
@@ -44,7 +47,7 @@ export function Top10ProductsChart({
           )}
           onClick={() => onSortChange('quantity')}
         >
-          銷量
+          {t('analytics.sortByQuantity')}
         </RippleButton>
 
         <RippleButton
@@ -56,7 +59,7 @@ export function Top10ProductsChart({
           )}
           onClick={() => onSortChange('revenue')}
         >
-          金額
+          {t('analytics.sortByRevenue')}
         </RippleButton>
       </div>
 
@@ -83,7 +86,7 @@ export function Top10ProductsChart({
               <span className="shrink-0 text-base font-medium tabular-nums">
                 {sortBy === 'revenue'
                   ? `$${item.revenue}`
-                  : `${item.quantity} 份`}
+                  : `${item.quantity} ${t('analytics.quantityUnit')}`}
               </span>
             </div>
           )
