@@ -1,10 +1,9 @@
 /**
- * Top10ProductsChart — horizontal bar chart ranking top 10 products.
- * Supports sorting by quantity or revenue via toggle buttons.
- * Supports 3 view modes: bar (default), pie, and table.
+ * CategorySalesChart — per-product sales breakdown within a commodity category.
+ * Supports 3 view modes: bar (stacked), pie, and table.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BarChart,
@@ -12,7 +11,6 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  LabelList,
   PieChart,
   Pie,
   Sector,
@@ -31,8 +29,6 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart'
-import { cn } from '@/lib/cn'
-import { RippleButton } from '@/components/ui/ripple-button'
 import {
   Card,
   CardHeader,
@@ -42,46 +38,90 @@ import {
   CardContent,
 } from '@/components/ui/card'
 import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { cn } from '@/lib/cn'
 import { useAppStore } from '@/stores/app-store'
 import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
-import type { ProductRanking } from '@/lib/repositories/statistics-repository'
+import type { CategorySalesRow } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ViewMode = 'bar' | 'pie' | 'table'
 
-interface Top10ProductsChartProps {
-  /** Up to 10 product items sorted by the active sort criterion. */
-  items: ProductRanking[]
-  /** Current sort mode. */
-  sortBy: 'quantity' | 'revenue'
-  /** Called when the user switches sort mode. */
-  onSortChange: (sort: 'quantity' | 'revenue') => void
+interface CategorySalesChartProps {
+  title: string
+  data: CategorySalesRow[]
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
+// ─── Data transformers (pure functions, no mutation) ─────────────────────────
 
-const MIN_CHART_HEIGHT = 300
-const ROW_HEIGHT = 40
+/** Extract unique commodity names in stable order. */
+function extractCommodityNames(data: readonly CategorySalesRow[]): string[] {
+  const seen = new Set<string>()
+  const names: string[] = []
+  for (const row of data) {
+    if (!seen.has(row.commodityName)) {
+      seen.add(row.commodityName)
+      names.push(row.commodityName)
+    }
+  }
+  return names
+}
 
-// Palette 2: Ocean Breeze
-const PALETTE = CHART_PALETTES.oceanBreeze
+/** Pivot raw rows into bar-chart-friendly format: one object per date. */
+function pivotForBar(
+  data: readonly CategorySalesRow[],
+  commodityNames: readonly string[],
+): Record<string, string | number>[] {
+  const dateMap = new Map<string, Record<string, string | number>>()
+  for (const row of data) {
+    const parts = row.date.split('-')
+    const day =
+      parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : row.date
+    const existing = dateMap.get(row.date)
+    if (existing) {
+      dateMap.set(row.date, { ...existing, [row.commodityName]: row.quantity })
+    } else {
+      const zeroEntries = Object.fromEntries(commodityNames.map(n => [n, 0]))
+      dateMap.set(row.date, {
+        date: day,
+        ...zeroEntries,
+        [row.commodityName]: row.quantity,
+      })
+    }
+  }
+  return Array.from(dateMap.values())
+}
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
-interface ChartRow {
+/** Aggregate totals per commodity for pie chart and table. */
+interface AggregatedCommodity {
   name: string
-  value: number
+  quantity: number
+  revenue: number
 }
 
-function buildChartData(
-  items: ProductRanking[],
-  sortBy: 'quantity' | 'revenue',
-): ChartRow[] {
-  return items.map((item) => ({
-    name: item.name,
-    value: sortBy === 'revenue' ? item.revenue : item.quantity,
-  }))
+function aggregateTotals(
+  data: readonly CategorySalesRow[],
+): AggregatedCommodity[] {
+  const map = new Map<string, AggregatedCommodity>()
+  for (const row of data) {
+    const existing = map.get(row.commodityName)
+    if (existing) {
+      map.set(row.commodityName, {
+        ...existing,
+        quantity: existing.quantity + row.quantity,
+        revenue: existing.revenue + row.revenue,
+      })
+    } else {
+      map.set(row.commodityName, {
+        name: row.commodityName,
+        quantity: row.quantity,
+        revenue: row.revenue,
+      })
+    }
+  }
+  // Sort by revenue descending
+  return Array.from(map.values()).sort((a, b) => b.revenue - a.revenue)
 }
 
 /** Format number as currency string. */
@@ -89,28 +129,37 @@ function formatCurrency(value: number): string {
   return `$${value.toLocaleString()}`
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Palette ────────────────────────────────────────────────────────────────
 
-export function Top10ProductsChart({
-  items,
-  sortBy,
-  onSortChange,
-}: Top10ProductsChartProps) {
+const PALETTE = CHART_PALETTES.berryGarden
+
+// ─── Component ──────────────────────────────────────────────────────────────
+
+export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
   const { t } = useTranslation()
-  const [viewMode, setViewMode] = useState<ViewMode>('bar')
-
-  const chartConfig = {
-    value: {
-      label:
-        sortBy === 'revenue' ? t('analytics.revenue') : t('analytics.quantity'),
-      color: 'var(--chart-2)',
-    },
-  } satisfies ChartConfig
-
-  const chartData = buildChartData(items, sortBy)
-  const minHeight = Math.max(MIN_CHART_HEIGHT, items.length * ROW_HEIGHT)
   const fontSize = useAppStore().fontSize
-  const maxValue = Math.max(...chartData.map((d) => d.value))
+  const [viewMode, setViewMode] = useState<ViewMode>('pie')
+
+  const commodityNames = useMemo(() => extractCommodityNames(data), [data])
+  const barData = useMemo(
+    () => pivotForBar(data, commodityNames),
+    [data, commodityNames],
+  )
+  const aggregated = useMemo(() => aggregateTotals(data), [data])
+
+  // Build chart config for bar mode (one entry per commodity)
+  const chartConfig = useMemo(() => {
+    const config: Record<string, { label: string; color: string }> = {}
+    commodityNames.forEach((name, i) => {
+      config[name] = {
+        label: name,
+        color: getColor(PALETTE, i),
+      }
+    })
+    return config satisfies ChartConfig
+  }, [commodityNames])
+
+  const isEmpty = data.length === 0
 
   const viewButtons: {
     mode: ViewMode
@@ -125,35 +174,10 @@ export function Top10ProductsChart({
   return (
     <Card className="shadow-none">
       <CardHeader>
-        <CardTitle className="font-normal">
-          {t('analytics.top10Title')}
-        </CardTitle>
-        <CardDescription>{t('analytics.top10Desc')}</CardDescription>
+        <CardTitle className="font-normal">{title}</CardTitle>
+        <CardDescription>{t('analytics.categorySalesDesc')}</CardDescription>
         <CardAction>
-          <div className="flex flex-wrap gap-2">
-            <RippleButton
-              className={cn(
-                'rounded-lg px-4 py-2 text-base transition-colors',
-                sortBy === 'quantity'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-              onClick={() => onSortChange('quantity')}
-            >
-              {t('analytics.sortByQuantity')}
-            </RippleButton>
-            <RippleButton
-              className={cn(
-                'rounded-lg px-4 py-2 text-base transition-colors',
-                sortBy === 'revenue'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-              onClick={() => onSortChange('revenue')}
-            >
-              {t('analytics.sortByRevenue')}
-            </RippleButton>
-            <div className="mx-1 border-l" />
+          <div className="flex gap-2">
             {viewButtons.map(({ mode, label, icon: Icon }) => (
               <RippleButton
                 key={mode}
@@ -173,22 +197,19 @@ export function Top10ProductsChart({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {chartData.length === 0 ? (
+        {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'bar' ? (
           <BarView
-            chartData={chartData}
+            barData={barData}
+            commodityNames={commodityNames}
             chartConfig={chartConfig}
-            minHeight={minHeight}
             fontSize={fontSize}
-            maxValue={maxValue}
-            sortBy={sortBy}
-            t={t}
           />
         ) : viewMode === 'pie' ? (
-          <PieView chartData={chartData} fontSize={fontSize} />
+          <PieView aggregated={aggregated} fontSize={fontSize} />
         ) : (
-          <TableView items={items} />
+          <TableView aggregated={aggregated} />
         )}
       </CardContent>
     </Card>
@@ -198,77 +219,43 @@ export function Top10ProductsChart({
 // ─── Bar sub-component ──────────────────────────────────────────────────────
 
 interface BarViewProps {
-  chartData: ChartRow[]
+  barData: Record<string, string | number>[]
+  commodityNames: readonly string[]
   chartConfig: ChartConfig
-  minHeight: number
   fontSize: number
-  maxValue: number
-  sortBy: 'quantity' | 'revenue'
-  t: (key: string) => string
 }
 
 function BarView({
-  chartData,
+  barData,
+  commodityNames,
   chartConfig,
-  minHeight,
   fontSize,
-  maxValue,
-  sortBy,
-  t,
 }: BarViewProps) {
-  const coloredData = chartData.map((item, i) => ({
-    ...item,
-    fill: getColor(PALETTE, i),
-  }))
-
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="w-full"
-      style={{ minHeight }}
-    >
-      <BarChart
-        layout="vertical"
-        data={coloredData}
-        margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
-        accessibilityLayer
-      >
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          type="category"
-          dataKey="name"
-          width={100}
-          tickLine={false}
-          tick={{ fontSize }}
-          axisLine={false}
-        />
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+      <BarChart data={barData} accessibilityLayer>
+        <CartesianGrid vertical={false} />
         <XAxis
-          type="number"
-          domain={[0, maxValue * 1.13]}
+          dataKey="date"
+          tickLine={false}
+          axisLine={false}
           tick={{ fontSize }}
-          hide
         />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator="line" />}
-        />
-        <Bar
-          dataKey="value"
-          name={
-            sortBy === 'revenue'
-              ? t('analytics.revenue')
-              : t('analytics.quantity')
-          }
-          radius={[0, 4, 4, 0]}
-        >
-          <LabelList
-            dataKey="value"
-            position="insideRight"
-            offset={8}
-            className="fill-white"
-            fontSize="var(--font-size)"
+        <YAxis tick={{ fontSize }} allowDecimals={false} hide />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
+        {commodityNames.map((name, i) => (
+          <Bar
+            key={name}
+            dataKey={name}
+            name={name}
+            stackId="sales"
+            fill={getColor(PALETTE, i)}
+            radius={
+              i === commodityNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
+            }
           />
-        </Bar>
+        ))}
       </BarChart>
     </ChartContainer>
   )
@@ -277,17 +264,17 @@ function BarView({
 // ─── Pie sub-component ──────────────────────────────────────────────────────
 
 interface PieViewProps {
-  chartData: ChartRow[]
+  aggregated: AggregatedCommodity[]
   fontSize: number
 }
 
-function PieView({ chartData, fontSize }: PieViewProps) {
-  const coloredData = chartData.map((item, i) => ({
+function PieView({ aggregated, fontSize }: PieViewProps) {
+  const coloredData = aggregated.map((item, i) => ({
     ...item,
     fill: getColor(PALETTE, i),
   }))
 
-  const config = chartData.reduce<ChartConfig>(
+  const config = aggregated.reduce<ChartConfig>(
     (acc, item, i) => ({
       ...acc,
       [item.name]: { label: item.name, color: getColor(PALETTE, i) },
@@ -302,7 +289,7 @@ function PieView({ chartData, fontSize }: PieViewProps) {
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <Pie
           data={coloredData}
-          dataKey="value"
+          dataKey="quantity"
           nameKey="name"
           cx="50%"
           cy="50%"
@@ -341,28 +328,28 @@ function PieView({ chartData, fontSize }: PieViewProps) {
 // ─── Table sub-component ────────────────────────────────────────────────────
 
 interface TableViewProps {
-  items: ProductRanking[]
+  aggregated: AggregatedCommodity[]
 }
 
-function TableView({ items }: TableViewProps) {
+function TableView({ aggregated }: TableViewProps) {
   const { t } = useTranslation()
   return (
     <table className="w-full text-left">
       <thead>
         <tr className="border-b">
           <th className="pb-3 text-base text-muted-foreground">
-            {t('analytics.productNameCol')}
+            {t('analytics.commodityNameCol')}
           </th>
           <th className="pb-3 text-right text-base text-muted-foreground">
-            {t('analytics.quantityCol')}
+            {t('analytics.totalQuantityCol')}
           </th>
           <th className="pb-3 text-right text-base text-muted-foreground">
-            {t('analytics.revenueCol')}
+            {t('analytics.totalRevenueCol')}
           </th>
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
+        {aggregated.map(item => (
           <tr key={item.name} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.name}</td>
             <td className="py-3 text-right text-base">{item.quantity}</td>

@@ -16,11 +16,16 @@ vi.mock('recharts', () => ({
     <div data-testid="line-chart">{children}</div>
   ),
   Line: ({ name }: { name: string }) => <div data-testid={`line-${name}`} />,
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: ({ name }: { name: string }) => <div data-testid={`bar-${name}`} />,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
   CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -102,12 +107,16 @@ describe('AvgOrderValueChart', () => {
 
   describe('moving average computation', () => {
     it('renders without crashing with fewer than 7 data points', () => {
-      const { container } = render(<AvgOrderValueChart data={buildAvgData(3)} />)
+      const { container } = render(
+        <AvgOrderValueChart data={buildAvgData(3)} />,
+      )
       expect(container).toBeTruthy()
     })
 
     it('renders without crashing with exactly 7 data points', () => {
-      const { container } = render(<AvgOrderValueChart data={buildAvgData(7)} />)
+      const { container } = render(
+        <AvgOrderValueChart data={buildAvgData(7)} />,
+      )
       expect(container).toBeTruthy()
     })
 
@@ -116,6 +125,15 @@ describe('AvgOrderValueChart', () => {
         <AvgOrderValueChart data={[{ date: '2026-03-01', revenue: 150 }]} />,
       )
       expect(container).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons (line, bar, table)', () => {
+      render(<AvgOrderValueChart data={buildAvgData()} />)
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

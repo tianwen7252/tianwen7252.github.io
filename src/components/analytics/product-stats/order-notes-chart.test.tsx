@@ -1,14 +1,14 @@
 /**
- * Tests for Bottom10Bentos component (horizontal bar chart).
- * Verifies card structure, chart rendering, and edge cases.
+ * Tests for OrderNotesChart component.
+ * Verifies chart rendering, card structure, and empty state handling.
  */
 
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
-import type { ProductRanking } from '@/lib/repositories/statistics-repository'
+import type { OrderNoteCount } from '@/lib/repositories/statistics-repository'
 
-// Mock recharts
+// Mock recharts so SVG elements don't fail in JSDOM
 vi.mock('recharts', () => ({
   BarChart: ({ children }: { children: ReactNode }) => (
     <div data-testid="bar-chart">{children}</div>
@@ -25,12 +25,13 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
-  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
+  LabelList: () => null,
 }))
 
+// Mock the shadcn chart components
 vi.mock('@/components/ui/chart', () => ({
   ChartContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="chart-container">{children}</div>
@@ -47,68 +48,84 @@ vi.mock('@/stores/app-store', () => ({
   useAppStore: () => ({ fontSize: 14 }),
 }))
 
-import { Bottom10Bentos } from './bottom5-bentos'
+import { OrderNotesChart } from './order-notes-chart'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-function buildItems(count: number): ProductRanking[] {
+function buildData(count: number): OrderNoteCount[] {
+  const tags = [
+    '攤位',
+    '外送',
+    '加飯',
+    '不要辣',
+    '加湯',
+    '打包',
+    '內用',
+    '素食',
+  ]
   return Array.from({ length: count }, (_, i) => ({
-    comId: `com-${i + 1}`,
-    name: `便當 ${i + 1}`,
-    quantity: (i + 1) * 2,
-    revenue: (i + 1) * 100,
+    note: tags[i % tags.length]!,
+    count: (count - i) * 5,
   }))
 }
 
-const TEN_ITEMS = buildItems(10)
+const SAMPLE_DATA = buildData(5)
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-describe('Bottom10Bentos', () => {
+describe('OrderNotesChart', () => {
   describe('card structure', () => {
     it('renders the card title', () => {
-      render(<Bottom10Bentos items={TEN_ITEMS} />)
-      expect(screen.getByText('便當銷售末 10 名')).toBeTruthy()
+      render(<OrderNotesChart data={SAMPLE_DATA} />)
+      expect(screen.getByText('訂單備註分析')).toBeTruthy()
     })
   })
 
   describe('chart rendering', () => {
-    it('renders a ChartContainer', () => {
-      render(<Bottom10Bentos items={TEN_ITEMS} />)
+    it('renders a ChartContainer when data is present', () => {
+      render(<OrderNotesChart data={SAMPLE_DATA} />)
       expect(screen.getByTestId('chart-container')).toBeTruthy()
     })
 
     it('renders a BarChart', () => {
-      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      render(<OrderNotesChart data={SAMPLE_DATA} />)
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
-    it('renders the value bar', () => {
-      render(<Bottom10Bentos items={TEN_ITEMS} />)
-      expect(screen.getByTestId('bar-value')).toBeTruthy()
+    it('renders the count bar', () => {
+      render(<OrderNotesChart data={SAMPLE_DATA} />)
+      expect(screen.getByTestId('bar-count')).toBeTruthy()
+    })
+  })
+
+  describe('empty state', () => {
+    it('renders ChartEmpty when data is empty', () => {
+      render(<OrderNotesChart data={[]} />)
+      // ChartEmpty renders "目前沒有資料" text
+      expect(screen.getByText('目前沒有資料')).toBeTruthy()
+    })
+
+    it('does not render chart container when data is empty', () => {
+      render(<OrderNotesChart data={[]} />)
+      expect(screen.queryByTestId('chart-container')).toBeNull()
     })
   })
 
   describe('edge cases', () => {
-    it('does not crash when items is empty', () => {
-      const { container } = render(<Bottom10Bentos items={[]} />)
-      expect(container).toBeTruthy()
-    })
-
-    it('renders with a single item', () => {
-      render(<Bottom10Bentos items={buildItems(1)} />)
+    it('renders without crashing with a single item', () => {
+      render(<OrderNotesChart data={buildData(1)} />)
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
 
-    it('renders with 3 items', () => {
-      render(<Bottom10Bentos items={buildItems(3)} />)
+    it('renders without crashing with many items', () => {
+      render(<OrderNotesChart data={buildData(8)} />)
       expect(screen.getByTestId('bar-chart')).toBeTruthy()
     })
   })
 
   describe('view mode buttons', () => {
     it('renders view mode toggle buttons', () => {
-      render(<Bottom10Bentos items={TEN_ITEMS} />)
+      render(<OrderNotesChart data={SAMPLE_DATA} />)
       expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
       expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
       expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()

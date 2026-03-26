@@ -241,6 +241,18 @@ export const mockStatisticsRepo: StatisticsRepository = {
   async getDailyAttendeeList(_date: string) {
     return []
   },
+  async getAmPmRevenue(_range: DateRange) {
+    return []
+  },
+  async getCategorySales(_range: DateRange, _typeId: string) {
+    return []
+  },
+  async getOrderNotesDistribution(_range: DateRange) {
+    return []
+  },
+  async getDeliveryProductBreakdown(_range: DateRange, _memoTag?: string) {
+    return []
+  },
 }
 
 // ─── Provider mock functions ───────────────────────────────────────────────

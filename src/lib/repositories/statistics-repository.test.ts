@@ -457,3 +457,293 @@ describe('StatisticsRepository.getProductDailyRevenue()', () => {
     expect(params).toContain('com-999')
   })
 })
+
+// ─── getAmPmRevenue ─────────────────────────────────────────────────────────
+
+describe('StatisticsRepository.getAmPmRevenue()', () => {
+  let db: AsyncDatabase
+
+  beforeEach(() => {
+    db = createMockDb()
+  })
+
+  it('returns empty array when DB returns no rows', async () => {
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getAmPmRevenue(range)
+    expect(result).toEqual([])
+  })
+
+  it('maps DB rows to AmPmRevenueRow correctly', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { date: '2026-03-01', am_revenue: 5000, pm_revenue: 8000 },
+        { date: '2026-03-02', am_revenue: 4500, pm_revenue: 7500 },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getAmPmRevenue(range)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ date: '2026-03-01', amRevenue: 5000, pmRevenue: 8000 })
+    expect(result[1]).toEqual({ date: '2026-03-02', amRevenue: 4500, pmRevenue: 7500 })
+  })
+
+  it('passes startDate and endDate params to db.exec', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getAmPmRevenue(range)
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain(range.startDate)
+    expect(params).toContain(range.endDate)
+  })
+
+  it('SQL contains GROUP BY and CASE WHEN for AM/PM split', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getAmPmRevenue(range)
+    const [sql] = vi.mocked(db.exec).mock.calls[0]!
+    expect(sql).toContain('GROUP BY')
+    expect(sql).toContain('CASE WHEN')
+    expect(sql).toContain('< 12')
+    expect(sql).toContain('>= 12')
+  })
+
+  it('defaults to zero when am_revenue or pm_revenue is null', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { date: '2026-03-01', am_revenue: null, pm_revenue: null },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getAmPmRevenue(range)
+    expect(result[0]).toEqual({ date: '2026-03-01', amRevenue: 0, pmRevenue: 0 })
+  })
+})
+
+// ─── getCategorySales ────────────────────────────────────────────────────────
+
+describe('StatisticsRepository.getCategorySales()', () => {
+  let db: AsyncDatabase
+
+  beforeEach(() => {
+    db = createMockDb()
+  })
+
+  it('returns empty array when DB returns no rows', async () => {
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getCategorySales(range, 'type-001')
+    expect(result).toEqual([])
+  })
+
+  it('maps DB rows to CategorySalesRow correctly', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        {
+          date: '2026-03-01',
+          commodity_id: 'com-1',
+          commodity_name: '招牌便當',
+          quantity: 10,
+          revenue: 1500,
+        },
+        {
+          date: '2026-03-01',
+          commodity_id: 'com-2',
+          commodity_name: '排骨便當',
+          quantity: 8,
+          revenue: 1200,
+        },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getCategorySales(range, 'type-001')
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({
+      date: '2026-03-01',
+      commodityId: 'com-1',
+      commodityName: '招牌便當',
+      quantity: 10,
+      revenue: 1500,
+    })
+    expect(result[1]).toEqual({
+      date: '2026-03-01',
+      commodityId: 'com-2',
+      commodityName: '排骨便當',
+      quantity: 8,
+      revenue: 1200,
+    })
+  })
+
+  it('passes startDate, endDate, and typeId params to db.exec', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getCategorySales(range, 'type-abc')
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain(range.startDate)
+    expect(params).toContain(range.endDate)
+    expect(params).toContain('type-abc')
+  })
+
+  it('defaults to zero when quantity or revenue is null', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        {
+          date: '2026-03-01',
+          commodity_id: 'com-1',
+          commodity_name: 'Test',
+          quantity: null,
+          revenue: null,
+        },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getCategorySales(range, 'type-001')
+    expect(result[0]).toEqual({
+      date: '2026-03-01',
+      commodityId: 'com-1',
+      commodityName: 'Test',
+      quantity: 0,
+      revenue: 0,
+    })
+  })
+})
+
+// ─── getOrderNotesDistribution ──────────────────────────────────────────────
+
+describe('StatisticsRepository.getOrderNotesDistribution()', () => {
+  let db: AsyncDatabase
+
+  beforeEach(() => {
+    db = createMockDb()
+  })
+
+  it('returns empty array when DB returns no rows', async () => {
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getOrderNotesDistribution(range)
+    expect(result).toEqual([])
+  })
+
+  it('maps DB rows to OrderNoteCount correctly', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { note: '攤位', count: 15 },
+        { note: '外送', count: 8 },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getOrderNotesDistribution(range)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({ note: '攤位', count: 15 })
+    expect(result[1]).toEqual({ note: '外送', count: 8 })
+  })
+
+  it('passes startDate and endDate params to db.exec', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getOrderNotesDistribution(range)
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain(range.startDate)
+    expect(params).toContain(range.endDate)
+  })
+
+  it('SQL contains json_each for memo parsing', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getOrderNotesDistribution(range)
+    const [sql] = vi.mocked(db.exec).mock.calls[0]!
+    expect(sql).toContain('json_each')
+  })
+
+  it('defaults to zero when count is null', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { note: '攤位', count: null },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getOrderNotesDistribution(range)
+    expect(result[0]).toEqual({ note: '攤位', count: 0 })
+  })
+})
+
+// ─── getDeliveryProductBreakdown ──────────────────────────────────────────────
+
+describe('StatisticsRepository.getDeliveryProductBreakdown()', () => {
+  let db: AsyncDatabase
+
+  beforeEach(() => {
+    db = createMockDb()
+  })
+
+  it('returns empty array when DB returns no rows', async () => {
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getDeliveryProductBreakdown(range)
+    expect(result).toEqual([])
+  })
+
+  it('maps DB rows to DeliveryProductRow correctly', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { commodity_id: 'com-1', commodity_name: '招牌便當', quantity: 20, revenue: 3000 },
+        { commodity_id: 'com-2', commodity_name: '排骨便當', quantity: 15, revenue: 2250 },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getDeliveryProductBreakdown(range)
+    expect(result).toHaveLength(2)
+    expect(result[0]).toEqual({
+      commodityId: 'com-1',
+      commodityName: '招牌便當',
+      quantity: 20,
+      revenue: 3000,
+    })
+    expect(result[1]).toEqual({
+      commodityId: 'com-2',
+      commodityName: '排骨便當',
+      quantity: 15,
+      revenue: 2250,
+    })
+  })
+
+  it('passes startDate, endDate, and default memoTag "外送" to db.exec', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getDeliveryProductBreakdown(range)
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain(range.startDate)
+    expect(params).toContain(range.endDate)
+    expect(params).toContain('外送')
+  })
+
+  it('SQL contains json_each and EXISTS for memo filtering', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getDeliveryProductBreakdown(range)
+    const [sql] = vi.mocked(db.exec).mock.calls[0]!
+    expect(sql).toContain('json_each')
+    expect(sql).toContain('EXISTS')
+  })
+
+  it('uses custom memoTag when provided', async () => {
+    const repo = createStatisticsRepository(db)
+    await repo.getDeliveryProductBreakdown(range, '攤位')
+    const [, params] = vi.mocked(db.exec).mock.calls[0]!
+    expect(params).toContain('攤位')
+    expect(params).not.toContain('外送')
+  })
+
+  it('defaults to zero when quantity or revenue is null', async () => {
+    vi.mocked(db.exec).mockResolvedValueOnce({
+      rows: [
+        { commodity_id: 'com-1', commodity_name: 'Test', quantity: null, revenue: null },
+      ],
+      changes: 0,
+    })
+    const repo = createStatisticsRepository(db)
+    const result = await repo.getDeliveryProductBreakdown(range)
+    expect(result[0]).toEqual({
+      commodityId: 'com-1',
+      commodityName: 'Test',
+      quantity: 0,
+      revenue: 0,
+    })
+  })
+})

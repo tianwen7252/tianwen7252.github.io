@@ -1,10 +1,9 @@
 /**
- * Top10ProductsChart — horizontal bar chart ranking top 10 products.
- * Supports sorting by quantity or revenue via toggle buttons.
- * Supports 3 view modes: bar (default), pie, and table.
+ * RevenueTimeSeriesChart — stacked bar chart showing AM vs PM revenue per day.
+ * Supports 3 view modes: bar (default), pie (AM vs PM totals), and table.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   BarChart,
@@ -31,8 +30,6 @@ import {
   ChartLegendContent,
   type ChartConfig,
 } from '@/components/ui/chart'
-import { cn } from '@/lib/cn'
-import { RippleButton } from '@/components/ui/ripple-button'
 import {
   Card,
   CardHeader,
@@ -42,46 +39,31 @@ import {
   CardContent,
 } from '@/components/ui/card'
 import { ChartEmpty } from '@/components/analytics/chart-empty'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { cn } from '@/lib/cn'
 import { useAppStore } from '@/stores/app-store'
 import { CHART_PALETTES, getColor } from '@/lib/analytics/chart-colors'
-import type { ProductRanking } from '@/lib/repositories/statistics-repository'
+import type { AmPmRevenueRow } from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type ViewMode = 'bar' | 'pie' | 'table'
 
-interface Top10ProductsChartProps {
-  /** Up to 10 product items sorted by the active sort criterion. */
-  items: ProductRanking[]
-  /** Current sort mode. */
-  sortBy: 'quantity' | 'revenue'
-  /** Called when the user switches sort mode. */
-  onSortChange: (sort: 'quantity' | 'revenue') => void
+interface RevenueTimeSeriesChartProps {
+  data: AmPmRevenueRow[]
 }
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const MIN_CHART_HEIGHT = 300
-const ROW_HEIGHT = 40
-
-// Palette 2: Ocean Breeze
-const PALETTE = CHART_PALETTES.oceanBreeze
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-interface ChartRow {
-  name: string
-  value: number
+/** Format YYYY-MM-DD as M/D for XAxis label. */
+function formatDay(date: string): string {
+  const parts = date.split('-')
+  return parts.length === 3 ? `${Number(parts[1])}/${Number(parts[2])}` : date
 }
 
-function buildChartData(
-  items: ProductRanking[],
-  sortBy: 'quantity' | 'revenue',
-): ChartRow[] {
-  return items.map((item) => ({
-    name: item.name,
-    value: sortBy === 'revenue' ? item.revenue : item.quantity,
-  }))
+/** Check whether all data points have zero revenue. */
+function isAllZero(data: AmPmRevenueRow[]): boolean {
+  return data.every(d => d.amRevenue === 0 && d.pmRevenue === 0)
 }
 
 /** Format number as currency string. */
@@ -89,28 +71,49 @@ function formatCurrency(value: number): string {
   return `$${value.toLocaleString()}`
 }
 
-// ─── Component ───────────────────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
-export function Top10ProductsChart({
-  items,
-  sortBy,
-  onSortChange,
-}: Top10ProductsChartProps) {
+export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
   const { t } = useTranslation()
+  const fontSize = useAppStore().fontSize
   const [viewMode, setViewMode] = useState<ViewMode>('bar')
 
+  // Palette 3: Sunset Harvest (same as revenue comparison for consistency)
+  const palette = CHART_PALETTES.sunsetHarvest
+
   const chartConfig = {
-    value: {
-      label:
-        sortBy === 'revenue' ? t('analytics.revenue') : t('analytics.quantity'),
-      color: 'var(--chart-2)',
+    amRevenue: {
+      label: t('analytics.amRevenueShort'),
+      color: palette[0],
+    },
+    pmRevenue: {
+      label: t('analytics.pmRevenueShort'),
+      color: palette[1],
     },
   } satisfies ChartConfig
 
-  const chartData = buildChartData(items, sortBy)
-  const minHeight = Math.max(MIN_CHART_HEIGHT, items.length * ROW_HEIGHT)
-  const fontSize = useAppStore().fontSize
-  const maxValue = Math.max(...chartData.map((d) => d.value))
+  // Format data with day label and computed total for top label
+  const chartData = useMemo(
+    () =>
+      data.map(d => ({
+        ...d,
+        day: formatDay(d.date),
+        total: d.amRevenue + d.pmRevenue,
+      })),
+    [data],
+  )
+
+  // Aggregate AM vs PM totals for pie chart
+  const pieTotals = useMemo(() => {
+    const totalAm = data.reduce((sum, d) => sum + d.amRevenue, 0)
+    const totalPm = data.reduce((sum, d) => sum + d.pmRevenue, 0)
+    return [
+      { name: t('analytics.amRevenueShort'), value: totalAm },
+      { name: t('analytics.pmRevenueShort'), value: totalPm },
+    ]
+  }, [data, t])
+
+  const isEmpty = data.length === 0 || isAllZero(data)
 
   const viewButtons: {
     mode: ViewMode
@@ -126,34 +129,13 @@ export function Top10ProductsChart({
     <Card className="shadow-none">
       <CardHeader>
         <CardTitle className="font-normal">
-          {t('analytics.top10Title')}
+          {t('analytics.revenueTimeSeriesTitle')}
         </CardTitle>
-        <CardDescription>{t('analytics.top10Desc')}</CardDescription>
+        <CardDescription>
+          {t('analytics.revenueTimeSeriesDesc')}
+        </CardDescription>
         <CardAction>
-          <div className="flex flex-wrap gap-2">
-            <RippleButton
-              className={cn(
-                'rounded-lg px-4 py-2 text-base transition-colors',
-                sortBy === 'quantity'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-              onClick={() => onSortChange('quantity')}
-            >
-              {t('analytics.sortByQuantity')}
-            </RippleButton>
-            <RippleButton
-              className={cn(
-                'rounded-lg px-4 py-2 text-base transition-colors',
-                sortBy === 'revenue'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground',
-              )}
-              onClick={() => onSortChange('revenue')}
-            >
-              {t('analytics.sortByRevenue')}
-            </RippleButton>
-            <div className="mx-1 border-l" />
+          <div className="flex gap-2">
             {viewButtons.map(({ mode, label, icon: Icon }) => (
               <RippleButton
                 key={mode}
@@ -173,22 +155,23 @@ export function Top10ProductsChart({
         </CardAction>
       </CardHeader>
       <CardContent>
-        {chartData.length === 0 ? (
+        {isEmpty ? (
           <ChartEmpty />
         ) : viewMode === 'bar' ? (
           <BarView
             chartData={chartData}
             chartConfig={chartConfig}
-            minHeight={minHeight}
             fontSize={fontSize}
-            maxValue={maxValue}
-            sortBy={sortBy}
             t={t}
           />
         ) : viewMode === 'pie' ? (
-          <PieView chartData={chartData} fontSize={fontSize} />
+          <PieView
+            pieTotals={pieTotals}
+            palette={palette}
+            fontSize={fontSize}
+          />
         ) : (
-          <TableView items={items} />
+          <TableView chartData={chartData} />
         )}
       </CardContent>
     </Card>
@@ -198,75 +181,73 @@ export function Top10ProductsChart({
 // ─── Bar sub-component ──────────────────────────────────────────────────────
 
 interface BarViewProps {
-  chartData: ChartRow[]
+  chartData: Array<{
+    day: string
+    amRevenue: number
+    pmRevenue: number
+    total: number
+  }>
   chartConfig: ChartConfig
-  minHeight: number
   fontSize: number
-  maxValue: number
-  sortBy: 'quantity' | 'revenue'
   t: (key: string) => string
 }
 
-function BarView({
-  chartData,
-  chartConfig,
-  minHeight,
-  fontSize,
-  maxValue,
-  sortBy,
-  t,
-}: BarViewProps) {
-  const coloredData = chartData.map((item, i) => ({
-    ...item,
-    fill: getColor(PALETTE, i),
-  }))
-
+function BarView({ chartData, chartConfig, fontSize, t }: BarViewProps) {
   return (
-    <ChartContainer
-      config={chartConfig}
-      className="w-full"
-      style={{ minHeight }}
-    >
-      <BarChart
-        layout="vertical"
-        data={coloredData}
-        margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
-        accessibilityLayer
-      >
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          type="category"
-          dataKey="name"
-          width={100}
-          tickLine={false}
-          tick={{ fontSize }}
-          axisLine={false}
-        />
+    <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
+      <BarChart data={chartData} accessibilityLayer>
+        <CartesianGrid vertical={false} />
         <XAxis
-          type="number"
-          domain={[0, maxValue * 1.13]}
+          dataKey="day"
+          tickLine={false}
+          axisLine={false}
           tick={{ fontSize }}
-          hide
         />
-        <ChartTooltip
-          cursor={false}
-          content={<ChartTooltipContent indicator="line" />}
-        />
+        <YAxis tick={{ fontSize }} allowDecimals={false} hide />
+        <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <Bar
-          dataKey="value"
-          name={
-            sortBy === 'revenue'
-              ? t('analytics.revenue')
-              : t('analytics.quantity')
-          }
-          radius={[0, 4, 4, 0]}
+          dataKey="amRevenue"
+          name={t('analytics.amRevenueShort')}
+          stackId="revenue"
+          fill="var(--color-amRevenue)"
+          radius={[0, 0, 0, 0]}
         >
           <LabelList
-            dataKey="value"
-            position="insideRight"
-            offset={8}
+            dataKey="amRevenue"
+            position="center"
             className="fill-white"
-            fontSize="var(--font-size)"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => {
+              const n = Number(v)
+              return n > 0 ? `$${n.toLocaleString()}` : ''
+            }}
+          />
+        </Bar>
+        <Bar
+          dataKey="pmRevenue"
+          name={t('analytics.pmRevenueShort')}
+          stackId="revenue"
+          fill="var(--color-pmRevenue)"
+          radius={[4, 4, 0, 0]}
+        >
+          <LabelList
+            dataKey="pmRevenue"
+            position="center"
+            className="fill-white"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => {
+              const n = Number(v)
+              return n > 0 ? `$${n.toLocaleString()}` : ''
+            }}
+          />
+          <LabelList
+            dataKey="total"
+            position="top"
+            offset={6}
+            className="fill-foreground"
+            fontSize={fontSize - 2}
+            formatter={(v: unknown) => `$${Number(v).toLocaleString()}`}
           />
         </Bar>
       </BarChart>
@@ -277,20 +258,21 @@ function BarView({
 // ─── Pie sub-component ──────────────────────────────────────────────────────
 
 interface PieViewProps {
-  chartData: ChartRow[]
+  pieTotals: Array<{ name: string; value: number }>
+  palette: readonly string[]
   fontSize: number
 }
 
-function PieView({ chartData, fontSize }: PieViewProps) {
-  const coloredData = chartData.map((item, i) => ({
+function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
+  const coloredData = pieTotals.map((item, i) => ({
     ...item,
-    fill: getColor(PALETTE, i),
+    fill: getColor(palette, i),
   }))
 
-  const config = chartData.reduce<ChartConfig>(
+  const config = pieTotals.reduce<ChartConfig>(
     (acc, item, i) => ({
       ...acc,
-      [item.name]: { label: item.name, color: getColor(PALETTE, i) },
+      [item.name]: { label: item.name, color: getColor(palette, i) },
     }),
     {},
   )
@@ -329,7 +311,7 @@ function PieView({ chartData, fontSize }: PieViewProps) {
               className="fill-foreground"
               fontSize={fontSize}
             >
-              {`${name ?? ''}: ${value ?? 0}`}
+              {`${name ?? ''}: ${formatCurrency(value ?? 0)}`}
             </text>
           )}
         />
@@ -341,33 +323,46 @@ function PieView({ chartData, fontSize }: PieViewProps) {
 // ─── Table sub-component ────────────────────────────────────────────────────
 
 interface TableViewProps {
-  items: ProductRanking[]
+  chartData: Array<{
+    day: string
+    amRevenue: number
+    pmRevenue: number
+    total: number
+  }>
 }
 
-function TableView({ items }: TableViewProps) {
+function TableView({ chartData }: TableViewProps) {
   const { t } = useTranslation()
   return (
     <table className="w-full text-left">
       <thead>
         <tr className="border-b">
           <th className="pb-3 text-base text-muted-foreground">
-            {t('analytics.productNameCol')}
+            {t('analytics.dateCol')}
           </th>
           <th className="pb-3 text-right text-base text-muted-foreground">
-            {t('analytics.quantityCol')}
+            {t('analytics.amRevenueCol')}
           </th>
           <th className="pb-3 text-right text-base text-muted-foreground">
-            {t('analytics.revenueCol')}
+            {t('analytics.pmRevenueCol')}
+          </th>
+          <th className="pb-3 text-right text-base text-muted-foreground">
+            {t('analytics.totalRevenueShortCol')}
           </th>
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
-          <tr key={item.name} className="border-b last:border-b-0">
-            <td className="py-3 text-base">{item.name}</td>
-            <td className="py-3 text-right text-base">{item.quantity}</td>
+        {chartData.map(item => (
+          <tr key={item.day} className="border-b last:border-b-0">
+            <td className="py-3 text-base">{item.day}</td>
             <td className="py-3 text-right text-base">
-              {formatCurrency(item.revenue)}
+              {formatCurrency(item.amRevenue)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.pmRevenue)}
+            </td>
+            <td className="py-3 text-right text-base">
+              {formatCurrency(item.total)}
             </td>
           </tr>
         ))}

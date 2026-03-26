@@ -14,10 +14,15 @@ vi.mock('recharts', () => ({
     <div data-testid="line-chart">{children}</div>
   ),
   Line: () => <div data-testid="line" />,
+  BarChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="bar-chart">{children}</div>
+  ),
+  Bar: () => <div data-testid="bar" />,
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
   CartesianGrid: () => null,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -34,10 +39,16 @@ vi.mock('@/components/ui/chart', () => ({
 
 // Mock the shadcn select components (Radix-based, no native <select>)
 vi.mock('@/components/ui/select', () => ({
-  Select: ({ children }: { children: ReactNode }) => <div data-testid="select-root">{children}</div>,
-  SelectTrigger: ({ children }: { children: ReactNode }) => <button data-testid="select-trigger">{children}</button>,
+  Select: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-root">{children}</div>
+  ),
+  SelectTrigger: ({ children }: { children: ReactNode }) => (
+    <button data-testid="select-trigger">{children}</button>
+  ),
   SelectValue: () => <span data-testid="select-value" />,
-  SelectContent: ({ children }: { children: ReactNode }) => <div data-testid="select-content">{children}</div>,
+  SelectContent: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-content">{children}</div>
+  ),
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid={`select-item-${value}`}>{children}</div>
   ),
@@ -196,6 +207,22 @@ describe('ProductTrendChart', () => {
         />,
       )
       expect(screen.getByText('招牌便當')).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons (line, bar, table)', () => {
+      render(
+        <ProductTrendChart
+          data={buildTrendData()}
+          commodities={COMMODITIES}
+          selectedId="com-001"
+          onSelectChange={vi.fn()}
+        />,
+      )
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /長條圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

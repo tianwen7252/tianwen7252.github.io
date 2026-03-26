@@ -103,34 +103,34 @@ describe('AnalyticsDatePicker', () => {
     expect(screen.getByRole('button', { name: '上月' })).toBeTruthy()
   })
 
-  // ── Prev month navigation ───────────────────────────────────────────────────
+  // ── Prev day navigation ─────────────────────────────────────────────────────
 
-  it('calls onChange with February 2026 when 上個月 is clicked (startDate is March 2026)', async () => {
+  it('calls onChange with previous day when 前一天 is clicked', async () => {
     const onChange = vi.fn()
     const user = userEvent.setup()
     render(<AnalyticsDatePicker {...makeProps({ onChange })} />)
 
-    await user.click(screen.getByRole('button', { name: '上個月' }))
+    await user.click(screen.getByRole('button', { name: '前一天' }))
 
     expect(onChange).toHaveBeenCalledTimes(1)
     const [start, end] = onChange.mock.calls[0] as [Date, Date]
-    expect(dayjs(start).format('YYYY-MM-DD')).toBe('2026-02-01')
+    expect(dayjs(start).format('YYYY-MM-DD')).toBe('2026-02-28')
     expect(dayjs(end).format('YYYY-MM-DD')).toBe('2026-02-28')
   })
 
-  // ── Next month navigation ───────────────────────────────────────────────────
+  // ── Next day navigation ────────────────────────────────────────────────────
 
-  it('calls onChange with April 2026 when 下個月 is clicked (startDate is March 2026)', async () => {
+  it('calls onChange with next day when 後一天 is clicked', async () => {
     const onChange = vi.fn()
     const user = userEvent.setup()
     render(<AnalyticsDatePicker {...makeProps({ onChange })} />)
 
-    await user.click(screen.getByRole('button', { name: '下個月' }))
+    await user.click(screen.getByRole('button', { name: '後一天' }))
 
     expect(onChange).toHaveBeenCalledTimes(1)
     const [start, end] = onChange.mock.calls[0] as [Date, Date]
-    expect(dayjs(start).format('YYYY-MM-DD')).toBe('2026-04-01')
-    expect(dayjs(end).format('YYYY-MM-DD')).toBe('2026-04-30')
+    expect(dayjs(start).format('YYYY-MM-DD')).toBe('2026-03-02')
+    expect(dayjs(end).format('YYYY-MM-DD')).toBe('2026-03-02')
   })
 
   // ── getActivePreset utility ─────────────────────────────────────────────────

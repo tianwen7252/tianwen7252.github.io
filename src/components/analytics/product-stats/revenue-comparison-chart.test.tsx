@@ -16,11 +16,22 @@ vi.mock('recharts', () => ({
     <div data-testid="area-chart">{children}</div>
   ),
   Area: ({ name }: { name: string }) => <div data-testid={`area-${name}`} />,
+  LineChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="line-chart">{children}</div>
+  ),
+  Line: ({ name }: { name: string }) => <div data-testid={`line-${name}`} />,
+  PieChart: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie-chart">{children}</div>
+  ),
+  Pie: ({ children }: { children: ReactNode }) => (
+    <div data-testid="pie">{children}</div>
+  ),
   XAxis: () => null,
   YAxis: () => null,
   Tooltip: () => null,
   CartesianGrid: () => null,
   Legend: () => <div data-testid="legend" />,
+  LabelList: () => null,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>
   ),
@@ -140,7 +151,10 @@ describe('RevenueComparisonChart', () => {
 
     it('does not crash when currentData is empty but prevData has values', () => {
       const { container } = render(
-        <RevenueComparisonChart currentData={[]} prevData={buildPrevMonthData()} />,
+        <RevenueComparisonChart
+          currentData={[]}
+          prevData={buildPrevMonthData()}
+        />,
       )
       expect(container).toBeTruthy()
     })
@@ -160,6 +174,20 @@ describe('RevenueComparisonChart', () => {
         />,
       )
       expect(container).toBeTruthy()
+    })
+  })
+
+  describe('view mode buttons', () => {
+    it('renders view mode toggle buttons', () => {
+      render(
+        <RevenueComparisonChart
+          currentData={buildMonthData()}
+          prevData={buildPrevMonthData()}
+        />,
+      )
+      expect(screen.getByRole('button', { name: /折線圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /圓餅圖/ })).toBeTruthy()
+      expect(screen.getByRole('button', { name: /表格/ })).toBeTruthy()
     })
   })
 })

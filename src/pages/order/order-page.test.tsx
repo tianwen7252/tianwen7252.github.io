@@ -99,7 +99,7 @@ describe('OrderPage', () => {
       ?.parentElement as HTMLElement
     const rightPanel = container.querySelector('[data-testid="order-panel"]')
       ?.parentElement as HTMLElement
-    expect(leftPanel.classList.contains('p-4')).toBe(true)
+    expect(leftPanel.classList.contains('px-4')).toBe(true)
     expect(rightPanel.classList.contains('p-4')).toBe(true)
   })
 
