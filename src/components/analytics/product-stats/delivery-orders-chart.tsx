@@ -14,7 +14,9 @@ import {
   YAxis,
   CartesianGrid,
   LabelList,
+  Sector,
 } from 'recharts'
+import type { PieSectorDataItem } from 'recharts/types/polar/Pie'
 import {
   BarChart3,
   PieChart as PieChartIcon,
@@ -157,7 +159,7 @@ function PieView({ data, chartConfig, fontSize }: PieViewProps) {
     <ChartContainer config={chartConfig} className="min-h-[250px] w-full">
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-        <ChartLegend content={<ChartLegendContent />} />
+        <ChartLegend content={<ChartLegendContent className="text-base" />} />
         <Pie
           data={coloredData}
           dataKey="quantity"
@@ -165,23 +167,28 @@ function PieView({ data, chartConfig, fontSize }: PieViewProps) {
           cx="50%"
           cy="50%"
           outerRadius={100}
+          activeShape={({ outerRadius = 0, ...props }: PieSectorDataItem) => (
+            <Sector {...props} outerRadius={outerRadius + 10} />
+          )}
           label={({
             name,
             value,
             x,
             y,
+            fill,
           }: {
             name?: string
             value?: number
             x?: number
             y?: number
+            fill?: string
           }) => (
             <text
               x={x}
               y={y}
               textAnchor="middle"
               dominantBaseline="central"
-              className="fill-foreground"
+              fill={fill ?? 'currentColor'}
               fontSize={fontSize}
             >
               {`${name ?? ''}: ${value ?? 0}`}
