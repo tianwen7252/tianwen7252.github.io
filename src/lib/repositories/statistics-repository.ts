@@ -64,10 +64,40 @@ export interface EmployeeHours {
   absent: number
 }
 
+/** AM/PM revenue split for a single calendar day. */
+export interface AmPmRevenueRow {
+  date: string
+  amRevenue: number
+  pmRevenue: number
+}
+
 /** Number of employees who attended on a given date. */
 export interface DailyHeadcount {
   date: string
   count: number
+}
+
+/** Order note/tag usage count. */
+export interface OrderNoteCount {
+  note: string
+  count: number
+}
+
+/** Delivery order product distribution row. */
+export interface DeliveryProductRow {
+  commodityId: string
+  commodityName: string
+  quantity: number
+  revenue: number
+}
+
+/** Per-product sales breakdown within a commodity category. */
+export interface CategorySalesRow {
+  date: string
+  commodityId: string
+  commodityName: string
+  quantity: number
+  revenue: number
 }
 
 // ─── Repository interface ────────────────────────────────────────────────────
@@ -85,6 +115,13 @@ export interface StatisticsRepository {
   getEmployeeHours(range: DateRange): Promise<EmployeeHours[]>
   getDailyHeadcount(range: DateRange): Promise<DailyHeadcount[]>
   getDailyAttendeeList(date: string): Promise<string[]>
+  getAmPmRevenue(range: DateRange): Promise<AmPmRevenueRow[]>
+  /** Returns per-product sales breakdown for a commodity category. */
+  getCategorySales(range: DateRange, typeId: string): Promise<CategorySalesRow[]>
+  /** Returns order note tag usage frequency distribution. */
+  getOrderNotesDistribution(range: DateRange): Promise<OrderNoteCount[]>
+  /** Returns delivery order product distribution filtered by memo tag. */
+  getDeliveryProductBreakdown(range: DateRange, memoTag?: string): Promise<DeliveryProductRow[]>
 }
 
 // ─── Row mappers ─────────────────────────────────────────────────────────────
@@ -137,10 +174,44 @@ function toEmployeeHours(row: Record<string, unknown>): EmployeeHours {
   }
 }
 
+function toAmPmRevenueRow(row: Record<string, unknown>): AmPmRevenueRow {
+  return {
+    date: String(row['date']),
+    amRevenue: Number(row['am_revenue'] ?? 0),
+    pmRevenue: Number(row['pm_revenue'] ?? 0),
+  }
+}
+
 function toDailyHeadcount(row: Record<string, unknown>): DailyHeadcount {
   return {
     date: String(row['date']),
     count: Number(row['count'] ?? 0),
+  }
+}
+
+function toOrderNoteCount(row: Record<string, unknown>): OrderNoteCount {
+  return {
+    note: String(row['note']),
+    count: Number(row['count'] ?? 0),
+  }
+}
+
+function toDeliveryProductRow(row: Record<string, unknown>): DeliveryProductRow {
+  return {
+    commodityId: String(row['commodity_id']),
+    commodityName: String(row['commodity_name']),
+    quantity: Number(row['quantity'] ?? 0),
+    revenue: Number(row['revenue'] ?? 0),
+  }
+}
+
+function toCategorySalesRow(row: Record<string, unknown>): CategorySalesRow {
+  return {
+    date: String(row['date']),
+    commodityId: String(row['commodity_id']),
+    commodityName: String(row['commodity_name']),
+    quantity: Number(row['quantity'] ?? 0),
+    revenue: Number(row['revenue'] ?? 0),
   }
 }
 
@@ -369,6 +440,75 @@ export function createStatisticsRepository(db: AsyncDatabase): StatisticsReposit
         [date],
       )
       return result.rows.map(r => String(r['name']))
+    },
+
+    // ── AM/PM revenue split ─────────────────────────────────────────────────
+    async getAmPmRevenue(range) {
+      const hourExpr = LOCAL_HOUR('o.created_at')
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT date(o.created_at/1000,'unixepoch','localtime') AS date,
+                COALESCE(SUM(CASE WHEN ${hourExpr} < 12 THEN o.total ELSE 0 END), 0) AS am_revenue,
+                COALESCE(SUM(CASE WHEN ${hourExpr} >= 12 THEN o.total ELSE 0 END), 0) AS pm_revenue
+         FROM orders o
+         WHERE o.created_at >= ? AND o.created_at <= ?
+         GROUP BY date(o.created_at/1000,'unixepoch','localtime')
+         ORDER BY date`,
+        [range.startDate, range.endDate],
+      )
+      return result.rows.map(toAmPmRevenueRow)
+    },
+
+    // ── Category sales breakdown ──────────────────────────────────────────────
+    async getCategorySales(range, typeId) {
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT date(o.created_at/1000,'unixepoch','localtime') AS date,
+                oi.commodity_id,
+                c.name AS commodity_name,
+                SUM(oi.quantity) AS quantity,
+                SUM(oi.quantity * oi.price) AS revenue
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         LEFT JOIN commodities c ON c.id = oi.commodity_id
+         WHERE o.created_at >= ? AND o.created_at <= ?
+           AND c.type_id = ?
+         GROUP BY date, oi.commodity_id
+         ORDER BY date, revenue DESC`,
+        [range.startDate, range.endDate, typeId],
+      )
+      return result.rows.map(toCategorySalesRow)
+    },
+
+    // ── Order notes distribution ──────────────────────────────────────────────
+    async getOrderNotesDistribution(range) {
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT j.value AS note, COUNT(*) AS count
+         FROM orders o, json_each(o.memo) j
+         WHERE o.created_at >= ? AND o.created_at <= ?
+           AND o.memo IS NOT NULL AND o.memo != '[]'
+         GROUP BY j.value
+         ORDER BY count DESC`,
+        [range.startDate, range.endDate],
+      )
+      return result.rows.map(toOrderNoteCount)
+    },
+
+    // ── Delivery product breakdown ────────────────────────────────────────────
+    async getDeliveryProductBreakdown(range, memoTag) {
+      const tag = memoTag ?? '外送'
+      const result = await db.exec<Record<string, unknown>>(
+        `SELECT oi.commodity_id, c.name AS commodity_name,
+                SUM(oi.quantity) AS quantity,
+                SUM(oi.quantity * oi.price) AS revenue
+         FROM order_items oi
+         JOIN orders o ON o.id = oi.order_id
+         LEFT JOIN commodities c ON c.id = oi.commodity_id
+         WHERE o.created_at >= ? AND o.created_at <= ?
+           AND EXISTS (SELECT 1 FROM json_each(o.memo) j WHERE j.value = ?)
+         GROUP BY oi.commodity_id
+         ORDER BY quantity DESC`,
+        [range.startDate, range.endDate, tag],
+      )
+      return result.rows.map(toDeliveryProductRow)
     },
   }
 }

@@ -100,6 +100,10 @@ function buildMockRepo(overrides?: Partial<StatisticsRepository>): StatisticsRep
     getEmployeeHours: vi.fn().mockResolvedValue(SAMPLE_EMPLOYEE_HOURS),
     getDailyHeadcount: vi.fn().mockResolvedValue([]),
     getDailyAttendeeList: vi.fn().mockResolvedValue([]),
+    getAmPmRevenue: vi.fn().mockResolvedValue([]),
+    getCategorySales: vi.fn().mockResolvedValue([]),
+    getOrderNotesDistribution: vi.fn().mockResolvedValue([]),
+    getDeliveryProductBreakdown: vi.fn().mockResolvedValue([]),
     ...overrides,
   }
 }

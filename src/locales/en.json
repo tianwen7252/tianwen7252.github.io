@@ -296,6 +296,25 @@
     "attendanceCalendarTitle": "Attendance Calendar",
     "attendanceCalendarDesc": "Monthly calendar view of daily attendance",
     "noChartData": "No data available",
-    "noChartDataDesc": "Try selecting a different date range"
+    "noChartDataDesc": "Try selecting a different date range",
+    "revenueTimeSeriesTitle": "Revenue Analysis",
+    "revenueTimeSeriesDesc": "AM/PM Stacked Revenue Trend",
+    "amRevenueShort": "AM",
+    "pmRevenueShort": "PM",
+    "categorySalesDesc": "Per-item sales breakdown",
+    "viewBar": "Bar Chart",
+    "viewPie": "Pie Chart",
+    "viewTable": "Table",
+    "commodityNameCol": "Product Name",
+    "totalQuantityCol": "Total Quantity",
+    "totalRevenueCol": "Total Revenue",
+    "orderNotesTitle": "Order Notes Analysis",
+    "orderNotesDesc": "Note tag usage frequency",
+    "noteLabel": "Note",
+    "noteCount": "Count",
+    "deliveryOrdersTitle": "Delivery Orders Analysis",
+    "deliveryOrdersDesc": "Delivery order product distribution",
+    "profitAnalysisTitle": "Profit Analysis",
+    "profitAnalysisDesc": "This feature is under development"
   }
 }

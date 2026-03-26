@@ -296,6 +296,25 @@
     "attendanceCalendarTitle": "月曆出勤全覽",
     "attendanceCalendarDesc": "以月曆檢視每日出勤狀態",
     "noChartData": "目前沒有資料",
-    "noChartDataDesc": "選擇其他日期範圍"
+    "noChartDataDesc": "選擇其他日期範圍",
+    "revenueTimeSeriesTitle": "營收分析",
+    "revenueTimeSeriesDesc": "上午/下午營收趨勢",
+    "amRevenueShort": "上午",
+    "pmRevenueShort": "下午",
+    "categorySalesDesc": "各品項銷售明細",
+    "viewBar": "長條圖",
+    "viewPie": "圓餅圖",
+    "viewTable": "表格",
+    "commodityNameCol": "商品名稱",
+    "totalQuantityCol": "總數量",
+    "totalRevenueCol": "總營收",
+    "orderNotesTitle": "訂單備註分析",
+    "orderNotesDesc": "各備註標籤使用頻率",
+    "noteLabel": "備註",
+    "noteCount": "次數",
+    "deliveryOrdersTitle": "外送訂單分析",
+    "deliveryOrdersDesc": "外送訂單商品佔比分布",
+    "profitAnalysisTitle": "淨利分析",
+    "profitAnalysisDesc": "此功能開發中，敬請期待"
   }
 }
