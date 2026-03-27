@@ -1,74 +1,88 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 
+interface MasonryPosition {
+  readonly x: number
+  readonly y: number
+  readonly width: number
+}
+
+interface MasonryLayout {
+  /** Absolute position for each item (index-aligned) */
+  readonly positions: readonly MasonryPosition[]
+  /** Total container height to set on the parent */
+  readonly height: number
+}
+
+const EMPTY_LAYOUT: MasonryLayout = { positions: [], height: 0 }
+
 /**
- * Hook for CSS Grid masonry layout.
+ * Hook for masonry layout using absolute positioning.
+ *
+ * Items are assigned to columns in row-first order (left-to-right),
+ * and each column independently tracks its height for tight packing.
  *
  * Two-phase render:
- * 1. Before measurement: grid uses auto row heights → items render naturally
- * 2. After measurement: grid uses 1px base rows with calculated spans → tight packing
- *
- * The grid should use row gap = 0 in masonry mode. Visual gap between cards
- * is achieved by including the desired gap in each item's span calculation.
- *
- * Usage:
- *   const { containerRef, getSpan, measured } = useMasonryGrid(items.length, 12)
- *   <div ref={containerRef} className="grid grid-cols-3"
- *     style={measured ? { gridAutoRows: '1px', gap: '0 12px' } : { gap: 12 }}>
- *     {items.map((item, i) => (
- *       <div key={item.id} style={measured ? { gridRowEnd: `span ${getSpan(i)}` } : undefined}>
- *         ...
- *       </div>
- *     ))}
- *   </div>
+ * 1. Before measurement: items render in a normal CSS grid for natural sizing
+ * 2. After measurement: container is position:relative with calculated height,
+ *    each item is position:absolute at its computed (x, y) coordinate
  */
-export function useMasonryGrid(itemCount: number, gap = 12) {
+export function useMasonryGrid(itemCount: number, cols = 3, gap = 12) {
   const containerRef = useRef<HTMLDivElement>(null)
-  const [spans, setSpans] = useState<number[]>([])
-  const measured = spans.length === itemCount && itemCount > 0
+  const [layout, setLayout] = useState<MasonryLayout>(EMPTY_LAYOUT)
+  const measured = layout.positions.length === itemCount && itemCount > 0
 
   const measure = useCallback(() => {
     const container = containerRef.current
     if (!container || container.children.length === 0) return
 
-    // Temporarily revert to auto rows so we can measure natural heights
-    const prevAutoRows = container.style.gridAutoRows
-    const prevGap = container.style.gap
-    container.style.gridAutoRows = 'auto'
-    container.style.gap = `${gap}px`
-
     const children = Array.from(container.children) as HTMLElement[]
-    // Remove span overrides temporarily
-    const prevSpans = children.map(child => child.style.gridRowEnd)
+
+    // Temporarily revert to flow layout to measure natural heights
+    const prevPosition = container.style.position
+    const prevHeight = container.style.height
+    container.style.position = ''
+    container.style.height = ''
     for (const child of children) {
-      child.style.gridRowEnd = ''
+      child.style.position = ''
+      child.style.left = ''
+      child.style.top = ''
+      child.style.width = ''
     }
 
-    // Force reflow and measure natural heights
+    // Force reflow and measure
+    const containerWidth = container.clientWidth
+    const colWidth = (containerWidth - gap * (cols - 1)) / cols
     const heights = children.map(child => child.getBoundingClientRect().height)
 
-    // Calculate spans for masonry mode (gridAutoRows: 1px, row gap: 0).
-    // Each span unit = 1px. Visual gap is baked into the span.
-    // span = ceil(contentHeight + desiredGap)
-    const newSpans = heights.map(h => Math.ceil(h + gap))
+    // Calculate positions: row-first assignment to columns
+    const colHeights = new Array(cols).fill(0) as number[]
+    const positions: MasonryPosition[] = []
 
-    // Restore previous styles (React will re-render with new spans)
-    container.style.gridAutoRows = prevAutoRows
-    container.style.gap = prevGap
-    children.forEach((child, i) => {
-      child.style.gridRowEnd = prevSpans[i] ?? ''
-    })
+    for (let i = 0; i < heights.length; i++) {
+      const col = i % cols
+      const x = col * (colWidth + gap)
+      const y = colHeights[col] ?? 0
+      const h = heights[i] ?? 0
 
-    setSpans(newSpans)
-  }, [gap])
+      positions.push({ x, y, width: colWidth })
+      colHeights[col] = y + h + gap
+    }
+
+    const totalHeight = Math.max(...colHeights) - gap
+
+    // Restore container style before React re-render
+    container.style.position = prevPosition
+    container.style.height = prevHeight
+
+    setLayout({ positions, height: Math.max(0, totalHeight) })
+  }, [cols, gap])
 
   useEffect(() => {
-    // Defer measurement to after paint
     const raf = requestAnimationFrame(() => measure())
 
     const container = containerRef.current
     if (!container) return () => cancelAnimationFrame(raf)
 
-    // Re-measure on container resize (e.g., viewport change)
     const observer = new ResizeObserver(() => {
       requestAnimationFrame(() => measure())
     })
@@ -80,10 +94,5 @@ export function useMasonryGrid(itemCount: number, gap = 12) {
     }
   }, [itemCount, measure])
 
-  const getSpan = useCallback(
-    (index: number): number => spans[index] ?? 1,
-    [spans],
-  )
-
-  return { containerRef, getSpan, measured }
+  return { containerRef, layout, measured }
 }

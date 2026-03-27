@@ -116,12 +116,12 @@ export function OrdersPage() {
     setDeleteTarget(null)
   }
 
-  // Masonry grid layout for order cards with varying heights
+  // Masonry layout for order cards with varying heights
   const {
     containerRef: masonryRef,
-    getSpan,
+    layout: masonry,
     measured,
-  } = useMasonryGrid(orders.length, 12)
+  } = useMasonryGrid(orders.length, 3, 12)
 
   /** Reset all swiped-open cards when clicking outside any card */
   function handlePageClick(e: React.MouseEvent) {
@@ -184,23 +184,26 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {/* Order cards — masonry grid with auto-spanning rows */}
+              {/* Order cards — masonry layout */}
               {orders.length > 0 && (
                 <div
                   ref={masonryRef}
-                  className="mt-4 grid grid-cols-3"
-                  style={
-                    measured
-                      ? { gridAutoRows: '1px', gap: '0 12px' }
-                      : { gap: 12 }
+                  className={
+                    measured ? 'relative mt-4' : 'mt-4 grid grid-cols-3 gap-3'
                   }
+                  style={measured ? { height: masonry.height } : undefined}
                 >
                   {orders.map((order, index) => (
                     <div
                       key={order.id}
                       style={
-                        measured
-                          ? { gridRowEnd: `span ${getSpan(index)}` }
+                        measured && masonry.positions[index]
+                          ? {
+                              position: 'absolute',
+                              left: masonry.positions[index].x,
+                              top: masonry.positions[index].y,
+                              width: masonry.positions[index].width,
+                            }
                           : undefined
                       }
                     >
