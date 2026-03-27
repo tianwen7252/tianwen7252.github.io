@@ -63,6 +63,8 @@ html {
   --color-gold: #d4af37;
   --color-blue: #6aa3d4;
   --color-yellow: #f5c842;
+  --color-red: #e85d5d;
+  --color-green: var(--primary);
   --font-size: 18px;
   /* --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryProvider } from './providers/query-provider'
 import { Toaster } from '@/components/ui/sonner'
 import {
@@ -94,12 +93,10 @@ async function bootstrap() {
 
   createRoot(rootElement).render(
     <StrictMode>
-      <GoogleOAuthProvider clientId="799987452297-qetqo8blfushga2h064of13epeqtgh4a.apps.googleusercontent.com">
-        <QueryProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-        </QueryProvider>
-      </GoogleOAuthProvider>
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryProvider>
     </StrictMode>,
   )
 }

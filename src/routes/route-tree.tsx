@@ -43,7 +43,7 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: s => s.location.pathname })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
 
   // Detect scroll for glassmorphism header
   const [scrolled, setScrolled] = useState(false)
@@ -63,7 +63,7 @@ function RootLayout() {
           scrolled ? 'border-b border-transparent' : 'border-b border-border',
         )}
         style={{
-          backgroundColor: scrolled ? `${HEADER_BG}cc` : HEADER_BG,
+          backgroundColor: scrolled ? `${HEADER_BG}b3` : HEADER_BG,
           ...(scrolled ? GLASSMORPHISM_STYLE : {}),
         }}
       >
@@ -72,7 +72,7 @@ function RootLayout() {
           <a
             href="/"
             className="text-lg text-primary"
-            onClick={e => {
+            onClick={(e) => {
               e.preventDefault()
               window.location.href = '/'
             }}
@@ -142,7 +142,7 @@ function NavIconLink({
   ariaLabel: string
   children: React.ReactNode
 }) {
-  const pathname = useRouterState({ select: s => s.location.pathname })
+  const pathname = useRouterState({ select: (s) => s.location.pathname })
   const isActive = pathname === to || pathname.startsWith(`${to}/`)
 
   return (

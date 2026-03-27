@@ -28,11 +28,21 @@ vi.mock('@/stores/app-store', () => ({
   isAdminUser: (sub: string) => sub === '112232479673923380065',
 }))
 
-const mockGoogleLogin = vi.fn()
+const mockRequestAccessToken = vi.fn()
 
-vi.mock('@react-oauth/google', () => ({
-  useGoogleLogin: () => mockGoogleLogin,
-}))
+// Mock Google Identity Services global
+Object.defineProperty(window, 'google', {
+  value: {
+    accounts: {
+      oauth2: {
+        initTokenClient: () => ({
+          requestAccessToken: mockRequestAccessToken,
+        }),
+      },
+    },
+  },
+  writable: true,
+})
 
 const mockFindAll = vi.fn().mockResolvedValue([])
 
@@ -80,11 +90,11 @@ describe('HeaderUserMenu', () => {
       expect(screen.getByTestId('header-login')).toBeTruthy()
     })
 
-    it('calls googleLogin on click', async () => {
+    it('calls requestAccessToken on click', async () => {
       const user = userEvent.setup()
       renderWithProviders(<HeaderUserMenu />)
       await user.click(screen.getByTestId('header-login'))
-      expect(mockGoogleLogin).toHaveBeenCalledOnce()
+      expect(mockRequestAccessToken).toHaveBeenCalledOnce()
     })
   })
 
