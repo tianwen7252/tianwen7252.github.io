@@ -4,13 +4,16 @@ import { useRef, useState, useEffect, useCallback } from 'react'
  * Hook for CSS Grid masonry layout.
  *
  * Two-phase render:
- * 1. Before measurement: gridAutoRows is 'auto' → items render at natural height
- * 2. After measurement: gridAutoRows is '1px' with calculated spans → tight packing
+ * 1. Before measurement: grid uses auto row heights → items render naturally
+ * 2. After measurement: grid uses 1px base rows with calculated spans → tight packing
+ *
+ * The grid should use row gap = 0 in masonry mode. Visual gap between cards
+ * is achieved by including the desired gap in each item's span calculation.
  *
  * Usage:
- *   const { containerRef, getSpan, measured } = useMasonryGrid(items.length, gap)
+ *   const { containerRef, getSpan, measured } = useMasonryGrid(items.length, 12)
  *   <div ref={containerRef} className="grid grid-cols-3"
- *     style={{ gridAutoRows: measured ? 1 : undefined, gap: measured ? '0 12px' : '12px' }}>
+ *     style={measured ? { gridAutoRows: '1px', gap: '0 12px' } : { gap: 12 }}>
  *     {items.map((item, i) => (
  *       <div key={item.id} style={measured ? { gridRowEnd: `span ${getSpan(i)}` } : undefined}>
  *         ...
@@ -43,13 +46,10 @@ export function useMasonryGrid(itemCount: number, gap = 12) {
     // Force reflow and measure natural heights
     const heights = children.map(child => child.getBoundingClientRect().height)
 
-    // Calculate spans: each base row is 1px, gap between rows is also applied
-    // Cell height = span * 1 + (span - 1) * gap
-    // We need: span * 1 + (span - 1) * gap >= contentHeight
-    // span * (1 + gap) - gap >= contentHeight
-    // span >= (contentHeight + gap) / (1 + gap)
-    const rowHeight = 1
-    const newSpans = heights.map(h => Math.ceil((h + gap) / (rowHeight + gap)))
+    // Calculate spans for masonry mode (gridAutoRows: 1px, row gap: 0).
+    // Each span unit = 1px. Visual gap is baked into the span.
+    // span = ceil(contentHeight + desiredGap)
+    const newSpans = heights.map(h => Math.ceil(h + gap))
 
     // Restore previous styles (React will re-render with new spans)
     container.style.gridAutoRows = prevAutoRows

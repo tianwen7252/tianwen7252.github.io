@@ -190,7 +190,9 @@ export function OrdersPage() {
                   ref={masonryRef}
                   className="mt-4 grid grid-cols-3"
                   style={
-                    measured ? { gridAutoRows: 1, gap: '0 12px' } : { gap: 12 }
+                    measured
+                      ? { gridAutoRows: '1px', gap: '0 12px' }
+                      : { gap: 12 }
                   }
                 >
                   {orders.map((order, index) => (
