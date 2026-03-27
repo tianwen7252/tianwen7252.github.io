@@ -9,7 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-const mockSetGoogleUser = vi.fn()
+const mockLogin = vi.fn()
 const mockLogout = vi.fn()
 let mockGoogleUser: {
   sub: string
@@ -17,32 +17,17 @@ let mockGoogleUser: {
   email: string
   picture?: string
 } | null = null
+let mockIsLoggedIn = false
 
-vi.mock('@/stores/app-store', () => ({
-  useAppStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({
-      googleUser: mockGoogleUser,
-      setGoogleUser: mockSetGoogleUser,
-      logout: mockLogout,
-    }),
-  isAdminUser: (sub: string) => sub === '112232479673923380065',
+vi.mock('@/hooks/use-google-auth', () => ({
+  useGoogleAuth: () => ({
+    googleUser: mockGoogleUser,
+    isLoggedIn: mockIsLoggedIn,
+    isAdmin: true,
+    login: mockLogin,
+    logout: mockLogout,
+  }),
 }))
-
-const mockRequestAccessToken = vi.fn()
-
-// Mock Google Identity Services global
-Object.defineProperty(window, 'google', {
-  value: {
-    accounts: {
-      oauth2: {
-        initTokenClient: () => ({
-          requestAccessToken: mockRequestAccessToken,
-        }),
-      },
-    },
-  },
-  writable: true,
-})
 
 const mockFindAll = vi.fn().mockResolvedValue([])
 
@@ -50,16 +35,6 @@ vi.mock('@/lib/repositories/provider', () => ({
   getEmployeeRepo: () => ({
     findAll: mockFindAll,
   }),
-}))
-
-const mockNotifySuccess = vi.fn()
-const mockNotifyError = vi.fn()
-
-vi.mock('@/components/ui/sonner', () => ({
-  notify: {
-    success: (...args: unknown[]) => mockNotifySuccess(...args),
-    error: (...args: unknown[]) => mockNotifyError(...args),
-  },
 }))
 
 import { HeaderUserMenu } from './header-user-menu'
@@ -81,6 +56,7 @@ describe('HeaderUserMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockGoogleUser = null
+    mockIsLoggedIn = false
     mockFindAll.mockResolvedValue([])
   })
 
@@ -90,11 +66,11 @@ describe('HeaderUserMenu', () => {
       expect(screen.getByTestId('header-login')).toBeTruthy()
     })
 
-    it('calls requestAccessToken on click', async () => {
+    it('calls login on click', async () => {
       const user = userEvent.setup()
       renderWithProviders(<HeaderUserMenu />)
       await user.click(screen.getByTestId('header-login'))
-      expect(mockRequestAccessToken).toHaveBeenCalledOnce()
+      expect(mockLogin).toHaveBeenCalledOnce()
     })
   })
 
@@ -106,6 +82,7 @@ describe('HeaderUserMenu', () => {
         email: 'tianwen@example.com',
         picture: 'https://example.com/photo.jpg',
       }
+      mockIsLoggedIn = true
     })
 
     it('renders avatar image from Google when no employee match', () => {
@@ -132,7 +109,6 @@ describe('HeaderUserMenu', () => {
 
       renderWithProviders(<HeaderUserMenu />)
 
-      // Wait for employee query to resolve and avatar src to update
       await waitFor(() => {
         const img = screen.getByAltText('Tianwen')
         expect(img.getAttribute('src')).toBe('/images/tianwen.png')

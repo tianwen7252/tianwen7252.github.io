@@ -1,71 +1,26 @@
 /**
  * HeaderUserMenu — Google OAuth login/logout UI for the app header.
- * Uses Google Identity Services (GIS) token client directly (V1 compatible).
  * When logged out: shows UserRound icon, clicking triggers Google Sign-In.
  * When logged in: shows avatar (employee image > Google photo > text initial).
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useQuery } from '@tanstack/react-query'
 import { UserRound } from 'lucide-react'
-import { useAppStore, isAdminUser } from '@/stores/app-store'
-import type { GoogleUser } from '@/stores/app-store'
 import { getEmployeeRepo } from '@/lib/repositories/provider'
+import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { ConfirmModal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
-import { notify } from '@/components/ui/sonner'
 import { cn } from '@/lib/cn'
-
-// ─── Constants ───────────────────────────────────────────────────────────────
-
-const GOOGLE_CLIENT_ID =
-  '799987452297-qetqo8blfushga2h064of13epeqtgh4a.apps.googleusercontent.com'
-const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
-const GIS_SCOPES = 'openid email profile'
-
-// ─── GIS type declarations ───────────────────────────────────────────────────
-
-interface TokenResponse {
-  access_token: string
-  error?: string
-  error_description?: string
-}
-
-interface TokenClient {
-  requestAccessToken: () => void
-}
-
-interface GoogleOAuth2 {
-  initTokenClient: (config: {
-    client_id: string
-    scope: string
-    callback: (response: TokenResponse) => void
-  }) => TokenClient
-}
-
-declare global {
-  interface Window {
-    google?: {
-      accounts: {
-        oauth2: GoogleOAuth2
-      }
-    }
-  }
-}
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function HeaderUserMenu() {
   const { t } = useTranslation()
-  const googleUser = useAppStore(s => s.googleUser)
-  const setGoogleUser = useAppStore(s => s.setGoogleUser)
-  const logout = useAppStore(s => s.logout)
+  const { googleUser, isLoggedIn, login, logout } = useGoogleAuth()
 
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
-  const tokenClientRef = useRef<TokenClient | null>(null)
-
-  const isLoggedIn = googleUser !== null
 
   // Fetch employees to check if logged-in user matches an admin employee
   const { data: matchedEmployee } = useQuery({
@@ -84,58 +39,9 @@ export function HeaderUserMenu() {
   const avatarSrc = matchedEmployee?.avatar ?? googleUser?.picture
   const displayName = googleUser?.name ?? ''
 
-  // Handle token response from GIS
-  const handleTokenResponse = useCallback(
-    async (tokenResponse: TokenResponse) => {
-      if (tokenResponse.error) {
-        notify.error(
-          `${t('auth.loginError')}: ${tokenResponse.error_description ?? tokenResponse.error}`,
-        )
-        return
-      }
-      try {
-        const res = await fetch(USERINFO_URL, {
-          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-        })
-        if (!res.ok) throw new Error('Failed to fetch user info')
-        const userInfo = (await res.json()) as GoogleUser
-        const admin = isAdminUser(userInfo.sub)
-        setGoogleUser(userInfo, tokenResponse.access_token, admin)
-        notify.success(t('auth.loginSuccess', { name: userInfo.name }))
-      } catch (err) {
-        notify.error(
-          t('auth.loginError') +
-            (err instanceof Error ? `: ${err.message}` : ''),
-        )
-      }
-    },
-    [setGoogleUser, t],
-  )
-
-  // Initialize GIS token client and request access token
-  const handleLogin = useCallback(() => {
-    if (!window.google?.accounts?.oauth2) {
-      notify.error(
-        t('auth.loginError') + ': Google Identity Services not loaded',
-      )
-      return
-    }
-
-    if (!tokenClientRef.current) {
-      tokenClientRef.current = window.google.accounts.oauth2.initTokenClient({
-        client_id: GOOGLE_CLIENT_ID,
-        scope: GIS_SCOPES,
-        callback: handleTokenResponse,
-      })
-    }
-
-    tokenClientRef.current.requestAccessToken()
-  }, [handleTokenResponse, t])
-
   function handleLogout() {
     logout()
     setLogoutModalOpen(false)
-    notify.success(t('auth.logoutSuccess'))
   }
 
   return (
@@ -171,7 +77,7 @@ export function HeaderUserMenu() {
             'flex size-9 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground',
             'text-muted-foreground',
           )}
-          onClick={handleLogin}
+          onClick={login}
         >
           <UserRound size={20} />
         </RippleButton>
