@@ -7,7 +7,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { Settings, UserRound } from 'lucide-react'
+import { Settings, UserRound, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview } from '@/pages/preview'
@@ -83,16 +83,26 @@ function RootLayout() {
             <NavLink to="/orders">{t('nav.orders')}</NavLink>
             <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
             <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
-            {import.meta.env.DEV && <NavLink to="/preview">DEV</NavLink>}
           </div>
 
-          {/* Right: settings + login icons */}
+          {/* Right: dev + settings + login icons */}
           <div className="ml-auto flex items-center gap-2">
+            {import.meta.env.DEV && (
+              <Link to="/preview">
+                <RippleButton
+                  aria-label="DEV"
+                  rippleColor="rgba(0,0,0,0.1)"
+                  className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                >
+                  <Code size={20} />
+                </RippleButton>
+              </Link>
+            )}
             <Link to="/settings">
               <RippleButton
                 aria-label={t('nav.settings')}
                 rippleColor="rgba(0,0,0,0.1)"
-                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <Settings size={20} />
               </RippleButton>
@@ -101,7 +111,7 @@ function RootLayout() {
               <RippleButton
                 aria-label={t('nav.clockIn')}
                 rippleColor="rgba(0,0,0,0.1)"
-                className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+                className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
               >
                 <UserRound size={20} />
               </RippleButton>
