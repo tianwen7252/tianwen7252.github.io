@@ -108,22 +108,26 @@ export function SystemInfo() {
       {/* Section 1: KPI Cards */}
       <div className="grid grid-cols-3 gap-4">
         {/* Version Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('settings.appVersion')}</CardTitle>
+        <Card shadow className="py-4">
+          <CardHeader className="py-0">
+            <CardTitle fontSize="text-md" className="text-muted-foreground">
+              {t('settings.appVersion')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col flex-1">
             <div className="text-2xl">v{APP_VERSION}</div>
-            <div className="text-md text-muted-foreground">
+            <div className="mt-auto text-md text-muted-foreground">
               {t('settings.lastUpdated')}: {document.lastModified}
             </div>
           </CardContent>
         </Card>
 
         {/* Storage Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('settings.localStorage')}</CardTitle>
+        <Card shadow className="py-4">
+          <CardHeader className="py-0">
+            <CardTitle fontSize="text-md" className="text-muted-foreground">
+              {t('settings.localStorage')}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center">
             <AnimatedCircularProgressBar
@@ -135,15 +139,17 @@ export function SystemInfo() {
         </Card>
 
         {/* Backup Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('settings.cloudBackup')}</CardTitle>
+        <Card shadow className="py-4">
+          <CardHeader className="py-0">
+            <CardTitle fontSize="text-md" className="text-muted-foreground">
+              {t('settings.cloudBackup')}
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="flex flex-col flex-1">
             <div className="text-lg text-amber-500">
               {t('settings.noBackup')}
             </div>
-            <div className="text-md text-muted-foreground">
+            <div className="mt-auto text-md text-muted-foreground">
               {t('settings.lastBackup')}: {t('settings.noBackupRecord')}
             </div>
           </CardContent>
