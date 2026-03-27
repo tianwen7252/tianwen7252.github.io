@@ -7,9 +7,11 @@
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGoogleLogin } from '@react-oauth/google'
+import { useQuery } from '@tanstack/react-query'
 import { UserRound } from 'lucide-react'
 import { useAppStore, isAdminUser } from '@/stores/app-store'
 import type { GoogleUser } from '@/stores/app-store'
+import { getEmployeeRepo } from '@/lib/repositories/provider'
 import { ConfirmModal } from '@/components/modal/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
@@ -29,6 +31,24 @@ export function HeaderUserMenu() {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false)
 
   const isLoggedIn = googleUser !== null
+
+  // Fetch employees to check if logged-in user matches an admin employee
+  const { data: matchedEmployee } = useQuery({
+    queryKey: ['employee-match', googleUser?.email],
+    queryFn: async () => {
+      const employees = await getEmployeeRepo().findAll()
+      // Match by name (employee name === Google display name)
+      return employees.find(
+        e => e.status === 'active' && e.name === googleUser?.name,
+      )
+    },
+    enabled: isLoggedIn,
+    staleTime: 60_000,
+  })
+
+  // Avatar priority: employee avatar > Google picture > text initial
+  const avatarSrc = matchedEmployee?.avatar ?? googleUser?.picture
+  const displayName = googleUser?.name ?? ''
 
   // Google OAuth login flow — popup-based
   const googleLogin = useGoogleLogin({
@@ -72,16 +92,16 @@ export function HeaderUserMenu() {
           className="flex size-9 items-center justify-center rounded-full overflow-hidden"
           onClick={() => setLogoutModalOpen(true)}
         >
-          {googleUser.picture ? (
+          {avatarSrc ? (
             <img
-              src={googleUser.picture}
-              alt={googleUser.name}
+              src={avatarSrc}
+              alt={displayName}
               className="size-9 rounded-full object-cover"
               referrerPolicy="no-referrer"
             />
           ) : (
             <div className="flex size-9 items-center justify-center rounded-full bg-primary text-primary-foreground text-md">
-              {googleUser.name.charAt(0).toUpperCase()}
+              {displayName.charAt(0).toUpperCase()}
             </div>
           )}
         </RippleButton>
@@ -108,7 +128,7 @@ export function HeaderUserMenu() {
         onCancel={() => setLogoutModalOpen(false)}
       >
         <p className="text-center text-md text-muted-foreground">
-          {t('auth.logoutMessage', { name: googleUser?.name })}
+          {t('auth.logoutMessage', { name: displayName })}
         </p>
       </ConfirmModal>
     </>
