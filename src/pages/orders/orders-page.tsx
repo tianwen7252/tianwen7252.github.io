@@ -119,15 +119,12 @@ export function OrdersPage() {
   function handlePageClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement
     if (!target.closest('[data-testid="swipe-actions"]')) {
-      setSwipeResetKey(k => k + 1)
+      setSwipeResetKey((k) => k + 1)
     }
   }
 
   return (
-    <div
-      className="min-h-[calc(100vh-57px)] p-4"
-      onClick={handlePageClick}
-    >
+    <div className="min-h-[calc(100vh-57px)] p-4" onClick={handlePageClick}>
       {/* Search view — replaces normal content when open */}
       {isSearchOpen ? (
         <OrdersSearch
@@ -179,13 +176,15 @@ export function OrdersPage() {
               {/* Order cards grid — 3 per row */}
               {orders.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  {orders.map(order => (
+                  {orders.map((order) => (
                     <OrderHistoryCard
                       key={order.id}
                       order={order}
                       typeIdMap={typeIdMap}
                       onDelete={() => handleDeleteRequest(order)}
-                      onEdit={() => setEditingOrder(order)}
+                      onEdit={() => {
+                        setTimeout(() => setEditingOrder(order), 50)
+                      }}
                       resetKey={swipeResetKey}
                     />
                   ))}

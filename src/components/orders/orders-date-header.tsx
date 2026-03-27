@@ -110,16 +110,16 @@ export function OrdersDateHeader({
         >
           <ChevronRight className="h-5 w-5" />
         </RippleButton>
-      </div>
 
-      {/* Right: search button */}
-      <RippleButton
-        className={buttonVariants({ variant: 'outline', size: 'icon' })}
-        aria-label={t('common.search')}
-        onClick={onSearchOpen}
-      >
-        <Search className="h-5 w-5" />
-      </RippleButton>
+        {/* Right: search button */}
+        <RippleButton
+          className={buttonVariants({ variant: 'outline', size: 'icon' })}
+          aria-label={t('common.search')}
+          onClick={onSearchOpen}
+        >
+          <Search className="h-5 w-5" />
+        </RippleButton>
+      </div>
     </div>
   )
 }
