@@ -133,6 +133,7 @@ export function EditOrderModal({
               onSubmitClick={() => setMode('confirming')}
               submitLabel={t('order.editOrder')}
               submitColor={EDIT_BUTTON_COLOR}
+              swipeForegroundClassName="bg-transparent"
             />
           </div>
         </div>

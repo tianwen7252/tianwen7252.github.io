@@ -19,6 +19,8 @@ interface OrderPanelProps {
   readonly submitLabel?: string
   /** Custom submit button color (CSS color value) */
   readonly submitColor?: string
+  /** Override SwipeToDelete foreground background class (default: 'bg-card'). Use 'bg-transparent' inside modals. */
+  readonly swipeForegroundClassName?: string
 }
 
 // ─── Component ───────────────────────────────────────────────────────────────
@@ -28,19 +30,20 @@ export function OrderPanel({
   onSubmitClick,
   submitLabel,
   submitColor,
+  swipeForegroundClassName,
 }: OrderPanelProps) {
-  const items = useOrderStore(s => s.items)
-  const discounts = useOrderStore(s => s.discounts)
-  const removeItem = useOrderStore(s => s.removeItem)
-  const updateQuantity = useOrderStore(s => s.updateQuantity)
-  const updateNote = useOrderStore(s => s.updateNote)
-  const getTotal = useOrderStore(s => s.getTotal)
-  const getBentoCount = useOrderStore(s => s.getBentoCount)
-  const getSoupCount = useOrderStore(s => s.getSoupCount)
-  const getItemCount = useOrderStore(s => s.getItemCount)
-  const clearCart = useOrderStore(s => s.clearCart)
-  const submitOrder = useOrderStore(s => s.submitOrder)
-  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
+  const items = useOrderStore((s) => s.items)
+  const discounts = useOrderStore((s) => s.discounts)
+  const removeItem = useOrderStore((s) => s.removeItem)
+  const updateQuantity = useOrderStore((s) => s.updateQuantity)
+  const updateNote = useOrderStore((s) => s.updateNote)
+  const getTotal = useOrderStore((s) => s.getTotal)
+  const getBentoCount = useOrderStore((s) => s.getBentoCount)
+  const getSoupCount = useOrderStore((s) => s.getSoupCount)
+  const getItemCount = useOrderStore((s) => s.getItemCount)
+  const clearCart = useOrderStore((s) => s.clearCart)
+  const submitOrder = useOrderStore((s) => s.submitOrder)
+  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -78,7 +81,7 @@ export function OrderPanel({
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 px-4 pb-4">
+    <div className="flex h-full flex-col gap-4 px-4">
       {/* Header */}
       <div className="flex items-center gap-2">
         <ClipboardList className="size-5" />
@@ -114,9 +117,9 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map(item => (
+            {items.map((item) => (
               <div key={item.id} data-cart-item-id={item.id}>
-                <SwipeToDelete onDelete={() => removeItem(item.id)}>
+                <SwipeToDelete onDelete={() => removeItem(item.id)} foregroundClassName={swipeForegroundClassName}>
                   <OrderItemRow
                     item={item}
                     onRemove={removeItem}
