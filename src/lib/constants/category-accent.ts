@@ -1,6 +1,6 @@
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface CategoryAccentStyle {
+export interface CategoryAccentStyle {
   readonly border: string
   readonly text: string
 }

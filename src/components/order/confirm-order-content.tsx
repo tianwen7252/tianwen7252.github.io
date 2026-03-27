@@ -13,7 +13,7 @@ import type { CategoryGroup } from '@/lib/group-cart-items'
 
 interface ConfirmOrderContentProps {
   readonly groups: readonly CategoryGroup[]
-  readonly selectedTags: string[]
+  readonly selectedTags: readonly string[]
   readonly onSelectedTagsChange: (tags: string[]) => void
   readonly bentoCount: number
   readonly soupCount: number
