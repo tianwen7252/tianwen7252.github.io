@@ -1,14 +1,22 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
+import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryProvider } from './providers/query-provider'
 import { Toaster } from '@/components/ui/sonner'
 import {
   requestStoragePersistence,
   logStorageEstimate,
 } from '@/lib/storage-persist'
-import { ENABLE_DEFAULT_DATA, DELETE_DEFAULT_DATA, CLEAR_DB_DATA } from '@/constants/default-data'
-import { shouldResetDefaultData, markDefaultDataVersion } from '@/lib/default-data'
+import {
+  ENABLE_DEFAULT_DATA,
+  DELETE_DEFAULT_DATA,
+  CLEAR_DB_DATA,
+} from '@/constants/default-data'
+import {
+  shouldResetDefaultData,
+  markDefaultDataVersion,
+} from '@/lib/default-data'
 import {
   createWorkerDatabase,
   initWorkerDb,
@@ -20,9 +28,9 @@ import { initRepositories } from '@/lib/repositories'
 import './lib/i18n'
 
 // Prevent pinch-to-zoom on iPad (Safari ignores viewport meta for gestures)
-document.addEventListener('gesturestart', (e) => e.preventDefault())
-document.addEventListener('gesturechange', (e) => e.preventDefault())
-document.addEventListener('gestureend', (e) => e.preventDefault())
+document.addEventListener('gesturestart', e => e.preventDefault())
+document.addEventListener('gesturechange', e => e.preventDefault())
+document.addEventListener('gestureend', e => e.preventDefault())
 
 // Prevent double-tap zoom
 // comment this out since it prevents the button from being clicked repeatedly.
@@ -84,19 +92,22 @@ async function bootstrap() {
 
   createRoot(rootElement).render(
     <StrictMode>
-      <QueryProvider>
-        <RouterProvider router={router} />
-        <Toaster />
-      </QueryProvider>
+      <GoogleOAuthProvider clientId="799987452297-qetqo8blfushga2h064of13epeqtgh4a.apps.googleusercontent.com">
+        <QueryProvider>
+          <RouterProvider router={router} />
+          <Toaster />
+        </QueryProvider>
+      </GoogleOAuthProvider>
     </StrictMode>,
   )
 }
 
-bootstrap().catch((err) => {
+bootstrap().catch(err => {
   const msg = err instanceof Error ? err.message : String(err)
 
   const container = document.createElement('div')
-  container.style.cssText = 'padding:2rem;font-family:monospace;display:flex;flex-direction:column;gap:1rem;'
+  container.style.cssText =
+    'padding:2rem;font-family:monospace;display:flex;flex-direction:column;gap:1rem;'
 
   const p = document.createElement('p')
   p.textContent = `Failed to initialize database: ${msg}`

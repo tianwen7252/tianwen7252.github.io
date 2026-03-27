@@ -1,6 +1,5 @@
 /**
- * Tests for HeaderUserMenu component.
- * Covers mock login/logout flow and avatar display.
+ * Tests for HeaderUserMenu component with Google OAuth.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -9,26 +8,39 @@ import userEvent from '@testing-library/user-event'
 
 // ─── Mocks ───────────────────────────────────────────────────────────────────
 
-const mockSetCurrentEmployee = vi.fn()
+const mockSetGoogleUser = vi.fn()
 const mockLogout = vi.fn()
-let mockCurrentEmployeeId: string | null = null
-let mockIsAdmin = false
+let mockGoogleUser: {
+  sub: string
+  name: string
+  email: string
+  picture?: string
+} | null = null
 
 vi.mock('@/stores/app-store', () => ({
   useAppStore: (selector: (state: Record<string, unknown>) => unknown) =>
     selector({
-      currentEmployeeId: mockCurrentEmployeeId,
-      isAdmin: mockIsAdmin,
-      setCurrentEmployee: mockSetCurrentEmployee,
+      googleUser: mockGoogleUser,
+      setGoogleUser: mockSetGoogleUser,
       logout: mockLogout,
     }),
+  isAdminUser: (sub: string) => sub === '112232479673923380065',
+}))
+
+// Mock @react-oauth/google
+const mockGoogleLogin = vi.fn()
+
+vi.mock('@react-oauth/google', () => ({
+  useGoogleLogin: () => mockGoogleLogin,
 }))
 
 const mockNotifySuccess = vi.fn()
+const mockNotifyError = vi.fn()
 
 vi.mock('@/components/ui/sonner', () => ({
   notify: {
     success: (...args: unknown[]) => mockNotifySuccess(...args),
+    error: (...args: unknown[]) => mockNotifyError(...args),
   },
 }))
 
@@ -39,8 +51,7 @@ import { HeaderUserMenu } from './header-user-menu'
 describe('HeaderUserMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    mockCurrentEmployeeId = null
-    mockIsAdmin = false
+    mockGoogleUser = null
   })
 
   describe('when not logged in', () => {
@@ -49,31 +60,41 @@ describe('HeaderUserMenu', () => {
       expect(screen.getByTestId('header-login')).toBeTruthy()
     })
 
-    it('calls setCurrentEmployee on click (mock login)', async () => {
+    it('calls googleLogin on click', async () => {
       const user = userEvent.setup()
       render(<HeaderUserMenu />)
       await user.click(screen.getByTestId('header-login'))
-      expect(mockSetCurrentEmployee).toHaveBeenCalledWith('admin-001', true)
-    })
-
-    it('shows success toast on login', async () => {
-      const user = userEvent.setup()
-      render(<HeaderUserMenu />)
-      await user.click(screen.getByTestId('header-login'))
-      expect(mockNotifySuccess).toHaveBeenCalledTimes(1)
+      expect(mockGoogleLogin).toHaveBeenCalledOnce()
     })
   })
 
   describe('when logged in', () => {
     beforeEach(() => {
-      mockCurrentEmployeeId = 'admin-001'
-      mockIsAdmin = true
+      mockGoogleUser = {
+        sub: '112232479673923380065',
+        name: 'Tianwen',
+        email: 'tianwen@example.com',
+        picture: 'https://example.com/photo.jpg',
+      }
     })
 
-    it('renders text avatar with first char', () => {
+    it('renders avatar image when user has a picture', () => {
       render(<HeaderUserMenu />)
       const avatar = screen.getByTestId('header-avatar')
-      expect(avatar.textContent).toContain('管')
+      const img = avatar.querySelector('img')
+      expect(img).toBeTruthy()
+      expect(img?.getAttribute('src')).toBe('https://example.com/photo.jpg')
+    })
+
+    it('renders text initial when user has no picture', () => {
+      mockGoogleUser = {
+        sub: '123',
+        name: 'Alice',
+        email: 'alice@example.com',
+      }
+      render(<HeaderUserMenu />)
+      const avatar = screen.getByTestId('header-avatar')
+      expect(avatar.textContent).toContain('A')
     })
 
     it('opens logout modal on avatar click', async () => {
@@ -83,11 +104,11 @@ describe('HeaderUserMenu', () => {
       expect(screen.getAllByText('確認登出？').length).toBeGreaterThan(0)
     })
 
-    it('shows operator name in logout modal', async () => {
+    it('shows user name in logout modal', async () => {
       const user = userEvent.setup()
       render(<HeaderUserMenu />)
       await user.click(screen.getByTestId('header-avatar'))
-      expect(screen.getByText('目前登入：管理員')).toBeTruthy()
+      expect(screen.getByText('目前登入：Tianwen')).toBeTruthy()
     })
 
     it('calls logout on confirm', async () => {
