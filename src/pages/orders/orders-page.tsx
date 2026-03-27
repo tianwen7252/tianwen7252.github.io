@@ -21,7 +21,6 @@ import {
   OrdersSearch,
 } from '@/components/orders'
 import type { Order } from '@/lib/schemas'
-import { useMasonryGrid } from '@/hooks/use-masonry-grid'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -116,13 +115,6 @@ export function OrdersPage() {
     setDeleteTarget(null)
   }
 
-  // Masonry layout for order cards with varying heights
-  const {
-    containerRef: masonryRef,
-    layout: masonry,
-    measured,
-  } = useMasonryGrid(orders.length, 3, 12)
-
   /** Reset all swiped-open cards when clicking outside any card */
   function handlePageClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement
@@ -184,37 +176,18 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {/* Order cards — masonry layout */}
+              {/* Order cards grid — 3 per row */}
               {orders.length > 0 && (
-                <div
-                  ref={masonryRef}
-                  className={
-                    measured ? 'relative mt-4' : 'mt-4 grid grid-cols-3 gap-3'
-                  }
-                  style={measured ? { height: masonry.height } : undefined}
-                >
-                  {orders.map((order, index) => (
-                    <div
+                <div className="mt-4 grid grid-cols-3 gap-3">
+                  {orders.map(order => (
+                    <OrderHistoryCard
                       key={order.id}
-                      style={
-                        measured && masonry.positions[index]
-                          ? {
-                              position: 'absolute',
-                              left: masonry.positions[index].x,
-                              top: masonry.positions[index].y,
-                              width: masonry.positions[index].width,
-                            }
-                          : undefined
-                      }
-                    >
-                      <OrderHistoryCard
-                        order={order}
-                        typeIdMap={typeIdMap}
-                        onDelete={() => handleDeleteRequest(order)}
-                        onEdit={() => setEditingOrder(order)}
-                        resetKey={swipeResetKey}
-                      />
-                    </div>
+                      order={order}
+                      typeIdMap={typeIdMap}
+                      onDelete={() => handleDeleteRequest(order)}
+                      onEdit={() => setEditingOrder(order)}
+                      resetKey={swipeResetKey}
+                    />
                   ))}
                 </div>
               )}
