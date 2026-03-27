@@ -39,6 +39,7 @@ export function OrdersPage() {
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
   const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [swipeResetKey, setSwipeResetKey] = useState(0)
 
   // Fetch orders for the selected date
   const dayStart = selectedDate.startOf('day').valueOf()
@@ -164,17 +165,22 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {/* Order cards grid — 3 per row */}
+              {/* Order cards — masonry 3-column layout */}
               {orders.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-3">
+                <div
+                  className="mt-4 columns-3 gap-3"
+                  onClick={() => setSwipeResetKey(k => k + 1)}
+                >
                   {orders.map(order => (
-                    <OrderHistoryCard
-                      key={order.id}
-                      order={order}
-                      typeIdMap={typeIdMap}
-                      onDelete={() => handleDeleteRequest(order)}
-                      onEdit={() => setEditingOrder(order)}
-                    />
+                    <div key={order.id} className="mb-3 break-inside-avoid">
+                      <OrderHistoryCard
+                        order={order}
+                        typeIdMap={typeIdMap}
+                        onDelete={() => handleDeleteRequest(order)}
+                        onEdit={() => setEditingOrder(order)}
+                        resetKey={swipeResetKey}
+                      />
+                    </div>
                   ))}
                 </div>
               )}

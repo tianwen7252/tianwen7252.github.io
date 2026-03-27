@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
+import dayjs from 'dayjs'
 import type { Order } from '@/lib/schemas'
 import { OrderHistoryCard } from './order-history-card'
 
@@ -326,15 +327,15 @@ describe('OrderHistoryCard', () => {
       />,
     )
     const card = screen.getByTestId('order-history-card')
-    expect(card.textContent).toContain('Updated')
     expect(card.textContent).toContain('2026/03/24 13:30:00')
   })
 
   it('should not show update time when updatedAt equals createdAt', () => {
     render(<OrderHistoryCard {...defaultProps} />)
     const card = screen.getByTestId('order-history-card')
-    // The default order has updatedAt === createdAt
-    expect(card.textContent).not.toContain('Updated')
+    // The default order has updatedAt === createdAt, so no date string shown
+    const defaultTime = dayjs(defaultProps.order.createdAt).format('YYYY/MM/DD HH:mm:ss')
+    expect(card.textContent).not.toContain(defaultTime)
   })
 
   it('should always show both edit and delete swipe actions', () => {

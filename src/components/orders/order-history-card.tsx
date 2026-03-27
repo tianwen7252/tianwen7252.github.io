@@ -24,6 +24,8 @@ export interface OrderHistoryCardProps {
   readonly typeIdMap: ReadonlyMap<string, string>
   readonly onDelete: () => void
   readonly onEdit?: () => void
+  /** When changed, close any open swipe actions on this card */
+  readonly resetKey?: number
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -63,6 +65,7 @@ export function OrderHistoryCard({
   typeIdMap,
   onDelete,
   onEdit,
+  resetKey,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
   // AM/PM format for time display
@@ -79,7 +82,11 @@ export function OrderHistoryCard({
   )
 
   return (
-    <SwipeActions actions={actions} className="rounded-xl border border-border">
+    <SwipeActions
+      actions={actions}
+      className="rounded-xl border border-border"
+      resetKey={resetKey}
+    >
       <div
         data-testid="order-history-card"
         className="rounded-xl bg-card p-4 flex flex-col h-full"
@@ -92,7 +99,7 @@ export function OrderHistoryCard({
 
         {/* Row 2: Categorized items */}
         <div className="flex flex-col gap-2 mb-2">
-          {groups.map(group => {
+          {groups.map((group) => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
@@ -102,7 +109,7 @@ export function OrderHistoryCard({
                 <div className={`mb-1 text-md tracking-wide ${accent.text}`}>
                   {t(group.label)}
                 </div>
-                {group.items.map(item => (
+                {group.items.map((item) => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[3px]"
@@ -120,7 +127,7 @@ export function OrderHistoryCard({
         {/* Row 3: Memo tags */}
         {order.memo.length > 0 && (
           <div data-testid="memo-tags" className="flex gap-1.5 mb-2">
-            {order.memo.map(tag => (
+            {order.memo.map((tag) => (
               <span
                 key={tag}
                 className="inline-block px-2 py-0.5 text-xs rounded-lg bg-[#F8F4EC] text-muted-foreground"
@@ -135,8 +142,8 @@ export function OrderHistoryCard({
         <div className="flex items-baseline justify-between mt-auto">
           {/* Left: update time */}
           {hasUpdate ? (
-            <span className="text-sm text-muted-foreground">
-              {t('orders.updatedAt')}:{' '}
+            <span className="text-xs text-muted-foreground">
+              <Pencil size={8} />
               {dayjs(order.updatedAt).format('YYYY/MM/DD HH:mm:ss')}
             </span>
           ) : (
