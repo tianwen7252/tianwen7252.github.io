@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { Pencil, Trash2, MoveDown } from 'lucide-react'
@@ -70,6 +70,16 @@ export function OrderHistoryCard({
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
   const [expanded, setExpanded] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  // Detect if card content exceeds max height
+  useEffect(() => {
+    const el = cardRef.current
+    if (!el || expanded) return
+    setOverflows(el.scrollHeight > CARD_MAX_HEIGHT)
+  }, [order, expanded])
+
   // AM/PM format for time display
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
@@ -90,6 +100,7 @@ export function OrderHistoryCard({
       resetKey={resetKey}
     >
       <div
+        ref={cardRef}
         data-testid="order-history-card"
         className="relative rounded-xl bg-card p-4 flex flex-col overflow-hidden transition-[max-height] duration-300 ease-in-out"
         style={expanded ? undefined : { maxHeight: CARD_MAX_HEIGHT }}
@@ -165,8 +176,8 @@ export function OrderHistoryCard({
           </div>
         </div>
 
-        {/* Gradient overlay + expand button when card overflows */}
-        {!expanded && (
+        {/* Gradient overlay + expand button — only when content exceeds max height */}
+        {overflows && !expanded && (
           <div
             data-testid="card-expand-overlay"
             className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center justify-end rounded-b-xl pb-3 pt-16"
