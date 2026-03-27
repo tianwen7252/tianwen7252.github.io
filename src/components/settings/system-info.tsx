@@ -9,7 +9,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
-import { Trash2, Eraser, DatabaseBackup, RefreshCw } from 'lucide-react'
+import {
+  Trash2,
+  Eraser,
+  DatabaseBackup,
+  RefreshCw,
+  Check,
+  X,
+} from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { useAppStore } from '@/stores/app-store'
@@ -207,17 +214,23 @@ export function SystemInfo() {
             <CardTitle>{t('settings.loginInfo')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex justify-between">
+            <div>
               <span className="text-muted-foreground">
                 {t('settings.googleAccount')}
               </span>
-              <span>{googleUser?.email ?? t('settings.notLoggedIn')}</span>
+              <div className="break-all">
+                {googleUser?.email ?? t('settings.notLoggedIn')}
+              </div>
             </div>
-            <div className="flex justify-between">
+            <div className="flex justify-between items-center">
               <span className="text-muted-foreground">
                 {t('settings.adminStatus')}
               </span>
-              <span>{isAdmin ? '\u2705' : '\u274C'}</span>
+              {isAdmin ? (
+                <Check size={18} className="text-primary" />
+              ) : (
+                <X size={18} className="text-(--color-red)" />
+              )}
             </div>
           </CardContent>
         </Card>

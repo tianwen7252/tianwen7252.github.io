@@ -180,6 +180,7 @@ export function HeaderUserMenu() {
       {/* Logout confirmation modal */}
       <ConfirmModal
         open={logoutModalOpen}
+        variant="red"
         title={t('auth.logoutConfirm')}
         onConfirm={handleLogout}
         onCancel={() => setLogoutModalOpen(false)}

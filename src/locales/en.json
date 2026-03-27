@@ -120,7 +120,8 @@
     "selectEmployee": "Select operator",
     "logoutSuccess": "Logged out",
     "loginSuccess": "Logged in: {{name}}",
-    "loginError": "Login failed, please try again"
+    "loginError": "Login failed, please try again",
+    "loginViaHeader": "Please click the login button in the header"
   },
   "error": {
     "title": "Error Occurred",
