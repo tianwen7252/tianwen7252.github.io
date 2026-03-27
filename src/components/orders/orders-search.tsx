@@ -23,6 +23,7 @@ export interface OrdersSearchProps {
   readonly isLoading: boolean
   readonly onClose: () => void
   readonly onDelete: (order: Order) => void
+  readonly typeIdMap: ReadonlyMap<string, string>
 }
 
 interface DateGroup {
@@ -47,10 +48,10 @@ function matchesQuery(order: Order, query: string): boolean {
   if (String(order.number).includes(q)) return true
 
   // Check memo tags
-  if (order.memo.some((tag) => tag.toLowerCase().includes(q))) return true
+  if (order.memo.some(tag => tag.toLowerCase().includes(q))) return true
 
   // Check item names
-  if (order.items.some((item) => item.name.toLowerCase().includes(q))) return true
+  if (order.items.some(item => item.name.toLowerCase().includes(q))) return true
 
   return false
 }
@@ -117,6 +118,7 @@ export function OrdersSearch({
   isLoading,
   onClose,
   onDelete,
+  typeIdMap,
 }: OrdersSearchProps) {
   const { t } = useTranslation()
   const [query, setQuery] = useState('')
@@ -131,7 +133,7 @@ export function OrdersSearch({
   // Filter all orders by the query
   const filteredOrders = useMemo(() => {
     if (!query.trim()) return []
-    return orders.filter((order) => matchesQuery(order, query))
+    return orders.filter(order => matchesQuery(order, query))
   }, [orders, query])
 
   // Reset page to 1 whenever query changes
@@ -166,7 +168,7 @@ export function OrdersSearch({
           className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-md outline-none focus:ring-2 focus:ring-ring"
           placeholder={t('orders.searchPlaceholder')}
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={e => setQuery(e.target.value)}
         />
         <RippleButton
           className={buttonVariants({ variant: 'ghost', size: 'icon' })}
@@ -205,7 +207,7 @@ export function OrdersSearch({
               </div>
 
               {/* Date groups */}
-              {pageGroups.map((group) => (
+              {pageGroups.map(group => (
                 <div key={group.date} data-testid="search-result-group">
                   <div
                     data-testid="search-date-label"
@@ -214,10 +216,11 @@ export function OrdersSearch({
                     {group.date}
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    {group.orders.map((order) => (
+                    {group.orders.map(order => (
                       <OrderHistoryCard
                         key={order.id}
                         order={order}
+                        typeIdMap={typeIdMap}
                         onDelete={() => onDelete(order)}
                       />
                     ))}
@@ -232,10 +235,13 @@ export function OrdersSearch({
                   className="flex items-center justify-center gap-2 pt-2"
                 >
                   <RippleButton
-                    className={buttonVariants({ variant: 'outline', size: 'icon' })}
+                    className={buttonVariants({
+                      variant: 'outline',
+                      size: 'icon',
+                    })}
                     aria-label={t('orders.prevPage')}
                     disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(1, p - 1))}
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </RippleButton>
@@ -243,10 +249,13 @@ export function OrdersSearch({
                     {page} / {totalPages}
                   </span>
                   <RippleButton
-                    className={buttonVariants({ variant: 'outline', size: 'icon' })}
+                    className={buttonVariants({
+                      variant: 'outline',
+                      size: 'icon',
+                    })}
                     aria-label={t('orders.nextPage')}
                     disabled={page >= totalPages}
-                    onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                   >
                     <ChevronRight className="h-4 w-4" />
                   </RippleButton>

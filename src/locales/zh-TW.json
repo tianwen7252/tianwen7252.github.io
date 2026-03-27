@@ -152,7 +152,12 @@
     "orderNote": "訂單備註",
     "addTag": "新增備註",
     "deleteTagConfirm": "確定刪除「{{tag}}」？",
-    "change": "找"
+    "change": "找",
+    "editOrder": "編輯訂單",
+    "confirmEdit": "確定編輯",
+    "editTitle": "編輯訂單",
+    "editSuccess": "訂單已更新",
+    "editError": "訂單更新失敗"
   },
   "orders": {
     "title": "訂單紀錄",
@@ -171,6 +176,7 @@
     "toastDeleted": "訂單已刪除",
     "toastDeleteError": "刪除失敗，請重試",
     "moreItems": "+{{count}} more",
+    "viewAll": "查看全部",
     "searchPlaceholder": "搜尋品項名稱、金額...",
     "searchNoResults": "無符合的訂單",
     "searchResultsCount": "共 {{count}} 筆結果",
@@ -178,7 +184,8 @@
     "prevDay": "前一天",
     "nextDay": "後一天",
     "prevPage": "上一頁",
-    "nextPage": "下一頁"
+    "nextPage": "下一頁",
+    "updatedAt": "更新時間"
   },
   "settings": {
     "tabs": {

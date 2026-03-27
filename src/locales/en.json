@@ -152,7 +152,12 @@
     "addTag": "Add note",
     "deleteTagConfirm": "Delete \"{{tag}}\"?",
     "confirmSubmit": "Confirm Submit",
-    "change": "Change"
+    "change": "Change",
+    "editOrder": "Edit Order",
+    "confirmEdit": "Confirm Edit",
+    "editTitle": "Edit Order",
+    "editSuccess": "Order updated",
+    "editError": "Failed to update order"
   },
   "orders": {
     "title": "Order History",
@@ -171,6 +176,7 @@
     "toastDeleted": "Order deleted",
     "toastDeleteError": "Delete failed, please retry",
     "moreItems": "+{{count}} more",
+    "viewAll": "View all",
     "searchPlaceholder": "Search by item name, amount...",
     "searchNoResults": "No matching orders",
     "searchResultsCount": "{{count}} results",
@@ -178,7 +184,8 @@
     "prevDay": "Previous day",
     "nextDay": "Next day",
     "prevPage": "Previous page",
-    "nextPage": "Next page"
+    "nextPage": "Next page",
+    "updatedAt": "Updated"
   },
   "settings": {
     "tabs": {

@@ -4,19 +4,20 @@
  * Supports date navigation, order deletion, and full-text search.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import dayjs from 'dayjs'
 import type { Dayjs } from 'dayjs'
 import { useTranslation } from 'react-i18next'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { PackageOpen } from 'lucide-react'
-import { getOrderRepo } from '@/lib/repositories/provider'
+import { getOrderRepo, getCommodityRepo } from '@/lib/repositories/provider'
 import { notify } from '@/components/ui/sonner'
 import {
   OrdersDateHeader,
   OrdersShiftSummary,
   OrderHistoryCard,
   DeleteOrderModal,
+  EditOrderModal,
   OrdersSearch,
 } from '@/components/orders'
 import type { Order } from '@/lib/schemas'
@@ -36,13 +37,19 @@ export function OrdersPage() {
   const queryClient = useQueryClient()
   const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs())
   const [deleteTarget, setDeleteTarget] = useState<DeleteTarget | null>(null)
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [swipeResetKey, setSwipeResetKey] = useState(0)
 
   // Fetch orders for the selected date
   const dayStart = selectedDate.startOf('day').valueOf()
   const dayEnd = selectedDate.endOf('day').valueOf()
 
-  const { data: orders = [], isLoading, isError } = useQuery({
+  const {
+    data: orders = [],
+    isLoading,
+    isError,
+  } = useQuery({
     queryKey: ['orders', selectedDate.format('YYYY-MM-DD')],
     queryFn: () => getOrderRepo().findByDateRange(dayStart, dayEnd),
     staleTime: 0,
@@ -55,6 +62,22 @@ export function OrdersPage() {
     enabled: isSearchOpen,
     staleTime: 60_000,
   })
+
+  // Fetch commodities for typeIdMap (needed for category grouping)
+  const { data: commodities = [] } = useQuery({
+    queryKey: ['commodities', 'all'],
+    queryFn: () => getCommodityRepo().findAll(),
+    staleTime: 60_000,
+  })
+
+  // Build a commodityId -> typeId lookup map from the commodity list
+  const typeIdMap = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const c of commodities) {
+      map.set(c.id, c.typeId)
+    }
+    return map
+  }, [commodities])
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -92,8 +115,19 @@ export function OrdersPage() {
     setDeleteTarget(null)
   }
 
+  /** Reset all swiped-open cards when clicking outside any card */
+  function handlePageClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement
+    if (!target.closest('[data-testid="swipe-actions"]')) {
+      setSwipeResetKey(k => k + 1)
+    }
+  }
+
   return (
-    <div className="h-[calc(100vh-57px)] overflow-y-auto p-4">
+    <div
+      className="h-[calc(100vh-57px)] overflow-y-auto p-4"
+      onClick={handlePageClick}
+    >
       {/* Search view — replaces normal content when open */}
       {isSearchOpen ? (
         <OrdersSearch
@@ -101,6 +135,7 @@ export function OrdersPage() {
           isLoading={isAllLoading}
           onClose={() => setIsSearchOpen(false)}
           onDelete={handleDeleteRequest}
+          typeIdMap={typeIdMap}
         />
       ) : (
         <>
@@ -144,11 +179,14 @@ export function OrdersPage() {
               {/* Order cards grid — 3 per row */}
               {orders.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  {orders.map((order) => (
+                  {orders.map(order => (
                     <OrderHistoryCard
                       key={order.id}
                       order={order}
+                      typeIdMap={typeIdMap}
                       onDelete={() => handleDeleteRequest(order)}
+                      onEdit={() => setEditingOrder(order)}
+                      resetKey={swipeResetKey}
                     />
                   ))}
                 </div>
@@ -165,6 +203,18 @@ export function OrdersPage() {
         onConfirm={handleDeleteConfirm}
         onCancel={handleDeleteCancel}
         loading={deleteMutation.isPending}
+      />
+
+      {/* Edit order modal — opened when editing an order */}
+      <EditOrderModal
+        open={editingOrder !== null}
+        order={editingOrder}
+        typeIdMap={typeIdMap}
+        onClose={() => setEditingOrder(null)}
+        onSaved={() => {
+          setEditingOrder(null)
+          queryClient.invalidateQueries({ queryKey: ['orders'] })
+        }}
       />
     </div>
   )

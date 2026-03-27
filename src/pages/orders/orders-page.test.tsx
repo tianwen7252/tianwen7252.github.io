@@ -22,6 +22,9 @@ vi.mock('@/lib/repositories/provider', () => ({
     findAll: vi.fn(),
     remove: vi.fn(),
   })),
+  getCommodityRepo: vi.fn(() => ({
+    findAll: vi.fn().mockResolvedValue([]),
+  })),
 }))
 
 // Mock child components to isolate page testing
@@ -74,6 +77,8 @@ vi.mock('@/components/orders', () => ({
       </button>
     </div>
   ),
+  EditOrderModal: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="edit-order-modal">Edit Order</div> : null,
 }))
 
 // Mock sonner toast

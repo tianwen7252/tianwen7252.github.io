@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from 'react'
+import { useRef, useState, useCallback, useEffect } from 'react'
 import { cn } from '@/lib/cn'
 
 // Minimum movement (px) to determine swipe direction
@@ -17,6 +17,8 @@ export interface SwipeActionsProps {
   readonly actionWidth?: number
   readonly children: React.ReactNode
   readonly className?: string
+  /** When this value changes, close any open swipe actions */
+  readonly resetKey?: number
 }
 
 /**
@@ -29,6 +31,7 @@ export function SwipeActions({
   actionWidth = 64,
   children,
   className,
+  resetKey,
 }: SwipeActionsProps) {
   const [offsetX, setOffsetX] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
@@ -41,6 +44,13 @@ export function SwipeActions({
   const offsetXRef = useRef(0)
 
   const totalActionWidth = actions.length * actionWidth
+
+  // Close swipe actions when resetKey changes (e.g., clicking empty space on page)
+  useEffect(() => {
+    offsetXRef.current = 0
+    setOffsetX(0)
+    setIsOpen(false)
+  }, [resetKey])
 
   // Early return for empty actions — no swipe behavior needed
   if (actions.length === 0) {

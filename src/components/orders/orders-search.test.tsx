@@ -29,7 +29,9 @@ vi.mock('react-i18next', () => ({
 }))
 
 vi.mock('lucide-react', () => ({
-  X: (props: Record<string, unknown>) => <span data-testid="x-icon" {...props} />,
+  X: (props: Record<string, unknown>) => (
+    <span data-testid="x-icon" {...props} />
+  ),
   ChevronLeft: (props: Record<string, unknown>) => (
     <span data-testid="chevron-left-icon" {...props} />
   ),
@@ -70,6 +72,7 @@ describe('OrdersSearch', () => {
     isLoading: false,
     onClose,
     onDelete,
+    typeIdMap: new Map<string, string>(),
   }
 
   beforeEach(() => {
@@ -122,12 +125,34 @@ describe('OrdersSearch', () => {
       makeOrder({
         id: 'o1',
         number: 1,
-        items: [{ id: 'i1', orderId: 'o1', commodityId: 'c1', name: 'Chicken Bento', price: 200, quantity: 1, includesSoup: false, createdAt: 1700000000000 }],
+        items: [
+          {
+            id: 'i1',
+            orderId: 'o1',
+            commodityId: 'c1',
+            name: 'Chicken Bento',
+            price: 200,
+            quantity: 1,
+            includesSoup: false,
+            createdAt: 1700000000000,
+          },
+        ],
       }),
       makeOrder({
         id: 'o2',
         number: 2,
-        items: [{ id: 'i2', orderId: 'o2', commodityId: 'c2', name: 'Fish Soup', price: 100, quantity: 1, includesSoup: false, createdAt: 1700000000000 }],
+        items: [
+          {
+            id: 'i2',
+            orderId: 'o2',
+            commodityId: 'c2',
+            name: 'Fish Soup',
+            price: 100,
+            quantity: 1,
+            includesSoup: false,
+            createdAt: 1700000000000,
+          },
+        ],
       }),
     ]
     const { default: userEvent } = await import('@testing-library/user-event')

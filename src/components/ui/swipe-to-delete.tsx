@@ -11,6 +11,8 @@ interface SwipeToDeleteProps {
   readonly children: React.ReactNode
   /** Additional class for the outer container */
   readonly className?: string
+  /** Override foreground background class (default: 'bg-card'). Use 'bg-transparent' inside modals. */
+  readonly foregroundClassName?: string
 }
 
 /**
@@ -23,6 +25,7 @@ export function SwipeToDelete({
   threshold = 80,
   children,
   className,
+  foregroundClassName = 'bg-card',
 }: SwipeToDeleteProps) {
   const [offsetX, setOffsetX] = useState(0)
   const [isSwiping, setIsSwiping] = useState(false)
@@ -102,7 +105,7 @@ export function SwipeToDelete({
       {/* Foreground layer — swipeable content */}
       <div
         className={cn(
-          'relative bg-card',
+          `relative ${foregroundClassName}`,
           !isSwiping && !isDeleting && 'transition-transform duration-200',
         )}
         style={{ transform: `translateX(${offsetX}px)` }}

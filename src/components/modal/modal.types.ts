@@ -1,7 +1,19 @@
-export type GradientVariant = 'green' | 'warm' | 'red' | 'blue' | 'orange' | 'gray'
+export type GradientVariant =
+  | 'green'
+  | 'warm'
+  | 'red'
+  | 'blue'
+  | 'orange'
+  | 'gray'
 
 /** Preset shine color names or custom ShineBorder color format */
-export type ShineColorPreset = 'green' | 'purple' | 'red' | 'blue' | 'orange' | 'gray'
+export type ShineColorPreset =
+  | 'green'
+  | 'purple'
+  | 'red'
+  | 'blue'
+  | 'orange'
+  | 'gray'
 export type ShineColor = ShineColorPreset | string | string[]
 
 /**
@@ -27,6 +39,8 @@ export interface ModalProps {
   readonly width?: number | string
   /** Container height in px or CSS string. When set, content fills the space and footer pins to bottom. */
   readonly height?: number | string
+  /** Enable smooth CSS transition when width/height change (default: false) */
+  readonly transition?: boolean
   /** Animate the overlay gradient, cycling through all color variants */
   readonly animated?: boolean
   /** Show loading spinner overlay */

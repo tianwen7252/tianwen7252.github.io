@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { nanoid } from 'nanoid'
 import { getOrderRepo } from '@/lib/repositories/provider'
+import type { Order } from '@/lib/schemas'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -43,17 +44,26 @@ interface OrderState {
   readonly discounts: readonly Discount[]
   /** Last added/updated cart item — [id, seq] where seq increments to trigger scroll */
   readonly lastAddedItem: readonly [string, number] | null
+  /** Monotonic counter incremented on each submitOrder — used to reset dependent UI (e.g., category tabs) */
+  readonly submitSeq: number
 }
 
 interface OrderActions {
   setOperator: (employeeId: string | null, name: string | null) => void
-  addItem: (commodity: { id: string; name: string; price: number; typeId: string; includesSoup: boolean }) => void
+  addItem: (commodity: {
+    id: string
+    name: string
+    price: number
+    typeId: string
+    includesSoup: boolean
+  }) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
   updateNote: (cartItemId: string, note: string) => void
   addDiscount: (label: string, amount: number) => void
   removeDiscount: (discountId: string) => void
   clearCart: () => void
+  loadOrder: (order: Order, typeIdMap: ReadonlyMap<string, string>) => void
   submitOrder: (memoTags?: string[]) => Promise<void>
   getSubtotal: () => number
   getTotalDiscount: () => number
@@ -71,11 +81,12 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   items: [],
   discounts: [],
   lastAddedItem: null,
+  submitSeq: 0,
 
   setOperator: (employeeId, name) =>
     set({ operatorId: employeeId, operatorName: name }),
 
-  addItem: (commodity) =>
+  addItem: commodity =>
     set(state => {
       const existing = state.items.find(
         item => item.commodityId === commodity.id,
@@ -88,7 +99,10 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
               ? { ...item, quantity: item.quantity + 1 }
               : item,
           ),
-          lastAddedItem: [existing.id, (state.lastAddedItem?.[1] ?? 0) + 1] as const,
+          lastAddedItem: [
+            existing.id,
+            (state.lastAddedItem?.[1] ?? 0) + 1,
+          ] as const,
         }
       }
       // Add new cart item
@@ -102,10 +116,16 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
         note: '',
         includesSoup: commodity.includesSoup,
       }
-      return { items: [...state.items, newItem], lastAddedItem: [newItem.id, (state.lastAddedItem?.[1] ?? 0) + 1] as const }
+      return {
+        items: [...state.items, newItem],
+        lastAddedItem: [
+          newItem.id,
+          (state.lastAddedItem?.[1] ?? 0) + 1,
+        ] as const,
+      }
     }),
 
-  removeItem: (cartItemId) =>
+  removeItem: cartItemId =>
     set(state => ({
       items: state.items.filter(item => item.id !== cartItemId),
     })),
@@ -132,22 +152,45 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   addDiscount: (label, amount) => {
     if (amount <= 0) return
     set(state => ({
-      discounts: [
-        ...state.discounts,
-        { id: nanoid(), label, amount },
-      ],
+      discounts: [...state.discounts, { id: nanoid(), label, amount }],
     }))
   },
 
-  removeDiscount: (discountId) =>
+  removeDiscount: discountId =>
     set(state => ({
       discounts: state.discounts.filter(d => d.id !== discountId),
     })),
 
   clearCart: () => set({ items: [], discounts: [] }),
 
-  submitOrder: async (memoTags) => {
-    const { items, discounts, operatorId, getSubtotal, getTotal, getSoupCount } = get()
+  loadOrder: (order, typeIdMap) =>
+    set({
+      items: order.items.map(orderItem => ({
+        id: nanoid(),
+        commodityId: orderItem.commodityId,
+        typeId: typeIdMap.get(orderItem.commodityId) ?? 'other',
+        name: orderItem.name,
+        price: orderItem.price,
+        quantity: orderItem.quantity,
+        note: '',
+        includesSoup: orderItem.includesSoup,
+      })),
+      discounts: order.discounts.map(discount => ({
+        id: nanoid(),
+        label: discount.label,
+        amount: discount.amount,
+      })),
+    }),
+
+  submitOrder: async memoTags => {
+    const {
+      items,
+      discounts,
+      operatorId,
+      getSubtotal,
+      getTotal,
+      getSoupCount,
+    } = get()
 
     // Guard against empty cart
     if (items.length === 0) {
@@ -161,9 +204,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
     const number = await repo.getNextOrderNumber()
 
     // Collect non-empty notes, prepended by memoTags
-    const itemNotes = items
-      .map(item => item.note)
-      .filter(note => note !== '')
+    const itemNotes = items.map(item => item.note).filter(note => note !== '')
     const memo = [...(memoTags ?? []), ...itemNotes]
 
     await repo.create({
@@ -186,8 +227,12 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       editor: operatorId ?? '',
     })
 
-    // Clear cart after successful submit
-    get().clearCart()
+    // Clear cart and increment submitSeq to reset ProductGrid tab
+    set(state => ({
+      items: [],
+      discounts: [],
+      submitSeq: state.submitSeq + 1,
+    }))
   },
 
   getSubtotal: () => {

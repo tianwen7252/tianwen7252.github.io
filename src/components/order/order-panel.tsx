@@ -10,8 +10,28 @@ import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
 import { ConfirmOrderModal } from './confirm-order-modal'
 
+// ─── Types ───────────────────────────────────────────────────────────────────
+
+interface OrderPanelProps {
+  /** Override submit button behavior. When provided, clicking submit calls this instead of opening ConfirmOrderModal. */
+  readonly onSubmitClick?: () => void
+  /** Custom submit button label (default: t('order.submit')) */
+  readonly submitLabel?: string
+  /** Custom submit button color (CSS color value) */
+  readonly submitColor?: string
+  /** Override SwipeToDelete foreground background class (default: 'bg-card'). Use 'bg-transparent' inside modals. */
+  readonly swipeForegroundClassName?: string
+}
+
+// ─── Component ───────────────────────────────────────────────────────────────
+
 /** Main order panel (right sidebar) wiring store data to presentational components */
-export function OrderPanel() {
+export function OrderPanel({
+  onSubmitClick,
+  submitLabel,
+  submitColor,
+  swipeForegroundClassName,
+}: OrderPanelProps) {
   const items = useOrderStore((s) => s.items)
   const discounts = useOrderStore((s) => s.discounts)
   const removeItem = useOrderStore((s) => s.removeItem)
@@ -61,7 +81,7 @@ export function OrderPanel() {
   }
 
   return (
-    <div className="flex h-full flex-col gap-4 px-4 pb-4">
+    <div className="flex h-full flex-col gap-4 px-4">
       {/* Header */}
       <div className="flex items-center gap-2">
         <ClipboardList className="size-5" />
@@ -99,7 +119,7 @@ export function OrderPanel() {
           <div className="divide-y divide-border pr-2">
             {items.map((item) => (
               <div key={item.id} data-cart-item-id={item.id}>
-                <SwipeToDelete onDelete={() => removeItem(item.id)}>
+                <SwipeToDelete onDelete={() => removeItem(item.id)} foregroundClassName={swipeForegroundClassName}>
                   <OrderItemRow
                     item={item}
                     onRemove={removeItem}
@@ -123,27 +143,30 @@ export function OrderPanel() {
         total={total}
       />
 
-      {/* Submit button — opens confirmation modal */}
+      {/* Submit button — opens confirmation modal or calls custom handler */}
       <RippleButton
         className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         disabled={isEmpty || isSubmitting}
-        onClick={() => setConfirmOpen(true)}
+        onClick={onSubmitClick ?? (() => setConfirmOpen(true))}
+        style={submitColor ? { backgroundColor: submitColor } : undefined}
       >
-        {t('order.submit')}
+        {submitLabel ?? t('order.submit')}
       </RippleButton>
 
-      {/* Confirm order modal */}
-      <ConfirmOrderModal
-        open={confirmOpen}
-        onClose={() => setConfirmOpen(false)}
-        onConfirm={handleSubmit}
-        items={items}
-        discounts={discounts}
-        total={total}
-        bentoCount={bentoCount}
-        soupCount={soupCount}
-        isSubmitting={isSubmitting}
-      />
+      {/* Confirm order modal — only rendered when using default submit behavior */}
+      {!onSubmitClick && (
+        <ConfirmOrderModal
+          open={confirmOpen}
+          onClose={() => setConfirmOpen(false)}
+          onConfirm={handleSubmit}
+          items={items}
+          discounts={discounts}
+          total={total}
+          bentoCount={bentoCount}
+          soupCount={soupCount}
+          isSubmitting={isSubmitting}
+        />
+      )}
     </div>
   )
 }

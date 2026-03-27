@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Dialog as DialogPrimitive } from 'radix-ui'
 import { useTranslation } from 'react-i18next'
 import { Loader2, X } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { resolvePx } from '@/lib/resolve-px'
 import { ShineBorder } from '@/components/ui/shine-border'
 import { RippleButton } from '@/components/ui/ripple-button'
 import type {
@@ -95,6 +96,7 @@ export function Modal({
   shineColor,
   width = 500,
   height,
+  transition: enableTransition = false,
   loading = false,
   closeOnBackdropClick = true,
   onClose,
@@ -103,6 +105,38 @@ export function Modal({
   // dialogOpen stays true during close animation; closing triggers CSS exit classes.
   const [dialogOpen, setDialogOpen] = useState(false)
   const [closing, setClosing] = useState(false)
+
+  // Track viewport size for vw/vh resolution when transition is enabled
+  const [viewport, setViewport] = useState(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 1024,
+    height: typeof window !== 'undefined' ? window.innerHeight : 768,
+  }))
+
+  // Recalculate viewport on resize (only when transition is enabled)
+  useEffect(() => {
+    if (!enableTransition) return
+    function handleResize() {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      })
+    }
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [enableTransition])
+
+  // Resolve width/height to px values when transition is enabled
+  const resolvedWidth = useMemo(
+    () => (enableTransition ? resolvePx(width, viewport) : width),
+    [enableTransition, width, viewport],
+  )
+  const resolvedHeight = useMemo(
+    () =>
+      enableTransition && height !== undefined
+        ? resolvePx(height, viewport)
+        : height,
+    [enableTransition, height, viewport],
+  )
 
   useEffect(() => {
     if (open) {
@@ -134,7 +168,7 @@ export function Modal({
   return (
     <DialogPrimitive.Root
       open={dialogOpen}
-      onOpenChange={(o) => {
+      onOpenChange={o => {
         if (!o && closeOnBackdropClick) onClose()
       }}
     >
@@ -162,10 +196,10 @@ export function Modal({
             'glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none',
             closing && 'glass-modal-closing',
           )}
-          onClick={(e) => {
+          onClick={e => {
             if (e.target === e.currentTarget && closeOnBackdropClick) onClose()
           }}
-          onEscapeKeyDown={(e) => {
+          onEscapeKeyDown={e => {
             if (!closeOnBackdropClick) e.preventDefault()
             else onClose()
           }}
@@ -177,6 +211,7 @@ export function Modal({
 
           {/* Glassmorphism container with CSS entrance/exit animation */}
           <div
+            data-testid="modal-glass-container"
             className={cn(
               'relative',
               closing ? 'animate-modal-exit' : 'animate-modal-enter',
@@ -191,11 +226,17 @@ export function Modal({
               boxShadow: '0 8px 32px rgba(31, 38, 135, 0.1)',
               borderRadius: 16,
               padding: 40,
-              width,
-              height,
+              width: resolvedWidth,
+              height: resolvedHeight,
               maxWidth: 'calc(100vw - 32px)',
               overflow: 'hidden',
-              ...(height
+              ...(enableTransition
+                ? {
+                    transition:
+                      'width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                  }
+                : {}),
+              ...(resolvedHeight
                 ? { display: 'flex', flexDirection: 'column' as const }
                 : {}),
             }}

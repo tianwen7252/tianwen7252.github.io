@@ -10,6 +10,7 @@ export interface OrderRepository {
   findById(id: string): Promise<Order | undefined>
   findByDateRange(startDate: number, endDate: number): Promise<Order[]>
   create(data: CreateOrder): Promise<Order>
+  update(id: string, data: CreateOrder): Promise<Order>
   remove(id: string): Promise<boolean>
   getNextOrderNumber(): Promise<number>
 }
@@ -18,7 +19,9 @@ export interface OrderRepository {
  * Parse a raw DB row into the base Order fields (without normalized items/discounts).
  * Handles JSON.parse for the memo field.
  */
-function rowToOrderBase(row: Record<string, unknown>): Omit<Order, 'items' | 'discounts'> {
+function rowToOrderBase(
+  row: Record<string, unknown>,
+): Omit<Order, 'items' | 'discounts'> {
   return {
     id: String(row['id']),
     number: Number(row['number']),
@@ -39,7 +42,9 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
   const itemRepo = createOrderItemRepository(db)
   const discountRepo = createOrderDiscountRepository(db)
 
-  async function attachRelated(base: Omit<Order, 'items' | 'discounts'>): Promise<Order> {
+  async function attachRelated(
+    base: Omit<Order, 'items' | 'discounts'>,
+  ): Promise<Order> {
     const [items, discounts] = await Promise.all([
       itemRepo.findByOrderId(base.id),
       discountRepo.findByOrderId(base.id),
@@ -99,14 +104,14 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
         // Insert normalized items if any
         if (data.items.length > 0) {
           await itemRepo.createBatch(
-            data.items.map((item) => ({ ...item, orderId: id })),
+            data.items.map(item => ({ ...item, orderId: id })),
           )
         }
 
         // Insert normalized discounts if any
         if (data.discounts.length > 0) {
           await discountRepo.createBatch(
-            data.discounts.map((d) => ({ ...d, orderId: id })),
+            data.discounts.map(d => ({ ...d, orderId: id })),
           )
         }
 
@@ -117,18 +122,65 @@ export function createOrderRepository(db: AsyncDatabase): OrderRepository {
       }
 
       const created = await this.findById(id)
-      if (!created) throw new Error(`Failed to retrieve created order with id: ${id}`)
+      if (!created)
+        throw new Error(`Failed to retrieve created order with id: ${id}`)
       return created
+    },
+
+    async update(id: string, data: CreateOrder) {
+      const now = Date.now()
+
+      await db.exec('BEGIN TRANSACTION')
+      try {
+        await db.exec(
+          `UPDATE orders
+           SET memo = ?, soups = ?, total = ?, original_total = ?, edited_memo = ?, editor = ?, updated_at = ?
+           WHERE id = ?`,
+          [
+            JSON.stringify(data.memo),
+            data.soups,
+            data.total,
+            data.originalTotal ?? null,
+            data.editedMemo ?? null,
+            data.editor,
+            now,
+            id,
+          ],
+        )
+
+        // Replace child rows: delete existing, then insert new
+        await itemRepo.removeByOrderId(id)
+        await discountRepo.removeByOrderId(id)
+
+        if (data.items.length > 0) {
+          await itemRepo.createBatch(
+            data.items.map(item => ({ ...item, orderId: id })),
+          )
+        }
+
+        if (data.discounts.length > 0) {
+          await discountRepo.createBatch(
+            data.discounts.map(d => ({ ...d, orderId: id })),
+          )
+        }
+
+        await db.exec('COMMIT')
+      } catch (err) {
+        await db.exec('ROLLBACK')
+        throw err
+      }
+
+      const updated = await this.findById(id)
+      if (!updated)
+        throw new Error(`Failed to retrieve updated order with id: ${id}`)
+      return updated
     },
 
     async remove(id: string) {
       // Delete child rows first to avoid FK constraint violations
       await itemRepo.removeByOrderId(id)
       await discountRepo.removeByOrderId(id)
-      const result = await db.exec(
-        'DELETE FROM orders WHERE id = ?',
-        [id],
-      )
+      const result = await db.exec('DELETE FROM orders WHERE id = ?', [id])
       return (result.changes ?? 0) > 0
     },
 
