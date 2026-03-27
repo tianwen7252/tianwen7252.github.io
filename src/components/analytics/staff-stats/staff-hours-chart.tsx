@@ -71,7 +71,7 @@ export function StaffHoursChart({ data }: StaffHoursChartProps) {
   const maxValue = Math.max(...chartData.map(d => d.totalHours), 1)
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">{t('analytics.staffHoursTitle')}</CardTitle>
         <CardDescription>{t('analytics.staffHoursDesc')}</CardDescription>

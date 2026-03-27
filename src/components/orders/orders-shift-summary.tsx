@@ -10,6 +10,7 @@ import { Sun, MoonStar, CircleDollarSign } from 'lucide-react'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
 import { MORNING_SHIFT } from '@/constants/app'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -72,7 +73,6 @@ function computeShiftStats(orders: readonly Order[]): {
   }
 }
 
-
 // ─── Component ───────────────────────────────────────────────────────────────
 
 /**
@@ -86,67 +86,70 @@ export function OrdersShiftSummary({ orders }: OrdersShiftSummaryProps) {
   return (
     <div data-testid="shift-summary" className="grid grid-cols-3 gap-3">
       {/* Morning shift card */}
-      <div
-        data-testid="morning-card"
-        className="rounded-xl border border-border bg-card p-3 shadow-sm"
-      >
-        <div className="text-md text-muted-foreground">
-          <div className="flex justify-between">
-            {t('orders.morningShift')}
-            <Sun />
+      <Card shadow data-testid="morning-card" className="py-3">
+        <CardHeader className="px-3 py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            <div className="flex justify-between">
+              {t('orders.morningShift')}
+              <Sun />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-3">
+          <div className="text-base text-primary">
+            <div className="flex justify-between">
+              {t('orders.orderCount', { count: morning.count })}
+              <span className="text-(--color-gold)">
+                {formatCurrency(morning.revenue)}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-1 text-base text-primary">
-          <div className="flex justify-between">
-            {t('orders.orderCount', { count: morning.count })}
-            <span className="text-(--color-gold)">
-              {formatCurrency(morning.revenue)}
-            </span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Afternoon shift card */}
-      <div
-        data-testid="afternoon-card"
-        className="rounded-xl border border-border bg-card p-3 shadow-sm"
-      >
-        <div className="text-md text-muted-foreground">
-          <div className="flex justify-between">
-            {t('orders.afternoonShift')}
-            <MoonStar />
+      <Card shadow data-testid="afternoon-card" className="py-3">
+        <CardHeader className="px-3 py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            <div className="flex justify-between">
+              {t('orders.afternoonShift')}
+              <MoonStar />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-3">
+          <div className="text-base text-primary">
+            <div className="flex justify-between">
+              {t('orders.orderCount', { count: afternoon.count })}
+              <span className="text-(--color-gold)">
+                {formatCurrency(afternoon.revenue)}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-1 text-base text-primary">
-          <div className="flex justify-between">
-            {t('orders.orderCount', { count: afternoon.count })}
-            <span className="text-(--color-gold)">
-              {formatCurrency(afternoon.revenue)}
-            </span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Grand total card */}
-      <div
-        data-testid="total-card"
-        className="rounded-xl border border-border bg-card p-3 shadow-sm"
-      >
-        <div className="text-md text-muted-foreground">
-          <div className="flex justify-between">
-            {t('orders.grandTotal')}
-            <CircleDollarSign />
+      <Card shadow data-testid="total-card" className="py-3">
+        <CardHeader className="px-3 py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            <div className="flex justify-between">
+              {t('orders.grandTotal')}
+              <CircleDollarSign />
+            </div>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="px-3">
+          <div className="text-base text-primary">
+            <div className="flex justify-between">
+              {t('orders.orderCount', { count: total.count })}
+              <span className="text-(--color-gold)">
+                {formatCurrency(total.revenue)}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className="mt-1 text-base text-primary">
-          <div className="flex justify-between">
-            {t('orders.orderCount', { count: total.count })}
-            <span className="text-(--color-gold)">
-              {formatCurrency(total.revenue)}
-            </span>
-          </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

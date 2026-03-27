@@ -63,7 +63,7 @@ export function DailyHeadcountChart({ data, totalEmployees }: DailyHeadcountChar
   const chartData = buildChartData(data, totalEmployees)
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">{t('analytics.attendanceRateTitle')}</CardTitle>
         <CardDescription>{t('analytics.attendanceRateDesc')}</CardDescription>

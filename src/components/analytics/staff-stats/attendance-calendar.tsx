@@ -135,7 +135,7 @@ export function AttendanceCalendar({
   }, [selectedDate, statisticsRepo])
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">{t('analytics.attendanceCalendarTitle')}</CardTitle>
         <CardDescription>{t('analytics.attendanceCalendarDesc')}</CardDescription>

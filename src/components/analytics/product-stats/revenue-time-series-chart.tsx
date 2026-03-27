@@ -126,7 +126,7 @@ export function RevenueTimeSeriesChart({ data }: RevenueTimeSeriesChartProps) {
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.revenueTimeSeriesTitle')}

@@ -1,7 +1,6 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { RouterProvider } from '@tanstack/react-router'
-import { GoogleOAuthProvider } from '@react-oauth/google'
 import { QueryProvider } from './providers/query-provider'
 import { Toaster } from '@/components/ui/sonner'
 import {
@@ -23,6 +22,7 @@ import {
   waitForWorkerReady,
 } from '@/lib/worker-database'
 import { initRepositories } from '@/lib/repositories'
+import { installGlobalErrorLogger } from '@/lib/error-logger'
 
 // Initialize i18n before rendering (side-effect import)
 import './lib/i18n'
@@ -89,15 +89,14 @@ async function bootstrap() {
 
   const db = createWorkerDatabase(worker)
   initRepositories(db)
+  installGlobalErrorLogger()
 
   createRoot(rootElement).render(
     <StrictMode>
-      <GoogleOAuthProvider clientId="799987452297-qetqo8blfushga2h064of13epeqtgh4a.apps.googleusercontent.com">
-        <QueryProvider>
-          <RouterProvider router={router} />
-          <Toaster />
-        </QueryProvider>
-      </GoogleOAuthProvider>
+      <QueryProvider>
+        <RouterProvider router={router} />
+        <Toaster />
+      </QueryProvider>
     </StrictMode>,
   )
 }

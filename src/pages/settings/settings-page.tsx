@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
+import { SystemInfo } from '@/components/settings/system-info'
 import { ClockIn } from '@/components/clock-in'
 import { Records } from '@/components/records'
 import { StaffAdmin } from '@/components/staff-admin'
 import { AuthGuard } from '@/components/auth-guard'
 
-type TabKey = 'clock-in' | 'records' | 'staff-admin'
+type TabKey = 'system-info' | 'clock-in' | 'records' | 'staff-admin'
 
 interface Tab {
   readonly key: TabKey
@@ -14,6 +15,7 @@ interface Tab {
 }
 
 const TABS: readonly Tab[] = [
+  { key: 'system-info', labelKey: 'settings.systemInfo' },
   { key: 'clock-in', labelKey: 'nav.clockIn' },
   { key: 'records', labelKey: 'nav.records' },
   { key: 'staff-admin', labelKey: 'nav.staffAdmin' },
@@ -21,14 +23,14 @@ const TABS: readonly Tab[] = [
 
 export function SettingsPage() {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<TabKey>('clock-in')
+  const [activeTab, setActiveTab] = useState<TabKey>('system-info')
 
   return (
     <div>
       {/* Tab navigation */}
       <div className="border-b border-border bg-card px-6">
         <div className="flex gap-1">
-          {TABS.map((tab) => (
+          {TABS.map(tab => (
             <button
               key={tab.key}
               type="button"
@@ -48,6 +50,7 @@ export function SettingsPage() {
 
       {/* Tab content */}
       <div>
+        {activeTab === 'system-info' && <SystemInfo />}
         {activeTab === 'clock-in' && <ClockIn />}
         {activeTab === 'records' && <Records />}
         {activeTab === 'staff-admin' && (

@@ -119,7 +119,7 @@ export function ProductTrendChart({
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.productTrendTitle')}

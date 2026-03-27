@@ -109,7 +109,7 @@ export function Bottom10Bentos({ items }: Bottom10BentosProps) {
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.bottom10Title')}

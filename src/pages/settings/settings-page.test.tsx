@@ -5,6 +5,9 @@ import i18n from '@/lib/i18n'
 import { SettingsPage } from './settings-page'
 
 // Mock child components to isolate settings page tests
+vi.mock('@/components/settings/system-info', () => ({
+  SystemInfo: () => <div data-testid="system-info-component">SystemInfo</div>,
+}))
 vi.mock('@/components/clock-in', () => ({
   ClockIn: () => <div data-testid="clock-in-component">ClockIn</div>,
 }))
@@ -28,6 +31,7 @@ describe('SettingsPage', () => {
   describe('tab rendering', () => {
     it('should render tab labels in zh-TW by default', () => {
       render(<SettingsPage />)
+      expect(screen.getByText('系統資訊')).toBeTruthy()
       expect(screen.getByText('打卡')).toBeTruthy()
       expect(screen.getByText('打卡記錄')).toBeTruthy()
       expect(screen.getByText('員工管理')).toBeTruthy()
@@ -36,6 +40,7 @@ describe('SettingsPage', () => {
     it('should render tab labels in English when language is en', async () => {
       await i18n.changeLanguage('en')
       render(<SettingsPage />)
+      expect(screen.getByText('System Info')).toBeTruthy()
       expect(screen.getByText('Clock In')).toBeTruthy()
       expect(screen.getByText('Records')).toBeTruthy()
       expect(screen.getByText('Staff Admin')).toBeTruthy()
@@ -43,8 +48,16 @@ describe('SettingsPage', () => {
   })
 
   describe('tab switching', () => {
-    it('should show ClockIn component by default', () => {
+    it('should show SystemInfo component by default', () => {
       render(<SettingsPage />)
+      expect(screen.getByTestId('system-info-component')).toBeTruthy()
+    })
+
+    it('should show ClockIn component when clock-in tab is clicked', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      await user.click(screen.getByText('打卡'))
       expect(screen.getByTestId('clock-in-component')).toBeTruthy()
     })
 

@@ -72,7 +72,7 @@ export function RevenueHeatmap({ data, year, month }: RevenueHeatmapProps) {
       : null
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.heatmapTitle')}

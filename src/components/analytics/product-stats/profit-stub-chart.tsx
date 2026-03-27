@@ -17,7 +17,7 @@ export function ProfitStubChart() {
   const { t } = useTranslation()
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.profitAnalysisTitle')}

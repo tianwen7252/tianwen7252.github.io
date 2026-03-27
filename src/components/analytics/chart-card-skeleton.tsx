@@ -8,7 +8,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/card'
 
 export function ChartCardSkeleton() {
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-4 w-64" />
@@ -24,7 +24,7 @@ export function KpiGridSkeleton() {
   return (
     <div className="grid grid-cols-3 gap-4">
       {Array.from({ length: 6 }, (_, i) => (
-        <Card key={i} className="shadow-none">
+        <Card key={i}>
           <CardHeader>
             <Skeleton className="h-4 w-24" />
           </CardHeader>
@@ -41,7 +41,7 @@ export function StaffKpiGridSkeleton() {
   return (
     <div className="grid grid-cols-4 gap-4">
       {Array.from({ length: 4 }, (_, i) => (
-        <Card key={i} className="shadow-none">
+        <Card key={i}>
           <CardHeader>
             <Skeleton className="h-4 w-24" />
           </CardHeader>

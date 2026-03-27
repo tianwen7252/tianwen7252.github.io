@@ -1,15 +1,13 @@
 /**
  * ProductKpiGrid — 3-column × 2-row grid of 6 product KPI cards.
- * The totalRevenue card uses NeonGradientCard for visual emphasis.
  * All numeric values animate via NumberTicker.
  */
 
-import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ProductKpis } from '@/lib/repositories/statistics-repository'
 import { NumberTicker } from '@/components/ui/number-ticker'
 import { formatCurrency } from '@/lib/currency'
-import { cn } from '@/lib/cn'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,41 +15,8 @@ interface ProductKpiGridProps {
   kpis: ProductKpis
 }
 
-// ─── KPI card subcomponent ────────────────────────────────────────────────────
-
-interface KpiCardInnerProps {
-  title: string
-  children: ReactNode
-}
-
-function KpiCardInner({ title, children }: KpiCardInnerProps) {
-  return (
-    <>
-      <p className="text-muted-foreground text-base">{title}</p>
-      <div className="mt-1 text-2xl font-normal">{children}</div>
-    </>
-  )
-}
-
-// Plain card wrapper — used for the 5 non-highlighted KPIs.
-interface PlainCardProps extends KpiCardInnerProps {
-  className?: string
-}
-
-function PlainCard({ title, children, className }: PlainCardProps) {
-  return (
-    <article className={cn('rounded-xl border bg-card p-4', className)}>
-      <KpiCardInner title={title}>{children}</KpiCardInner>
-    </article>
-  )
-}
-
 // ─── TWD ticker ───────────────────────────────────────────────────────────────
 
-/**
- * Renders an animated currency value. Because NumberTicker emits a raw number,
- * we layer a static prefix "$" with the formatted whole-number portion.
- */
 interface TwdTickerProps {
   value: number
   testId: string
@@ -65,7 +30,6 @@ function TwdTicker({ value, testId }: TwdTickerProps) {
 
 /**
  * Displays all 6 product KPIs in a responsive 3-column grid.
- * totalRevenue is highlighted with NeonGradientCard.
  */
 export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
   const { t } = useTranslation()
@@ -74,40 +38,97 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
     <div className="grid grid-cols-3 gap-4">
       {/* Row 1 — revenue KPIs */}
 
-      <PlainCard title={t('analytics.totalRevenue')}>
-        <TwdTicker value={kpis.totalRevenue} testId="kpi-totalRevenue" />
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.totalRevenue')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker value={kpis.totalRevenue} testId="kpi-totalRevenue" />
+          </div>
+        </CardContent>
+      </Card>
 
-      <PlainCard title={t('analytics.orderCount')}>
-        <span data-testid="kpi-orderCount">
-          <NumberTicker value={kpis.orderCount} />
-        </span>
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.orderCount')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl">
+            <span data-testid="kpi-orderCount">
+              <NumberTicker value={kpis.orderCount} />
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
-      <PlainCard title={t('analytics.morningRevenue')}>
-        <TwdTicker value={kpis.morningRevenue} testId="kpi-morningRevenue" />
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.morningRevenue')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker
+              value={kpis.morningRevenue}
+              testId="kpi-morningRevenue"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Row 2 */}
 
-      <PlainCard title={t('analytics.afternoonRevenue')}>
-        <TwdTicker
-          value={kpis.afternoonRevenue}
-          testId="kpi-afternoonRevenue"
-        />
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.afternoonRevenue')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl text-(--color-gold)">
+            <TwdTicker
+              value={kpis.afternoonRevenue}
+              testId="kpi-afternoonRevenue"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <PlainCard title={t('analytics.totalQuantity')}>
-        <span data-testid="kpi-totalQuantity">
-          <NumberTicker value={kpis.totalQuantity} />
-        </span>
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.totalQuantity')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl">
+            <span data-testid="kpi-totalQuantity">
+              <NumberTicker value={kpis.totalQuantity} />
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
-      <PlainCard title={t('analytics.bentoQuantity')}>
-        <span data-testid="kpi-bentoQuantity">
-          <NumberTicker value={kpis.bentoQuantity} />
-        </span>
-      </PlainCard>
+      <Card shadow className="py-4">
+        <CardHeader className="py-0">
+          <CardTitle fontSize="text-md" className="text-muted-foreground">
+            {t('analytics.bentoQuantity')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-2xl">
+            <span data-testid="kpi-bentoQuantity">
+              <NumberTicker value={kpis.bentoQuantity} />
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
