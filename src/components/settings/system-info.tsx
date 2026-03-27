@@ -17,7 +17,7 @@ import {
 } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
-import { useAppStore } from '@/stores/app-store'
+import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
 import { APP_VERSION } from '@/lib/version'
@@ -69,8 +69,7 @@ export function SystemInfo() {
   const queryClient = useQueryClient()
   const storagePercent = useStorageEstimate()
 
-  const googleUser = useAppStore(s => s.googleUser)
-  const isAdmin = useAppStore(s => s.isAdmin)
+  const { googleUser, isAdmin } = useGoogleAuth()
 
   // ── Error Logs Query ──────────────────────────────────────────────────
 

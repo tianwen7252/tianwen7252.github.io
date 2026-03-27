@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { useAppStore } from '@/stores/app-store'
+import { useGoogleAuth } from '@/hooks/use-google-auth'
 
 type AuthGuardVariant = 'staffAdmin' | 'backup'
 
@@ -24,8 +24,7 @@ export function AuthGuard({
   variant = 'staffAdmin',
 }: AuthGuardProps) {
   const { t } = useTranslation()
-  const googleUser = useAppStore(s => s.googleUser)
-  const isAdmin = useAppStore(s => s.isAdmin)
+  const { googleUser, isAdmin } = useGoogleAuth()
 
   // Not logged in
   if (!googleUser) {

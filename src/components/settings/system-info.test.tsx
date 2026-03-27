@@ -27,12 +27,14 @@ let mockGoogleUser: {
 } | null = null
 let mockIsAdmin = false
 
-vi.mock('@/stores/app-store', () => ({
-  useAppStore: (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({
-      googleUser: mockGoogleUser,
-      isAdmin: mockIsAdmin,
-    }),
+vi.mock('@/hooks/use-google-auth', () => ({
+  useGoogleAuth: () => ({
+    googleUser: mockGoogleUser,
+    isLoggedIn: mockGoogleUser !== null,
+    isAdmin: mockIsAdmin,
+    login: vi.fn(),
+    logout: vi.fn(),
+  }),
 }))
 
 // Mock error log repository
