@@ -51,27 +51,37 @@ export function HeaderUserMenu() {
   const displayName = googleUser?.name ?? ''
 
   // Google OAuth login flow — popup-based
+  const handleGoogleSuccess = useCallback(
+    async (tokenResponse: { access_token: string }) => {
+      try {
+        const res = await fetch(USERINFO_URL, {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        })
+        if (!res.ok) throw new Error('Failed to fetch user info')
+        const userInfo = (await res.json()) as GoogleUser
+        const admin = isAdminUser(userInfo.sub)
+        setGoogleUser(userInfo, tokenResponse.access_token, admin)
+        notify.success(t('auth.loginSuccess', { name: userInfo.name }))
+      } catch (err) {
+        notify.error(
+          t('auth.loginError') +
+            (err instanceof Error ? `: ${err.message}` : ''),
+        )
+      }
+    },
+    [setGoogleUser, t],
+  )
+
   const googleLogin = useGoogleLogin({
     scope: 'openid email profile',
-    onSuccess: useCallback(
-      async (tokenResponse: { access_token: string }) => {
-        try {
-          const res = await fetch(USERINFO_URL, {
-            headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-          })
-          if (!res.ok) throw new Error('Failed to fetch user info')
-          const userInfo = (await res.json()) as GoogleUser
-          const admin = isAdminUser(userInfo.sub)
-          setGoogleUser(userInfo, tokenResponse.access_token, admin)
-          notify.success(t('auth.loginSuccess', { name: userInfo.name }))
-        } catch {
-          notify.error(t('auth.loginError'))
-        }
-      },
-      [setGoogleUser, t],
-    ),
-    onError: () => {
-      notify.error(t('auth.loginError'))
+    onSuccess: handleGoogleSuccess,
+    onError: errorResponse => {
+      notify.error(
+        t('auth.loginError') +
+          (errorResponse?.error_description
+            ? `: ${errorResponse.error_description}`
+            : ''),
+      )
     },
   })
 
