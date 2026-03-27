@@ -24,6 +24,7 @@ vi.mock('recharts', () => ({
   XAxis: () => null,
   YAxis: () => null,
   CartesianGrid: () => null,
+  LabelList: () => null,
   Legend: () => <div data-testid="legend" />,
   ResponsiveContainer: ({ children }: { children: ReactNode }) => (
     <div data-testid="responsive-container">{children}</div>

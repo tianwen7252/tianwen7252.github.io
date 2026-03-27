@@ -68,13 +68,19 @@ function ProductStats({
 
       <OrderTimeChart data={data.hourlyData} />
 
+      <RevenueHeatmap
+        data={data.heatmapData}
+        year={data.currentYear}
+        month={data.currentMonth}
+      />
+
       <Top10ProductsChart
         items={data.topItems}
         sortBy={data.sortBy}
         onSortChange={data.onSortChange}
       />
 
-      {data.commodityTypes.map((ct) => {
+      {data.commodityTypes.map(ct => {
         const salesRows = data.categorySalesData[ct.typeId] ?? []
         return (
           <CategorySalesChart
@@ -100,12 +106,6 @@ function ProductStats({
           onSelectChange={data.onSelectCommodityChange}
         />
       )}
-
-      <RevenueHeatmap
-        data={data.dailyRevenue}
-        year={data.currentYear}
-        month={data.currentMonth}
-      />
 
       <OrderNotesChart data={data.orderNotes} />
 

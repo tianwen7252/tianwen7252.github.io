@@ -290,7 +290,7 @@
     "top10Desc": "Ranked by quantity or revenue",
     "bottom10Title": "Bottom 10 Bentos",
     "bottom10Desc": "Lowest selling bento items",
-    "heatmapTitle": "Daily Revenue Heatmap",
+    "heatmapTitle": "Monthly Daily Revenue Heatmap",
     "heatmapDesc": "Color intensity reflects daily revenue",
     "staffHoursTitle": "Employee Hours Ranking",
     "staffHoursDesc": "Total working hours per employee",

@@ -11,6 +11,7 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  LabelList,
   PieChart,
   Pie,
   Sector,
@@ -90,7 +91,16 @@ function pivotForBar(
       })
     }
   }
-  return Array.from(dateMap.values())
+  // Add _total field for bar label display
+  const result = Array.from(dateMap.values())
+  for (const entry of result) {
+    let total = 0
+    for (const name of commodityNames) {
+      total += Number(entry[name] ?? 0)
+    }
+    entry['_total'] = total
+  }
+  return result
 }
 
 /** Aggregate totals per commodity for pie chart and table. */
@@ -254,7 +264,17 @@ function BarView({
             radius={
               i === commodityNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
             }
-          />
+          >
+            {/* Show total on top of the last (topmost) stacked segment */}
+            {i === commodityNames.length - 1 && (
+              <LabelList
+                dataKey="_total"
+                position="top"
+                fill="var(--foreground)"
+                fontSize={fontSize}
+              />
+            )}
+          </Bar>
         ))}
       </BarChart>
     </ChartContainer>
@@ -283,7 +303,10 @@ function PieView({ aggregated, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={config}
+      className="min-h-[400px] w-full [&_svg]:overflow-visible"
+    >
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
