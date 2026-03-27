@@ -115,8 +115,16 @@ export function OrdersPage() {
     setDeleteTarget(null)
   }
 
+  /** Reset all swiped-open cards when clicking outside any card */
+  function handlePageClick(e: React.MouseEvent) {
+    const target = e.target as HTMLElement
+    if (!target.closest('[data-testid="swipe-actions"]')) {
+      setSwipeResetKey(k => k + 1)
+    }
+  }
+
   return (
-    <div className="h-[calc(100vh-57px)] overflow-y-auto p-4">
+    <div className="h-[calc(100vh-57px)] overflow-y-auto p-4" onClick={handlePageClick}>
       {/* Search view — replaces normal content when open */}
       {isSearchOpen ? (
         <OrdersSearch
@@ -165,22 +173,18 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {/* Order cards — masonry 3-column layout */}
+              {/* Order cards grid — 3 per row, items-start for varying heights */}
               {orders.length > 0 && (
-                <div
-                  className="mt-4 columns-3 gap-3"
-                  onClick={() => setSwipeResetKey(k => k + 1)}
-                >
+                <div className="mt-4 grid grid-cols-3 gap-3 items-start">
                   {orders.map(order => (
-                    <div key={order.id} className="mb-3 break-inside-avoid">
-                      <OrderHistoryCard
-                        order={order}
-                        typeIdMap={typeIdMap}
-                        onDelete={() => handleDeleteRequest(order)}
-                        onEdit={() => setEditingOrder(order)}
-                        resetKey={swipeResetKey}
-                      />
-                    </div>
+                    <OrderHistoryCard
+                      key={order.id}
+                      order={order}
+                      typeIdMap={typeIdMap}
+                      onDelete={() => handleDeleteRequest(order)}
+                      onEdit={() => setEditingOrder(order)}
+                      resetKey={swipeResetKey}
+                    />
                   ))}
                 </div>
               )}
