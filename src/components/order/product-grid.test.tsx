@@ -24,11 +24,16 @@ vi.mock('@/lib/repositories/provider', () => ({
 // ─── Mock order store ────────────────────────────────────────────────────────
 
 const mockAddItem = vi.fn()
+// Use a mutable ref so the mock always reads the latest value
+const storeState: Record<string, unknown> = {
+  addItem: mockAddItem,
+  submitSeq: 0,
+}
 
 vi.mock('@/stores/order-store', () => {
   const store = (selector: (state: Record<string, unknown>) => unknown) =>
-    selector({ addItem: mockAddItem })
-  store.getState = () => ({ addItem: mockAddItem })
+    selector(storeState)
+  store.getState = () => ({ ...storeState })
   return { useOrderStore: store }
 })
 
@@ -102,6 +107,7 @@ function renderWithProviders(ui: React.ReactElement) {
 describe('ProductGrid', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    storeState.submitSeq = 0
     mockFindAllTypes.mockResolvedValue(mockCategories)
     mockFindOnMarket.mockResolvedValue(mockCommodities)
     mockFindByTypeId.mockResolvedValue(mockCommodities)
@@ -151,7 +157,12 @@ describe('ProductGrid', () => {
 
   it('should call findByTypeId when a category tab is clicked', async () => {
     const filteredItems = [
-      makeCommodity({ id: 'com-4', name: '炒青菜', price: 50, typeId: 'type-2' }),
+      makeCommodity({
+        id: 'com-4',
+        name: '炒青菜',
+        price: 50,
+        typeId: 'type-2',
+      }),
     ]
     mockFindByTypeId.mockResolvedValue(filteredItems)
     const user = userEvent.setup()
@@ -218,6 +229,65 @@ describe('ProductGrid', () => {
     await waitFor(() => {
       expect(mockFindAllTypes).toHaveBeenCalledTimes(1)
       expect(mockFindByTypeId).toHaveBeenCalledWith('bento')
+    })
+  })
+
+  it('should reset category tab to bento when submitSeq changes', async () => {
+    // Use distinct categories with different typeIds to verify the reset
+    const bentoCategory = makeCategoryType({
+      id: 'ct-1',
+      typeId: 'bento',
+      type: 'bento',
+      label: '便當',
+    })
+    const sideCategory = makeCategoryType({
+      id: 'ct-2',
+      typeId: 'type-2',
+      type: 'side',
+      label: '單點',
+    })
+    mockFindAllTypes.mockResolvedValue([bentoCategory, sideCategory])
+    mockFindByTypeId.mockResolvedValue(mockCommodities)
+
+    const user = userEvent.setup()
+    const queryClient = createTestQueryClient()
+    const { rerender } = render(
+      <QueryClientProvider client={queryClient}>
+        <ProductGrid />
+      </QueryClientProvider>,
+    )
+
+    // Wait for initial load — bento tab should be active (default)
+    await waitFor(() => {
+      expect(screen.getByRole('tab', { name: '便當' })).toBeTruthy()
+    })
+    const bentoTab = screen.getByRole('tab', { name: '便當' })
+    expect(bentoTab.getAttribute('aria-selected')).toBe('true')
+
+    // Click the side category tab to switch away from bento
+    await user.click(screen.getByRole('tab', { name: '單點' }))
+    await waitFor(() => {
+      expect(
+        screen.getByRole('tab', { name: '單點' }).getAttribute('aria-selected'),
+      ).toBe('true')
+    })
+    expect(
+      screen.getByRole('tab', { name: '便當' }).getAttribute('aria-selected'),
+    ).toBe('false')
+
+    // Simulate submitSeq change (as if clearCart was called after order submit)
+    storeState.submitSeq = 1
+    rerender(
+      <QueryClientProvider client={queryClient}>
+        <ProductGrid />
+      </QueryClientProvider>,
+    )
+
+    // After submitSeq changes, the tab should reset to bento
+    await waitFor(() => {
+      expect(
+        screen.getByRole('tab', { name: '便當' }).getAttribute('aria-selected'),
+      ).toBe('true')
     })
   })
 

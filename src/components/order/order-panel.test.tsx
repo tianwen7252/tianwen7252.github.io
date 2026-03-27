@@ -75,7 +75,13 @@ describe('OrderPanel', () => {
       useOrderStore.setState({
         items: [
           makeCartItem({ price: 120, quantity: 2 }),
-          makeCartItem({ id: 'c2', commodityId: 'com-2', name: '香草奶昔', price: 80, quantity: 1 }),
+          makeCartItem({
+            id: 'c2',
+            commodityId: 'com-2',
+            name: '香草奶昔',
+            price: 80,
+            quantity: 1,
+          }),
         ],
       })
     })
@@ -89,8 +95,22 @@ describe('OrderPanel', () => {
     act(() => {
       useOrderStore.setState({
         items: [
-          makeCartItem({ id: 'c1', typeId: 'bento', name: '滷肉飯', price: 100, quantity: 2, includesSoup: true }),
-          makeCartItem({ id: 'c2', typeId: 'drink', name: '紅茶', price: 30, quantity: 1, includesSoup: false }),
+          makeCartItem({
+            id: 'c1',
+            typeId: 'bento',
+            name: '滷肉飯',
+            price: 100,
+            quantity: 2,
+            includesSoup: true,
+          }),
+          makeCartItem({
+            id: 'c2',
+            typeId: 'drink',
+            name: '紅茶',
+            price: 30,
+            quantity: 1,
+            includesSoup: false,
+          }),
         ],
       })
     })
@@ -104,7 +124,14 @@ describe('OrderPanel', () => {
     act(() => {
       useOrderStore.setState({
         items: [
-          makeCartItem({ id: 'c1', typeId: 'bento', name: '雞胸肉沙拉', price: 160, quantity: 1, includesSoup: false }),
+          makeCartItem({
+            id: 'c1',
+            typeId: 'bento',
+            name: '雞胸肉沙拉',
+            price: 160,
+            quantity: 1,
+            includesSoup: false,
+          }),
         ],
       })
     })
@@ -116,7 +143,13 @@ describe('OrderPanel', () => {
     act(() => {
       useOrderStore.setState({
         items: [
-          makeCartItem({ id: 'c1', typeId: 'drink', name: '紅茶', price: 30, quantity: 1 }),
+          makeCartItem({
+            id: 'c1',
+            typeId: 'drink',
+            name: '紅茶',
+            price: 30,
+            quantity: 1,
+          }),
         ],
       })
     })
@@ -257,7 +290,9 @@ describe('OrderPanel', () => {
     const user = userEvent.setup()
     await renderOrderPanel()
     await user.click(screen.getByRole('button', { name: /increase/i }))
-    const updatedItem = useOrderStore.getState().items.find(i => i.id === 'cart-1')
+    const updatedItem = useOrderStore
+      .getState()
+      .items.find(i => i.id === 'cart-1')
     expect(updatedItem?.quantity).toBe(2)
   })
 
@@ -269,5 +304,90 @@ describe('OrderPanel', () => {
     })
     await renderOrderPanel()
     expect(screen.getByText('不加蛋')).toBeTruthy()
+  })
+
+  // ─── onSubmitClick / submitLabel / submitColor props ──────────────────────
+
+  async function renderOrderPanelWithProps(
+    props: {
+      onSubmitClick?: () => void
+      submitLabel?: string
+      submitColor?: string
+    } = {},
+  ) {
+    const { OrderPanel } = await import('./order-panel')
+    return render(<OrderPanel {...props} />)
+  }
+
+  describe('onSubmitClick prop', () => {
+    it('should use custom submitLabel when provided', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+        })
+      })
+      await renderOrderPanelWithProps({
+        onSubmitClick: vi.fn(),
+        submitLabel: '編輯訂單',
+      })
+      expect(screen.getByRole('button', { name: /編輯訂單/i })).toBeTruthy()
+      // Default label should NOT appear
+      expect(screen.queryByRole('button', { name: /送出訂單/i })).toBeNull()
+    })
+
+    it('should call onSubmitClick instead of opening ConfirmOrderModal', async () => {
+      const onSubmitClick = vi.fn()
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+        })
+      })
+      const user = userEvent.setup()
+      await renderOrderPanelWithProps({ onSubmitClick })
+      const submitButton = screen.getByRole('button', { name: /送出訂單/i })
+      await user.click(submitButton)
+
+      expect(onSubmitClick).toHaveBeenCalledOnce()
+      // ConfirmOrderModal should NOT open
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+
+    it('should not render ConfirmOrderModal when onSubmitClick is provided', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+        })
+      })
+      const user = userEvent.setup()
+      await renderOrderPanelWithProps({ onSubmitClick: vi.fn() })
+      const submitButton = screen.getByRole('button', { name: /送出訂單/i })
+      await user.click(submitButton)
+      // No dialog should be rendered
+      expect(screen.queryByRole('dialog')).toBeNull()
+    })
+
+    it('should apply submitColor as background color on the submit button', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+        })
+      })
+      await renderOrderPanelWithProps({
+        onSubmitClick: vi.fn(),
+        submitColor: '#4A90D9',
+      })
+      const submitButton = screen.getByRole('button', { name: /送出訂單/i })
+      expect(submitButton.style.backgroundColor).toBe('#4A90D9')
+    })
+
+    it('should use default label when submitLabel is not provided with onSubmitClick', async () => {
+      act(() => {
+        useOrderStore.setState({
+          items: [makeCartItem()],
+        })
+      })
+      await renderOrderPanelWithProps({ onSubmitClick: vi.fn() })
+      expect(screen.getByRole('button', { name: /送出訂單/i })).toBeTruthy()
+    })
   })
 })

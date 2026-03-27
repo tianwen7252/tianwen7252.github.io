@@ -79,6 +79,104 @@ describe('Modal', () => {
     )
     expect(screen.getByTestId('modal-loading-overlay')).toBeTruthy()
   })
+
+  // --- transition prop tests ---
+
+  it('should NOT add transition style to glassmorphism container when transition is not enabled', () => {
+    render(
+      <Modal open title="No Transition" width={500} onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.transition).toBe('')
+  })
+
+  it('should add width/height transition style when transition prop is true', () => {
+    render(
+      <Modal
+        open
+        title="With Transition"
+        transition
+        width={500}
+        height={400}
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.transition).toContain('width')
+    expect(container.style.transition).toContain('height')
+    expect(container.style.transition).toContain('0.4s')
+    expect(container.style.transition).toContain('cubic-bezier')
+  })
+
+  it('should resolve vw/vh values to px when transition is true', () => {
+    // In happy-dom, window.innerWidth/innerHeight are available
+    render(
+      <Modal
+        open
+        title="VW Modal"
+        transition
+        width="95vw"
+        height="90vh"
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    // Width/height should be numeric px values (not '95vw' / '90vh')
+    const widthVal = container.style.width
+    const heightVal = container.style.height
+    expect(widthVal).toMatch(/^\d+px$/)
+    expect(heightVal).toMatch(/^\d+px$/)
+  })
+
+  it('should pass width/height through as-is when transition is false', () => {
+    render(
+      <Modal
+        open
+        title="No Transition Passthrough"
+        width="95vw"
+        height="90vh"
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    // When transition is not enabled, the original string values are passed through
+    expect(container.style.width).toBe('95vw')
+    expect(container.style.height).toBe('90vh')
+  })
+
+  it('should resolve px string to numeric px when transition is true', () => {
+    render(
+      <Modal open title="PX Modal" transition width="600px" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.width).toBe('600px')
+  })
+
+  it('should use numeric width directly when transition is true', () => {
+    render(
+      <Modal
+        open
+        title="Numeric Modal"
+        transition
+        width={700}
+        onClose={() => {}}
+      >
+        Content
+      </Modal>,
+    )
+    const container = screen.getByTestId('modal-glass-container')
+    expect(container.style.width).toBe('700px')
+  })
 })
 
 describe('ConfirmModal', () => {

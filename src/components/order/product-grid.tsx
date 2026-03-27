@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Calculator } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
@@ -20,7 +20,13 @@ export function ProductGrid() {
   const { t } = useTranslation()
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
 
-  const addItem = useOrderStore((state) => state.addItem)
+  const addItem = useOrderStore(state => state.addItem)
+  const submitSeq = useOrderStore(state => state.submitSeq)
+
+  // Reset category tab to default after order submission (clearCart increments submitSeq)
+  useEffect(() => {
+    setSelectedTypeId('bento')
+  }, [submitSeq])
 
   // Fetch all commodity types (categories)
   const {
@@ -101,7 +107,7 @@ export function ProductGrid() {
         </div>
       ) : (
         <div className="grid grid-cols-5 gap-3">
-          {commodities.map((commodity) => (
+          {commodities.map(commodity => (
             <ProductCard
               key={commodity.id}
               commodity={commodity}

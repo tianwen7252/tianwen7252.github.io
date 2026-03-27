@@ -152,7 +152,12 @@
     "addTag": "Add note",
     "deleteTagConfirm": "Delete \"{{tag}}\"?",
     "confirmSubmit": "Confirm Submit",
-    "change": "Change"
+    "change": "Change",
+    "editOrder": "Edit Order",
+    "confirmEdit": "Confirm Edit",
+    "editTitle": "Edit Order",
+    "editSuccess": "Order updated",
+    "editError": "Failed to update order"
   },
   "orders": {
     "title": "Order History",
@@ -178,7 +183,8 @@
     "prevDay": "Previous day",
     "nextDay": "Next day",
     "prevPage": "Previous page",
-    "nextPage": "Next page"
+    "nextPage": "Next page",
+    "updatedAt": "Updated"
   },
   "settings": {
     "tabs": {
