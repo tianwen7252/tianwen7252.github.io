@@ -36,9 +36,13 @@ export function ScrollToTop({ threshold = 200 }: ScrollToTopProps) {
       aria-label="Scroll to top"
       rippleColor="rgba(0,0,0,0.1)"
       className={cn(
-        'fixed bottom-6 right-6 z-40 flex size-10 items-center justify-center rounded-full border border-border bg-background text-muted-foreground shadow-md transition-opacity duration-300 hover:text-foreground',
+        'fixed bottom-6 right-6 z-40 flex size-10 items-center justify-center rounded-full border border-white/30 bg-white/70 text-muted-foreground shadow-md transition-opacity duration-300 hover:text-foreground',
         visible ? 'opacity-100' : 'pointer-events-none opacity-0',
       )}
+      style={{
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+      }}
       onClick={scrollToTop}
     >
       <ArrowUp size={20} />
