@@ -57,6 +57,8 @@ interface OrderActions {
     typeId: string
     includesSoup: boolean
   }) => void
+  /** Add a custom item from the calculator. Positive → cart item, negative → discount, zero → no-op. */
+  addCustomItem: (name: string, price: number) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
   updateNote: (cartItemId: string, note: string) => void
@@ -124,6 +126,35 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
         ] as const,
       }
     }),
+
+  addCustomItem: (name, price) => {
+    if (price === 0) return
+    if (price < 0) {
+      // Negative price → add as discount
+      get().addDiscount(name, Math.abs(price))
+      return
+    }
+    // Positive price → add as custom cart item
+    set(state => {
+      const newItem: CartItem = {
+        id: nanoid(),
+        commodityId: `custom-${nanoid()}`,
+        typeId: 'custom',
+        name,
+        price,
+        quantity: 1,
+        note: '',
+        includesSoup: false,
+      }
+      return {
+        items: [...state.items, newItem],
+        lastAddedItem: [
+          newItem.id,
+          (state.lastAddedItem?.[1] ?? 0) + 1,
+        ] as const,
+      }
+    })
+  },
 
   removeItem: cartItemId =>
     set(state => ({

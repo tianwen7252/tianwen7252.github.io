@@ -9,6 +9,8 @@ import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
 import { ConfirmOrderModal } from './confirm-order-modal'
+import { QuickSubmitSwitch } from './quick-submit-switch'
+import { ChangePrediction } from './change-prediction'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -32,22 +34,23 @@ export function OrderPanel({
   submitColor,
   swipeForegroundClassName,
 }: OrderPanelProps) {
-  const items = useOrderStore((s) => s.items)
-  const discounts = useOrderStore((s) => s.discounts)
-  const removeItem = useOrderStore((s) => s.removeItem)
-  const updateQuantity = useOrderStore((s) => s.updateQuantity)
-  const updateNote = useOrderStore((s) => s.updateNote)
-  const getTotal = useOrderStore((s) => s.getTotal)
-  const getBentoCount = useOrderStore((s) => s.getBentoCount)
-  const getSoupCount = useOrderStore((s) => s.getSoupCount)
-  const getItemCount = useOrderStore((s) => s.getItemCount)
-  const clearCart = useOrderStore((s) => s.clearCart)
-  const submitOrder = useOrderStore((s) => s.submitOrder)
-  const lastAddedItem = useOrderStore((s) => s.lastAddedItem)
+  const items = useOrderStore(s => s.items)
+  const discounts = useOrderStore(s => s.discounts)
+  const removeItem = useOrderStore(s => s.removeItem)
+  const updateQuantity = useOrderStore(s => s.updateQuantity)
+  const updateNote = useOrderStore(s => s.updateNote)
+  const getTotal = useOrderStore(s => s.getTotal)
+  const getBentoCount = useOrderStore(s => s.getBentoCount)
+  const getSoupCount = useOrderStore(s => s.getSoupCount)
+  const getItemCount = useOrderStore(s => s.getItemCount)
+  const clearCart = useOrderStore(s => s.clearCart)
+  const submitOrder = useOrderStore(s => s.submitOrder)
+  const lastAddedItem = useOrderStore(s => s.lastAddedItem)
 
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
+  const [quickSubmit, setQuickSubmit] = useState(true)
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Scroll to the last added/updated item
@@ -79,6 +82,22 @@ export function OrderPanel({
       setIsSubmitting(false)
     }
   }
+
+  /** Quick submit — bypass confirmation modal and submit immediately */
+  const handleQuickSubmit = async () => {
+    setIsSubmitting(true)
+    try {
+      await submitOrder([])
+      notify.success(t('order.submitSuccess'))
+    } catch {
+      notify.error(t('order.submitError'))
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Determine the effective submit handler: custom > quick > default (open modal)
+  const isQuickMode = quickSubmit && !onSubmitClick
 
   return (
     <div className="flex h-full flex-col gap-4 px-4">
@@ -117,9 +136,12 @@ export function OrderPanel({
           </p>
         ) : (
           <div className="divide-y divide-border pr-2">
-            {items.map((item) => (
+            {items.map(item => (
               <div key={item.id} data-cart-item-id={item.id}>
-                <SwipeToDelete onDelete={() => removeItem(item.id)} foregroundClassName={swipeForegroundClassName}>
+                <SwipeToDelete
+                  onDelete={() => removeItem(item.id)}
+                  foregroundClassName={swipeForegroundClassName}
+                >
                   <OrderItemRow
                     item={item}
                     onRemove={removeItem}
@@ -136,6 +158,9 @@ export function OrderPanel({
       {/* Divider */}
       <hr className="border-border" />
 
+      {/* Change prediction — shown in quick submit mode */}
+      {isQuickMode && <ChangePrediction total={total} />}
+
       {/* Order summary */}
       <OrderSummary
         bentoCount={bentoCount}
@@ -143,18 +168,30 @@ export function OrderPanel({
         total={total}
       />
 
-      {/* Submit button — opens confirmation modal or calls custom handler */}
-      <RippleButton
-        className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-        disabled={isEmpty || isSubmitting}
-        onClick={onSubmitClick ?? (() => setConfirmOpen(true))}
-        style={submitColor ? { backgroundColor: submitColor } : undefined}
-      >
-        {submitLabel ?? t('order.submit')}
-      </RippleButton>
+      {/* Quick submit switch + Submit button */}
+      <div className="flex items-center gap-3">
+        {/* Only show quick submit switch in default (non-override) mode */}
+        {!onSubmitClick && (
+          <QuickSubmitSwitch
+            checked={quickSubmit}
+            onCheckedChange={setQuickSubmit}
+          />
+        )}
+        <RippleButton
+          className="h-14 flex-1 rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          disabled={isEmpty || isSubmitting}
+          onClick={
+            onSubmitClick ??
+            (isQuickMode ? handleQuickSubmit : () => setConfirmOpen(true))
+          }
+          style={submitColor ? { backgroundColor: submitColor } : undefined}
+        >
+          {submitLabel ?? t('order.submit')}
+        </RippleButton>
+      </div>
 
-      {/* Confirm order modal — only rendered when using default submit behavior */}
-      {!onSubmitClick && (
+      {/* Confirm order modal — only rendered when using default non-quick submit behavior */}
+      {!onSubmitClick && !quickSubmit && (
         <ConfirmOrderModal
           open={confirmOpen}
           onClose={() => setConfirmOpen(false)}

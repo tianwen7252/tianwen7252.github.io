@@ -10,6 +10,7 @@ import { useOrderStore } from '@/stores/order-store'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { CategoryTabs } from './category-tabs'
 import { ProductCard } from './product-card'
+import { CalculatorOverlay } from './calculator-overlay'
 
 /**
  * Main container component for the product selection area.
@@ -19,6 +20,7 @@ import { ProductCard } from './product-card'
 export function ProductGrid() {
   const { t } = useTranslation()
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
+  const [showCalculator, setShowCalculator] = useState(false)
 
   const addItem = useOrderStore(state => state.addItem)
   const submitSeq = useOrderStore(state => state.submitSeq)
@@ -83,8 +85,8 @@ export function ProductGrid() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* Header: category tabs + view toggle */}
+    <div className="relative flex flex-col gap-3">
+      {/* Header: category tabs + calculator toggle */}
       <div className="flex items-center justify-between">
         <CategoryTabs
           categories={categories}
@@ -94,6 +96,7 @@ export function ProductGrid() {
         <RippleButton
           aria-label={t('order.calculator')}
           rippleColor="rgba(0, 0, 0, 0.1)"
+          onClick={() => setShowCalculator(prev => !prev)}
           className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center"
         >
           <Calculator className="size-5" />
@@ -115,6 +118,11 @@ export function ProductGrid() {
             />
           ))}
         </div>
+      )}
+
+      {/* Calculator overlay — positioned over the product grid */}
+      {showCalculator && (
+        <CalculatorOverlay onClose={() => setShowCalculator(false)} />
       )}
     </div>
   )
