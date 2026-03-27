@@ -57,12 +57,14 @@ export function EditOrderModal({
   const getBentoCount = useOrderStore(s => s.getBentoCount)
   const getSoupCount = useOrderStore(s => s.getSoupCount)
 
-  // Load order into store when modal opens
+  // Load order into store when modal opens; clear cart when it closes
   useEffect(() => {
     if (open && order) {
       useOrderStore.getState().loadOrder(order, typeIdMap)
       setMode('ordering')
       setSelectedTags([])
+    } else if (!open) {
+      useOrderStore.getState().clearCart()
     }
   }, [open, order, typeIdMap])
 
@@ -125,10 +127,10 @@ export function EditOrderModal({
         onClose={onClose}
       >
         <div className="flex h-full gap-0">
-          <div className="flex-64 overflow-y-auto px-4 py-2">
+          <div className="flex-60 overflow-y-auto px-4 pl-0 py-2">
             <ProductGrid />
           </div>
-          <div className="flex-36 overflow-y-auto border-l border-border p-4">
+          <div className="flex-40 overflow-y-auto border-l border-border">
             <OrderPanel
               onSubmitClick={() => setMode('confirming')}
               submitLabel={t('order.editOrder')}
@@ -192,7 +194,7 @@ export function EditOrderModal({
         rippleColor="rgba(0,0,0,0.1)"
         className="absolute left-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
       >
-        <ArrowLeft size={20} />
+        <ArrowLeft size={24} />
       </RippleButton>
 
       <ConfirmOrderContent

@@ -21,6 +21,7 @@ import {
   OrdersSearch,
 } from '@/components/orders'
 import type { Order } from '@/lib/schemas'
+import { useMasonryGrid } from '@/hooks/use-masonry-grid'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -115,6 +116,13 @@ export function OrdersPage() {
     setDeleteTarget(null)
   }
 
+  // Masonry grid layout for order cards with varying heights
+  const { containerRef: masonryRef, getSpan } = useMasonryGrid(
+    orders.length,
+    1,
+    12,
+  )
+
   /** Reset all swiped-open cards when clicking outside any card */
   function handlePageClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement
@@ -124,7 +132,10 @@ export function OrdersPage() {
   }
 
   return (
-    <div className="h-[calc(100vh-57px)] overflow-y-auto p-4" onClick={handlePageClick}>
+    <div
+      className="h-[calc(100vh-57px)] overflow-y-auto p-4"
+      onClick={handlePageClick}
+    >
       {/* Search view — replaces normal content when open */}
       {isSearchOpen ? (
         <OrdersSearch
@@ -173,18 +184,26 @@ export function OrdersPage() {
                 </div>
               )}
 
-              {/* Order cards grid — 3 per row, items-start for varying heights */}
+              {/* Order cards — masonry grid with auto-spanning rows */}
               {orders.length > 0 && (
-                <div className="mt-4 grid grid-cols-3 gap-3 items-start">
-                  {orders.map(order => (
-                    <OrderHistoryCard
+                <div
+                  ref={masonryRef}
+                  className="mt-4 grid grid-cols-3 gap-x-3"
+                  style={{ gridAutoRows: 1 }}
+                >
+                  {orders.map((order, index) => (
+                    <div
                       key={order.id}
-                      order={order}
-                      typeIdMap={typeIdMap}
-                      onDelete={() => handleDeleteRequest(order)}
-                      onEdit={() => setEditingOrder(order)}
-                      resetKey={swipeResetKey}
-                    />
+                      style={{ gridRowEnd: `span ${getSpan(index)}` }}
+                    >
+                      <OrderHistoryCard
+                        order={order}
+                        typeIdMap={typeIdMap}
+                        onDelete={() => handleDeleteRequest(order)}
+                        onEdit={() => setEditingOrder(order)}
+                        resetKey={swipeResetKey}
+                      />
+                    </div>
                   ))}
                 </div>
               )}
