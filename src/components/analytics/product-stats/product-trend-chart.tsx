@@ -194,7 +194,10 @@ interface ChartViewProps {
 
 function LineView({ chartData, chartConfig, fontSize }: ChartViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={chartConfig}
+      className="min-h-[250px] w-full [&_svg]:overflow-visible"
+    >
       <LineChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -250,7 +253,14 @@ function BarView({ chartData, chartConfig, fontSize }: ChartViewProps) {
           dataKey="salesQuantity"
           fill="var(--color-salesQuantity)"
           radius={[4, 4, 0, 0]}
-        />
+        >
+          <LabelList
+            dataKey="salesQuantity"
+            position="top"
+            fill="var(--foreground)"
+            fontSize={fontSize}
+          />
+        </Bar>
       </BarChart>
     </ChartContainer>
   )

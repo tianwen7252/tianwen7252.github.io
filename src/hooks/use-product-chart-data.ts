@@ -43,6 +43,7 @@ export interface ProductChartData {
   commodities: Array<{ id: string; name: string }>
   selectedCommodityId: string
   onSelectCommodityChange: (id: string) => void
+  heatmapData: DailyRevenue[]
   currentMonth: number
   currentYear: number
   error: string | null
@@ -73,6 +74,7 @@ export function useProductChartData({
   const [bottomBentos, setBottomBentos] = useState<ProductRanking[]>([])
   const [sortBy, setSortBy] = useState<'quantity' | 'revenue'>('quantity')
   const [dailyRevenue, setDailyRevenue] = useState<DailyRevenue[]>([])
+  const [heatmapData, setHeatmapData] = useState<DailyRevenue[]>([])
   const [prevMonthData, setPrevMonthData] = useState<DailyRevenue[]>([])
   const [avgOrderValue, setAvgOrderValue] = useState<DailyRevenue[]>([])
   const [productTrendData, setProductTrendData] = useState<DailyRevenue[]>([])
@@ -89,9 +91,9 @@ export function useProductChartData({
   >({})
   const [commodityTypes, setCommodityTypes] = useState<CommodityType[]>([])
   const [orderNotes, setOrderNotes] = useState<OrderNoteCount[]>([])
-  const [deliveryProducts, setDeliveryProducts] = useState<DeliveryProductRow[]>(
-    [],
-  )
+  const [deliveryProducts, setDeliveryProducts] = useState<
+    DeliveryProductRow[]
+  >([])
 
   // ── Main data fetch (date range dependent) ──────────────────────────────────
 
@@ -103,6 +105,7 @@ export function useProductChartData({
     setHourlyData([])
     setBottomBentos([])
     setDailyRevenue([])
+    setHeatmapData([])
     setPrevMonthData([])
     setAvgOrderValue([])
     setAmPmRevenue([])
@@ -129,6 +132,14 @@ export function useProductChartData({
       endDate: prevEnd.getTime(),
     }
 
+    // Full-month range for the heatmap (always fetches entire month)
+    const monthStart = dayjs(startDate).startOf('month').toDate()
+    const monthEnd = dayjs(startDate).endOf('month').toDate()
+    const monthRange = {
+      startDate: monthStart.getTime(),
+      endDate: monthEnd.getTime(),
+    }
+
     Promise.all([
       statisticsRepo.getProductKpis(range),
       statisticsRepo.getHourlyOrderDistribution(range),
@@ -139,6 +150,7 @@ export function useProductChartData({
       statisticsRepo.getAmPmRevenue(range),
       statisticsRepo.getOrderNotesDistribution(range),
       statisticsRepo.getDeliveryProductBreakdown(range),
+      statisticsRepo.getDailyRevenue(monthRange),
     ])
       .then(
         ([
@@ -151,6 +163,7 @@ export function useProductChartData({
           amPmData,
           notesData,
           deliveryData,
+          monthRevData,
         ]) => {
           if (cancelled) return
           setKpis(kpisResult)
@@ -160,6 +173,7 @@ export function useProductChartData({
           setDailyRevenue(formatWeekDays(currentRev, startDate, endDate))
           setPrevMonthData(formatWeekDays(prevRev, prevStart, prevEnd))
           setAvgOrderValue(formatWeekDays(avgResult, startDate, endDate))
+          setHeatmapData(monthRevData)
           setAmPmRevenue(amPmData)
           setOrderNotes(notesData)
           setDeliveryProducts(deliveryData)
@@ -194,7 +208,7 @@ export function useProductChartData({
 
     statisticsRepo
       .getTopProducts(range, 10, sortBy)
-      .then((result) => {
+      .then(result => {
         if (!cancelled) setTopItems(result)
       })
       .catch((err: unknown) => {
@@ -219,11 +233,13 @@ export function useProductChartData({
     import('@/lib/repositories/provider')
       .then(({ getCommodityRepo, getCommodityTypeRepo }) => {
         // Fetch both commodities and types in parallel
-        const commoditiesPromise = ((): Promise<Array<{ id: string; name: string }>> => {
+        const commoditiesPromise = ((): Promise<
+          Array<{ id: string; name: string }>
+        > => {
           try {
-            return getCommodityRepo().findOnMarket().then(
-              (items) => items.map((c) => ({ id: c.id, name: c.name })),
-            )
+            return getCommodityRepo()
+              .findOnMarket()
+              .then(items => items.map(c => ({ id: c.id, name: c.name })))
           } catch {
             return Promise.resolve([])
           }
@@ -274,7 +290,7 @@ export function useProductChartData({
 
     statisticsRepo
       .getProductDailyRevenue(range, selectedCommodityId)
-      .then((result) => {
+      .then(result => {
         if (!cancelled) {
           setProductTrendData(formatWeekDays(result, startDate, endDate))
         }
@@ -305,14 +321,14 @@ export function useProductChartData({
       endDate: endDate.getTime(),
     }
 
-    const fetchAll = commodityTypes.map((ct) =>
+    const fetchAll = commodityTypes.map(ct =>
       statisticsRepo
         .getCategorySales(range, ct.typeId)
-        .then((rows) => ({ typeId: ct.typeId, rows })),
+        .then(rows => ({ typeId: ct.typeId, rows })),
     )
 
     Promise.all(fetchAll)
-      .then((results) => {
+      .then(results => {
         if (cancelled) return
         const data: Record<string, CategorySalesRow[]> = {}
         for (const { typeId, rows } of results) {
@@ -341,6 +357,7 @@ export function useProductChartData({
     sortBy,
     onSortChange: setSortBy,
     dailyRevenue,
+    heatmapData,
     prevMonthData,
     avgOrderValue,
     productTrendData,

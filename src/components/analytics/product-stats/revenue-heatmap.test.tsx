@@ -35,7 +35,7 @@ describe('RevenueHeatmap', () => {
       render(
         <RevenueHeatmap data={buildFullMonthData()} year={2026} month={3} />,
       )
-      expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
+      expect(screen.getByText('當月每日營收熱力圖')).toBeTruthy()
     })
   })
 
@@ -106,7 +106,7 @@ describe('RevenueHeatmap', () => {
 
     it('renders aria-label even with empty data', () => {
       render(<RevenueHeatmap data={[]} year={2026} month={3} />)
-      expect(screen.getByText('每日營收熱力圖')).toBeTruthy()
+      expect(screen.getByText('當月每日營收熱力圖')).toBeTruthy()
     })
   })
 

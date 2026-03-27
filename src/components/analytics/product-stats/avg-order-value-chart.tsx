@@ -194,7 +194,10 @@ interface ChartViewProps {
 
 function LineView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={chartConfig}
+      className="min-h-[250px] w-full [&_svg]:overflow-visible"
+    >
       <LineChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -261,13 +264,29 @@ function BarView({ chartData, chartConfig, fontSize, t }: ChartViewProps) {
           name={t('analytics.avgOrderValue')}
           fill="var(--color-avgOrderValue)"
           radius={[4, 4, 0, 0]}
-        />
+        >
+          <LabelList
+            dataKey="avgOrderValue"
+            position="top"
+            fill="var(--foreground)"
+            fontSize={fontSize}
+            formatter={(v: unknown) => `$${v}`}
+          />
+        </Bar>
         <Bar
           dataKey="movingAvg7d"
           name={t('analytics.movingAvg7d')}
           fill="var(--color-movingAvg7d)"
           radius={[4, 4, 0, 0]}
-        />
+        >
+          <LabelList
+            dataKey="movingAvg7d"
+            position="top"
+            fill="var(--foreground)"
+            fontSize={fontSize}
+            formatter={(v: unknown) => `$${v}`}
+          />
+        </Bar>
       </BarChart>
     </ChartContainer>
   )

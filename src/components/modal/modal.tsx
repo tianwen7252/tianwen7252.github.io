@@ -168,7 +168,7 @@ export function Modal({
   return (
     <DialogPrimitive.Root
       open={dialogOpen}
-      onOpenChange={o => {
+      onOpenChange={(o) => {
         if (!o && closeOnBackdropClick) onClose()
       }}
     >
@@ -196,10 +196,10 @@ export function Modal({
             'glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none',
             closing && 'glass-modal-closing',
           )}
-          onClick={e => {
+          onClick={(e) => {
             if (e.target === e.currentTarget && closeOnBackdropClick) onClose()
           }}
-          onEscapeKeyDown={e => {
+          onEscapeKeyDown={(e) => {
             if (!closeOnBackdropClick) e.preventDefault()
             else onClose()
           }}
@@ -256,7 +256,7 @@ export function Modal({
               rippleColor="rgba(0,0,0,0.1)"
               className="absolute right-2 top-2 z-10 flex size-10 items-center justify-center rounded-full text-gray-400 hover:text-gray-600"
             >
-              <X size={20} />
+              <X size={24} />
             </RippleButton>
 
             {/* Header */}
