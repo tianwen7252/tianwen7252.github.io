@@ -226,6 +226,7 @@
     "clearCache": "清除快取",
     "exportDb": "匯出資料庫",
     "forceReload": "強制重新載入",
+    "reloadApp": "重新載入App",
     "featureInDev": "功能開發中",
     "cacheCleared": "快取已清除",
     "errorLogs": "Error Logs",

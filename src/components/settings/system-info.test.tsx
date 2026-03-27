@@ -189,7 +189,7 @@ describe('SystemInfo', () => {
       renderWithProviders(<SystemInfo />)
       expect(screen.getByText('清除快取')).toBeTruthy()
       expect(screen.getByText('匯出資料庫')).toBeTruthy()
-      expect(screen.getByText('強制重新載入')).toBeTruthy()
+      expect(screen.getByText('重新載入App')).toBeTruthy()
     })
 
     it('shows toast on export db click (feature in development)', async () => {

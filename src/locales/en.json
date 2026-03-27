@@ -226,6 +226,7 @@
     "clearCache": "Clear Cache",
     "exportDb": "Export DB",
     "forceReload": "Force Reload",
+    "reloadApp": "Reload App",
     "featureInDev": "Feature in development",
     "cacheCleared": "Cache cleared",
     "errorLogs": "Error Logs",
