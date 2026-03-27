@@ -547,12 +547,10 @@ describe('useOrderStore', () => {
       expect(state.discounts).toEqual([])
     })
 
-    it('should increment submitSeq on each clearCart call', () => {
+    it('should NOT increment submitSeq on clearCart', () => {
       expect(useOrderStore.getState().submitSeq).toBe(0)
       useOrderStore.getState().clearCart()
-      expect(useOrderStore.getState().submitSeq).toBe(1)
-      useOrderStore.getState().clearCart()
-      expect(useOrderStore.getState().submitSeq).toBe(2)
+      expect(useOrderStore.getState().submitSeq).toBe(0)
     })
   })
 
@@ -1117,6 +1115,23 @@ describe('useOrderStore', () => {
       const state = useOrderStore.getState()
       expect(state.items).toEqual([])
       expect(state.discounts).toEqual([])
+    })
+
+    it('should increment submitSeq after successful submit', async () => {
+      const mockRepo = createMockOrderRepo()
+      mockedGetOrderRepo.mockReturnValue(mockRepo)
+
+      useOrderStore.getState().addItem({
+        id: 'com-1',
+        name: 'Fried Rice',
+        price: 100,
+        typeId: 'food',
+        includesSoup: false,
+      })
+
+      expect(useOrderStore.getState().submitSeq).toBe(0)
+      await useOrderStore.getState().submitOrder()
+      expect(useOrderStore.getState().submitSeq).toBe(1)
     })
 
     it('should NOT clear cart if submit fails', async () => {

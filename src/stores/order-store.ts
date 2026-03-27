@@ -161,12 +161,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       discounts: state.discounts.filter(d => d.id !== discountId),
     })),
 
-  clearCart: () =>
-    set(state => ({
-      items: [],
-      discounts: [],
-      submitSeq: state.submitSeq + 1,
-    })),
+  clearCart: () => set({ items: [], discounts: [] }),
 
   loadOrder: (order, typeIdMap) =>
     set({
@@ -232,8 +227,12 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
       editor: operatorId ?? '',
     })
 
-    // Clear cart after successful submit
-    get().clearCart()
+    // Clear cart and increment submitSeq to reset ProductGrid tab
+    set(state => ({
+      items: [],
+      discounts: [],
+      submitSeq: state.submitSeq + 1,
+    }))
   },
 
   getSubtotal: () => {
