@@ -9,7 +9,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
-import { Trash2, DatabaseBackup, RefreshCw } from 'lucide-react'
+import { Trash2, Eraser, DatabaseBackup, RefreshCw } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { useAppStore } from '@/stores/app-store'
@@ -231,21 +231,21 @@ export function SystemInfo() {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border border-red-200 bg-background px-4 py-2 text-red-500 hover:bg-red-50"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-red-500 px-4 py-2 text-white hover:bg-red-600"
               onClick={handleClearCache}
             >
-              <Trash2 size={16} />
+              <Eraser size={16} />
               {t('settings.clearCache')}
             </RippleButton>
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border border-green-200 bg-background px-4 py-2 text-green-600 hover:bg-green-50"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-green-600 px-4 py-2 text-white hover:bg-green-700"
               onClick={handleExportDb}
             >
               <DatabaseBackup size={16} />
               {t('settings.exportDb')}
             </RippleButton>
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border border-blue-200 bg-background px-4 py-2 text-blue-500 hover:bg-blue-50"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
               onClick={handleForceReload}
             >
               <RefreshCw size={16} />
@@ -261,7 +261,7 @@ export function SystemInfo() {
           <div className="flex items-center justify-between">
             <CardTitle>{t('settings.errorLogs')}</CardTitle>
             <RippleButton
-              className="flex items-center gap-2 rounded-md border border-red-200 bg-background px-3 py-1 text-red-500 hover:bg-red-50"
+              className="flex items-center gap-2 rounded-md border-none bg-red-500 px-3 py-1 text-white hover:bg-red-600"
               onClick={() => clearLogsMutation.mutate()}
             >
               <Trash2 size={14} />
