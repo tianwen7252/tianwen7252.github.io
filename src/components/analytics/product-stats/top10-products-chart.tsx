@@ -123,7 +123,7 @@ export function Top10ProductsChart({
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.top10Title')}

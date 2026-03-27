@@ -182,7 +182,7 @@ export function CategorySalesChart({ title, data }: CategorySalesChartProps) {
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">{title}</CardTitle>
         <CardDescription>{t('analytics.categorySalesDesc')}</CardDescription>

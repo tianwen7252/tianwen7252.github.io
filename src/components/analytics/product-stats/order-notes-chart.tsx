@@ -90,7 +90,7 @@ export function OrderNotesChart({ data }: OrderNotesChartProps) {
   ]
 
   return (
-    <Card className="shadow-none">
+    <Card>
       <CardHeader>
         <CardTitle className="font-normal">
           {t('analytics.orderNotesTitle')}
