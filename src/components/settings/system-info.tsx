@@ -231,21 +231,21 @@ export function SystemInfo() {
         <CardContent>
           <div className="grid grid-cols-3 gap-4">
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-red-500 px-4 py-2 text-white hover:bg-red-600"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-red) px-4 py-2 text-white hover:opacity-80"
               onClick={handleClearCache}
             >
               <Eraser size={16} />
               {t('settings.clearCache')}
             </RippleButton>
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-green-600 px-4 py-2 text-white hover:bg-green-700"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80"
               onClick={handleExportDb}
             >
               <DatabaseBackup size={16} />
               {t('settings.exportDb')}
             </RippleButton>
             <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
               onClick={handleForceReload}
             >
               <RefreshCw size={16} />
@@ -261,7 +261,7 @@ export function SystemInfo() {
           <div className="flex items-center justify-between">
             <CardTitle>{t('settings.errorLogs')}</CardTitle>
             <RippleButton
-              className="flex items-center gap-2 rounded-md border-none bg-red-500 px-3 py-1 text-white hover:bg-red-600"
+              className="flex items-center gap-2 rounded-md border-none bg-(--color-red) px-3 py-1 text-white hover:opacity-80"
               onClick={() => clearLogsMutation.mutate()}
             >
               <Trash2 size={14} />
