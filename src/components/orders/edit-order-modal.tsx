@@ -128,7 +128,7 @@ export function EditOrderModal({
           <div className="flex-64 overflow-y-auto px-4 py-2">
             <ProductGrid />
           </div>
-          <div className="flex-36 overflow-y-auto border-l border-border bg-card p-4">
+          <div className="flex-36 overflow-y-auto border-l border-border p-4">
             <OrderPanel
               onSubmitClick={() => setMode('confirming')}
               submitLabel={t('order.editOrder')}
