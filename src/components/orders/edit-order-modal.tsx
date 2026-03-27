@@ -133,7 +133,7 @@ export function EditOrderModal({
           <div className="flex-40 overflow-y-auto border-l border-border">
             <OrderPanel
               onSubmitClick={() => setMode('confirming')}
-              submitLabel={t('order.editOrder')}
+              submitLabel={`${t('order.editOrder')}#${order?.number ?? ''}`}
               submitColor={EDIT_BUTTON_COLOR}
               swipeForegroundClassName="bg-transparent"
             />
@@ -155,7 +155,7 @@ export function EditOrderModal({
       onClose={onClose}
       header={
         <>
-          <CircleCheckBig /> {t('order.editTitle')}
+          <CircleCheckBig /> {t('order.editTitle')}#{order?.number ?? ''}
         </>
       }
       title={

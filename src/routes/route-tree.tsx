@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import {
   createRootRoute,
   createRoute,
@@ -6,6 +7,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
+import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview } from '@/pages/preview'
@@ -16,6 +18,21 @@ import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
+import { ScrollToTop } from '@/components/ui/scroll-to-top'
+import { HeaderUserMenu } from '@/components/header/header-user-menu'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { cn } from '@/lib/cn'
+
+// ─── Constants ───────────────────────────────────────────────────────────────
+
+const HEADER_BG = '#F8F4EC'
+
+const GLASSMORPHISM_STYLE = {
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  boxShadow:
+    'rgb(0, 0, 0) 0px 0px, rgba(0, 0, 0, 0) 0px 0px, rgb(0, 0, 0) 0px 0px, rgba(0, 0, 0, 0) 0px 0px, rgba(0, 0, 0, 0.3) 0px 16px 32px -16px, rgba(0, 0, 0, 0.1) 0px 0px 0px 1px',
+} as const
 
 // Root layout with navigation
 const rootRoute = createRootRoute({
@@ -26,23 +43,60 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const pathname = useRouterState({ select: s => s.location.pathname })
+
+  // Detect scroll for glassmorphism header
+  const [scrolled, setScrolled] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 0)
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Navigation header */}
-      <header className="border-b border-border px-5 py-2 bg-[#F8F4EC]">
+      {/* Navigation header — sticky with glassmorphism on scroll */}
+      <header
+        className={cn(
+          'sticky top-0 z-30 px-5 py-2 transition-all duration-300',
+          scrolled ? 'border-b border-transparent' : 'border-b border-border',
+        )}
+        style={{
+          backgroundColor: scrolled ? `${HEADER_BG}cc` : HEADER_BG,
+          ...(scrolled ? GLASSMORPHISM_STYLE : {}),
+        }}
+      >
         <nav className="flex items-center gap-4">
-          <Link to="/" className="text-lg font-bold text-primary">
+          {/* Left: app title + nav links */}
+          <a
+            href="/"
+            className="text-lg text-primary"
+            onClick={e => {
+              e.preventDefault()
+              window.location.href = '/'
+            }}
+          >
             {t('nav.appTitle')}
-          </Link>
+          </a>
           <div className="flex gap-2">
             <NavLink to="/">{t('nav.home')}</NavLink>
             <NavLink to="/orders">{t('nav.orders')}</NavLink>
             <NavLink to="/clock-in">{t('nav.clockIn')}</NavLink>
             <NavLink to="/analytics">{t('nav.analytics')}</NavLink>
-            <NavLink to="/settings">{t('nav.settings')}</NavLink>
-            {import.meta.env.DEV && <NavLink to="/preview">Preview</NavLink>}
+          </div>
+
+          {/* Right: dev + settings + login icons */}
+          <div className="ml-auto flex items-center gap-2">
+            {import.meta.env.DEV && (
+              <NavIconLink to="/preview" ariaLabel="DEV">
+                <Code size={20} />
+              </NavIconLink>
+            )}
+            <NavIconLink to="/settings" ariaLabel={t('nav.settings')}>
+              <Settings size={20} />
+            </NavIconLink>
+            <HeaderUserMenu />
           </div>
         </nav>
       </header>
@@ -55,6 +109,9 @@ function RootLayout() {
           </PageTransition>
         </AppErrorBoundary>
       </main>
+
+      {/* Scroll to top — hidden on order page */}
+      {pathname !== '/' && <ScrollToTop />}
 
       {/* SW update prompt */}
       <SwUpdatePrompt />
@@ -72,6 +129,36 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
       className="rounded-md px-3 py-1.5 text-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground [&.active]:bg-primary [&.active]:text-primary-foreground"
     >
       {children}
+    </Link>
+  )
+}
+
+function NavIconLink({
+  to,
+  ariaLabel,
+  children,
+}: {
+  to: string
+  ariaLabel: string
+  children: React.ReactNode
+}) {
+  const pathname = useRouterState({ select: s => s.location.pathname })
+  const isActive = pathname === to || pathname.startsWith(`${to}/`)
+
+  return (
+    <Link to={to}>
+      <RippleButton
+        aria-label={ariaLabel}
+        rippleColor="rgba(0,0,0,0.1)"
+        className={cn(
+          'flex size-9 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground',
+          isActive
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground',
+        )}
+      >
+        {children}
+      </RippleButton>
     </Link>
   )
 }

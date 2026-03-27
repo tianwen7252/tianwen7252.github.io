@@ -113,7 +113,14 @@
     "backupSubtitle": "This feature is for admins only. Please sign in with an admin account.",
     "login": "Admin Login",
     "logout": "Logout",
-    "adminOnly": "Admin Only"
+    "adminOnly": "Admin Only",
+    "loginTitle": "Admin Login",
+    "logoutConfirm": "Confirm Logout?",
+    "logoutMessage": "Currently logged in: {{name}}",
+    "selectEmployee": "Select operator",
+    "logoutSuccess": "Logged out",
+    "loginSuccess": "Logged in: {{name}}",
+    "loginError": "Login failed, please try again"
   },
   "error": {
     "title": "Error Occurred",
