@@ -125,7 +125,7 @@ export function OrdersPage() {
 
   return (
     <div
-      className="h-[calc(100vh-57px)] overflow-y-auto p-4"
+      className="min-h-[calc(100vh-57px)] p-4"
       onClick={handlePageClick}
     >
       {/* Search view — replaces normal content when open */}

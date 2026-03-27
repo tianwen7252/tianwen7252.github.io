@@ -225,19 +225,7 @@ describe('OrdersPage', () => {
 
     const { container } = render(<OrdersPage />)
     const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.classList.contains('h-[calc(100vh-57px)]')).toBe(true)
-  })
-
-  it('should have overflow-y-auto for scrolling', () => {
-    mockUseQuery.mockReturnValue({
-      data: [],
-      isLoading: false,
-      isError: false,
-    })
-
-    const { container } = render(<OrdersPage />)
-    const wrapper = container.firstElementChild as HTMLElement
-    expect(wrapper.classList.contains('overflow-y-auto')).toBe(true)
+    expect(wrapper.classList.contains('min-h-[calc(100vh-57px)]')).toBe(true)
   })
 
   it('should not show OrdersSearch initially', () => {
