@@ -44,6 +44,9 @@ vi.mock('lucide-react', () => ({
   Trash2: (props: Record<string, unknown>) => (
     <span data-testid="trash2-icon" {...props} />
   ),
+  MoveDown: (props: Record<string, unknown>) => (
+    <span data-testid="move-down-icon" {...props} />
+  ),
 }))
 
 // Mock i18n — return the key itself, except for known keys

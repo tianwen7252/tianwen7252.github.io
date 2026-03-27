@@ -1,7 +1,7 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import dayjs from 'dayjs'
 import { useTranslation } from 'react-i18next'
-import { Pencil, Trash2 } from 'lucide-react'
+import { Pencil, Trash2, MoveDown } from 'lucide-react'
 import { SwipeActions } from '@/components/ui/swipe-actions'
 import type { Order } from '@/lib/schemas'
 import { formatCurrency } from '@/lib/currency'
@@ -16,6 +16,7 @@ import type { SwipeAction } from '@/components/ui/swipe-actions'
 
 const EDIT_ACTION_COLOR = '#a1c185'
 const DELETE_ACTION_COLOR = '#ef4444'
+const CARD_MAX_HEIGHT = 400
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -68,6 +69,7 @@ export function OrderHistoryCard({
   resetKey,
 }: OrderHistoryCardProps) {
   const { t } = useTranslation()
+  const [expanded, setExpanded] = useState(false)
   // AM/PM format for time display
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
@@ -89,7 +91,8 @@ export function OrderHistoryCard({
     >
       <div
         data-testid="order-history-card"
-        className="rounded-xl bg-card p-4 flex flex-col h-full"
+        className="relative rounded-xl bg-card p-4 flex flex-col overflow-hidden transition-[max-height] duration-300 ease-in-out"
+        style={expanded ? undefined : { maxHeight: CARD_MAX_HEIGHT }}
       >
         {/* Row 1: Order number + time */}
         <div className="flex items-center justify-between mb-1">
@@ -99,7 +102,7 @@ export function OrderHistoryCard({
 
         {/* Row 2: Categorized items */}
         <div className="flex flex-col gap-2 mb-2">
-          {groups.map((group) => {
+          {groups.map(group => {
             const accent = CATEGORY_ACCENT[group.key] ?? DEFAULT_ACCENT
             return (
               <div
@@ -109,7 +112,7 @@ export function OrderHistoryCard({
                 <div className={`mb-1 text-md tracking-wide ${accent.text}`}>
                   {t(group.label)}
                 </div>
-                {group.items.map((item) => (
+                {group.items.map(item => (
                   <div
                     key={item.id}
                     className="flex items-baseline justify-between py-[3px]"
@@ -127,7 +130,7 @@ export function OrderHistoryCard({
         {/* Row 3: Memo tags */}
         {order.memo.length > 0 && (
           <div data-testid="memo-tags" className="flex gap-1.5 mb-2">
-            {order.memo.map((tag) => (
+            {order.memo.map(tag => (
               <span
                 key={tag}
                 className="inline-block px-2 py-0.5 text-xs rounded-lg bg-[#F8F4EC] text-muted-foreground"
@@ -142,8 +145,8 @@ export function OrderHistoryCard({
         <div className="flex items-baseline justify-between mt-auto">
           {/* Left: update time */}
           {hasUpdate ? (
-            <span className="text-xs text-muted-foreground">
-              <Pencil size={8} />
+            <span className="text-xs text-muted-foreground flex gap-1">
+              <Pencil size={14} />
               {dayjs(order.updatedAt).format('YYYY/MM/DD HH:mm:ss')}
             </span>
           ) : (
@@ -161,6 +164,30 @@ export function OrderHistoryCard({
             </span>
           </div>
         </div>
+
+        {/* Gradient overlay + expand button when card overflows */}
+        {!expanded && (
+          <div
+            data-testid="card-expand-overlay"
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex flex-col items-center justify-end rounded-b-xl pb-3 pt-16"
+            style={{
+              background:
+                'linear-gradient(to bottom, transparent, rgba(255,255,255,0.85) 40%, rgba(255,255,255,1))',
+            }}
+          >
+            <button
+              type="button"
+              className="pointer-events-auto flex items-center gap-1 text-md text-muted-foreground transition hover:text-foreground"
+              onClick={e => {
+                e.stopPropagation()
+                setExpanded(true)
+              }}
+            >
+              <MoveDown size={16} />
+              {t('orders.viewAll')}
+            </button>
+          </div>
+        )}
       </div>
     </SwipeActions>
   )
