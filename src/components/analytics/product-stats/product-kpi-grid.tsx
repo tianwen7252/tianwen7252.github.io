@@ -45,7 +45,7 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl">
+          <div className="text-2xl text-(--color-gold)">
             <TwdTicker value={kpis.totalRevenue} testId="kpi-totalRevenue" />
           </div>
         </CardContent>
@@ -73,7 +73,7 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl">
+          <div className="text-2xl text-(--color-gold)">
             <TwdTicker
               value={kpis.morningRevenue}
               testId="kpi-morningRevenue"
@@ -91,7 +91,7 @@ export function ProductKpiGrid({ kpis }: ProductKpiGridProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl">
+          <div className="text-2xl text-(--color-gold)">
             <TwdTicker
               value={kpis.afternoonRevenue}
               testId="kpi-afternoonRevenue"
