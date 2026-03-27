@@ -15,10 +15,7 @@ export {
   createCommodityRepository,
   type CommodityRepository,
 } from './commodity-repository'
-export {
-  createOrderRepository,
-  type OrderRepository,
-} from './order-repository'
+export { createOrderRepository, type OrderRepository } from './order-repository'
 export {
   createOrderItemRepository,
   type OrderItemRepository,
@@ -28,6 +25,10 @@ export {
   type OrderDiscountRepository,
 } from './order-discount-repository'
 export {
+  createErrorLogRepository,
+  type ErrorLogRepository,
+} from './error-log-repository'
+export {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
@@ -36,5 +37,6 @@ export {
   getOrderRepo,
   getOrderItemRepo,
   getOrderDiscountRepo,
+  getErrorLogRepo,
   resetRepositories,
 } from './provider'

@@ -115,7 +115,10 @@ export const orderItemSchema = z.object({
   createdAt: z.number(),
 })
 
-export const createOrderItemSchema = orderItemSchema.omit({ id: true, createdAt: true })
+export const createOrderItemSchema = orderItemSchema.omit({
+  id: true,
+  createdAt: true,
+})
 
 export type OrderItem = z.infer<typeof orderItemSchema>
 export type CreateOrderItem = z.infer<typeof createOrderItemSchema>
@@ -131,7 +134,10 @@ export const orderDiscountSchema = z.object({
   createdAt: z.number(),
 })
 
-export const createOrderDiscountSchema = orderDiscountSchema.omit({ id: true, createdAt: true })
+export const createOrderDiscountSchema = orderDiscountSchema.omit({
+  id: true,
+  createdAt: true,
+})
 
 export type OrderDiscount = z.infer<typeof orderDiscountSchema>
 export type CreateOrderDiscount = z.infer<typeof createOrderDiscountSchema>
@@ -185,6 +191,18 @@ export type Order = z.infer<typeof orderSchema>
 export type CreateOrder = z.infer<typeof createOrderSchema>
 export type NewOrderItem = z.infer<typeof newOrderItemSchema>
 export type NewOrderDiscount = z.infer<typeof newOrderDiscountSchema>
+
+// ─── ErrorLog ───────────────────────────────────────────────────────────────
+
+export const errorLogSchema = z.object({
+  id: z.string(),
+  message: z.string(),
+  source: z.string(),
+  stack: z.string().nullable(),
+  createdAt: z.number(),
+})
+
+export type ErrorLog = z.infer<typeof errorLogSchema>
 
 // ─── DailyData ───────────────────────────────────────────────────────────────
 

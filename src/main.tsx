@@ -23,6 +23,7 @@ import {
   waitForWorkerReady,
 } from '@/lib/worker-database'
 import { initRepositories } from '@/lib/repositories'
+import { installGlobalErrorLogger } from '@/lib/error-logger'
 
 // Initialize i18n before rendering (side-effect import)
 import './lib/i18n'
@@ -89,6 +90,7 @@ async function bootstrap() {
 
   const db = createWorkerDatabase(worker)
   initRepositories(db)
+  installGlobalErrorLogger()
 
   createRoot(rootElement).render(
     <StrictMode>

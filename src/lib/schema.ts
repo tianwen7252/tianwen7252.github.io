@@ -132,6 +132,17 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id);
 
+  -- Error logs
+  CREATE TABLE IF NOT EXISTS error_logs (
+    id TEXT PRIMARY KEY,
+    message TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
+    stack TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -168,7 +179,9 @@ function runMigrations(exec: (sql: string) => void): void {
 
   // V2-52: Add includes_soup column to commodities (may not exist on older DBs)
   try {
-    exec('ALTER TABLE commodities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0')
+    exec(
+      'ALTER TABLE commodities ADD COLUMN includes_soup INTEGER NOT NULL DEFAULT 0',
+    )
   } catch {
     // Column already exists — safe to ignore
   }
@@ -185,7 +198,9 @@ function runMigrations(exec: (sql: string) => void): void {
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (order_id) REFERENCES orders(id)
   )`)
-  exec('CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)')
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id)',
+  )
 
   // V2-53: Add order_discounts table
   exec(`CREATE TABLE IF NOT EXISTS order_discounts (
@@ -196,7 +211,21 @@ function runMigrations(exec: (sql: string) => void): void {
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     FOREIGN KEY (order_id) REFERENCES orders(id)
   )`)
-  exec('CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id)')
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id)',
+  )
+
+  // V2-116: Add error_logs table
+  exec(`CREATE TABLE IF NOT EXISTS error_logs (
+    id TEXT PRIMARY KEY,
+    message TEXT NOT NULL,
+    source TEXT NOT NULL DEFAULT '',
+    stack TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)',
+  )
 }
 
 /**
