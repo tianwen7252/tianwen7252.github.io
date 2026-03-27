@@ -14,8 +14,6 @@ import {
   Eraser,
   DatabaseBackup,
   RefreshCw,
-  Check,
-  X,
 } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
@@ -222,14 +220,15 @@ export function SystemInfo() {
                 {googleUser?.email ?? t('settings.notLoggedIn')}
               </div>
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-muted-foreground">
-                {t('settings.adminStatus')}
-              </span>
+            <div>
               {isAdmin ? (
-                <Check size={18} className="text-primary" />
+                <span className="inline-block rounded-full bg-primary/15 px-3 py-0.5 text-md text-primary">
+                  {t('settings.adminStatus')}
+                </span>
               ) : (
-                <X size={18} className="text-(--color-red)" />
+                <span className="inline-block rounded-full bg-(--color-red)/15 px-3 py-0.5 text-md text-(--color-red)">
+                  {t('settings.notAdmin')}
+                </span>
               )}
             </div>
           </CardContent>

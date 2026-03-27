@@ -222,6 +222,7 @@
     "loginInfo": "Login Info",
     "googleAccount": "Google Account",
     "adminStatus": "Admin",
+    "notAdmin": "Not Admin",
     "notLoggedIn": "Not logged in",
     "quickActions": "Quick Actions",
     "clearCache": "Clear Cache",

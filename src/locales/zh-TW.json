@@ -222,6 +222,7 @@
     "loginInfo": "登入資訊",
     "googleAccount": "Google 帳號",
     "adminStatus": "管理員",
+    "notAdmin": "非管理員",
     "notLoggedIn": "未登入",
     "quickActions": "快捷操作",
     "clearCache": "清除快取",
