@@ -265,15 +265,14 @@ function BarView({
               i === commodityNames.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]
             }
           >
-            {/* Show total on top of the last (topmost) stacked segment */}
-            {i === commodityNames.length - 1 && (
-              <LabelList
-                dataKey="_total"
-                position="top"
-                fill="var(--foreground)"
-                fontSize={fontSize}
-              />
-            )}
+            {/* Show each segment's value inside the bar */}
+            <LabelList
+              dataKey={name}
+              position="center"
+              fill="#fff"
+              fontSize={fontSize}
+              formatter={(v: unknown) => (Number(v) > 0 ? String(v) : '')}
+            />
           </Bar>
         ))}
       </BarChart>
