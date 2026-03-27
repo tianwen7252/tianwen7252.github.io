@@ -141,7 +141,7 @@ describe('EditOrderModal', () => {
     await user.click(submitBtn)
 
     // In confirming mode, should show edit title and confirm content
-    expect(screen.getByText('編輯訂單')).toBeTruthy()
+    expect(screen.getByText(/編輯訂單#5/)).toBeTruthy()
     // Should show the confirm button with edit-specific text
     expect(screen.getByRole('button', { name: /確定編輯/i })).toBeTruthy()
   })
