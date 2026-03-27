@@ -7,7 +7,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router'
 import { useTranslation } from 'react-i18next'
-import { Settings, UserRound, Code } from 'lucide-react'
+import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview } from '@/pages/preview'
@@ -19,6 +19,7 @@ import { SwUpdatePrompt } from '@/components/sw-update-prompt'
 import { PageTransition } from '@/components/animations'
 import { AppErrorBoundary } from '@/components/app-error-boundary'
 import { ScrollToTop } from '@/components/ui/scroll-to-top'
+import { HeaderUserMenu } from '@/components/header/header-user-menu'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
 
@@ -88,34 +89,14 @@ function RootLayout() {
           {/* Right: dev + settings + login icons */}
           <div className="ml-auto flex items-center gap-2">
             {import.meta.env.DEV && (
-              <Link to="/preview">
-                <RippleButton
-                  aria-label="DEV"
-                  rippleColor="rgba(0,0,0,0.1)"
-                  className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-                >
-                  <Code size={20} />
-                </RippleButton>
-              </Link>
+              <NavIconLink to="/preview" ariaLabel="DEV">
+                <Code size={20} />
+              </NavIconLink>
             )}
-            <Link to="/settings">
-              <RippleButton
-                aria-label={t('nav.settings')}
-                rippleColor="rgba(0,0,0,0.1)"
-                className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <Settings size={20} />
-              </RippleButton>
-            </Link>
-            <Link to="/clock-in">
-              <RippleButton
-                aria-label={t('nav.clockIn')}
-                rippleColor="rgba(0,0,0,0.1)"
-                className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                <UserRound size={20} />
-              </RippleButton>
-            </Link>
+            <NavIconLink to="/settings" ariaLabel={t('nav.settings')}>
+              <Settings size={20} />
+            </NavIconLink>
+            <HeaderUserMenu />
           </div>
         </nav>
       </header>
@@ -148,6 +129,36 @@ function NavLink({ to, children }: { to: string; children: React.ReactNode }) {
       className="rounded-md px-3 py-1.5 text-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground [&.active]:bg-primary [&.active]:text-primary-foreground"
     >
       {children}
+    </Link>
+  )
+}
+
+function NavIconLink({
+  to,
+  ariaLabel,
+  children,
+}: {
+  to: string
+  ariaLabel: string
+  children: React.ReactNode
+}) {
+  const pathname = useRouterState({ select: s => s.location.pathname })
+  const isActive = pathname === to || pathname.startsWith(`${to}/`)
+
+  return (
+    <Link to={to}>
+      <RippleButton
+        aria-label={ariaLabel}
+        rippleColor="rgba(0,0,0,0.1)"
+        className={cn(
+          'flex size-9 items-center justify-center rounded-md transition-colors hover:bg-accent hover:text-accent-foreground',
+          isActive
+            ? 'bg-primary text-primary-foreground'
+            : 'text-muted-foreground',
+        )}
+      >
+        {children}
+      </RippleButton>
     </Link>
   )
 }
