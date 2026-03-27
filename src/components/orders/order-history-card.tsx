@@ -11,6 +11,7 @@ import {
   DEFAULT_ACCENT,
 } from '@/lib/constants/category-accent'
 import type { SwipeAction } from '@/components/ui/swipe-actions'
+import { RippleButton } from '@/components/ui/ripple-button'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -34,6 +35,7 @@ export interface OrderHistoryCardProps {
 /** Build the list of swipe actions — always includes edit and delete */
 function buildSwipeActions(
   onDelete: () => void,
+  t: (key: string) => string,
   onEdit?: () => void,
 ): readonly SwipeAction[] {
   return [
@@ -41,14 +43,14 @@ function buildSwipeActions(
       key: 'edit',
       icon: <Pencil size={20} color="#fff" />,
       color: EDIT_ACTION_COLOR,
-      label: '編輯',
+      label: t('common.edit'),
       onClick: onEdit ?? (() => {}),
     },
     {
       key: 'delete',
       icon: <Trash2 size={20} color="#fff" />,
       color: DELETE_ACTION_COLOR,
-      label: '刪除',
+      label: t('common.delete'),
       onClick: onDelete,
     },
   ]
@@ -84,7 +86,7 @@ export function OrderHistoryCard({
   const formattedTime = dayjs(order.createdAt).format('h:mm A')
   const isDiscounted =
     order.originalTotal !== undefined && order.originalTotal > order.total
-  const actions = buildSwipeActions(onDelete, onEdit)
+  const actions = buildSwipeActions(onDelete, t, onEdit)
   const hasUpdate = order.updatedAt !== order.createdAt
 
   // Group items by category using the commodity lookup map
@@ -107,7 +109,7 @@ export function OrderHistoryCard({
       >
         {/* Row 1: Order number + time */}
         <div className="flex items-center justify-between mb-1">
-          <span className="text-base font-semibold">#{order.number}</span>
+          <span className="text-base">#{order.number}</span>
           <span className="text-sm text-muted-foreground">{formattedTime}</span>
         </div>
 
@@ -170,9 +172,7 @@ export function OrderHistoryCard({
                 {formatCurrency(order.originalTotal, { allowEmpty: true })}
               </span>
             )}
-            <span className="text-lg font-semibold">
-              {formatCurrency(order.total)}
-            </span>
+            <span className="text-lg">{formatCurrency(order.total)}</span>
           </div>
         </div>
 
@@ -186,8 +186,8 @@ export function OrderHistoryCard({
                 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.85) 40%, rgba(255,255,255,1))',
             }}
           >
-            <button
-              type="button"
+            <RippleButton
+              rippleColor="rgba(0,0,0,0.1)"
               className="pointer-events-auto flex items-center gap-1 text-md text-muted-foreground transition hover:text-foreground"
               onClick={e => {
                 e.stopPropagation()
@@ -196,7 +196,7 @@ export function OrderHistoryCard({
             >
               <MoveDown size={16} />
               {t('orders.viewAll')}
-            </button>
+            </RippleButton>
           </div>
         )}
       </div>

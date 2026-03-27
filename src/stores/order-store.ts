@@ -44,7 +44,7 @@ interface OrderState {
   readonly discounts: readonly Discount[]
   /** Last added/updated cart item — [id, seq] where seq increments to trigger scroll */
   readonly lastAddedItem: readonly [string, number] | null
-  /** Monotonic counter incremented on each clearCart — used to reset dependent UI (e.g., category tabs) */
+  /** Monotonic counter incremented on each submitOrder — used to reset dependent UI (e.g., category tabs) */
   readonly submitSeq: number
 }
 
