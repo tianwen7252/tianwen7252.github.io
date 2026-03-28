@@ -27,7 +27,7 @@ interface CalculatorOverlayProps {
 /**
  * Full calculator overlay rendered inside ProductGrid.
  * White glassmorphism, absolute positioned to fill the parent container.
- * Vertical layout: expression → keypad → combobox → submit.
+ * Vertical layout: display → keypad → combobox → submit.
  */
 export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
   const { t } = useTranslation()
@@ -96,16 +96,16 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
       data-testid="calculator-overlay"
       className="absolute inset-0 z-20 flex flex-col overflow-hidden border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
     >
-      {/* Header: expression display + close button */}
-      <div className="mb-3 flex items-start justify-between">
-        <div className="flex min-w-0 flex-1 flex-col items-end pr-3">
+      {/* Display area: expression + result (min-h-24 = ~2x previous height) */}
+      <div className="mb-3 flex min-h-24 shrink-0 items-start justify-between">
+        <div className="flex min-w-0 flex-1 flex-col items-end justify-end pr-3">
           {calcState.expression && (
             <span className="truncate text-base text-muted-foreground">
               {calcState.expression}
             </span>
           )}
           <span
-            className={`font-mono text-3xl truncate max-w-full ${
+            className={`font-mono text-5xl truncate max-w-full ${
               errorState ? 'text-destructive' : 'text-foreground'
             }`}
           >
@@ -121,10 +121,10 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
         </RippleButton>
       </div>
 
-      {/* Keypad — fills available space */}
+      {/* Keypad — fills remaining space between display and bottom */}
       <CalculatorKeypad activeOperator={calcState.operator} onKey={handleKey} />
 
-      {/* Bottom: Combobox + Submit */}
+      {/* Bottom: Combobox + Submit — always visible */}
       <div className="mt-3 flex shrink-0 flex-col gap-2">
         <Combobox
           value={customName}
@@ -136,7 +136,7 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
         <RippleButton
           onClick={handleSubmit}
           disabled={!canSubmit}
-          className="h-14 w-full rounded-xl bg-primary text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          className="h-12 w-full rounded-xl bg-primary text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
         >
           {t('order.calculatorSubmit')}
         </RippleButton>
