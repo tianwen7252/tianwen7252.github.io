@@ -59,7 +59,11 @@ export function ConfirmOrderContent({
                     key={item.id}
                     className="flex items-baseline justify-between py-[5px]"
                   >
-                    <span className="text-md text-gray-800">{item.name}</span>
+                    <span
+                      className={`text-md ${item.commodityId.startsWith('custom-') ? 'text-red-500' : 'text-gray-800'}`}
+                    >
+                      {item.name}
+                    </span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
                     <span className="text-gray-400">x{item.quantity}</span>
                     <span className="ml-3 min-w-[3.5rem] text-right tabular-nums text-gray-700">
