@@ -91,6 +91,7 @@ export function Combobox({
 
       <PopoverContent
         className="w-(--radix-popover-trigger-width) p-1"
+        side="top"
         align="start"
         onOpenAutoFocus={e => e.preventDefault()}
       >

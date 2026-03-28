@@ -135,12 +135,8 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
 
   addCustomItem: (name, price) => {
     if (price === 0) return
-    if (price < 0) {
-      // Negative price → add as discount
-      get().addDiscount(name, Math.abs(price))
-      return
-    }
-    // Positive price → add as custom cart item
+    // Both positive and negative prices are added as cart items.
+    // Negative price items (e.g., discounts) appear in the order list with negative amount.
     set(state => {
       const newItem: CartItem = {
         id: nanoid(),
