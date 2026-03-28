@@ -9,7 +9,6 @@ import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { OrderItemRow } from './order-item-row'
 import { OrderSummary } from './order-summary'
 import { ConfirmOrderModal } from './confirm-order-modal'
-import { QuickSubmitSwitch } from './quick-submit-switch'
 import { ChangePrediction } from './change-prediction'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -47,10 +46,11 @@ export function OrderPanel({
   const submitOrder = useOrderStore(s => s.submitOrder)
   const lastAddedItem = useOrderStore(s => s.lastAddedItem)
 
+  const quickSubmit = useOrderStore(s => s.quickSubmit)
+
   const { t } = useTranslation()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [quickSubmit, setQuickSubmit] = useState(true)
   const scrollRef = useRef<ScrollAreaHandle>(null)
 
   // Scroll to the last added/updated item
@@ -158,37 +158,23 @@ export function OrderPanel({
       {/* Divider */}
       <hr className="border-border" />
 
-      {/* Change prediction — shown in quick submit mode */}
-      {isQuickMode && <ChangePrediction total={total} />}
+      {/* Order summary with optional change prediction */}
+      <OrderSummary bentoCount={bentoCount} soupCount={soupCount} total={total}>
+        {isQuickMode && <ChangePrediction total={total} />}
+      </OrderSummary>
 
-      {/* Order summary */}
-      <OrderSummary
-        bentoCount={bentoCount}
-        soupCount={soupCount}
-        total={total}
-      />
-
-      {/* Quick submit switch + Submit button */}
-      <div className="flex items-center gap-3">
-        {/* Only show quick submit switch in default (non-override) mode */}
-        {!onSubmitClick && (
-          <QuickSubmitSwitch
-            checked={quickSubmit}
-            onCheckedChange={setQuickSubmit}
-          />
-        )}
-        <RippleButton
-          className="h-14 flex-1 rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-          disabled={isEmpty || isSubmitting}
-          onClick={
-            onSubmitClick ??
-            (isQuickMode ? handleQuickSubmit : () => setConfirmOpen(true))
-          }
-          style={submitColor ? { backgroundColor: submitColor } : undefined}
-        >
-          {submitLabel ?? t('order.submit')}
-        </RippleButton>
-      </div>
+      {/* Submit button */}
+      <RippleButton
+        className="h-14 w-full rounded-md bg-primary px-6 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+        disabled={isEmpty || isSubmitting}
+        onClick={
+          onSubmitClick ??
+          (isQuickMode ? handleQuickSubmit : () => setConfirmOpen(true))
+        }
+        style={submitColor ? { backgroundColor: submitColor } : undefined}
+      >
+        {submitLabel ?? t('order.submit')}
+      </RippleButton>
 
       {/* Confirm order modal — only rendered when using default non-quick submit behavior */}
       {!onSubmitClick && !quickSubmit && (

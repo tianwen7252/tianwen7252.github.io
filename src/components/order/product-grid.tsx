@@ -11,6 +11,7 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { CategoryTabs } from './category-tabs'
 import { ProductCard } from './product-card'
 import { CalculatorOverlay } from './calculator-overlay'
+import { QuickSubmitSwitch } from './quick-submit-switch'
 
 /**
  * Main container component for the product selection area.
@@ -24,6 +25,8 @@ export function ProductGrid() {
 
   const addItem = useOrderStore(state => state.addItem)
   const submitSeq = useOrderStore(state => state.submitSeq)
+  const quickSubmit = useOrderStore(state => state.quickSubmit)
+  const setQuickSubmit = useOrderStore(state => state.setQuickSubmit)
 
   // Reset category tab to default after order submission (clearCart increments submitSeq)
   useEffect(() => {
@@ -85,22 +88,28 @@ export function ProductGrid() {
   }
 
   return (
-    <div className="relative flex min-h-full flex-col gap-3">
-      {/* Header: category tabs + calculator toggle */}
+    <div className="flex flex-col gap-3">
+      {/* Header: category tabs + quick submit switch + calculator toggle */}
       <div className="flex items-center justify-between">
         <CategoryTabs
           categories={categories}
           selectedTypeId={selectedTypeId}
           onSelect={setSelectedTypeId}
         />
-        <RippleButton
-          aria-label={t('order.calculator')}
-          rippleColor="rgba(0, 0, 0, 0.1)"
-          onClick={() => setShowCalculator(prev => !prev)}
-          className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center"
-        >
-          <Calculator className="size-5" />
-        </RippleButton>
+        <div className="flex items-center gap-2">
+          <QuickSubmitSwitch
+            checked={quickSubmit}
+            onCheckedChange={setQuickSubmit}
+          />
+          <RippleButton
+            aria-label={t('order.calculator')}
+            rippleColor="rgba(0, 0, 0, 0.1)"
+            onClick={() => setShowCalculator(prev => !prev)}
+            className="size-8 rounded-md border border-border bg-background text-muted-foreground shadow-xs flex items-center gap-2 justify-center"
+          >
+            <Calculator className="size-5" />
+          </RippleButton>
+        </div>
       </div>
 
       {/* Product grid */}

@@ -94,13 +94,13 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
   return (
     <div
       data-testid="calculator-overlay"
-      className="absolute inset-0 z-20 flex flex-col rounded-2xl border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
+      className="absolute inset-0 z-20 flex flex-col border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
     >
       {/* Header: expression display + close button */}
       <div className="mb-3 flex items-start justify-between">
         <div className="flex min-w-0 flex-1 flex-col items-end pr-3">
           {calcState.expression && (
-            <span className="truncate text-sm text-muted-foreground">
+            <span className="truncate text-base text-muted-foreground">
               {calcState.expression}
             </span>
           )}

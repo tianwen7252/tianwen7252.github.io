@@ -36,6 +36,7 @@ describe('OrderPanel', () => {
         discounts: [],
         operatorId: null,
         operatorName: null,
+        quickSubmit: true,
       })
     })
   })
@@ -202,8 +203,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    // Disable quick submit first
-    await user.click(screen.getByRole('switch'))
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     await user.click(submitButton)
 
@@ -221,8 +224,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    // Disable quick submit first
-    await user.click(screen.getByRole('switch'))
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     expect(screen.getByRole('dialog')).toBeTruthy()
@@ -245,8 +250,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    // Disable quick submit first
-    await user.click(screen.getByRole('switch'))
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     // Click confirm in the modal
@@ -269,8 +276,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
-    // Disable quick submit first
-    await user.click(screen.getByRole('switch'))
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     // Click confirm in the modal

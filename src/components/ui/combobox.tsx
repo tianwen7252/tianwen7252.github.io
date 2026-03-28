@@ -94,7 +94,7 @@ export function Combobox({
         onOpenAutoFocus={e => e.preventDefault()}
       >
         {filtered.length === 0 ? (
-          <p className="px-2 py-1.5 text-sm text-muted-foreground">
+          <p className="px-2 py-1.5 text-base text-muted-foreground">
             {search ? search : '—'}
           </p>
         ) : (
@@ -103,7 +103,7 @@ export function Combobox({
               <li
                 key={opt.value}
                 onClick={() => handleSelect(opt.value)}
-                className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-sm hover:bg-accent"
+                className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-base hover:bg-accent"
               >
                 <span className="truncate">{opt.label}</span>
                 {onDelete && (

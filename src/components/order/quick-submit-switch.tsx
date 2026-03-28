@@ -19,7 +19,7 @@ export function QuickSubmitSwitch({
 
   return (
     <label className="flex items-center gap-2 cursor-pointer select-none">
-      <span className="text-sm text-muted-foreground">
+      <span className="text-base text-muted-foreground">
         {t('order.quickSubmit')}
       </span>
       <Switch checked={checked} onCheckedChange={onCheckedChange} />
