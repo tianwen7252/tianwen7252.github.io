@@ -18,7 +18,12 @@ import { QuickSubmitSwitch } from './quick-submit-switch'
  * Fetches categories and commodities via TanStack Query,
  * manages selected category state, and renders the grid of products.
  */
-export function ProductGrid() {
+interface ProductGridProps {
+  /** Use compact sizing for modal context */
+  readonly compact?: boolean
+}
+
+export function ProductGrid({ compact = false }: ProductGridProps) {
   const { t } = useTranslation()
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
   const [showCalculator, setShowCalculator] = useState(false)
@@ -131,7 +136,10 @@ export function ProductGrid() {
 
       {/* Calculator overlay — extends to cover parent padding via negative insets */}
       {showCalculator && (
-        <CalculatorOverlay onClose={() => setShowCalculator(false)} />
+        <CalculatorOverlay
+          onClose={() => setShowCalculator(false)}
+          compact={compact}
+        />
       )}
     </div>
   )

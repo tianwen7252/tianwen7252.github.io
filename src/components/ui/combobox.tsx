@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
+import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
@@ -107,13 +108,13 @@ export function Combobox({
               >
                 <span className="truncate">{opt.label}</span>
                 {onDelete && (
-                  <button
-                    type="button"
+                  <RippleButton
                     onClick={e => handleDelete(opt.value, e)}
-                    className="ml-2 shrink-0 text-muted-foreground hover:text-destructive"
+                    rippleColor="rgba(0,0,0,0.1)"
+                    className="ml-2 flex shrink-0 items-center justify-center rounded text-muted-foreground hover:text-destructive"
                   >
                     <X className="size-3.5" />
-                  </button>
+                  </RippleButton>
                 )}
               </li>
             ))}
