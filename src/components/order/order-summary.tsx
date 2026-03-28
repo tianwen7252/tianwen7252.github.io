@@ -5,6 +5,8 @@ export interface OrderSummaryProps {
   readonly bentoCount: number
   readonly soupCount: number
   readonly total: number
+  /** Optional content rendered between bento/soup counts and total (e.g., ChangePrediction) */
+  readonly children?: React.ReactNode
 }
 
 /** Order summary displaying bento/soup counts and total */
@@ -12,6 +14,7 @@ export function OrderSummary({
   bentoCount,
   soupCount,
   total,
+  children,
 }: OrderSummaryProps) {
   const { t } = useTranslation()
   return (
@@ -33,10 +36,13 @@ export function OrderSummary({
         </div>
       )}
 
+      {/* Optional slot (e.g., ChangePrediction in quick submit mode) */}
+      {children}
+
       {/* Total row */}
       <div className="flex items-center justify-between pt-2">
         <span className="text-xl">{t('order.total')}</span>
-        <span data-testid="total-value" className="text-3xl font-bold">
+        <span data-testid="total-value" className="text-3xl">
           ${total.toLocaleString()}
         </span>
       </div>

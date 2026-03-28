@@ -165,7 +165,15 @@
     "confirmEdit": "確定編輯",
     "editTitle": "編輯訂單",
     "editSuccess": "訂單已更新",
-    "editError": "訂單更新失敗"
+    "editError": "訂單更新失敗",
+    "quickSubmit": "快速送單",
+    "customOrderDefault": "客製訂單",
+    "discountDefault": "折扣",
+    "calculatorTitle": "計算機",
+    "calculatorSubmit": "確定送出",
+    "calculatorNamePlaceholder": "客製訂單名稱",
+    "calculatorError": "錯誤",
+    "calculatorZeroResult": "結果不可為零"
   },
   "orders": {
     "title": "訂單紀錄",

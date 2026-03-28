@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Minus, Plus, X } from 'lucide-react'
+import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/button'
 import {
   Popover,
@@ -25,6 +26,7 @@ export function OrderItemRow({
 }: OrderItemRowProps) {
   const { t } = useTranslation()
   const totalPrice = item.price * item.quantity
+  const isCustom = item.commodityId.startsWith('custom-')
   const prevQuantityRef = useRef(item.quantity)
   const quantityRef = useRef<HTMLSpanElement>(null)
   const [popoverOpen, setPopoverOpen] = useState(false)
@@ -87,7 +89,12 @@ export function OrderItemRow({
     <div className="flex flex-col gap-1 py-2">
       {/* Top row: name, quantity controls, price */}
       <div className="flex items-center justify-between gap-2">
-        <span className="flex-1 whitespace-nowrap font-medium">
+        <span
+          className={cn(
+            'flex-1 whitespace-nowrap font-medium',
+            isCustom && 'text-red-500',
+          )}
+        >
           {item.name}
         </span>
 
@@ -107,7 +114,7 @@ export function OrderItemRow({
               <span
                 ref={quantityRef}
                 className="min-w-[1.5rem] cursor-pointer rounded px-1 text-center text-base outline-none hover:bg-muted"
-                onAnimationEnd={(e) =>
+                onAnimationEnd={e =>
                   e.currentTarget.classList.remove('animate-qty-bounce')
                 }
                 onClick={handleOpenPopover}
@@ -135,7 +142,7 @@ export function OrderItemRow({
                   type="number"
                   min={1}
                   value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
+                  onChange={e => setEditValue(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="w-24 rounded-lg border border-input bg-background px-3 py-2 text-center text-xl font-bold outline-none focus:border-primary"
                   style={{ userSelect: 'text' }}

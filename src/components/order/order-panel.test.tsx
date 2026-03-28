@@ -36,6 +36,7 @@ describe('OrderPanel', () => {
         discounts: [],
         operatorId: null,
         operatorName: null,
+        quickSubmit: true,
       })
     })
   })
@@ -193,7 +194,7 @@ describe('OrderPanel', () => {
     expect(useOrderStore.getState().items).toHaveLength(0)
   })
 
-  it('should open confirm modal when submit button is clicked', async () => {
+  it('should open confirm modal when submit button is clicked (quickSubmit OFF)', async () => {
     act(() => {
       useOrderStore.setState({
         items: [makeCartItem()],
@@ -202,6 +203,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     const submitButton = screen.getByRole('button', { name: /送出訂單/i })
     await user.click(submitButton)
 
@@ -210,7 +215,7 @@ describe('OrderPanel', () => {
     expect(screen.getByText('確認訂單')).toBeTruthy()
   })
 
-  it('should close confirm modal when cancel button is clicked', async () => {
+  it('should close confirm modal when cancel button is clicked (quickSubmit OFF)', async () => {
     act(() => {
       useOrderStore.setState({
         items: [makeCartItem()],
@@ -219,6 +224,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     expect(screen.getByRole('dialog')).toBeTruthy()
@@ -229,7 +238,7 @@ describe('OrderPanel', () => {
     expect(screen.queryByRole('dialog')).toBeNull()
   })
 
-  it('should call submitOrder and show toast on success when confirmed in modal', async () => {
+  it('should call submitOrder and show toast on success when confirmed in modal (quickSubmit OFF)', async () => {
     const { notify } = await import('@/components/ui/sonner')
     vi.spyOn(useOrderStore.getState(), 'submitOrder').mockResolvedValueOnce()
 
@@ -241,6 +250,10 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     // Click confirm in the modal
@@ -249,7 +262,7 @@ describe('OrderPanel', () => {
     expect(notify.success).toHaveBeenCalledWith('訂單已送出')
   })
 
-  it('should show error toast when submitOrder fails after modal confirm', async () => {
+  it('should show error toast when submitOrder fails after modal confirm (quickSubmit OFF)', async () => {
     const { notify } = await import('@/components/ui/sonner')
     vi.spyOn(useOrderStore.getState(), 'submitOrder').mockRejectedValueOnce(
       new Error('Network error'),
@@ -263,12 +276,36 @@ describe('OrderPanel', () => {
 
     const user = userEvent.setup()
     await renderOrderPanel()
+    // Disable quick submit via store
+    act(() => {
+      useOrderStore.setState({ quickSubmit: false })
+    })
     // Open modal
     await user.click(screen.getByRole('button', { name: /送出訂單/i }))
     // Click confirm in the modal
     await user.click(screen.getByRole('button', { name: /確認送出/i }))
 
     expect(notify.error).toHaveBeenCalledWith('訂單送出失敗')
+  })
+
+  it('should submit directly without modal when quickSubmit is ON (default)', async () => {
+    const { notify } = await import('@/components/ui/sonner')
+    vi.spyOn(useOrderStore.getState(), 'submitOrder').mockResolvedValueOnce()
+
+    act(() => {
+      useOrderStore.setState({
+        items: [makeCartItem()],
+      })
+    })
+
+    const user = userEvent.setup()
+    await renderOrderPanel()
+    // quickSubmit is ON by default — clicking submit should NOT open modal
+    await user.click(screen.getByRole('button', { name: /送出訂單/i }))
+
+    // No modal should appear
+    expect(screen.queryByRole('dialog')).toBeNull()
+    expect(notify.success).toHaveBeenCalledWith('訂單已送出')
   })
 
   it('should not render empty state when items exist', async () => {

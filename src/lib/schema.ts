@@ -132,6 +132,13 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id);
 
+  -- Custom order names (for calculator overlay)
+  CREATE TABLE IF NOT EXISTS custom_order_names (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
   -- Error logs
   CREATE TABLE IF NOT EXISTS error_logs (
     id TEXT PRIMARY KEY,
@@ -214,6 +221,13 @@ function runMigrations(exec: (sql: string) => void): void {
   exec(
     'CREATE INDEX IF NOT EXISTS idx_order_discounts_order_id ON order_discounts(order_id)',
   )
+
+  // V2-119: Add custom_order_names table (calculator overlay)
+  exec(`CREATE TABLE IF NOT EXISTS custom_order_names (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
 
   // V2-116: Add error_logs table
   exec(`CREATE TABLE IF NOT EXISTS error_logs (
