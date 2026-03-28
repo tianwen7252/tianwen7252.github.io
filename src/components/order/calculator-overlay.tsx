@@ -94,7 +94,7 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
   return (
     <div
       data-testid="calculator-overlay"
-      className="absolute inset-0 z-20 flex flex-col border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
+      className="absolute inset-0 z-20 flex flex-col overflow-hidden border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
     >
       {/* Header: expression display + close button */}
       <div className="mb-3 flex items-start justify-between">
@@ -125,7 +125,7 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
       <CalculatorKeypad activeOperator={calcState.operator} onKey={handleKey} />
 
       {/* Bottom: Combobox + Submit */}
-      <div className="mt-3 flex flex-col gap-2">
+      <div className="mt-3 flex shrink-0 flex-col gap-2">
         <Combobox
           value={customName}
           onChange={setCustomName}
