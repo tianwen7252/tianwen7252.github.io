@@ -129,7 +129,7 @@ export function EditOrderModal({
         <div className="flex h-full gap-0">
           <div className="relative flex-60">
             <div className="h-full overflow-y-auto px-4 pl-0 py-2">
-              <ProductGrid compact />
+              <ProductGrid />
             </div>
           </div>
           <div className="flex-40 overflow-y-auto border-l border-border">

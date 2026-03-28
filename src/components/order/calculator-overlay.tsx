@@ -20,8 +20,6 @@ import { CalculatorKeypad } from './calculator-keypad'
 
 interface CalculatorOverlayProps {
   readonly onClose: () => void
-  /** Use compact sizing for modal context */
-  readonly compact?: boolean
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -31,10 +29,7 @@ interface CalculatorOverlayProps {
  * White glassmorphism, absolute positioned to fill the parent container.
  * Vertical layout: display → keypad → combobox → submit.
  */
-export function CalculatorOverlay({
-  onClose,
-  compact = false,
-}: CalculatorOverlayProps) {
+export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const addCustomItem = useOrderStore(s => s.addCustomItem)
@@ -127,11 +122,7 @@ export function CalculatorOverlay({
       </div>
 
       {/* Keypad — fills remaining space between display and bottom */}
-      <CalculatorKeypad
-        activeOperator={calcState.operator}
-        onKey={handleKey}
-        compact={compact}
-      />
+      <CalculatorKeypad activeOperator={calcState.operator} onKey={handleKey} />
 
       {/* Bottom: Combobox + Submit — always visible */}
       <div className="mt-3 flex shrink-0 flex-col gap-2">

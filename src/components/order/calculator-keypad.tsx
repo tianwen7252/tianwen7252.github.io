@@ -17,8 +17,6 @@ import type { CalculatorKey } from '@/lib/calculator-engine'
 interface CalculatorKeypadProps {
   readonly activeOperator: string | null
   readonly onKey: (key: CalculatorKey) => void
-  /** When true, uses compact sizing for modal context */
-  readonly compact?: boolean
 }
 
 interface KeyDef {
@@ -81,12 +79,9 @@ const ROWS: readonly (readonly KeyDef[])[] = [
 export function CalculatorKeypad({
   activeOperator,
   onKey,
-  compact = false,
 }: CalculatorKeypadProps) {
-  const rowHeight = compact ? 'auto-rows-[40px]' : 'auto-rows-[50px]'
-
   return (
-    <div className={cn('grid grid-cols-4 gap-1.5', rowHeight)}>
+    <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-5 gap-1.5">
       {ROWS.flatMap(row =>
         row.map(def => {
           const isActive = def.type === 'operator' && def.key === activeOperator
