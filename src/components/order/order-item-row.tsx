@@ -87,7 +87,9 @@ export function OrderItemRow({
     <div className="flex flex-col gap-1 py-2">
       {/* Top row: name, quantity controls, price */}
       <div className="flex items-center justify-between gap-2">
-        <span className="flex-1 whitespace-nowrap">{item.name}</span>
+        <span className="flex-1 whitespace-nowrap font-medium">
+          {item.name}
+        </span>
 
         {/* Quantity controls */}
         <div className="flex items-center gap-1">
@@ -169,13 +171,8 @@ export function OrderItemRow({
           </Button>
         </div>
 
-        {/* Price: unit price + total when quantity > 1 */}
-        <span className="min-w-[3rem] text-right text-base">
-          {item.quantity > 1 && (
-            <span className="mr-1 text-muted-foreground">
-              ${item.price.toLocaleString()}
-            </span>
-          )}
+        {/* Price */}
+        <span className="min-w-[3rem] text-right text-base font-medium">
           ${totalPrice.toLocaleString()}
         </span>
 

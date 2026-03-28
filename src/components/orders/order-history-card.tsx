@@ -133,6 +133,9 @@ export function OrderHistoryCard({
                     <span className="text-md text-gray-800">{item.name}</span>
                     <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
                     <span className="text-gray-400">x{item.quantity}</span>
+                    <span className="ml-2 text-md text-gray-600">
+                      {formatCurrency(item.price * item.quantity)}
+                    </span>
                   </div>
                 ))}
               </div>
