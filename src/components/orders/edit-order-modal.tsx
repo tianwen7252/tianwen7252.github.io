@@ -127,8 +127,10 @@ export function EditOrderModal({
         onClose={onClose}
       >
         <div className="flex h-full gap-0">
-          <div className="relative flex-60 overflow-y-auto px-4 pl-0 py-2">
-            <ProductGrid />
+          <div className="relative flex-60">
+            <div className="h-full overflow-y-auto px-4 pl-0 py-2">
+              <ProductGrid />
+            </div>
           </div>
           <div className="flex-40 overflow-y-auto border-l border-border">
             <OrderPanel

@@ -43,24 +43,27 @@ describe('OrderPage', () => {
 
   it('should have left panel with 65% flex ratio', () => {
     const { container } = render(<OrderPage />)
-    const leftPanel = container.querySelector('[data-testid="product-grid"]')
-      ?.parentElement as HTMLElement
-    expect(leftPanel).toBeTruthy()
-    expect(leftPanel.classList.contains('flex-64')).toBe(true)
+    // ProductGrid → scroll wrapper → flex-64 outer
+    const outerPanel = container.querySelector('[data-testid="product-grid"]')
+      ?.parentElement?.parentElement as HTMLElement
+    expect(outerPanel).toBeTruthy()
+    expect(outerPanel.classList.contains('flex-64')).toBe(true)
   })
 
   it('should have left panel with scrollable overflow', () => {
     const { container } = render(<OrderPage />)
-    const leftPanel = container.querySelector('[data-testid="product-grid"]')
-      ?.parentElement as HTMLElement
-    expect(leftPanel.classList.contains('overflow-y-auto')).toBe(true)
+    // Scroll wrapper is the direct parent of ProductGrid
+    const scrollWrapper = container.querySelector(
+      '[data-testid="product-grid"]',
+    )?.parentElement as HTMLElement
+    expect(scrollWrapper.classList.contains('overflow-y-auto')).toBe(true)
   })
 
   it('should have left panel with correct flex ratio', () => {
     const { container } = render(<OrderPage />)
-    const leftPanel = container.querySelector('[data-testid="product-grid"]')
-      ?.parentElement as HTMLElement
-    expect(leftPanel.classList.contains('flex-64')).toBe(true)
+    const outerPanel = container.querySelector('[data-testid="product-grid"]')
+      ?.parentElement?.parentElement as HTMLElement
+    expect(outerPanel.classList.contains('flex-64')).toBe(true)
   })
 
   it('should have right panel with 35% flex ratio', () => {

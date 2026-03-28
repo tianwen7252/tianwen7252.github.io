@@ -5,8 +5,10 @@ export function OrderPage() {
   return (
     <div className="flex h-[calc(100vh-57px)] gap-0">
       {/* Left panel — product menu (65%), relative for calculator overlay */}
-      <div className="relative flex-64 overflow-y-auto px-4 py-2">
-        <ProductGrid />
+      <div className="relative flex-64">
+        <div className="h-full overflow-y-auto px-4 py-2">
+          <ProductGrid />
+        </div>
       </div>
 
       {/* Right panel — order summary (35%) */}
