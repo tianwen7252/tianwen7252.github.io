@@ -1,4 +1,3 @@
-export { CalculatorDisplay } from './calculator-display'
 export { CalculatorKeypad } from './calculator-keypad'
 export { CalculatorOverlay } from './calculator-overlay'
 export { CategoryTabs } from './category-tabs'

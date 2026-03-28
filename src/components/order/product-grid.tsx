@@ -85,7 +85,7 @@ export function ProductGrid() {
   }
 
   return (
-    <div className="relative flex flex-col gap-3">
+    <div className="relative flex min-h-full flex-col gap-3">
       {/* Header: category tabs + calculator toggle */}
       <div className="flex items-center justify-between">
         <CategoryTabs
@@ -120,7 +120,7 @@ export function ProductGrid() {
         </div>
       )}
 
-      {/* Calculator overlay — positioned over the product grid */}
+      {/* Calculator overlay — extends to cover parent padding via negative insets */}
       {showCalculator && (
         <CalculatorOverlay onClose={() => setShowCalculator(false)} />
       )}
