@@ -46,6 +46,8 @@ interface OrderState {
   readonly lastAddedItem: readonly [string, number] | null
   /** Monotonic counter incremented on each submitOrder — used to reset dependent UI (e.g., category tabs) */
   readonly submitSeq: number
+  /** Quick submit mode — when true, skip confirmation modal */
+  readonly quickSubmit: boolean
 }
 
 interface OrderActions {
@@ -57,6 +59,9 @@ interface OrderActions {
     typeId: string
     includesSoup: boolean
   }) => void
+  /** Add a custom item from the calculator. Positive → cart item, negative → discount, zero → no-op. */
+  addCustomItem: (name: string, price: number) => void
+  setQuickSubmit: (enabled: boolean) => void
   removeItem: (cartItemId: string) => void
   updateQuantity: (cartItemId: string, quantity: number) => void
   updateNote: (cartItemId: string, note: string) => void
@@ -82,6 +87,7 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
   discounts: [],
   lastAddedItem: null,
   submitSeq: 0,
+  quickSubmit: true,
 
   setOperator: (employeeId, name) =>
     set({ operatorId: employeeId, operatorName: name }),
@@ -124,6 +130,33 @@ export const useOrderStore = create<OrderState & OrderActions>((set, get) => ({
         ] as const,
       }
     }),
+
+  setQuickSubmit: enabled => set({ quickSubmit: enabled }),
+
+  addCustomItem: (name, price) => {
+    if (price === 0) return
+    // Both positive and negative prices are added as cart items.
+    // Negative price items (e.g., discounts) appear in the order list with negative amount.
+    set(state => {
+      const newItem: CartItem = {
+        id: nanoid(),
+        commodityId: `custom-${nanoid()}`,
+        typeId: 'custom',
+        name,
+        price,
+        quantity: 1,
+        note: '',
+        includesSoup: false,
+      }
+      return {
+        items: [...state.items, newItem],
+        lastAddedItem: [
+          newItem.id,
+          (state.lastAddedItem?.[1] ?? 0) + 1,
+        ] as const,
+      }
+    })
+  },
 
   removeItem: cartItemId =>
     set(state => ({

@@ -192,6 +192,22 @@ export type CreateOrder = z.infer<typeof createOrderSchema>
 export type NewOrderItem = z.infer<typeof newOrderItemSchema>
 export type NewOrderDiscount = z.infer<typeof newOrderDiscountSchema>
 
+// ─── CustomOrderName ────────────────────────────────────────────────────────
+
+export const customOrderNameSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  createdAt: z.number(),
+})
+
+export const createCustomOrderNameSchema = customOrderNameSchema.omit({
+  id: true,
+  createdAt: true,
+})
+
+export type CustomOrderName = z.infer<typeof customOrderNameSchema>
+export type CreateCustomOrderName = z.infer<typeof createCustomOrderNameSchema>
+
 // ─── ErrorLog ───────────────────────────────────────────────────────────────
 
 export const errorLogSchema = z.object({

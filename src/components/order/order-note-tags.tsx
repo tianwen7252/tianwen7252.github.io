@@ -3,6 +3,7 @@ import { X, Square, SquareCheckBig } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
 import { Input } from '@/components/ui/input'
+import { RippleButton } from '@/components/ui/ripple-button'
 import {
   Popover,
   PopoverTrigger,
@@ -69,7 +70,7 @@ export function OrderNoteTags({
     (tag: string) => {
       const isSelected = selectedTags.includes(tag)
       const nextTags = isSelected
-        ? selectedTags.filter((t) => t !== tag)
+        ? selectedTags.filter(t => t !== tag)
         : [...selectedTags, tag]
       onSelectedTagsChange(nextTags)
     },
@@ -98,13 +99,13 @@ export function OrderNoteTags({
 
   const handleDeleteTag = useCallback(
     (tag: string) => {
-      const nextCustomTags = customTags.filter((t) => t !== tag)
+      const nextCustomTags = customTags.filter(t => t !== tag)
       setCustomTags(nextCustomTags)
       saveCustomTags(nextCustomTags)
 
       // Also remove from selected if it was selected
       if (selectedTags.includes(tag)) {
-        onSelectedTagsChange(selectedTags.filter((t) => t !== tag))
+        onSelectedTagsChange(selectedTags.filter(t => t !== tag))
       }
     },
     [customTags, selectedTags, onSelectedTagsChange],
@@ -121,7 +122,7 @@ export function OrderNoteTags({
 
       {/* Tag pills */}
       <div className="flex flex-wrap gap-2">
-        {allTags.map((tag) => {
+        {allTags.map(tag => {
           const isSelected = selectedTags.includes(tag)
           const isDefault = isDefaultTag(tag)
 
@@ -138,7 +139,7 @@ export function OrderNoteTags({
               onClick={() => handleToggleTag(tag)}
               role="button"
               tabIndex={0}
-              onKeyDown={(e) => {
+              onKeyDown={e => {
                 if (e.key === 'Enter' || e.key === ' ') handleToggleTag(tag)
               }}
             >
@@ -151,48 +152,53 @@ export function OrderNoteTags({
               {!isDefault && (
                 <Popover
                   open={pendingDeleteTag === tag}
-                  onOpenChange={(open) =>
-                    !open && setPendingDeleteTag(null)
-                  }
+                  onOpenChange={open => !open && setPendingDeleteTag(null)}
                 >
                   <PopoverTrigger asChild>
-                    <button
+                    <RippleButton
                       data-tag-delete={tag}
-                      type="button"
+                      rippleColor="rgba(0,0,0,0.1)"
                       className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-destructive/20"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation()
                         setPendingDeleteTag(tag)
                       }}
                       aria-label={`delete ${tag}`}
                     >
                       <X className="size-3" />
-                    </button>
+                    </RippleButton>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-3" side="top" align="center">
+                  <PopoverContent
+                    className="w-auto p-3"
+                    side="top"
+                    align="center"
+                  >
                     {/* stopPropagation prevents React Portal click bubbling to the tag span */}
-                    <div className="space-y-2.5" onClick={(e) => e.stopPropagation()}>
-                      <p className="text-sm text-gray-600">
+                    <div
+                      className="space-y-2.5"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <p className="text-base text-gray-600">
                         {t('order.deleteTagConfirm', { tag })}
                       </p>
                       <div className="flex gap-2">
-                        <button
-                          type="button"
+                        <RippleButton
                           onClick={() => setPendingDeleteTag(null)}
-                          className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-xs text-gray-600 transition hover:bg-muted"
+                          rippleColor="rgba(0,0,0,0.1)"
+                          className="flex-1 rounded-md border border-gray-200 px-3 py-1.5 text-base text-gray-600 transition hover:bg-muted"
                         >
                           {t('common.cancel')}
-                        </button>
-                        <button
-                          type="button"
+                        </RippleButton>
+                        <RippleButton
                           onClick={() => {
                             handleDeleteTag(tag)
                             setPendingDeleteTag(null)
                           }}
-                          className="flex-1 rounded-md bg-destructive px-3 py-1.5 text-xs text-destructive-foreground transition hover:opacity-80"
+                          rippleColor="rgba(255,255,255,0.3)"
+                          className="flex-1 rounded-md bg-destructive px-3 py-1.5 text-base text-destructive-foreground transition hover:opacity-80"
                         >
                           {t('common.delete')}
-                        </button>
+                        </RippleButton>
                       </div>
                     </div>
                   </PopoverContent>
@@ -207,7 +213,7 @@ export function OrderNoteTags({
       <Input
         placeholder={t('order.addTag')}
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={e => setInputValue(e.target.value)}
         onKeyDown={handleAddTag}
         className="h-8 w-[calc(100%-6px)] rounded-lg border-gray-200 bg-white/60 text-sm placeholder:text-gray-400"
       />

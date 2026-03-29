@@ -61,6 +61,7 @@
 - UI設計時，先以shadcn/UI為參考有沒有可用的UI，再重新設計
 - 所有按鈕一律使用RippleButton
 - 禁用sm型態或以下的小字型
+- 基本色系請使用theme的色系，以及--color-gold, --color-yellow, --color-red, --color-blue, --color-green
 - Even in **--dangerously-skip-permissions** mode, never delete any files or git branches without user confirmation
 
 ---

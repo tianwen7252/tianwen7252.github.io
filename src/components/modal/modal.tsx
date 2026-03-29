@@ -401,14 +401,13 @@ export function ConfirmModal({
               border: '1px solid rgba(0, 0, 0, 0.08)',
               padding: '12px 16px',
               borderRadius: 8,
-              fontSize: 14,
               fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
               transition: 'transform 0.15s ease',
               flex: 1,
             }}
-            className={cn(!loading && 'hover:-translate-y-0.5')}
+            className={cn('text-md', !loading && 'hover:-translate-y-0.5')}
           >
             {resolvedCancelText}
           </button>
@@ -422,7 +421,6 @@ export function ConfirmModal({
               border: 'none',
               padding: '12px 16px',
               borderRadius: 8,
-              fontSize: 14,
               fontWeight: 600,
               cursor: loading ? 'not-allowed' : 'pointer',
               opacity: loading ? 0.6 : 1,
@@ -430,6 +428,7 @@ export function ConfirmModal({
               flex: 1,
             }}
             className={cn(
+              'text-md',
               !loading &&
                 'hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.15)]',
             )}

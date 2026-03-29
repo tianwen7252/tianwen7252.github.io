@@ -38,6 +38,10 @@ import {
   createErrorLogRepository,
   type ErrorLogRepository,
 } from './error-log-repository'
+import {
+  createCustomOrderNameRepository,
+  type CustomOrderNameRepository,
+} from './custom-order-name-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -48,6 +52,7 @@ let orderItemRepo: OrderItemRepository | null = null
 let orderDiscountRepo: OrderDiscountRepository | null = null
 let statisticsRepo: StatisticsRepository | null = null
 let errorLogRepo: ErrorLogRepository | null = null
+let customOrderNameRepo: CustomOrderNameRepository | null = null
 
 /**
  * Initialize all repositories with the given async database instance.
@@ -63,6 +68,7 @@ export function initRepositories(db: AsyncDatabase): void {
   orderDiscountRepo = createOrderDiscountRepository(db)
   statisticsRepo = createStatisticsRepository(db)
   errorLogRepo = createErrorLogRepository(db)
+  customOrderNameRepo = createCustomOrderNameRepository(db)
 }
 
 /**
@@ -183,6 +189,19 @@ export function getErrorLogRepo(): ErrorLogRepository {
 }
 
 /**
+ * Get the CustomOrderNameRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getCustomOrderNameRepo(): CustomOrderNameRepository {
+  if (!customOrderNameRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return customOrderNameRepo
+}
+
+/**
  * Reset all repository singletons to null.
  * Useful for testing or app teardown.
  */
@@ -196,4 +215,5 @@ export function resetRepositories(): void {
   orderDiscountRepo = null
   statisticsRepo = null
   errorLogRepo = null
+  customOrderNameRepo = null
 }

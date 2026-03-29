@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { cn } from '@/lib/cn'
+import { RippleButton } from '@/components/ui/ripple-button'
 import type { CommodityType } from '@/lib/schemas'
 
 interface CategoryTabsProps {
@@ -28,25 +29,25 @@ export function CategoryTabs({
       aria-label={t('order.categories')}
       className="flex flex-wrap gap-2"
     >
-      {categories.map((category) => {
+      {categories.map(category => {
         const isActive = category.typeId === selectedTypeId
         return (
-          <button
+          <RippleButton
             key={category.id}
             role="tab"
-            type="button"
             data-active={isActive}
             aria-selected={isActive}
             onClick={() => onSelect(category.typeId)}
+            rippleColor={isActive ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.1)'}
             className={cn(
-              'rounded-full px-4 py-1.5 text-base font-medium transition-colors',
+              'rounded-full px-4 py-1.5 text-base transition-colors',
               isActive
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground',
             )}
           >
             {category.label}
-          </button>
+          </RippleButton>
         )
       })}
     </div>

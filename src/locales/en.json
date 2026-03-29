@@ -165,7 +165,14 @@
     "confirmEdit": "Confirm Edit",
     "editTitle": "Edit Order",
     "editSuccess": "Order updated",
-    "editError": "Failed to update order"
+    "editError": "Failed to update order",
+    "quickSubmit": "Quick Submit",
+    "customOrderDefault": "Custom Order",
+    "discountDefault": "Discount",
+    "calculatorTitle": "Calculator",
+    "calculatorSubmit": "Confirm",
+    "calculatorNamePlaceholder": "Custom order name",
+    "calculatorError": "Error"
   },
   "orders": {
     "title": "Order History",

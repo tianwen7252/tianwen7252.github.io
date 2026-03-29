@@ -29,6 +29,10 @@ export {
   type ErrorLogRepository,
 } from './error-log-repository'
 export {
+  createCustomOrderNameRepository,
+  type CustomOrderNameRepository,
+} from './custom-order-name-repository'
+export {
   initRepositories,
   getEmployeeRepo,
   getAttendanceRepo,
@@ -38,5 +42,6 @@ export {
   getOrderItemRepo,
   getOrderDiscountRepo,
   getErrorLogRepo,
+  getCustomOrderNameRepo,
   resetRepositories,
 } from './provider'
