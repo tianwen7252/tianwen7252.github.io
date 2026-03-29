@@ -120,7 +120,7 @@ export function ConfirmOrderContent({
               </span>
             </div>
           )}
-          <ChangePrediction total={total} />
+          <ChangePrediction total={total} compact />
         </div>
       </div>
     </div>

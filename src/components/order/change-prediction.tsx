@@ -6,6 +6,8 @@ import { getChange } from '@/lib/get-change'
 
 interface ChangePredictionProps {
   readonly total: number
+  /** Use smaller text for compact contexts (e.g., confirm modal) */
+  readonly compact?: boolean
 }
 
 // ─── Color Map ──────────────────────────────────────────────────────────────
@@ -23,7 +25,10 @@ const BILL_COLOR_MAP: Record<number, string> = {
  * Renders colored pill badges predicting change for common bill denominations.
  * Returns null when no predictions are available.
  */
-export function ChangePrediction({ total }: ChangePredictionProps) {
+export function ChangePrediction({
+  total,
+  compact = false,
+}: ChangePredictionProps) {
   const { t } = useTranslation()
   const predictions = getChange(total)
 
@@ -39,7 +44,7 @@ export function ChangePrediction({ total }: ChangePredictionProps) {
           <span
             key={`${bill}-${money}`}
             data-testid="change-badge"
-            className={`inline-flex items-center ml-0 mr-2 text-sm ${BILL_COLOR_MAP[bill] ?? ''}`}
+            className={`inline-flex items-center ml-0 mr-2 ${compact ? 'text-sm' : 'text-md'} ${BILL_COLOR_MAP[bill] ?? ''}`}
           >
             ${money} {t('order.change')} ${change}
           </span>
