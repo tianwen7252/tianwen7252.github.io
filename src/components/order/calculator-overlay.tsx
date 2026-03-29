@@ -64,7 +64,7 @@ export function CalculatorOverlay({
 }: CalculatorOverlayProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const addCustomItem = useOrderStore((s) => s.addCustomItem)
+  const addCustomItem = useOrderStore(s => s.addCustomItem)
 
   const [calcState, setCalcState] =
     useState<CalculatorState>(createInitialState)
@@ -78,13 +78,13 @@ export function CalculatorOverlay({
     queryFn: () => getCustomOrderNameRepo().findAll(),
   })
 
-  const nameOptions: ComboboxOption[] = savedNames.map((n) => ({
+  const nameOptions: ComboboxOption[] = savedNames.map(n => ({
     value: n.id,
     label: n.name,
   }))
 
   const handleKey = useCallback((key: CalculatorKey) => {
-    setCalcState((prev) => processKey(prev, key))
+    setCalcState(prev => processKey(prev, key))
   }, [])
 
   // Keyboard support — listen for physical key presses
@@ -156,56 +156,53 @@ export function CalculatorOverlay({
         <X className="size-5" />
       </RippleButton>
 
-      {/* Content card */}
+      {/* Content card — w-fit so it matches keypad width */}
       <div
-        className="flex flex-col rounded-2xl bg-[#ffffff60] shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
-        onClick={(e) => e.stopPropagation()}
+        className="flex w-fit flex-col rounded-2xl bg-[#ffffff60] p-4 shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
+        onClick={e => e.stopPropagation()}
       >
-        <div className="flex flex-col overflow-hidden p-4">
-          {/* Display area: live expression + current value */}
-          <div className="mb-3 flex min-h-24 shrink-0 flex-col items-end justify-end">
-            {/* Show building expression while typing, or full result after = */}
-            {(calcState.expression || calcState.operator) && (
-              <span className="max-w-full truncate text-base text-xl text-muted-foreground">
-                {calcState.expression.includes('=')
-                  ? calcState.expression
-                  : calcState.expression + calcState.display}
-              </span>
-            )}
-            <span
-              className={`font-mono text-4xl truncate max-w-full ${
-                errorState ? 'text-destructive' : 'text-foreground'
-              }`}
-            >
-              {calcState.display}
+        {/* Display area: live expression + current value */}
+        <div className="mb-3 flex min-h-24 shrink-0 flex-col items-end justify-end">
+          {(calcState.expression || calcState.operator) && (
+            <span className="max-w-full truncate text-xl text-muted-foreground">
+              {calcState.expression.includes('=')
+                ? calcState.expression
+                : calcState.expression + calcState.display}
             </span>
-          </div>
+          )}
+          <span
+            className={`font-mono text-4xl truncate max-w-full ${
+              errorState ? 'text-destructive' : 'text-foreground'
+            }`}
+          >
+            {calcState.display}
+          </span>
+        </div>
 
-          {/* Keypad */}
-          <CalculatorKeypad
-            activeOperator={calcState.operator}
-            onKey={handleKey}
-            compact={compact}
+        {/* Keypad */}
+        <CalculatorKeypad
+          activeOperator={calcState.operator}
+          onKey={handleKey}
+          compact={compact}
+        />
+
+        {/* Bottom: Combobox (left) + Submit (right) in one row */}
+        <div className="mt-3 flex shrink-0 items-center gap-2">
+          <Combobox
+            value={customName}
+            onChange={setCustomName}
+            options={nameOptions}
+            onDelete={handleDeleteNameOption}
+            placeholder={t('order.calculatorNamePlaceholder')}
+            onFocusChange={setNameInputFocused}
           />
-
-          {/* Bottom: Combobox + Submit */}
-          <div className="mt-3 flex shrink-0 flex-col gap-2">
-            <Combobox
-              value={customName}
-              onChange={setCustomName}
-              options={nameOptions}
-              onDelete={handleDeleteNameOption}
-              placeholder={t('order.calculatorNamePlaceholder')}
-              onFocusChange={setNameInputFocused}
-            />
-            <RippleButton
-              onClick={handleSubmit}
-              disabled={!canSubmit}
-              className="h-12 w-full rounded-xl bg-primary text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-            >
-              {t('order.calculatorSubmit')}
-            </RippleButton>
-          </div>
+          <RippleButton
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            className="h-10 shrink-0 rounded-xl bg-primary px-8 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+          >
+            {t('order.calculatorSubmit')}
+          </RippleButton>
         </div>
       </div>
     </div>
