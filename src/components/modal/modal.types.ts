@@ -14,7 +14,7 @@ export type ShineColorPreset =
   | 'blue'
   | 'orange'
   | 'gray'
-export type ShineColor = ShineColorPreset | string | string[]
+export type ShineColor = boolean | ShineColorPreset | string | string[]
 
 /**
  * Modal — base glassmorphism modal with gradient background.
@@ -33,7 +33,7 @@ export interface ModalProps {
   readonly children: React.ReactNode
   /** Footer content — renders below children (buttons, etc.) */
   readonly footer?: React.ReactNode
-  /** Animated shine border color. Omit for no shine effect. */
+  /** Animated shine border color. true = use variant color, false = none. Default: true. */
   readonly shineColor?: ShineColor
   /** Container width in px or CSS string (default: 500) */
   readonly width?: number | string

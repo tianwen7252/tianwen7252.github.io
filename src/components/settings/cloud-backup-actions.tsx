@@ -62,7 +62,7 @@ export function CloudBackupActions() {
         {/* Backup Now button */}
         <div className="grid grid-cols-3 gap-4">
           <RippleButton
-            className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80"
+            className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleBackupNow}
             disabled={isBackingUp || !isConfigured}
           >

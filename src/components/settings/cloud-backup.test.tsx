@@ -71,11 +71,12 @@ describe('CloudBackup', () => {
     expect(screen.getAllByText('自動備份排程').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders CloudBackupDbStats section', () => {
+  it('renders CloudBackupDbStats section with local and cloud', () => {
     renderWithProviders(<CloudBackup />)
-    expect(screen.getByText('資料庫統計')).toBeTruthy()
-    expect(screen.getByText('資料表')).toBeTruthy()
-    expect(screen.getByText('筆數')).toBeTruthy()
+    expect(screen.getByText('本機資料庫')).toBeTruthy()
+    expect(screen.getByText('雲端資料庫')).toBeTruthy()
+    expect(screen.getAllByText('資料表').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('筆數').length).toBeGreaterThanOrEqual(1)
   })
 
   it('renders CloudBackupActions section', () => {

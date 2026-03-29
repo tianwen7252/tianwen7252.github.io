@@ -1,6 +1,6 @@
 /**
  * Tests for the CloudBackupDbStats component.
- * Covers table rendering with row counts and total row.
+ * Covers local/cloud split rendering with row counts.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -22,8 +22,14 @@ let mockDbStats = {
   refetch: mockRefetch,
 }
 
+let mockIsConfigured = false
+
 vi.mock('@/hooks/use-db-stats', () => ({
   useDbStats: () => mockDbStats,
+}))
+
+vi.mock('@/lib/backup-config', () => ({
+  isBackupConfigured: () => mockIsConfigured,
 }))
 
 import { CloudBackupDbStats } from './cloud-backup-db-stats'
@@ -44,6 +50,7 @@ function renderWithProviders(ui: React.ReactNode) {
 describe('CloudBackupDbStats', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockIsConfigured = false
     mockDbStats = {
       tables: [
         { tableName: 'commodities', rowCount: 25 },
@@ -57,45 +64,47 @@ describe('CloudBackupDbStats', () => {
     }
   })
 
-  it('renders the card title', () => {
+  it('renders local and cloud section titles', () => {
     renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('資料庫統計')).toBeTruthy()
+    expect(screen.getByText('本機資料庫')).toBeTruthy()
+    expect(screen.getByText('雲端資料庫')).toBeTruthy()
   })
 
-  it('renders table headers', () => {
+  it('renders table headers in local section', () => {
     renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('資料表')).toBeTruthy()
-    expect(screen.getByText('筆數')).toBeTruthy()
+    expect(screen.getAllByText('資料表').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('筆數').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('renders all table names from useDbStats', () => {
+  it('renders all local table names from useDbStats', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('commodities')).toBeTruthy()
     expect(screen.getByText('orders')).toBeTruthy()
     expect(screen.getByText('employees')).toBeTruthy()
   })
 
-  it('renders row counts for each table', () => {
+  it('renders row counts for each local table', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('25')).toBeTruthy()
     expect(screen.getByText('100')).toBeTruthy()
     expect(screen.getByText('8')).toBeTruthy()
   })
 
-  it('renders total row at the bottom', () => {
+  it('renders total row in local section', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('合計')).toBeTruthy()
     expect(screen.getByText('133')).toBeTruthy()
   })
 
-  it('renders empty table when no stats are available', () => {
-    mockDbStats = {
-      ...mockDbStats,
-      tables: [],
-      totalRows: 0,
-    }
+  it('shows not configured message in cloud section when Supabase not set', () => {
+    mockIsConfigured = false
     renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('合計')).toBeTruthy()
-    expect(screen.getByText('0')).toBeTruthy()
+    expect(screen.getByText('Supabase 尚未設定')).toBeTruthy()
+  })
+
+  it('shows unavailable message in cloud section when Supabase is configured', () => {
+    mockIsConfigured = true
+    renderWithProviders(<CloudBackupDbStats />)
+    expect(screen.getByText('連線後顯示雲端資料')).toBeTruthy()
   })
 })

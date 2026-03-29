@@ -1,6 +1,6 @@
 /**
  * Google Drive service — list and download backup files via Drive API v3 REST.
- * Used for V1 database import from Google Drive backups.
+ * Searches for a folder named "backup" then lists files within it.
  */
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -20,34 +20,67 @@ interface DriveListResponse {
 // ── Constants ───────────────────────────────────────────────────────────────
 
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3/files'
-const SEARCH_QUERY = "name contains 'tianwen' or name contains 'backup'"
-const FIELDS = 'files(id,name,size,createdTime,mimeType)'
-const ORDER_BY = 'createdTime desc'
-const PAGE_SIZE = '50'
+const FOLDER_MIME = 'application/vnd.google-apps.folder'
+const BACKUP_FOLDER_NAME = 'backup'
 
-// ── Service functions ───────────────────────────────────────────────────────
+// ── Internal helpers ────────────────────────────────────────────────────────
 
 /**
- * List backup files from the user's Google Drive.
- * Searches for files containing 'tianwen' or 'backup' in the name.
- * Results are sorted newest-first.
+ * Find the "backup" folder in the user's Drive.
+ * Returns the folder ID or null if not found.
  */
-export async function listDriveBackupFiles(
-  accessToken: string,
-): Promise<readonly DriveFile[]> {
+async function findBackupFolder(accessToken: string): Promise<string | null> {
+  const query = `name = '${BACKUP_FOLDER_NAME}' and mimeType = '${FOLDER_MIME}' and trashed = false`
   const params = new URLSearchParams({
-    q: SEARCH_QUERY,
-    fields: FIELDS,
-    orderBy: ORDER_BY,
-    pageSize: PAGE_SIZE,
+    q: query,
+    fields: 'files(id,name)',
+    pageSize: '1',
   })
 
   const url = `${DRIVE_API_BASE}?${params.toString()}`
 
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: { Authorization: `Bearer ${accessToken}` },
+  })
+
+  if (!response.ok) {
+    throw new Error(
+      `Google Drive API error: ${response.status} ${response.statusText}`,
+    )
+  }
+
+  const data = (await response.json()) as DriveListResponse
+  const folder = data.files?.[0]
+  return folder ? folder.id : null
+}
+
+// ── Service functions ───────────────────────────────────────────────────────
+
+/**
+ * List backup files from the user's Google Drive "backup" folder.
+ * Returns files sorted newest-first.
+ */
+export async function listDriveBackupFiles(
+  accessToken: string,
+): Promise<readonly DriveFile[]> {
+  const folderId = await findBackupFolder(accessToken)
+
+  if (!folderId) {
+    return []
+  }
+
+  const query = `'${folderId}' in parents and trashed = false`
+  const params = new URLSearchParams({
+    q: query,
+    fields: 'files(id,name,size,createdTime,mimeType)',
+    orderBy: 'createdTime desc',
+    pageSize: '50',
+  })
+
+  const url = `${DRIVE_API_BASE}?${params.toString()}`
+
+  const response = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
 
   if (!response.ok) {
@@ -71,9 +104,7 @@ export async function downloadDriveFile(
   const url = `${DRIVE_API_BASE}/${fileId}?alt=media`
 
   const response = await fetch(url, {
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-    },
+    headers: { Authorization: `Bearer ${accessToken}` },
   })
 
   if (!response.ok) {
