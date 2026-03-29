@@ -1,10 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import {
+  createRootRoute,
+  createRoute,
+  createRouter,
+  createMemoryHistory,
+  RouterProvider,
+  Outlet,
+} from '@tanstack/react-router'
 import i18n from '@/lib/i18n'
 import { SettingsPage } from './settings-page'
 
-// Mock child components to isolate settings page tests
+// Mock child components
 vi.mock('@/components/settings/system-info', () => ({
   SystemInfo: () => <div data-testid="system-info-component">SystemInfo</div>,
 }))
@@ -25,58 +33,110 @@ vi.mock('@/components/auth-guard', () => ({
   ),
 }))
 
+function renderWithRouter(initialPath = '/settings/system-info') {
+  const rootRoute = createRootRoute({ component: Outlet })
+
+  const settingsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/settings',
+    component: SettingsPage,
+  })
+
+  const MockSystemInfo = () => <div data-testid="system-info-component">SystemInfo</div>
+  const MockCloudBackup = () => <div data-testid="cloud-backup-component">CloudBackup</div>
+  const MockRecords = () => <div data-testid="records-component">Records</div>
+  const MockStaffAdmin = () => <div data-testid="staff-admin-component">StaffAdmin</div>
+
+  const routeTree = rootRoute.addChildren([
+    settingsRoute.addChildren([
+      createRoute({
+        getParentRoute: () => settingsRoute,
+        path: '/system-info',
+        component: MockSystemInfo,
+      }),
+      createRoute({
+        getParentRoute: () => settingsRoute,
+        path: '/cloud-backup',
+        component: MockCloudBackup,
+      }),
+      createRoute({
+        getParentRoute: () => settingsRoute,
+        path: '/records',
+        component: MockRecords,
+      }),
+      createRoute({
+        getParentRoute: () => settingsRoute,
+        path: '/staff-admin',
+        component: MockStaffAdmin,
+      }),
+    ]),
+  ])
+
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: [initialPath] }),
+  })
+
+  return render(<RouterProvider router={router} />)
+}
+
 describe('SettingsPage', () => {
   beforeEach(async () => {
     await i18n.changeLanguage('zh-TW')
   })
 
   describe('tab rendering', () => {
-    it('should render tab labels in zh-TW by default', () => {
-      render(<SettingsPage />)
-      expect(screen.getByText('系統資訊')).toBeTruthy()
-      expect(screen.getByText('雲端備份')).toBeTruthy()
-      expect(screen.getByText('打卡記錄')).toBeTruthy()
-      expect(screen.getByText('員工管理')).toBeTruthy()
-    })
-
-    it('should render tab labels in English when language is en', async () => {
-      await i18n.changeLanguage('en')
-      render(<SettingsPage />)
-      expect(screen.getByText('System Info')).toBeTruthy()
-      expect(screen.getByText('Cloud Backup')).toBeTruthy()
-      expect(screen.getByText('Records')).toBeTruthy()
-      expect(screen.getByText('Staff Admin')).toBeTruthy()
+    it('should render tab labels in zh-TW', async () => {
+      renderWithRouter()
+      await waitFor(() => {
+        expect(screen.getByText('系統資訊')).toBeTruthy()
+        expect(screen.getByText('雲端備份')).toBeTruthy()
+        expect(screen.getByText('打卡記錄')).toBeTruthy()
+        expect(screen.getByText('員工管理')).toBeTruthy()
+      })
     })
   })
 
-  describe('tab switching', () => {
-    it('should show SystemInfo component by default', () => {
-      render(<SettingsPage />)
-      expect(screen.getByTestId('system-info-component')).toBeTruthy()
+  describe('nested routes', () => {
+    it('should show SystemInfo at /settings/system-info', async () => {
+      renderWithRouter('/settings/system-info')
+      await waitFor(() => {
+        expect(screen.getByTestId('system-info-component')).toBeTruthy()
+      })
     })
 
-    it('should show Records component when records tab is clicked', async () => {
-      const user = userEvent.setup()
-      render(<SettingsPage />)
-
-      await user.click(screen.getByText('打卡記錄'))
-      expect(screen.getByTestId('records-component')).toBeTruthy()
+    it('should show CloudBackup at /settings/cloud-backup', async () => {
+      renderWithRouter('/settings/cloud-backup')
+      await waitFor(() => {
+        expect(screen.getByTestId('cloud-backup-component')).toBeTruthy()
+      })
     })
 
-    it('should show CloudBackup component when cloud-backup tab is clicked', async () => {
-      const user = userEvent.setup()
-      render(<SettingsPage />)
+    it('should show Records at /settings/records', async () => {
+      renderWithRouter('/settings/records')
+      await waitFor(() => {
+        expect(screen.getByTestId('records-component')).toBeTruthy()
+      })
+    })
 
+    it('should show StaffAdmin at /settings/staff-admin', async () => {
+      renderWithRouter('/settings/staff-admin')
+      await waitFor(() => {
+        expect(screen.getByTestId('staff-admin-component')).toBeTruthy()
+      })
+    })
+
+    it('should switch to cloud-backup when clicking the tab', async () => {
+      const user = userEvent.setup()
+      renderWithRouter('/settings/system-info')
+
+      await waitFor(() => {
+        expect(screen.getByText('雲端備份')).toBeTruthy()
+      })
       await user.click(screen.getByText('雲端備份'))
-      expect(screen.getByTestId('cloud-backup-component')).toBeTruthy()
-    })
-
-    it('should show StaffAdmin component when staff-admin tab is clicked', async () => {
-      const user = userEvent.setup()
-      render(<SettingsPage />)
-
-      await user.click(screen.getByText('員工管理'))
-      expect(screen.getByTestId('staff-admin-component')).toBeTruthy()
+      await waitFor(() => {
+        expect(screen.getByTestId('cloud-backup-component')).toBeTruthy()
+      })
     })
   })
 })

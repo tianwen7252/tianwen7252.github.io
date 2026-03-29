@@ -5,6 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearch, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -71,8 +72,17 @@ export function SystemInfo() {
 
   const { googleUser, isAdmin } = useGoogleAuth()
 
-  // ── Pagination State ─────────────────────────────────────────────────
-  const [errorPage, setErrorPage] = useState(1)
+  // ── Pagination via route search params ────────────────────────────────
+  const search = useSearch({ from: '/settings/system-info' })
+  const navigate = useNavigate({ from: '/settings/system-info' })
+  const errorPage = search.errorPage ?? 1
+
+  const setErrorPage = useCallback(
+    (page: number) => {
+      navigate({ search: { errorPage: page }, replace: true })
+    },
+    [navigate],
+  )
 
   // ── Error Logs Query ──────────────────────────────────────────────────
 

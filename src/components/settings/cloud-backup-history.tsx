@@ -2,8 +2,9 @@
  * Cloud Backup History — displays backup log records with pagination.
  */
 
-import { useState } from 'react'
+import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearch, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Trash2 } from 'lucide-react'
@@ -58,7 +59,18 @@ function getStatusLabel(
 export function CloudBackupHistory() {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const [backupPage, setBackupPage] = useState(1)
+
+  // Pagination via route search params
+  const search = useSearch({ from: '/settings/cloud-backup' })
+  const navigate = useNavigate({ from: '/settings/cloud-backup' })
+  const backupPage = search.backupPage ?? 1
+
+  const setBackupPage = useCallback(
+    (page: number) => {
+      navigate({ search: { backupPage: page }, replace: true })
+    },
+    [navigate],
+  )
 
   const { data: backupLogs = [] } = useQuery({
     queryKey: ['backup-logs', backupPage],

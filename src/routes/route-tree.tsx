@@ -13,6 +13,10 @@ import { NotFoundPage } from '@/pages/not-found'
 import { ModalPreview, NotifyPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
+import { SystemInfo } from '@/components/settings/system-info'
+import { CloudBackup } from '@/components/settings/cloud-backup'
+import { Records } from '@/components/records'
+import { StaffAdmin } from '@/components/staff-admin'
 import { OrdersPage } from '@/pages/orders'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
@@ -43,7 +47,7 @@ const rootRoute = createRootRoute({
 function RootLayout() {
   const { t } = useTranslation()
   // Use pathname as key to trigger re-mount animation on route changes
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const pathname = useRouterState({ select: s => s.location.pathname })
 
   // Detect scroll for glassmorphism header
   const [scrolled, setScrolled] = useState(false)
@@ -74,7 +78,7 @@ function RootLayout() {
           <a
             href="/"
             className="text-lg text-primary"
-            onClick={(e) => {
+            onClick={e => {
               e.preventDefault()
               window.location.href = '/'
             }}
@@ -144,7 +148,7 @@ function NavIconLink({
   ariaLabel: string
   children: React.ReactNode
 }) {
-  const pathname = useRouterState({ select: (s) => s.location.pathname })
+  const pathname = useRouterState({ select: s => s.location.pathname })
   const isActive = pathname === to || pathname.startsWith(`${to}/`)
 
   return (
@@ -250,11 +254,57 @@ const analyticsRoute = createRoute({
   component: AnalyticsPage,
 })
 
-// Settings page with tabs (ClockIn, Records, StaffAdmin)
+// Settings layout — tab navigation with nested child routes
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
   component: SettingsPage,
+})
+
+// Settings child routes
+const settingsIndexRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/',
+  component: () => {
+    // Default: redirect handled by SettingsPage layout
+    return null
+  },
+})
+
+const settingsSystemInfoRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/system-info',
+  component: SystemInfo,
+  validateSearch: (search: Record<string, unknown>) => ({
+    errorPage:
+      typeof search.errorPage === 'number' && search.errorPage >= 1
+        ? search.errorPage
+        : 1,
+  }),
+})
+
+const settingsCloudBackupRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/cloud-backup',
+  component: CloudBackup,
+  validateSearch: (search: Record<string, unknown>) => ({
+    backupPage:
+      typeof search.backupPage === 'number' && search.backupPage >= 1
+        ? search.backupPage
+        : 1,
+  }),
+})
+
+const settingsRecordsRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/records',
+  component: Records,
+})
+
+const settingsStaffAdminRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/staff-admin',
+  component: StaffAdmin,
 })
 
 // Build the route tree
@@ -263,7 +313,13 @@ export const routeTree = rootRoute.addChildren([
   ordersRoute,
   analyticsRoute,
   clockInRoute,
-  settingsRoute,
+  settingsRoute.addChildren([
+    settingsIndexRoute,
+    settingsSystemInfoRoute,
+    settingsCloudBackupRoute,
+    settingsRecordsRoute,
+    settingsStaffAdminRoute,
+  ]),
   previewRoute.addChildren([
     previewIndexRoute,
     previewModalRoute,

@@ -61,6 +61,13 @@ vi.mock('@/components/ui/sonner', () => ({
   },
 }))
 
+// Mock TanStack Router hooks
+const mockNavigate = vi.fn()
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: () => ({ errorPage: 1 }),
+  useNavigate: () => mockNavigate,
+}))
+
 // Mock import.meta.env
 vi.stubEnv('MODE', 'development')
 

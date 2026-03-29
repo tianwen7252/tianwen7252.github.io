@@ -9,6 +9,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: () => ({ backupPage: 1 }),
+  useNavigate: () => vi.fn(),
+}))
+
 vi.mock('@/lib/backup-config', () => ({
   isBackupConfigured: () => false,
 }))
