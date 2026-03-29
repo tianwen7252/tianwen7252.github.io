@@ -131,7 +131,7 @@ export function OrderHistoryCard({
                     className="flex items-baseline justify-between py-[3px]"
                   >
                     <span
-                      className={`text-md ${item.commodityId.startsWith('custom-') ? 'text-red-500' : 'text-gray-800'}`}
+                      className={`text-md ${item.commodityId.startsWith('custom-') ? 'text-(--color-red)' : 'text-gray-800'}`}
                     >
                       {item.name}
                     </span>

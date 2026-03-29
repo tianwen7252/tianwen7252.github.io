@@ -92,7 +92,7 @@ export function OrderItemRow({
         <span
           className={cn(
             'flex-1 whitespace-nowrap font-medium',
-            isCustom && 'text-red-500',
+            isCustom && 'text-(--color-red)',
           )}
         >
           {item.name}
