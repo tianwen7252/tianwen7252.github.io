@@ -81,7 +81,7 @@ export function CalculatorKeypad({
   onKey,
 }: CalculatorKeypadProps) {
   return (
-    <div className="grid min-h-0 flex-1 grid-cols-4 grid-rows-5 place-items-center gap-1.5">
+    <div className="flex flex-wrap justify-center gap-2">
       {ROWS.flatMap(row =>
         row.map(def => {
           const isActive = def.type === 'operator' && def.key === activeOperator
@@ -91,7 +91,7 @@ export function CalculatorKeypad({
               onClick={() => onKey(def.key)}
               rippleColor="rgba(127, 149, 106, 0.25)"
               className={cn(
-                'flex aspect-square w-full max-w-14 items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]',
+                'flex size-14 items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]',
                 isActive && 'border-primary/40 bg-primary/15 text-primary',
                 def.type === 'equals' &&
                   'bg-primary text-primary-foreground border-primary/30',
