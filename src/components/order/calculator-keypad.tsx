@@ -81,7 +81,7 @@ export function CalculatorKeypad({
   onKey,
 }: CalculatorKeypadProps) {
   return (
-    <div className="grid grid-cols-4 gap-3 place-items-center">
+    <div className="grid w-fit grid-cols-4 gap-1">
       {ROWS.flatMap(row =>
         row.map(def => {
           const isActive = def.type === 'operator' && def.key === activeOperator
