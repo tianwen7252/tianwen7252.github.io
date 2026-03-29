@@ -18,11 +18,11 @@ export function QuickSubmitSwitch({
   const { t } = useTranslation()
 
   return (
-    <label className="flex items-center gap-2 cursor-pointer select-none">
+    <label className="flex items-center gap-2 cursor-pointer select-none mr-5">
+      <Switch checked={checked} onCheckedChange={onCheckedChange} />
       <span className="text-base text-muted-foreground">
         {t('order.quickSubmit')}
       </span>
-      <Switch checked={checked} onCheckedChange={onCheckedChange} />
     </label>
   )
 }

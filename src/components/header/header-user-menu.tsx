@@ -28,7 +28,7 @@ export function HeaderUserMenu() {
     queryFn: async () => {
       const employees = await getEmployeeRepo().findAll()
       return employees.find(
-        e => e.status === 'active' && e.name === googleUser?.name,
+        (e) => e.status === 'active' && e.name === googleUser?.name,
       )
     },
     enabled: isLoggedIn,
@@ -59,7 +59,7 @@ export function HeaderUserMenu() {
             <img
               src={avatarSrc}
               alt={displayName}
-              className="size-9 rounded-full object-cover"
+              className="size-9 rounded-full object-cover w-6 h-6"
               referrerPolicy="no-referrer"
             />
           ) : (

@@ -53,7 +53,7 @@ export function Combobox({
     setSearch(value)
   }, [value])
 
-  const filtered = options.filter(opt =>
+  const filtered = options.filter((opt) =>
     opt.label.toLowerCase().includes(search.toLowerCase()),
   )
   const hasFilteredOptions = filtered.length > 0
@@ -84,7 +84,7 @@ export function Combobox({
   }, [onFocusChange])
 
   const handleSelect = (optionValue: string) => {
-    const option = options.find(o => o.value === optionValue)
+    const option = options.find((o) => o.value === optionValue)
     const label = option?.label ?? optionValue
     setSearch(label)
     onChange(label)
@@ -113,7 +113,7 @@ export function Combobox({
             type="text"
             value={search}
             placeholder={placeholder}
-            onChange={e => handleInputChange(e.target.value)}
+            onChange={(e) => handleInputChange(e.target.value)}
             onFocus={handleFocus}
             onBlur={handleBlur}
             className={cn(
@@ -123,7 +123,7 @@ export function Combobox({
           />
           {search && (
             <RippleButton
-              onMouseDown={e => {
+              onMouseDown={(e) => {
                 e.preventDefault()
                 setSearch('')
                 onChange('')
@@ -132,7 +132,7 @@ export function Combobox({
               rippleColor="rgba(0,0,0,0.1)"
               className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
             >
-              <CircleX className="size-4" />
+              <CircleX className="size-5" />
             </RippleButton>
           )}
         </div>
@@ -142,14 +142,14 @@ export function Combobox({
         className="w-(--radix-popover-trigger-width) p-1"
         side="top"
         align="start"
-        onOpenAutoFocus={e => e.preventDefault()}
-        onCloseAutoFocus={e => e.preventDefault()}
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <ul className="max-h-48 overflow-y-auto">
-          {filtered.map(opt => (
+          {filtered.map((opt) => (
             <li
               key={opt.value}
-              onMouseDown={e => {
+              onMouseDown={(e) => {
                 e.preventDefault()
                 handleSelect(opt.value)
               }}
@@ -158,7 +158,7 @@ export function Combobox({
               <span className="truncate">{opt.label}</span>
               {onDelete && (
                 <RippleButton
-                  onMouseDown={e => {
+                  onMouseDown={(e) => {
                     e.preventDefault()
                     e.stopPropagation()
                     onDelete(opt.value)

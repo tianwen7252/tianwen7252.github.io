@@ -60,7 +60,9 @@ function RootLayout() {
       <header
         className={cn(
           'sticky top-0 z-30 px-5 py-2 transition-all duration-300',
-          scrolled ? 'border-b border-transparent' : 'border-b border-border',
+          scrolled
+            ? 'border-b border-transparent'
+            : 'shadow-[0_1px_0_0_rgba(0,0,0,0.08)]', // to replace "border-b border-border" for ipad
         )}
         style={{
           backgroundColor: scrolled ? `${HEADER_BG}b3` : HEADER_BG,
