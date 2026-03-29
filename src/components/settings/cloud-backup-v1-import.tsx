@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { HardDriveDownload, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ConfirmModal } from '@/components/modal/modal'
@@ -146,10 +146,7 @@ export function CloudBackupV1Import() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <HardDriveDownload size={18} />
-          {t('backup.v1Import')}
-        </CardTitle>
+        <CardTitle>{t('backup.v1Import')}</CardTitle>
       </CardHeader>
       <CardContent>
         <p className="mb-4 text-muted-foreground">{t('backup.v1ImportDesc')}</p>
@@ -160,7 +157,6 @@ export function CloudBackupV1Import() {
             className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
             onClick={login}
           >
-            <HardDriveDownload size={16} />
             {t('backup.v1ConnectDrive')}
           </RippleButton>
         )}

@@ -14,10 +14,9 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { PaginationControls } from '@/components/settings/pagination-controls'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
-import { getErrorLogRepo, getBackupLogRepo } from '@/lib/repositories/provider'
+import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
 import { APP_VERSION } from '@/lib/version'
-import type { BackupLogType, BackupLogStatus } from '@/lib/schemas'
 
 // ─── Constants ──────────────────────────────────────────────────────────────
 
@@ -34,43 +33,6 @@ function isPwaMode(): boolean {
 /** Get the environment label */
 function getEnvironment(): string {
   return import.meta.env.MODE === 'production' ? 'PROD' : 'DEV'
-}
-
-/** Format bytes into a human-readable string */
-function formatSize(bytes: number): string {
-  if (bytes === 0) return '0 B'
-  const units = ['B', 'KB', 'MB', 'GB']
-  const i = Math.floor(Math.log(bytes) / Math.log(1024))
-  const value = bytes / Math.pow(1024, i)
-  return `${value.toFixed(1)} ${units[i]}`
-}
-
-/** Format milliseconds into a human-readable duration string */
-function formatDuration(ms: number): string {
-  if (ms < 1000) return `${ms}ms`
-  return `${(ms / 1000).toFixed(1)}s`
-}
-
-/** Get the translated label for a backup type */
-function getTypeLabel(type: BackupLogType, t: (key: string) => string): string {
-  const map: Record<BackupLogType, string> = {
-    manual: t('backup.typeManual'),
-    auto: t('backup.typeAuto'),
-    'v1-import': t('backup.typeV1Import'),
-  }
-  return map[type]
-}
-
-/** Get the translated label for a backup status */
-function getStatusLabel(
-  status: BackupLogStatus,
-  t: (key: string) => string,
-): string {
-  const map: Record<BackupLogStatus, string> = {
-    success: t('backup.statusSuccess'),
-    failed: t('backup.statusFailed'),
-  }
-  return map[status]
 }
 
 // ─── Storage Hook ────────────────────────────────────────────────────────────
@@ -110,29 +72,7 @@ export function SystemInfo() {
   const { googleUser, isAdmin } = useGoogleAuth()
 
   // ── Pagination State ─────────────────────────────────────────────────
-  const [backupPage, setBackupPage] = useState(1)
   const [errorPage, setErrorPage] = useState(1)
-
-  // ── Backup Logs Query ────────────────────────────────────────────────
-  const { data: backupLogs = [] } = useQuery({
-    queryKey: ['backup-logs', backupPage],
-    queryFn: () => getBackupLogRepo().findPaginated(backupPage, PAGE_SIZE),
-  })
-
-  const { data: backupLogCount = 0 } = useQuery({
-    queryKey: ['backup-logs-count'],
-    queryFn: () => getBackupLogRepo().count(),
-  })
-
-  const clearBackupLogsMutation = useMutation({
-    mutationFn: () => getBackupLogRepo().clearAll(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['backup-logs'] })
-      queryClient.invalidateQueries({ queryKey: ['backup-logs-count'] })
-      setBackupPage(1)
-      notify.success(t('settings.logsCleared'))
-    },
-  })
 
   // ── Error Logs Query ──────────────────────────────────────────────────
 
@@ -177,7 +117,6 @@ export function SystemInfo() {
   }, [])
 
   // ── Derived Values ────────────────────────────────────────────────────
-  const backupTotalPages = Math.max(1, Math.ceil(backupLogCount / PAGE_SIZE))
   const errorTotalPages = Math.max(1, Math.ceil(errorLogCount / PAGE_SIZE))
 
   // ── Render ────────────────────────────────────────────────────────────
@@ -340,80 +279,7 @@ export function SystemInfo() {
         </CardContent>
       </Card>
 
-      {/* Section 4: Backup History */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>{t('backup.history')}</CardTitle>
-            <RippleButton
-              className="flex items-center gap-2 rounded-md border-none bg-(--color-red) px-3 py-1 text-white hover:opacity-80"
-              onClick={() => clearBackupLogsMutation.mutate()}
-            >
-              <Trash2 size={14} />
-              {t('backup.clearHistory')}
-            </RippleButton>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {backupLogs.length === 0 ? (
-            <p className="text-muted-foreground">
-              {t('backup.noBackupHistory')}
-            </p>
-          ) : (
-            <div className="space-y-4">
-              <div className="overflow-auto">
-                <table className="w-full text-left">
-                  <thead>
-                    <tr className="border-b text-muted-foreground">
-                      <th className="px-2 py-1">{t('backup.historyTime')}</th>
-                      <th className="px-2 py-1">{t('backup.historyType')}</th>
-                      <th className="px-2 py-1">{t('backup.historyStatus')}</th>
-                      <th className="px-2 py-1">
-                        {t('backup.historyFilename')}
-                      </th>
-                      <th className="px-2 py-1 text-right">
-                        {t('backup.historySize')}
-                      </th>
-                      <th className="px-2 py-1 text-right">
-                        {t('backup.historyDuration')}
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {backupLogs.map(log => (
-                      <tr key={log.id} className="border-b">
-                        <td className="px-2 py-1 whitespace-nowrap">
-                          {dayjs(log.createdAt).format('YYYY-MM-DD HH:mm:ss')}
-                        </td>
-                        <td className="px-2 py-1">
-                          {getTypeLabel(log.type, t)}
-                        </td>
-                        <td className="px-2 py-1">
-                          {getStatusLabel(log.status, t)}
-                        </td>
-                        <td className="px-2 py-1">{log.filename ?? '-'}</td>
-                        <td className="px-2 py-1 text-right">
-                          {formatSize(log.size)}
-                        </td>
-                        <td className="px-2 py-1 text-right">
-                          {formatDuration(log.durationMs)}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <PaginationControls
-                currentPage={backupPage}
-                totalPages={backupTotalPages}
-                onPageChange={setBackupPage}
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Section 5: Error Logs */}
+      {/* Section 4: Error Logs */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">

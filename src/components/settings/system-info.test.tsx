@@ -1,6 +1,6 @@
 /**
  * Tests for the SystemInfo component.
- * Covers KPI cards, system details, quick actions, backup history, and error logs sections.
+ * Covers KPI cards, system details, quick actions, and error logs sections.
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -42,21 +42,11 @@ const mockFindPaginatedErrors = vi.fn().mockResolvedValue([])
 const mockCountErrors = vi.fn().mockResolvedValue(0)
 const mockClearAllErrors = vi.fn().mockResolvedValue(undefined)
 
-// Mock backup log repository
-const mockFindPaginatedBackups = vi.fn().mockResolvedValue([])
-const mockCountBackups = vi.fn().mockResolvedValue(0)
-const mockClearAllBackups = vi.fn().mockResolvedValue(undefined)
-
 vi.mock('@/lib/repositories/provider', () => ({
   getErrorLogRepo: () => ({
     findPaginated: mockFindPaginatedErrors,
     count: mockCountErrors,
     clearAll: mockClearAllErrors,
-  }),
-  getBackupLogRepo: () => ({
-    findPaginated: mockFindPaginatedBackups,
-    count: mockCountBackups,
-    clearAll: mockClearAllBackups,
   }),
 }))
 
@@ -97,9 +87,6 @@ describe('SystemInfo', () => {
     mockFindPaginatedErrors.mockResolvedValue([])
     mockCountErrors.mockResolvedValue(0)
     mockClearAllErrors.mockResolvedValue(undefined)
-    mockFindPaginatedBackups.mockResolvedValue([])
-    mockCountBackups.mockResolvedValue(0)
-    mockClearAllBackups.mockResolvedValue(undefined)
     mockEstimate.mockResolvedValue({ usage: 50_000_000, quota: 1_000_000_000 })
   })
 
@@ -237,146 +224,7 @@ describe('SystemInfo', () => {
     })
   })
 
-  // ── Section 4: Backup History ──────────────────────────────────────────
-
-  describe('Backup History', () => {
-    it('renders backup history section', () => {
-      renderWithProviders(<SystemInfo />)
-      expect(screen.getByText('備份記錄')).toBeTruthy()
-    })
-
-    it('shows "no backup history" when empty', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([])
-      mockCountBackups.mockResolvedValue(0)
-      renderWithProviders(<SystemInfo />)
-      await waitFor(() => {
-        expect(screen.getByText('尚無備份記錄')).toBeTruthy()
-      })
-    })
-
-    it('displays backup history table with correct columns', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([
-        {
-          id: 'bl-1',
-          type: 'manual',
-          status: 'success',
-          filename: 'backup-2024-01-01.sqlite',
-          size: 1024000,
-          durationMs: 3500,
-          errorMessage: null,
-          createdAt: 1700000000000,
-        },
-      ])
-      mockCountBackups.mockResolvedValue(1)
-      renderWithProviders(<SystemInfo />)
-
-      await waitFor(() => {
-        // Column headers (zh-TW)
-        expect(screen.getByText('類型')).toBeTruthy()
-        expect(screen.getByText('狀態')).toBeTruthy()
-        expect(screen.getByText('檔案名稱')).toBeTruthy()
-        expect(screen.getByText('大小')).toBeTruthy()
-        expect(screen.getByText('耗時')).toBeTruthy()
-      })
-    })
-
-    it('renders backup log entries in table', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([
-        {
-          id: 'bl-1',
-          type: 'manual',
-          status: 'success',
-          filename: 'backup-2024-01-01.sqlite',
-          size: 1024000,
-          durationMs: 3500,
-          errorMessage: null,
-          createdAt: 1700000000000,
-        },
-      ])
-      mockCountBackups.mockResolvedValue(1)
-      renderWithProviders(<SystemInfo />)
-
-      await waitFor(() => {
-        expect(screen.getByText('手動')).toBeTruthy()
-        expect(screen.getByText('成功')).toBeTruthy()
-        expect(screen.getByText('backup-2024-01-01.sqlite')).toBeTruthy()
-      })
-    })
-
-    it('displays translated backup type labels', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([
-        {
-          id: 'bl-auto',
-          type: 'auto',
-          status: 'success',
-          filename: 'auto-backup.sqlite',
-          size: 512,
-          durationMs: 100,
-          errorMessage: null,
-          createdAt: 1700000000000,
-        },
-      ])
-      mockCountBackups.mockResolvedValue(1)
-      renderWithProviders(<SystemInfo />)
-
-      await waitFor(() => {
-        expect(screen.getByText('自動')).toBeTruthy()
-      })
-    })
-
-    it('displays translated backup status labels', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([
-        {
-          id: 'bl-fail',
-          type: 'manual',
-          status: 'failed',
-          filename: null,
-          size: 0,
-          durationMs: 200,
-          errorMessage: 'Network error',
-          createdAt: 1700000000000,
-        },
-      ])
-      mockCountBackups.mockResolvedValue(1)
-      renderWithProviders(<SystemInfo />)
-
-      await waitFor(() => {
-        expect(screen.getByText('失敗')).toBeTruthy()
-      })
-    })
-
-    it('clears backup history on clear button click', async () => {
-      mockFindPaginatedBackups.mockResolvedValue([
-        {
-          id: 'bl-1',
-          type: 'manual',
-          status: 'success',
-          filename: 'backup.sqlite',
-          size: 1024,
-          durationMs: 100,
-          errorMessage: null,
-          createdAt: 1700000000000,
-        },
-      ])
-      mockCountBackups.mockResolvedValue(1)
-      const user = userEvent.setup()
-      renderWithProviders(<SystemInfo />)
-
-      await waitFor(() => {
-        expect(screen.getByText('backup.sqlite')).toBeTruthy()
-      })
-
-      // First "清除記錄" button belongs to backup history section
-      const clearButtons = screen.getAllByText('清除記錄')
-      await user.click(clearButtons[0]!)
-
-      await waitFor(() => {
-        expect(mockClearAllBackups).toHaveBeenCalled()
-      })
-    })
-  })
-
-  // ── Section 5: Error Logs ──────────────────────────────────────────────
+  // ── Section 4: Error Logs ──────────────────────────────────────────────
 
   describe('Error Logs', () => {
     it('renders error logs section', () => {
@@ -459,9 +307,8 @@ describe('SystemInfo', () => {
         expect(screen.getByText('Test')).toBeTruthy()
       })
 
-      // Second "清除記錄" button belongs to error logs section
-      const clearButtons = screen.getAllByText('清除記錄')
-      await user.click(clearButtons[1]!)
+      // "清除記錄" button belongs to error logs section
+      await user.click(screen.getByText('清除記錄'))
 
       await waitFor(() => {
         expect(mockClearAllErrors).toHaveBeenCalled()

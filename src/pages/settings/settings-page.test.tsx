@@ -8,9 +8,6 @@ import { SettingsPage } from './settings-page'
 vi.mock('@/components/settings/system-info', () => ({
   SystemInfo: () => <div data-testid="system-info-component">SystemInfo</div>,
 }))
-vi.mock('@/components/clock-in', () => ({
-  ClockIn: () => <div data-testid="clock-in-component">ClockIn</div>,
-}))
 vi.mock('@/components/records', () => ({
   Records: () => <div data-testid="records-component">Records</div>,
 }))
@@ -38,7 +35,6 @@ describe('SettingsPage', () => {
       render(<SettingsPage />)
       expect(screen.getByText('系統資訊')).toBeTruthy()
       expect(screen.getByText('雲端備份')).toBeTruthy()
-      expect(screen.getByText('打卡')).toBeTruthy()
       expect(screen.getByText('打卡記錄')).toBeTruthy()
       expect(screen.getByText('員工管理')).toBeTruthy()
     })
@@ -48,7 +44,6 @@ describe('SettingsPage', () => {
       render(<SettingsPage />)
       expect(screen.getByText('System Info')).toBeTruthy()
       expect(screen.getByText('Cloud Backup')).toBeTruthy()
-      expect(screen.getByText('Clock In')).toBeTruthy()
       expect(screen.getByText('Records')).toBeTruthy()
       expect(screen.getByText('Staff Admin')).toBeTruthy()
     })
@@ -58,14 +53,6 @@ describe('SettingsPage', () => {
     it('should show SystemInfo component by default', () => {
       render(<SettingsPage />)
       expect(screen.getByTestId('system-info-component')).toBeTruthy()
-    })
-
-    it('should show ClockIn component when clock-in tab is clicked', async () => {
-      const user = userEvent.setup()
-      render(<SettingsPage />)
-
-      await user.click(screen.getByText('打卡'))
-      expect(screen.getByTestId('clock-in-component')).toBeTruthy()
     })
 
     it('should show Records component when records tab is clicked', async () => {
