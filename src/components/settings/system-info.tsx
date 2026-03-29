@@ -1,26 +1,27 @@
 /**
  * System Info component — displays app version, storage, backup status,
- * system details, quick actions, and error logs.
+ * system details, quick actions, backup history, and error logs.
  */
 
 import { useState, useEffect, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearch, useNavigate } from '@tanstack/react-router'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
-import {
-  Trash2,
-  Eraser,
-  DatabaseBackup,
-  RefreshCw,
-} from 'lucide-react'
+import { Trash2, Eraser, DatabaseBackup, RefreshCw } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
+import { PaginationControls } from '@/components/settings/pagination-controls'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
 import { getErrorLogRepo } from '@/lib/repositories/provider'
 import { SCHEMA_VERSION } from '@/lib/schema'
 import { APP_VERSION } from '@/lib/version'
+
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 20
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -71,17 +72,36 @@ export function SystemInfo() {
 
   const { googleUser, isAdmin } = useGoogleAuth()
 
+  // ── Pagination via route search params ────────────────────────────────
+  const search = useSearch({ from: '/settings/system-info' })
+  const navigate = useNavigate({ from: '/settings/system-info' })
+  const errorPage = search.errorPage ?? 1
+
+  const setErrorPage = useCallback(
+    (page: number) => {
+      navigate({ search: { errorPage: page }, replace: true })
+    },
+    [navigate],
+  )
+
   // ── Error Logs Query ──────────────────────────────────────────────────
 
   const { data: logs = [] } = useQuery({
-    queryKey: ['error-logs'],
-    queryFn: () => getErrorLogRepo().findRecent(50),
+    queryKey: ['error-logs', errorPage],
+    queryFn: () => getErrorLogRepo().findPaginated(errorPage, PAGE_SIZE),
+  })
+
+  const { data: errorLogCount = 0 } = useQuery({
+    queryKey: ['error-logs-count'],
+    queryFn: () => getErrorLogRepo().count(),
   })
 
   const clearLogsMutation = useMutation({
     mutationFn: () => getErrorLogRepo().clearAll(),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['error-logs'] })
+      queryClient.invalidateQueries({ queryKey: ['error-logs-count'] })
+      setErrorPage(1)
       notify.success(t('settings.logsCleared'))
     },
   })
@@ -105,6 +125,9 @@ export function SystemInfo() {
   const handleForceReload = useCallback(() => {
     window.location.reload()
   }, [])
+
+  // ── Derived Values ────────────────────────────────────────────────────
+  const errorTotalPages = Math.max(1, Math.ceil(errorLogCount / PAGE_SIZE))
 
   // ── Render ────────────────────────────────────────────────────────────
 
@@ -284,27 +307,34 @@ export function SystemInfo() {
           {logs.length === 0 ? (
             <p className="text-muted-foreground">{t('settings.noErrors')}</p>
           ) : (
-            <div className="overflow-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="px-2 py-1">{t('settings.logTime')}</th>
-                    <th className="px-2 py-1">{t('settings.logSource')}</th>
-                    <th className="px-2 py-1">{t('settings.logMessage')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {logs.map(log => (
-                    <tr key={log.id} className="border-b">
-                      <td className="px-2 py-1 whitespace-nowrap">
-                        {dayjs(log.createdAt).format('HH:mm:ss')}
-                      </td>
-                      <td className="px-2 py-1">{log.source}</td>
-                      <td className="px-2 py-1">{log.message}</td>
+            <div className="space-y-4">
+              <div className="overflow-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b text-muted-foreground">
+                      <th className="px-2 py-1">{t('settings.logTime')}</th>
+                      <th className="px-2 py-1">{t('settings.logSource')}</th>
+                      <th className="px-2 py-1">{t('settings.logMessage')}</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {logs.map(log => (
+                      <tr key={log.id} className="border-b">
+                        <td className="px-2 py-1 whitespace-nowrap">
+                          {dayjs(log.createdAt).format('HH:mm:ss')}
+                        </td>
+                        <td className="px-2 py-1">{log.source}</td>
+                        <td className="px-2 py-1">{log.message}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <PaginationControls
+                currentPage={errorPage}
+                totalPages={errorTotalPages}
+                onPageChange={setErrorPage}
+              />
             </div>
           )}
         </CardContent>

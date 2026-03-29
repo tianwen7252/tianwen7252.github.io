@@ -71,6 +71,47 @@ describe('Modal', () => {
     expect(screen.queryByText('Hidden')).toBeNull()
   })
 
+  it('should not render shine border by default (shineColor defaults to false)', () => {
+    render(
+      <Modal open title="No Shine Default" onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
+  it('should render shine border when shineColor is true', () => {
+    render(
+      <Modal open title="Shine True" shineColor onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('none')
+  })
+
+  it('should not render shine border when shineColor is false', () => {
+    render(
+      <Modal open title="No Shine" shineColor={false} onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
+  it('should not render shine border when animated is true', () => {
+    render(
+      <Modal open title="Animated" animated onClose={() => {}}>
+        Content
+      </Modal>,
+    )
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    // animated=true overrides shineColor to undefined, so border shows
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
   it('should show loading overlay when loading', () => {
     render(
       <Modal open title="Loading" loading onClose={() => {}}>

@@ -14,6 +14,7 @@ vi.mock('nanoid', () => ({
 function createMockAsyncDb(): AsyncDatabase {
   return {
     exec: vi.fn(async () => ({ rows: [], changes: 0 })),
+    exportDatabase: vi.fn(async () => new Uint8Array()),
   }
 }
 
@@ -223,6 +224,126 @@ describe('ErrorLogRepository', () => {
       const result = await repo.count()
 
       expect(result).toBe(0)
+    })
+  })
+
+  describe('findPaginated()', () => {
+    it('returns correct page of results', async () => {
+      const mockRows = [
+        {
+          id: 'log-1',
+          message: 'Error A',
+          source: 'src-a',
+          stack: null,
+          created_at: 1700000002000,
+        },
+        {
+          id: 'log-2',
+          message: 'Error B',
+          source: 'src-b',
+          stack: 'stack-b',
+          created_at: 1700000001000,
+        },
+      ]
+
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: mockRows,
+        changes: 0,
+      })
+
+      const repo = createErrorLogRepository(db)
+      const result = await repo.findPaginated(1, 10)
+
+      expect(db.exec).toHaveBeenCalledWith(
+        'SELECT * FROM error_logs ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [10, 0],
+      )
+
+      expect(result).toHaveLength(2)
+      expect(result[0]).toEqual({
+        id: 'log-1',
+        message: 'Error A',
+        source: 'src-a',
+        stack: null,
+        createdAt: 1700000002000,
+      })
+      expect(result[1]).toEqual({
+        id: 'log-2',
+        message: 'Error B',
+        source: 'src-b',
+        stack: 'stack-b',
+        createdAt: 1700000001000,
+      })
+    })
+
+    it('calculates correct offset for page 2 with pageSize 20', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: 0,
+      })
+
+      const repo = createErrorLogRepository(db)
+      await repo.findPaginated(2, 20)
+
+      expect(db.exec).toHaveBeenCalledWith(
+        'SELECT * FROM error_logs ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [20, 20],
+      )
+    })
+
+    it('calculates correct offset for page 3 with pageSize 5', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: 0,
+      })
+
+      const repo = createErrorLogRepository(db)
+      await repo.findPaginated(3, 5)
+
+      expect(db.exec).toHaveBeenCalledWith(
+        'SELECT * FROM error_logs ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [5, 10],
+      )
+    })
+
+    it('returns empty array for out-of-range page', async () => {
+      vi.mocked(db.exec).mockResolvedValueOnce({
+        rows: [],
+        changes: 0,
+      })
+
+      const repo = createErrorLogRepository(db)
+      const result = await repo.findPaginated(100, 10)
+
+      expect(result).toEqual([])
+    })
+
+    it('throws when page < 1', async () => {
+      const repo = createErrorLogRepository(db)
+      await expect(repo.findPaginated(0, 10)).rejects.toThrow(
+        'page must be >= 1',
+      )
+    })
+
+    it('throws when page is negative', async () => {
+      const repo = createErrorLogRepository(db)
+      await expect(repo.findPaginated(-1, 10)).rejects.toThrow(
+        'page must be >= 1',
+      )
+    })
+
+    it('throws when pageSize < 1', async () => {
+      const repo = createErrorLogRepository(db)
+      await expect(repo.findPaginated(1, 0)).rejects.toThrow(
+        'pageSize must be >= 1',
+      )
+    })
+
+    it('throws when pageSize is negative', async () => {
+      const repo = createErrorLogRepository(db)
+      await expect(repo.findPaginated(1, -5)).rejects.toThrow(
+        'pageSize must be >= 1',
+      )
     })
   })
 

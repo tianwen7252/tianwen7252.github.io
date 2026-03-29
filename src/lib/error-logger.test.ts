@@ -23,6 +23,7 @@ function createMockRepo() {
       createdAt: Date.now(),
     }),
     findRecent: vi.fn(),
+    findPaginated: vi.fn(async () => []),
     clearAll: vi.fn(),
     count: vi.fn(),
   }

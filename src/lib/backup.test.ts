@@ -135,5 +135,43 @@ describe('backup utilities', () => {
       expect(backups[0]?.filename).toBe('tianwen-backup-2026-03-21.db.gz')
       expect(backups[0]?.size).toBe(1024)
     })
+
+    describe('isConfigured()', () => {
+      it('should return true when URL and key are set', () => {
+        const service = createBackupService({
+          supabaseUrl: 'https://test.supabase.co',
+          supabaseAnonKey: 'test-key',
+          bucketName: 'backups',
+        })
+        expect(service.isConfigured()).toBe(true)
+      })
+
+      it('should return false when URL is empty', () => {
+        const service = createBackupService({
+          supabaseUrl: '',
+          supabaseAnonKey: 'test-key',
+          bucketName: 'backups',
+        })
+        expect(service.isConfigured()).toBe(false)
+      })
+
+      it('should return false when key is empty', () => {
+        const service = createBackupService({
+          supabaseUrl: 'https://test.supabase.co',
+          supabaseAnonKey: '',
+          bucketName: 'backups',
+        })
+        expect(service.isConfigured()).toBe(false)
+      })
+
+      it('should return false when both URL and key are empty', () => {
+        const service = createBackupService({
+          supabaseUrl: '',
+          supabaseAnonKey: '',
+          bucketName: 'backups',
+        })
+        expect(service.isConfigured()).toBe(false)
+      })
+    })
   })
 })

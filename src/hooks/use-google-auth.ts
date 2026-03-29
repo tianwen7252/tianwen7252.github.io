@@ -15,7 +15,8 @@ import { notify } from '@/components/ui/sonner'
 const GOOGLE_CLIENT_ID =
   '799987452297-qetqo8blfushga2h064of13epeqtgh4a.apps.googleusercontent.com'
 const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo'
-const GIS_SCOPES = 'openid email profile'
+const GIS_SCOPES =
+  'openid email profile https://www.googleapis.com/auth/drive.readonly'
 
 // ─── GIS type declarations ───────────────────────────────────────────────────
 

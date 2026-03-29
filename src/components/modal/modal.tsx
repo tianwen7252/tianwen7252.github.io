@@ -50,9 +50,22 @@ const SHINE_COLOR_PRESETS: Record<ShineColorPreset, string[]> = {
   gray: ['#bbbbbb', '#cccccc', '#dddddd'],
 }
 
+// Map gradient variant to shine color preset
+const VARIANT_TO_SHINE: Record<GradientVariant, ShineColorPreset> = {
+  green: 'green',
+  warm: 'purple',
+  red: 'red',
+  blue: 'blue',
+  orange: 'orange',
+  gray: 'gray',
+}
+
 function resolveShineColor(shineColor: ShineColor): string | string[] {
   if (typeof shineColor === 'string' && shineColor in SHINE_COLOR_PRESETS) {
     return SHINE_COLOR_PRESETS[shineColor as ShineColorPreset]
+  }
+  if (typeof shineColor === 'boolean') {
+    return []
   }
   return shineColor
 }
@@ -93,7 +106,7 @@ export function Modal({
   title,
   children,
   footer,
-  shineColor,
+  shineColor: shineColorProp = false,
   width = 500,
   height,
   transition: enableTransition = false,
@@ -101,6 +114,15 @@ export function Modal({
   closeOnBackdropClick = true,
   onClose,
 }: ModalProps) {
+  // Resolve shineColor: animated disables shine; true maps to variant preset
+  const shineColor = animated
+    ? undefined
+    : shineColorProp === true
+      ? VARIANT_TO_SHINE[variant]
+      : shineColorProp === false
+        ? undefined
+        : shineColorProp
+
   // Delay Radix unmount so close animation plays first.
   // dialogOpen stays true during close animation; closing triggers CSS exit classes.
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -168,7 +190,7 @@ export function Modal({
   return (
     <DialogPrimitive.Root
       open={dialogOpen}
-      onOpenChange={(o) => {
+      onOpenChange={o => {
         if (!o && closeOnBackdropClick) onClose()
       }}
     >
@@ -196,10 +218,10 @@ export function Modal({
             'glass-modal-content fixed inset-0 z-50 flex items-center justify-center outline-none',
             closing && 'glass-modal-closing',
           )}
-          onClick={(e) => {
+          onClick={e => {
             if (e.target === e.currentTarget && closeOnBackdropClick) onClose()
           }}
-          onEscapeKeyDown={(e) => {
+          onEscapeKeyDown={e => {
             if (!closeOnBackdropClick) e.preventDefault()
             else onClose()
           }}

@@ -16,15 +16,36 @@ export type WorkerRequest =
       readonly clearDbData: boolean
       readonly shouldResetData: boolean
     }
-  | { readonly type: 'exec'; readonly id: number; readonly sql: string; readonly params?: readonly unknown[] }
+  | {
+      readonly type: 'exec'
+      readonly id: number
+      readonly sql: string
+      readonly params?: readonly unknown[]
+    }
+  | { readonly type: 'export-db'; readonly id: number }
 
 /** Worker → Main message types */
 export type WorkerResponse =
   | { readonly type: 'ready' }
   | { readonly type: 'init-done' }
   | { readonly type: 'init-error'; readonly error: string }
-  | { readonly type: 'exec-result'; readonly id: number; readonly rows: unknown[]; readonly changes: number }
+  | {
+      readonly type: 'exec-result'
+      readonly id: number
+      readonly rows: unknown[]
+      readonly changes: number
+    }
   | { readonly type: 'exec-error'; readonly id: number; readonly error: string }
+  | {
+      readonly type: 'export-db-result'
+      readonly id: number
+      readonly data: ArrayBuffer
+    }
+  | {
+      readonly type: 'export-db-error'
+      readonly id: number
+      readonly error: string
+    }
 
 /** Async database interface for use on the main thread */
 export interface AsyncDatabase {
@@ -32,12 +53,18 @@ export interface AsyncDatabase {
     sql: string,
     params?: readonly unknown[],
   ): Promise<QueryResult<T>>
+  exportDatabase(): Promise<Uint8Array>
 }
 
 // ─── Pending request tracking ───────────────────────────────────────────────
 
 interface PendingRequest {
   readonly resolve: (value: QueryResult<unknown>) => void
+  readonly reject: (reason: Error) => void
+}
+
+interface PendingExportRequest {
+  readonly resolve: (value: Uint8Array) => void
   readonly reject: (reason: Error) => void
 }
 
@@ -50,6 +77,7 @@ interface PendingRequest {
 export function createWorkerDatabase(worker: Worker): AsyncDatabase {
   let nextId = 0
   const pending = new Map<number, PendingRequest>()
+  const pendingExports = new Map<number, PendingExportRequest>()
 
   worker.addEventListener('message', (e: MessageEvent<WorkerResponse>) => {
     const msg = e.data
@@ -66,6 +94,22 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
       const p = pending.get(msg.id)
       if (p) {
         pending.delete(msg.id)
+        p.reject(new Error(msg.error))
+      }
+    }
+
+    if (msg.type === 'export-db-result') {
+      const p = pendingExports.get(msg.id)
+      if (p) {
+        pendingExports.delete(msg.id)
+        p.resolve(new Uint8Array(msg.data))
+      }
+    }
+
+    if (msg.type === 'export-db-error') {
+      const p = pendingExports.get(msg.id)
+      if (p) {
+        pendingExports.delete(msg.id)
         p.reject(new Error(msg.error))
       }
     }
@@ -90,6 +134,14 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
         })
       })
     },
+
+    exportDatabase(): Promise<Uint8Array> {
+      return new Promise<Uint8Array>((resolve, reject) => {
+        const id = nextId++
+        pendingExports.set(id, { resolve, reject })
+        worker.postMessage({ type: 'export-db', id })
+      })
+    },
   }
 }
 
@@ -100,7 +152,7 @@ export function createWorkerDatabase(worker: Worker): AsyncDatabase {
  * The worker posts { type: 'ready' } immediately on load.
  */
 export function waitForWorkerReady(worker: Worker): Promise<void> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const handler = (e: MessageEvent<WorkerResponse>) => {
       if (e.data.type === 'ready') {
         worker.removeEventListener('message', handler)

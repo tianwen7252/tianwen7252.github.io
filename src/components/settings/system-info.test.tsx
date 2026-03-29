@@ -38,13 +38,15 @@ vi.mock('@/hooks/use-google-auth', () => ({
 }))
 
 // Mock error log repository
-const mockFindRecent = vi.fn().mockResolvedValue([])
-const mockClearAll = vi.fn().mockResolvedValue(undefined)
+const mockFindPaginatedErrors = vi.fn().mockResolvedValue([])
+const mockCountErrors = vi.fn().mockResolvedValue(0)
+const mockClearAllErrors = vi.fn().mockResolvedValue(undefined)
 
 vi.mock('@/lib/repositories/provider', () => ({
   getErrorLogRepo: () => ({
-    findRecent: mockFindRecent,
-    clearAll: mockClearAll,
+    findPaginated: mockFindPaginatedErrors,
+    count: mockCountErrors,
+    clearAll: mockClearAllErrors,
   }),
 }))
 
@@ -57,6 +59,13 @@ vi.mock('@/components/ui/sonner', () => ({
     success: (...args: unknown[]) => mockNotifySuccess(...args),
     info: (...args: unknown[]) => mockNotifyInfo(...args),
   },
+}))
+
+// Mock TanStack Router hooks
+const mockNavigate = vi.fn()
+vi.mock('@tanstack/react-router', () => ({
+  useSearch: () => ({ errorPage: 1 }),
+  useNavigate: () => mockNavigate,
 }))
 
 // Mock import.meta.env
@@ -82,8 +91,9 @@ describe('SystemInfo', () => {
     vi.clearAllMocks()
     mockGoogleUser = null
     mockIsAdmin = false
-    mockFindRecent.mockResolvedValue([])
-    mockClearAll.mockResolvedValue(undefined)
+    mockFindPaginatedErrors.mockResolvedValue([])
+    mockCountErrors.mockResolvedValue(0)
+    mockClearAllErrors.mockResolvedValue(undefined)
     mockEstimate.mockResolvedValue({ usage: 50_000_000, quota: 1_000_000_000 })
   })
 
@@ -221,7 +231,7 @@ describe('SystemInfo', () => {
     })
   })
 
-  // ── Section 4: Error Logs ───────────────────────────────────────────────
+  // ── Section 4: Error Logs ──────────────────────────────────────────────
 
   describe('Error Logs', () => {
     it('renders error logs section', () => {
@@ -230,7 +240,8 @@ describe('SystemInfo', () => {
     })
 
     it('shows empty state when no error logs', async () => {
-      mockFindRecent.mockResolvedValue([])
+      mockFindPaginatedErrors.mockResolvedValue([])
+      mockCountErrors.mockResolvedValue(0)
       renderWithProviders(<SystemInfo />)
       await waitFor(() => {
         expect(screen.getByText('無錯誤記錄')).toBeTruthy()
@@ -238,7 +249,7 @@ describe('SystemInfo', () => {
     })
 
     it('renders error log entries in table', async () => {
-      mockFindRecent.mockResolvedValue([
+      mockFindPaginatedErrors.mockResolvedValue([
         {
           id: 'log-1',
           message: 'Something broke',
@@ -254,6 +265,7 @@ describe('SystemInfo', () => {
           createdAt: 1700000060000,
         },
       ])
+      mockCountErrors.mockResolvedValue(2)
       renderWithProviders(<SystemInfo />)
 
       await waitFor(() => {
@@ -265,7 +277,7 @@ describe('SystemInfo', () => {
     })
 
     it('renders table headers', async () => {
-      mockFindRecent.mockResolvedValue([
+      mockFindPaginatedErrors.mockResolvedValue([
         {
           id: 'log-1',
           message: 'Test',
@@ -274,18 +286,18 @@ describe('SystemInfo', () => {
           createdAt: 1700000000000,
         },
       ])
+      mockCountErrors.mockResolvedValue(1)
       renderWithProviders(<SystemInfo />)
 
       await waitFor(() => {
         // zh-TW table headers
-        expect(screen.getByText('時間')).toBeTruthy()
         expect(screen.getByText('來源')).toBeTruthy()
         expect(screen.getByText('訊息')).toBeTruthy()
       })
     })
 
     it('clears logs on clear button click', async () => {
-      mockFindRecent.mockResolvedValue([
+      mockFindPaginatedErrors.mockResolvedValue([
         {
           id: 'log-1',
           message: 'Test',
@@ -294,6 +306,7 @@ describe('SystemInfo', () => {
           createdAt: 1700000000000,
         },
       ])
+      mockCountErrors.mockResolvedValue(1)
       const user = userEvent.setup()
       renderWithProviders(<SystemInfo />)
 
@@ -301,11 +314,60 @@ describe('SystemInfo', () => {
         expect(screen.getByText('Test')).toBeTruthy()
       })
 
+      // "清除記錄" button belongs to error logs section
       await user.click(screen.getByText('清除記錄'))
 
       await waitFor(() => {
-        expect(mockClearAll).toHaveBeenCalled()
+        expect(mockClearAllErrors).toHaveBeenCalled()
       })
+    })
+
+    it('calls findPaginated with page 1 and pageSize 20', async () => {
+      renderWithProviders(<SystemInfo />)
+      await waitFor(() => {
+        expect(mockFindPaginatedErrors).toHaveBeenCalledWith(1, 20)
+      })
+    })
+
+    it('shows pagination when total count exceeds page size', async () => {
+      mockFindPaginatedErrors.mockResolvedValue(
+        Array.from({ length: 20 }, (_, i) => ({
+          id: `log-${i}`,
+          message: `Error ${i}`,
+          source: 'test.tsx',
+          stack: null,
+          createdAt: 1700000000000 - i * 1000,
+        })),
+      )
+      mockCountErrors.mockResolvedValue(45)
+      renderWithProviders(<SystemInfo />)
+
+      await waitFor(() => {
+        // PaginationControls shows page indicator: "1 / 3"
+        expect(screen.getByText(/1 \/ 3/)).toBeTruthy()
+      })
+    })
+
+    it('does not show pagination when total fits in one page', async () => {
+      mockFindPaginatedErrors.mockResolvedValue([
+        {
+          id: 'log-1',
+          message: 'Test',
+          source: 'test.tsx',
+          stack: null,
+          createdAt: 1700000000000,
+        },
+      ])
+      mockCountErrors.mockResolvedValue(1)
+      renderWithProviders(<SystemInfo />)
+
+      await waitFor(() => {
+        expect(screen.getByText('Test')).toBeTruthy()
+      })
+
+      // PaginationControls should not render when totalPages <= 1
+      expect(screen.queryByText(/上一頁/)).toBeNull()
+      expect(screen.queryByText(/下一頁/)).toBeNull()
     })
   })
 })

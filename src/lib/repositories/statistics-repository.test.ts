@@ -14,6 +14,7 @@ import type { DateRange } from './statistics-repository'
 function createMockDb(): AsyncDatabase {
   return {
     exec: vi.fn(async () => ({ rows: [], changes: 0 })),
+    exportDatabase: vi.fn(async () => new Uint8Array()),
   }
 }
 
