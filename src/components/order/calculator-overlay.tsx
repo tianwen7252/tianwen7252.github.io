@@ -144,7 +144,7 @@ export function CalculatorOverlay({
   return (
     <div
       data-testid="calculator-overlay"
-      className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-xl"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[30px]"
       onClick={onClose}
     >
       {/* Close button — overlay top-right corner */}
@@ -199,7 +199,7 @@ export function CalculatorOverlay({
           <RippleButton
             onClick={handleSubmit}
             disabled={!canSubmit}
-            className="h-10 shrink-0 rounded-xl bg-primary px-8 text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+            className="h-10 shrink-0 rounded-xl bg-(--color-gold) px-8 text-md text-white hover:opacity-90 disabled:pointer-events-none disabled:opacity-50"
           >
             {t('order.calculatorSubmit')}
           </RippleButton>

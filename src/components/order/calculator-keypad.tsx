@@ -85,7 +85,7 @@ export function CalculatorKeypad({
 }: CalculatorKeypadProps) {
   const btnSize = compact ? 'size-15' : 'size-17'
   return (
-    <div className="grid w-fit grid-cols-4 gap-1">
+    <div className="grid w-fit grid-cols-4 gap-2">
       {ROWS.flatMap(row =>
         row.map(def => {
           const isActive = def.type === 'operator' && def.key === activeOperator
@@ -98,7 +98,7 @@ export function CalculatorKeypad({
                 `flex ${btnSize} items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]`,
                 isActive && 'border-primary/40 bg-primary/15 text-primary',
                 def.type === 'equals' &&
-                  'bg-primary text-primary-foreground border-primary/30',
+                  'border-black/8 bg-white text-foreground',
               )}
             >
               {def.label}
