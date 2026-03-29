@@ -19,6 +19,10 @@ import type { Database } from '@/lib/database'
 // ─── State ──────────────────────────────────────────────────────────────────
 
 let db: Database | null = null
+/** Raw SQLite db handle, needed for sqlite3_js_db_export */
+let rawDbHandle: unknown = null
+/** SQLite3 module reference, needed for capi.sqlite3_js_db_export */
+let sqlite3Ref: Awaited<ReturnType<typeof sqlite3InitModule>> | null = null
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -50,8 +54,12 @@ function wrapSahPoolDb(rawDb: unknown): Database {
 
 // ─── Post typed messages ────────────────────────────────────────────────────
 
-function post(msg: WorkerResponse): void {
-  self.postMessage(msg)
+function post(msg: WorkerResponse, transfer?: Transferable[]): void {
+  if (transfer) {
+    self.postMessage(msg, transfer)
+  } else {
+    self.postMessage(msg)
+  }
 }
 
 // ─── Message handler ────────────────────────────────────────────────────────
@@ -67,6 +75,8 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
         initialCapacity: 6,
       })
       const rawDb = new sahPoolUtil.OpfsSAHPoolDb('tianwen.db')
+      rawDbHandle = rawDb
+      sqlite3Ref = sqlite3
       db = wrapSahPoolDb(rawDb)
 
       // Initialize schema + run migrations for existing DBs
@@ -89,12 +99,16 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           insertDefaultCommodities(db)
         } else {
           // Insert only into empty tables
-          const empCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM employees')
+          const empCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM employees',
+          )
           if (Number(empCount.rows[0]?.cnt) === 0) {
             insertDefaultEmployees(db)
           }
 
-          const comCount = db.exec<{ cnt: number }>('SELECT COUNT(*) as cnt FROM commodities')
+          const comCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM commodities',
+          )
           if (Number(comCount.rows[0]?.cnt) === 0) {
             insertDefaultCommodities(db)
           }
@@ -109,7 +123,11 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
 
   if (msg.type === 'exec') {
     if (!db) {
-      post({ type: 'exec-error', id: msg.id, error: 'Database not initialized' })
+      post({
+        type: 'exec-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
       return
     }
 
@@ -123,6 +141,35 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
       })
     } catch (err) {
       post({ type: 'exec-error', id: msg.id, error: String(err) })
+    }
+  }
+
+  if (msg.type === 'export-db') {
+    if (!db || !rawDbHandle || !sqlite3Ref) {
+      post({
+        type: 'export-db-error',
+        id: msg.id,
+        error: 'Database not initialized',
+      })
+      return
+    }
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const bytes = sqlite3Ref.capi.sqlite3_js_db_export(rawDbHandle as any)
+      // Copy into an isolated buffer — bytes.buffer is the live WASM heap,
+      // transferring it directly would detach WASM memory and crash the worker.
+      const copy = bytes.slice()
+      post(
+        {
+          type: 'export-db-result',
+          id: msg.id,
+          data: copy.buffer,
+        },
+        [copy.buffer],
+      )
+    } catch (err) {
+      post({ type: 'export-db-error', id: msg.id, error: String(err) })
     }
   }
 }

@@ -220,6 +220,26 @@ export const errorLogSchema = z.object({
 
 export type ErrorLog = z.infer<typeof errorLogSchema>
 
+// ─── BackupLog ─────────────────────────────────────────────────────────────
+
+export const backupLogTypeEnum = z.enum(['manual', 'auto', 'v1-import'])
+export const backupLogStatusEnum = z.enum(['success', 'failed'])
+
+export const backupLogSchema = z.object({
+  id: z.string(),
+  type: backupLogTypeEnum,
+  status: backupLogStatusEnum,
+  filename: z.string().nullable(),
+  size: z.number().default(0),
+  durationMs: z.number().default(0),
+  errorMessage: z.string().nullable(),
+  createdAt: z.number(),
+})
+
+export type BackupLog = z.infer<typeof backupLogSchema>
+export type BackupLogType = z.infer<typeof backupLogTypeEnum>
+export type BackupLogStatus = z.infer<typeof backupLogStatusEnum>
+
 // ─── DailyData ───────────────────────────────────────────────────────────────
 
 export const dailyDataSchema = z.object({

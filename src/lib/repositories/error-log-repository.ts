@@ -5,6 +5,7 @@ import type { ErrorLog } from '@/lib/schemas'
 export interface ErrorLogRepository {
   create(message: string, source: string, stack?: string): Promise<ErrorLog>
   findRecent(limit?: number): Promise<ErrorLog[]>
+  findPaginated(page: number, pageSize: number): Promise<ErrorLog[]>
   clearAll(): Promise<void>
   count(): Promise<number>
 }
@@ -45,6 +46,21 @@ export function createErrorLogRepository(
       const result = await db.exec<Record<string, unknown>>(
         'SELECT * FROM error_logs ORDER BY created_at DESC LIMIT ?',
         [limit],
+      )
+      return result.rows.map(toErrorLog)
+    },
+
+    async findPaginated(page: number, pageSize: number) {
+      if (page < 1) {
+        throw new Error(`page must be >= 1, got ${page}`)
+      }
+      if (pageSize < 1) {
+        throw new Error(`pageSize must be >= 1, got ${pageSize}`)
+      }
+      const offset = (page - 1) * pageSize
+      const result = await db.exec<Record<string, unknown>>(
+        'SELECT * FROM error_logs ORDER BY created_at DESC LIMIT ? OFFSET ?',
+        [pageSize, offset],
       )
       return result.rows.map(toErrorLog)
     },

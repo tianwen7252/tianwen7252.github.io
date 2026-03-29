@@ -17,6 +17,11 @@ vi.mock('@/components/records', () => ({
 vi.mock('@/components/staff-admin', () => ({
   StaffAdmin: () => <div data-testid="staff-admin-component">StaffAdmin</div>,
 }))
+vi.mock('@/components/settings/cloud-backup', () => ({
+  CloudBackup: () => (
+    <div data-testid="cloud-backup-component">CloudBackup</div>
+  ),
+}))
 vi.mock('@/components/auth-guard', () => ({
   AuthGuard: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="auth-guard">{children}</div>
@@ -32,6 +37,7 @@ describe('SettingsPage', () => {
     it('should render tab labels in zh-TW by default', () => {
       render(<SettingsPage />)
       expect(screen.getByText('系統資訊')).toBeTruthy()
+      expect(screen.getByText('雲端備份')).toBeTruthy()
       expect(screen.getByText('打卡')).toBeTruthy()
       expect(screen.getByText('打卡記錄')).toBeTruthy()
       expect(screen.getByText('員工管理')).toBeTruthy()
@@ -41,6 +47,7 @@ describe('SettingsPage', () => {
       await i18n.changeLanguage('en')
       render(<SettingsPage />)
       expect(screen.getByText('System Info')).toBeTruthy()
+      expect(screen.getByText('Cloud Backup')).toBeTruthy()
       expect(screen.getByText('Clock In')).toBeTruthy()
       expect(screen.getByText('Records')).toBeTruthy()
       expect(screen.getByText('Staff Admin')).toBeTruthy()
@@ -67,6 +74,14 @@ describe('SettingsPage', () => {
 
       await user.click(screen.getByText('打卡記錄'))
       expect(screen.getByTestId('records-component')).toBeTruthy()
+    })
+
+    it('should show CloudBackup component when cloud-backup tab is clicked', async () => {
+      const user = userEvent.setup()
+      render(<SettingsPage />)
+
+      await user.click(screen.getByText('雲端備份'))
+      expect(screen.getByTestId('cloud-backup-component')).toBeTruthy()
     })
 
     it('should show StaffAdmin component when staff-admin tab is clicked', async () => {

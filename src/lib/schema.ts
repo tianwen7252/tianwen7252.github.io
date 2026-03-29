@@ -150,6 +150,20 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at);
 
+  -- Backup logs
+  CREATE TABLE IF NOT EXISTS backup_logs (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL DEFAULT 'manual',
+    status TEXT NOT NULL DEFAULT 'success',
+    filename TEXT,
+    size INTEGER DEFAULT 0,
+    duration_ms INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -239,6 +253,21 @@ function runMigrations(exec: (sql: string) => void): void {
   )`)
   exec(
     'CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)',
+  )
+
+  // V2-130: Add backup_logs table
+  exec(`CREATE TABLE IF NOT EXISTS backup_logs (
+    id TEXT PRIMARY KEY,
+    type TEXT NOT NULL DEFAULT 'manual',
+    status TEXT NOT NULL DEFAULT 'success',
+    filename TEXT,
+    size INTEGER DEFAULT 0,
+    duration_ms INTEGER DEFAULT 0,
+    error_message TEXT,
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at)',
   )
 }
 

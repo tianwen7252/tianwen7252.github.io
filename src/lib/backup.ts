@@ -23,6 +23,7 @@ export interface BackupService {
   download(filename: string): Promise<Uint8Array>
   restoreDatabase(compressed: Uint8Array): Promise<Uint8Array>
   listBackups(): Promise<readonly BackupMetadata[]>
+  isConfigured(): boolean
 }
 
 /**
@@ -143,6 +144,13 @@ export function createBackupService(config: BackupConfig): BackupService {
 
     async restoreDatabase(compressed: Uint8Array): Promise<Uint8Array> {
       return decompress(compressed)
+    },
+
+    isConfigured(): boolean {
+      return (
+        config.supabaseUrl.trim().length > 0 &&
+        config.supabaseAnonKey.trim().length > 0
+      )
     },
 
     async listBackups(): Promise<readonly BackupMetadata[]> {

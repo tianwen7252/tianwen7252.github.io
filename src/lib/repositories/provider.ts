@@ -42,6 +42,10 @@ import {
   createCustomOrderNameRepository,
   type CustomOrderNameRepository,
 } from './custom-order-name-repository'
+import {
+  createBackupLogRepository,
+  type BackupLogRepository,
+} from './backup-log-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -53,12 +57,15 @@ let orderDiscountRepo: OrderDiscountRepository | null = null
 let statisticsRepo: StatisticsRepository | null = null
 let errorLogRepo: ErrorLogRepository | null = null
 let customOrderNameRepo: CustomOrderNameRepository | null = null
+let backupLogRepo: BackupLogRepository | null = null
+let dbInstance: AsyncDatabase | null = null
 
 /**
  * Initialize all repositories with the given async database instance.
  * Must be called before any getXxxRepo() calls.
  */
 export function initRepositories(db: AsyncDatabase): void {
+  dbInstance = db
   employeeRepo = createEmployeeRepository(db)
   attendanceRepo = createAttendanceRepository(db)
   commodityTypeRepo = createCommodityTypeRepository(db)
@@ -69,6 +76,7 @@ export function initRepositories(db: AsyncDatabase): void {
   statisticsRepo = createStatisticsRepository(db)
   errorLogRepo = createErrorLogRepository(db)
   customOrderNameRepo = createCustomOrderNameRepository(db)
+  backupLogRepo = createBackupLogRepository(db)
 }
 
 /**
@@ -202,6 +210,33 @@ export function getCustomOrderNameRepo(): CustomOrderNameRepository {
 }
 
 /**
+ * Get the BackupLogRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getBackupLogRepo(): BackupLogRepository {
+  if (!backupLogRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return backupLogRepo
+}
+
+/**
+ * Get the raw AsyncDatabase instance.
+ * Throws if initRepositories() has not been called.
+ * Useful for raw SQL queries like table stats.
+ */
+export function getDatabase(): AsyncDatabase {
+  if (!dbInstance) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return dbInstance
+}
+
+/**
  * Reset all repository singletons to null.
  * Useful for testing or app teardown.
  */
@@ -216,4 +251,6 @@ export function resetRepositories(): void {
   statisticsRepo = null
   errorLogRepo = null
   customOrderNameRepo = null
+  backupLogRepo = null
+  dbInstance = null
 }

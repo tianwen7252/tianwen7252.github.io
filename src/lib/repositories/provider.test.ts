@@ -23,6 +23,7 @@ import {
 function createMockAsyncDb(): AsyncDatabase {
   return {
     exec: vi.fn(async () => ({ rows: [], changes: 0 })),
+    exportDatabase: vi.fn(async () => new Uint8Array()),
   }
 }
 
@@ -422,6 +423,7 @@ describe('Repository Provider', () => {
       expect(repo).toBeDefined()
       expect(typeof repo.create).toBe('function')
       expect(typeof repo.findRecent).toBe('function')
+      expect(typeof repo.findPaginated).toBe('function')
       expect(typeof repo.clearAll).toBe('function')
       expect(typeof repo.count).toBe('function')
     })
