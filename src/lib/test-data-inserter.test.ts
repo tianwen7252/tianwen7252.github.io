@@ -26,6 +26,9 @@ function createMockDatabase(): AsyncDatabase & {
       calls.push({ sql, params })
       return { rows: [] as T[], changes: 1 }
     },
+    async exportDatabase(): Promise<Uint8Array> {
+      return new Uint8Array()
+    },
   }
 }
 
@@ -316,6 +319,9 @@ describe('insertTestData', () => {
         }
         return { rows: [] as T[], changes: 1 }
       },
+      async exportDatabase(): Promise<Uint8Array> {
+        return new Uint8Array()
+      },
     }
 
     await expect(insertTestData(failingDb, { months: 1 })).rejects.toThrow(
@@ -393,7 +399,7 @@ describe('getDatabase', () => {
 
   it('throws when not initialized', () => {
     expect(() => getDatabase()).toThrow(
-      'Database not initialized. Call initRepositories(db) first.',
+      'Repositories not initialized. Call initRepositories(db) first.',
     )
   })
 
@@ -411,7 +417,7 @@ describe('getDatabase', () => {
     resetRepositories()
 
     expect(() => getDatabase()).toThrow(
-      'Database not initialized. Call initRepositories(db) first.',
+      'Repositories not initialized. Call initRepositories(db) first.',
     )
   })
 })
