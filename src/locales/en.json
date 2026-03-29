@@ -450,5 +450,34 @@
     "v1FileAction": "Action",
     "v1ImportBtn": "Import",
     "v1Importing": "Importing..."
+  },
+  "preview": {
+    "testData": {
+      "title": "Test Data Generator",
+      "description": "Generate 6 months of realistic order and attendance data for testing.",
+      "generateButton": "Generate Test Data",
+      "generating": "Generating...",
+      "warning": "This will insert new data without checking for existing records in the date range.",
+      "confirmTitle": "Generate Test Data?",
+      "confirmMessage": "This will generate approximately 9,000+ orders and 1,800+ attendance records spanning 6 months. This operation cannot be undone.",
+      "progress": "Day {{current}} / {{total}}",
+      "ordersInserted": "Orders: {{count}}",
+      "attendancesInserted": "Attendance: {{count}}",
+      "phase": {
+        "generating": "Generating data...",
+        "inserting": "Writing to database..."
+      },
+      "complete": "Generation Complete",
+      "error": "Generation failed: {{message}}",
+      "summary": {
+        "title": "Summary",
+        "orders": "Orders",
+        "orderItems": "Order Items",
+        "orderDiscounts": "Discounts",
+        "attendances": "Attendance Records",
+        "dailyData": "Daily Summaries",
+        "days": "Days"
+      }
+    }
   }
 }

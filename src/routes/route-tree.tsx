@@ -10,7 +10,7 @@ import { useTranslation } from 'react-i18next'
 import { Settings, Code } from 'lucide-react'
 import { OrderPage } from '@/pages/order'
 import { NotFoundPage } from '@/pages/not-found'
-import { ModalPreview, NotifyPreview } from '@/pages/preview'
+import { ModalPreview, NotifyPreview, TestDataPreview } from '@/pages/preview'
 import { ClockInPage } from '@/pages/clock-in'
 import { SettingsPage } from '@/pages/settings'
 import { SystemInfo } from '@/components/settings/system-info'
@@ -216,6 +216,12 @@ function PreviewIndex() {
           </Link>{' '}
           (Toast Notifications)
         </li>
+        <li>
+          <Link to="/preview/test-data" className="text-primary underline">
+            Test Data
+          </Link>{' '}
+          (Generate 6 months data)
+        </li>
       </ul>
     </div>
   )
@@ -231,6 +237,12 @@ const previewNotifyRoute = createRoute({
   getParentRoute: () => previewRoute,
   path: '/notify',
   component: NotifyPreview,
+})
+
+const previewTestDataRoute = createRoute({
+  getParentRoute: () => previewRoute,
+  path: '/test-data',
+  component: TestDataPreview,
 })
 
 // Clock-in standalone page
@@ -324,5 +336,6 @@ export const routeTree = rootRoute.addChildren([
     previewIndexRoute,
     previewModalRoute,
     previewNotifyRoute,
+    previewTestDataRoute,
   ]),
 ])

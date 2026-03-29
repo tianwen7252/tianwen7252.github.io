@@ -450,5 +450,34 @@
     "v1FileAction": "操作",
     "v1ImportBtn": "匯入",
     "v1Importing": "匯入中..."
+  },
+  "preview": {
+    "testData": {
+      "title": "測試資料產生器",
+      "description": "產生 6 個月的擬真訂單與出勤資料，用於測試。",
+      "generateButton": "開始產生測試資料",
+      "generating": "產生中...",
+      "warning": "此操作會直接插入新資料，不會檢查日期範圍內是否已有資料。",
+      "confirmTitle": "確定產生測試資料？",
+      "confirmMessage": "將產生約 9,000+ 筆訂單及 1,800+ 筆出勤記錄，涵蓋 6 個月。此操作無法復原。",
+      "progress": "第 {{current}} / {{total}} 天",
+      "ordersInserted": "訂單：{{count}} 筆",
+      "attendancesInserted": "出勤：{{count}} 筆",
+      "phase": {
+        "generating": "正在產生資料...",
+        "inserting": "正在寫入資料庫..."
+      },
+      "complete": "產生完成",
+      "error": "產生失敗：{{message}}",
+      "summary": {
+        "title": "摘要",
+        "orders": "訂單",
+        "orderItems": "訂單品項",
+        "orderDiscounts": "折扣",
+        "attendances": "出勤記錄",
+        "dailyData": "每日統計",
+        "days": "天數"
+      }
+    }
   }
 }
