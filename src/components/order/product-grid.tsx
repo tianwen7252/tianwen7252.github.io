@@ -102,10 +102,12 @@ export function ProductGrid({ compactCalculator = false }: ProductGridProps) {
           onSelect={setSelectedTypeId}
         />
         <div className="flex items-center gap-2">
-          <QuickSubmitSwitch
-            checked={quickSubmit}
-            onCheckedChange={setQuickSubmit}
-          />
+          {!compactCalculator && (
+            <QuickSubmitSwitch
+              checked={quickSubmit}
+              onCheckedChange={setQuickSubmit}
+            />
+          )}
           <RippleButton
             aria-label={t('order.calculator')}
             rippleColor="rgba(0, 0, 0, 0.1)"

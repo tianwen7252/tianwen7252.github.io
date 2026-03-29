@@ -28,7 +28,7 @@ interface ComboboxProps {
   readonly onFocusChange?: (focused: boolean) => void
 }
 
-// ─── Component ──────────────────────────────────────────────────────────────
+// ─── Component ────────────────────���──────────────────────────────��──────────
 
 /**
  * Combobox with search filtering, custom value support, and option deletion.
@@ -45,6 +45,7 @@ export function Combobox({
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState(value)
+  const inputFocusedRef = useRef(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Sync external value changes to search
@@ -55,24 +56,31 @@ export function Combobox({
   const filtered = options.filter(opt =>
     opt.label.toLowerCase().includes(search.toLowerCase()),
   )
+  const hasFilteredOptions = filtered.length > 0
 
   const handleInputChange = (text: string) => {
     setSearch(text)
     onChange(text)
-    // Only open if there are options to show
-    if (options.length > 0 && !open) setOpen(true)
+    if (hasFilteredOptions && !open) setOpen(true)
   }
 
   const handleFocus = useCallback(() => {
+    inputFocusedRef.current = true
     onFocusChange?.(true)
-    // Only open popover if there are options
     if (options.length > 0) {
       setOpen(true)
     }
   }, [options.length, onFocusChange])
 
   const handleBlur = useCallback(() => {
+    inputFocusedRef.current = false
     onFocusChange?.(false)
+    // Delay close to allow onMouseDown on options to fire first
+    setTimeout(() => {
+      if (!inputFocusedRef.current) {
+        setOpen(false)
+      }
+    }, 150)
   }, [onFocusChange])
 
   const handleSelect = (optionValue: string) => {
@@ -83,7 +91,13 @@ export function Combobox({
     setOpen(false)
   }
 
-  // Close popover when no options remain after deletion
+  // Prevent Radix from closing popover when input is focused
+  const handleOpenChange = useCallback((nextOpen: boolean) => {
+    if (!nextOpen && inputFocusedRef.current) return
+    setOpen(nextOpen)
+  }, [])
+
+  // Close popover when no options remain
   useEffect(() => {
     if (options.length === 0 && open) {
       setOpen(false)
@@ -91,7 +105,7 @@ export function Combobox({
   }, [options.length, open])
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open && hasFilteredOptions} onOpenChange={handleOpenChange}>
       <PopoverAnchor asChild>
         <input
           ref={inputRef}
@@ -108,43 +122,41 @@ export function Combobox({
         />
       </PopoverAnchor>
 
-      {filtered.length > 0 && (
-        <PopoverContent
-          className="w-(--radix-popover-trigger-width) p-1"
-          side="top"
-          align="start"
-          onOpenAutoFocus={e => e.preventDefault()}
-          onCloseAutoFocus={e => e.preventDefault()}
-        >
-          <ul className="max-h-48 overflow-y-auto">
-            {filtered.map(opt => (
-              <li
-                key={opt.value}
-                onMouseDown={e => {
-                  e.preventDefault()
-                  handleSelect(opt.value)
-                }}
-                className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-base hover:bg-accent"
-              >
-                <span className="truncate">{opt.label}</span>
-                {onDelete && (
-                  <RippleButton
-                    onMouseDown={e => {
-                      e.preventDefault()
-                      e.stopPropagation()
-                      onDelete(opt.value)
-                    }}
-                    rippleColor="rgba(0,0,0,0.1)"
-                    className="ml-2 flex shrink-0 items-center justify-center rounded text-muted-foreground hover:text-destructive"
-                  >
-                    <X className="size-3.5" />
-                  </RippleButton>
-                )}
-              </li>
-            ))}
-          </ul>
-        </PopoverContent>
-      )}
+      <PopoverContent
+        className="w-(--radix-popover-trigger-width) p-1"
+        side="top"
+        align="start"
+        onOpenAutoFocus={e => e.preventDefault()}
+        onCloseAutoFocus={e => e.preventDefault()}
+      >
+        <ul className="max-h-48 overflow-y-auto">
+          {filtered.map(opt => (
+            <li
+              key={opt.value}
+              onMouseDown={e => {
+                e.preventDefault()
+                handleSelect(opt.value)
+              }}
+              className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-base hover:bg-accent"
+            >
+              <span className="truncate">{opt.label}</span>
+              {onDelete && (
+                <RippleButton
+                  onMouseDown={e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onDelete(opt.value)
+                  }}
+                  rippleColor="rgba(0,0,0,0.1)"
+                  className="ml-2 flex shrink-0 items-center justify-center rounded text-muted-foreground hover:text-destructive"
+                >
+                  <X className="size-3.5" />
+                </RippleButton>
+              )}
+            </li>
+          ))}
+        </ul>
+      </PopoverContent>
     </Popover>
   )
 }
