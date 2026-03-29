@@ -89,33 +89,10 @@ function isOutOfRange(value: number): boolean {
   return abs !== 0 && (abs >= 1e15 || abs < 1e-6)
 }
 
-/** Perform a binary arithmetic operation via mathjs. Returns null for division by zero. */
-function calculate(left: number, op: string, right: number): number | null {
-  if (op === '/' && right === 0) return null
-  try {
-    const expr = `(${left}) ${op} (${right})`
-    const result = evaluate(expr) as number
-    return typeof result === 'number' && Number.isFinite(result) ? result : null
-  } catch {
-    return null
-  }
-}
-
-/** Build an expression string like "1+1=2". */
-function buildExpression(
-  left: number,
-  op: string,
-  right: number,
-  result: number,
-): string {
-  const displayOp = DISPLAY_OPERATOR[op] ?? op
-  return `${formatResult(left)}${displayOp}${formatResult(right)}=${formatResult(result)}`
-}
-
 /** Check if state is "just finished equals" and ready for fresh input. */
 function isAfterEquals(state: CalculatorState): boolean {
   return (
-    state.lastOperator !== null &&
+    state.expression.includes('=') &&
     !state.waitingForOperand &&
     state.operator === null
   )
@@ -193,107 +170,85 @@ function handleDecimal(state: CalculatorState): CalculatorState {
   }
 }
 
-/** Handle operator key press (+, -, *, /). */
+/** Handle operator key press (+, -, *, /). No evaluation — just accumulate expression. */
 function handleOperator(state: CalculatorState, op: string): CalculatorState {
-  const currentValue = parseDisplay(state.display)
+  const displayOp = DISPLAY_OPERATOR[op] ?? op
 
-  // If already waiting for operand, just replace the operator
-  if (state.waitingForOperand && state.operator !== null) {
+  // After equals result, start fresh expression from the result value
+  if (isAfterEquals(state)) {
     return {
       ...state,
-      operator: op,
-    }
-  }
-
-  // If there is a pending operation, evaluate it first (chained operations)
-  if (
-    state.previousValue !== null &&
-    state.operator !== null &&
-    !state.waitingForOperand
-  ) {
-    const result = calculate(state.previousValue, state.operator, currentValue)
-
-    if (result === null || isOutOfRange(result)) {
-      return toErrorState(state)
-    }
-
-    return {
-      ...state,
-      display: formatResult(result),
-      previousValue: result,
+      previousValue: parseDisplay(state.display),
       operator: op,
       waitingForOperand: true,
       lastOperator: null,
       lastOperand: null,
-      expression: '',
+      expression: state.display + displayOp,
     }
   }
 
-  // First operator press — store the left operand
+  // If already waiting for operand, just replace the operator
+  if (state.waitingForOperand) {
+    // Replace last operator in expression
+    const trimmedExpr = state.expression.replace(/[+\-×÷]$/, '')
+    return {
+      ...state,
+      operator: op,
+      expression: trimmedExpr + displayOp,
+    }
+  }
+
+  // Append current display value and operator to expression
+  const newExpression = state.expression + state.display + displayOp
+
   return {
     ...state,
-    previousValue: currentValue,
+    previousValue: parseDisplay(state.display),
     operator: op,
     waitingForOperand: true,
     lastOperator: null,
     lastOperand: null,
-    expression: '',
+    expression: newExpression,
   }
 }
 
-/** Handle equals key press. */
+/** Handle equals key press — evaluate the full accumulated expression via mathjs. */
 function handleEquals(state: CalculatorState): CalculatorState {
-  const currentValue = parseDisplay(state.display)
+  // Already evaluated — pressing = again is a no-op
+  if (state.expression.includes('=')) return state
 
-  // Repeat last operation if pressing equals again
-  if (state.lastOperator !== null && state.operator === null) {
-    const left = currentValue
-    const right = state.lastOperand ?? 0
-    const op = state.lastOperator
-    const result = calculate(left, op, right)
+  // Build the full math expression: accumulated expression + current display
+  const fullDisplayExpr = state.expression + state.display
+  // Convert display symbols to math operators for mathjs
+  const mathExpr = fullDisplayExpr.replace(/×/g, '*').replace(/÷/g, '/')
 
-    if (result === null || isOutOfRange(result)) {
+  if (!mathExpr || mathExpr.trim() === '') return state
+
+  try {
+    const result = evaluate(mathExpr) as number
+
+    if (typeof result !== 'number' || !Number.isFinite(result)) {
       return toErrorState(state)
     }
 
+    if (isOutOfRange(result)) {
+      return toErrorState(state)
+    }
+
+    const resultStr = formatResult(result)
+
     return {
       ...state,
-      display: formatResult(result),
-      expression: buildExpression(left, op, right, result),
+      display: resultStr,
+      expression: fullDisplayExpr + '=' + resultStr,
       previousValue: null,
       operator: null,
       waitingForOperand: false,
-      lastOperator: op,
-      lastOperand: right,
+      lastOperator: null,
+      lastOperand: null,
     }
-  }
-
-  // No pending operation — just show current value
-  if (state.operator === null || state.previousValue === null) {
-    return state
-  }
-
-  // If waiting for operand (e.g., 5+=), use left operand as right operand (iPhone behavior: 5+5=10)
-  const rightOperand = state.waitingForOperand
-    ? state.previousValue
-    : currentValue
-  const left = state.previousValue
-  const op = state.operator
-  const result = calculate(left, op, rightOperand)
-
-  if (result === null || isOutOfRange(result)) {
+  } catch {
     return toErrorState(state)
-  }
-
-  return {
-    ...state,
-    display: formatResult(result),
-    expression: buildExpression(left, op, rightOperand, result),
-    previousValue: null,
-    operator: null,
-    waitingForOperand: false,
-    lastOperator: op,
-    lastOperand: rightOperand,
   }
 }
 

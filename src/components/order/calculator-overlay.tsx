@@ -64,7 +64,7 @@ export function CalculatorOverlay({
 }: CalculatorOverlayProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
-  const addCustomItem = useOrderStore(s => s.addCustomItem)
+  const addCustomItem = useOrderStore((s) => s.addCustomItem)
 
   const [calcState, setCalcState] =
     useState<CalculatorState>(createInitialState)
@@ -78,13 +78,13 @@ export function CalculatorOverlay({
     queryFn: () => getCustomOrderNameRepo().findAll(),
   })
 
-  const nameOptions: ComboboxOption[] = savedNames.map(n => ({
+  const nameOptions: ComboboxOption[] = savedNames.map((n) => ({
     value: n.id,
     label: n.name,
   }))
 
   const handleKey = useCallback((key: CalculatorKey) => {
-    setCalcState(prev => processKey(prev, key))
+    setCalcState((prev) => processKey(prev, key))
   }, [])
 
   // Keyboard support — listen for physical key presses
@@ -159,18 +159,21 @@ export function CalculatorOverlay({
       {/* Content card */}
       <div
         className="flex flex-col rounded-2xl bg-[#ffffff60] shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
-        onClick={e => e.stopPropagation()}
+        onClick={(e) => e.stopPropagation()}
       >
         <div className="flex flex-col overflow-hidden p-4">
-          {/* Display area: expression + result */}
+          {/* Display area: live expression + current value */}
           <div className="mb-3 flex min-h-24 shrink-0 flex-col items-end justify-end">
-            {calcState.expression && (
-              <span className="truncate text-base text-muted-foreground">
-                {calcState.expression}
+            {/* Show building expression while typing, or full result after = */}
+            {(calcState.expression || calcState.operator) && (
+              <span className="max-w-full truncate text-base text-xl text-muted-foreground">
+                {calcState.expression.includes('=')
+                  ? calcState.expression
+                  : calcState.expression + calcState.display}
               </span>
             )}
             <span
-              className={`font-mono text-5xl truncate max-w-full ${
+              className={`font-mono text-4xl truncate max-w-full ${
                 errorState ? 'text-destructive' : 'text-foreground'
               }`}
             >

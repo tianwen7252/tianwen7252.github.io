@@ -183,12 +183,12 @@ describe('expression display', () => {
     expect(state.expression).toBe('10-3=7')
   })
 
-  it('should show "6*7=42" after evaluation', () => {
+  it('should show "6×7=42" after evaluation', () => {
     const state = pressKeys('6', '*', '7', '=')
     expect(state.expression).toBe('6×7=42')
   })
 
-  it('should show "10/2=5" after evaluation', () => {
+  it('should show "10÷2=5" after evaluation', () => {
     const state = pressKeys('1', '0', '/', '2', '=')
     expect(state.expression).toBe('10÷2=5')
   })
@@ -198,21 +198,20 @@ describe('expression display', () => {
 
 describe('chained operations', () => {
   it('should chain addition: 1+2+3= gives 6', () => {
-    // Press 1+2 (pressing second + evaluates 1+2=3), then +3=
     const state = pressKeys('1', '+', '2', '+', '3', '=')
     expect(state.display).toBe('6')
   })
 
-  it('should chain subtraction and multiplication: 10-2*3= gives 24', () => {
-    // 10-2 evaluates to 8 when pressing *, then 8*3=24
+  it('should respect math precedence: 10-2*3= gives 4', () => {
+    // mathjs evaluates with standard precedence: 10-(2*3)=4
     const state = pressKeys('1', '0', '-', '2', '*', '3', '=')
-    expect(state.display).toBe('24')
+    expect(state.display).toBe('4')
   })
 
-  it('should evaluate pending operation when pressing operator', () => {
-    // 3+5 → pressing + evaluates to 8
+  it('should NOT evaluate on operator press — display shows current input', () => {
+    // 3+5 → pressing + does NOT evaluate, display stays "5" until = is pressed
     const state = pressKeys('3', '+', '5', '+')
-    expect(state.display).toBe('8')
+    expect(state.display).toBe('5')
   })
 
   it('should chain: 2*3+4= gives 10', () => {
@@ -223,30 +222,17 @@ describe('chained operations', () => {
 
 // ─── Equals Chaining ─────────────────────────────────────────────────────────
 
-describe('equals chaining', () => {
-  it('should repeat last operation: 5+3= then = gives 11', () => {
+describe('equals after result', () => {
+  it('should keep result when pressing = again (no repeat)', () => {
     const state = pressKeys('5', '+', '3', '=', '=')
-    expect(state.display).toBe('11')
+    // Second = has no pending expression, display stays 8
+    expect(state.display).toBe('8')
   })
 
-  it('should repeat multiple times: 5+3= then == gives 14', () => {
-    const state = pressKeys('5', '+', '3', '=', '=', '=')
-    expect(state.display).toBe('14')
-  })
-
-  it('should repeat subtraction: 20-3= then = gives 14', () => {
-    const state = pressKeys('2', '0', '-', '3', '=', '=')
-    expect(state.display).toBe('14')
-  })
-
-  it('should repeat multiplication: 2*3= then = gives 18', () => {
-    const state = pressKeys('2', '*', '3', '=', '=')
-    expect(state.display).toBe('18')
-  })
-
-  it('should repeat division: 100/2= then = gives 25', () => {
-    const state = pressKeys('1', '0', '0', '/', '2', '=', '=')
-    expect(state.display).toBe('25')
+  it('should start fresh calculation after equals + digit + operator + digit + equals', () => {
+    // 5+3=8, then 2+4=6
+    const state = pressKeys('5', '+', '3', '=', '2', '+', '4', '=')
+    expect(state.display).toBe('6')
   })
 })
 
@@ -633,37 +619,14 @@ describe('display formatting', () => {
 // ─── Additional Coverage: Uncovered Branches ─────────────────────────────────
 
 describe('division by zero during chained operations', () => {
-  it('should error when chaining division by zero via operator: 5/0+', () => {
-    const state = pressKeys('5', '/', '0', '+')
-    expect(state.error).toBe(true)
-    expect(state.display).toBe('Error')
-  })
-})
-
-describe('division by zero during equals repeat', () => {
-  it('should error when repeating division by zero: 10/0 chain via equals', () => {
-    // First: 0/5=0, then set up repeat with /0
-    // Actually, we need a scenario where lastOperator is '/' and lastOperand is 0
-    // 10/2=5, then we need the next repeat to divide by 0... that won't work.
-    // Let's just do: 5/0= gives error, but we can't chain equals on error.
-    // Better approach: 0/1=0, store lastOperator='/', lastOperand=1, then repeat = gives 0/1=0
-    // We need: result / lastOperand = error. So: 5/1=5, = gives 5/1=5... not zero.
-    // The only way: we need lastOperand to be 0 and lastOperator to be '/'.
-    // This happens if we do: X / 0 = error. But error state blocks further =.
-    // This branch may be unreachable in normal flow. Let's test via processKey directly.
-    const stateAfterEquals: CalculatorState = {
-      display: '5',
-      expression: '10÷2=5',
-      previousValue: null,
-      operator: null,
-      waitingForOperand: false,
-      lastOperator: '/',
-      lastOperand: 0,
-      error: false,
-    }
-    const result = processKey(stateAfterEquals, '=')
-    expect(result.error).toBe(true)
-    expect(result.display).toBe('Error')
+  it('should NOT error on operator press — error only on equals: 5/0+=', () => {
+    // Operator press no longer evaluates; error deferred to =
+    const stateAfterOp = pressKeys('5', '/', '0', '+')
+    expect(stateAfterOp.error).toBe(false)
+    // But pressing = evaluates 5/0+0 which mathjs handles
+    const stateAfterEq = pressKeys('5', '/', '0', '=')
+    expect(stateAfterEq.error).toBe(true)
+    expect(stateAfterEq.display).toBe('Error')
   })
 })
 
@@ -699,34 +662,11 @@ describe('decimal after equals (fresh start)', () => {
 })
 
 describe('extreme value formatting', () => {
-  it('should show Error for very large multiplication results', () => {
-    // 999999999 * 999999999 = 9.99999998e+17 which is < 1e15... let's use bigger
-    // Craft a state with a very large display value to test formatResult indirectly
-    const state: CalculatorState = {
-      display: '999999999999999',
-      expression: '',
-      previousValue: 999999999999999,
-      operator: '*',
-      waitingForOperand: false,
-      lastOperator: null,
-      lastOperand: null,
-      error: false,
-    }
-    // 999999999999999 equals 1e15, which is at the boundary (>= 1e15 → Error)
-    // So even 999999999999999 * 1 will produce an out-of-range result
-    const resultAtBoundary = processKey(processKey(state, '1'), '=')
-    expect(resultAtBoundary.error).toBe(true)
-    // Chaining: multiply further to exceed 1e15
-    const bigState = processKey(processKey(state, '='), '=')
-    // After first =: 999999999999999 * undefined → tests chaining
-    expect(typeof bigState.display).toBe('string')
-  })
-
   it('should show Error when result exceeds 1e15', () => {
-    // Build state where left=1e14, op=*, and type "100" then =
+    // Use expression-based: type the full calculation
     const state: CalculatorState = {
       display: '100',
-      expression: '',
+      expression: '100000000000000×',
       previousValue: 1e14,
       operator: '*',
       waitingForOperand: false,
@@ -734,7 +674,7 @@ describe('extreme value formatting', () => {
       lastOperand: null,
       error: false,
     }
-    // 1e14 * 100 = 1e16 > 1e15 → Error
+    // expression "100000000000000×" + display "100" = "100000000000000×100" → 1e16 → Error
     const result = processKey(state, '=')
     expect(result.display).toBe('Error')
     expect(result.error).toBe(true)
@@ -742,8 +682,8 @@ describe('extreme value formatting', () => {
 
   it('should show Error when result is extremely small (< 1e-6)', () => {
     const state: CalculatorState = {
-      display: '1000000',
-      expression: '',
+      display: '10000000',
+      expression: '1÷',
       previousValue: 1,
       operator: '/',
       waitingForOperand: false,
@@ -751,18 +691,10 @@ describe('extreme value formatting', () => {
       lastOperand: null,
       error: false,
     }
-    // 1 / 1000000 = 1e-6 which is NOT < 1e-6 (it equals it), so it should pass
+    // 1 / 10000000 = 1e-7 < 1e-6 → Error
     const result = processKey(state, '=')
-    expect(result.display).toBe('0.000001')
-
-    // Now test 1 / 10000000 = 1e-7 < 1e-6 → Error
-    const state2: CalculatorState = {
-      ...state,
-      display: '10000000',
-    }
-    const result2 = processKey(state2, '=')
-    expect(result2.display).toBe('Error')
-    expect(result2.error).toBe(true)
+    expect(result.display).toBe('Error')
+    expect(result.error).toBe(true)
   })
 
   it('should handle percentage after equals (post-result state)', () => {
