@@ -71,13 +71,22 @@ describe('Modal', () => {
     expect(screen.queryByText('Hidden')).toBeNull()
   })
 
-  it('should render shine border by default (shineColor defaults to true)', () => {
+  it('should not render shine border by default (shineColor defaults to false)', () => {
     render(
-      <Modal open title="Shine Default" onClose={() => {}}>
+      <Modal open title="No Shine Default" onClose={() => {}}>
         Content
       </Modal>,
     )
-    // ShineBorder should be rendered since shineColor defaults to true
+    const glassContainer = screen.getByTestId('modal-glass-container')
+    expect(glassContainer.style.border).toContain('rgba(255, 255, 255, 0.3)')
+  })
+
+  it('should render shine border when shineColor is true', () => {
+    render(
+      <Modal open title="Shine True" shineColor onClose={() => {}}>
+        Content
+      </Modal>,
+    )
     const glassContainer = screen.getByTestId('modal-glass-container')
     expect(glassContainer.style.border).toContain('none')
   })

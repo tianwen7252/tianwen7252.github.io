@@ -106,7 +106,7 @@ export function Modal({
   title,
   children,
   footer,
-  shineColor: shineColorProp = true,
+  shineColor: shineColorProp = false,
   width = 500,
   height,
   transition: enableTransition = false,

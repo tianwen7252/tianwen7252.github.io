@@ -33,7 +33,7 @@ export interface ModalProps {
   readonly children: React.ReactNode
   /** Footer content — renders below children (buttons, etc.) */
   readonly footer?: React.ReactNode
-  /** Animated shine border color. true = use variant color, false = none. Default: true. */
+  /** Animated shine border color. true = use variant color, false = none. Default: false. */
   readonly shineColor?: ShineColor
   /** Container width in px or CSS string (default: 500) */
   readonly width?: number | string
