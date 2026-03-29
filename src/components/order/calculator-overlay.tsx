@@ -20,6 +20,8 @@ import { CalculatorKeypad } from './calculator-keypad'
 
 interface CalculatorOverlayProps {
   readonly onClose: () => void
+  /** When true, overlay acts as a backdrop with centered 80% content card (order page mode) */
+  readonly floating?: boolean
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -29,7 +31,10 @@ interface CalculatorOverlayProps {
  * White glassmorphism, absolute positioned to fill the parent container.
  * Vertical layout: display → keypad → combobox → submit.
  */
-export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
+export function CalculatorOverlay({
+  onClose,
+  floating = false,
+}: CalculatorOverlayProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const addCustomItem = useOrderStore(s => s.addCustomItem)
@@ -91,12 +96,9 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
   const isZeroResult = numericValue === 0
   const canSubmit = !errorState && !isZeroResult && numericValue !== null
 
-  return (
-    <div
-      data-testid="calculator-overlay"
-      className="absolute inset-0 z-20 flex flex-col overflow-hidden border border-black/5 bg-white/70 p-4 backdrop-blur-xl"
-    >
-      {/* Display area: expression + result (min-h-24 = ~2x previous height) */}
+  const content = (
+    <div className="flex h-full flex-col overflow-hidden p-4">
+      {/* Display area: expression + result */}
       <div className="mb-3 flex min-h-24 shrink-0 items-start justify-between">
         <div className="flex min-w-0 flex-1 flex-col items-end justify-end pr-3">
           {calcState.expression && (
@@ -141,6 +143,34 @@ export function CalculatorOverlay({ onClose }: CalculatorOverlayProps) {
           {t('order.calculatorSubmit')}
         </RippleButton>
       </div>
+    </div>
+  )
+
+  // Floating mode: dark backdrop + centered 80% content card
+  if (floating) {
+    return (
+      <div
+        data-testid="calculator-overlay"
+        className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        onClick={onClose}
+      >
+        <div
+          className="flex h-[80%] w-[80%] flex-col rounded-2xl border border-black/5 bg-white/90 shadow-xl backdrop-blur-xl"
+          onClick={e => e.stopPropagation()}
+        >
+          {content}
+        </div>
+      </div>
+    )
+  }
+
+  // Inline mode: full coverage (edit order modal)
+  return (
+    <div
+      data-testid="calculator-overlay"
+      className="absolute inset-0 z-20 border border-black/5 bg-white/70 backdrop-blur-xl"
+    >
+      {content}
     </div>
   )
 }
