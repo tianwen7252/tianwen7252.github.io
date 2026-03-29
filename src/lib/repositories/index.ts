@@ -34,6 +34,7 @@ export {
 } from './custom-order-name-repository'
 export {
   initRepositories,
+  getDatabase,
   getEmployeeRepo,
   getAttendanceRepo,
   getCommodityTypeRepo,
@@ -41,7 +42,12 @@ export {
   getOrderRepo,
   getOrderItemRepo,
   getOrderDiscountRepo,
+  getStatisticsRepo,
   getErrorLogRepo,
   getCustomOrderNameRepo,
   resetRepositories,
 } from './provider'
+export {
+  createStatisticsRepository,
+  type StatisticsRepository,
+} from './statistics-repository'
