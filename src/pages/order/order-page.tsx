@@ -1,7 +1,13 @@
+import { useEffect } from 'react'
 import { ProductGrid, OrderPanel } from '@/components/order'
 
 /** Main order page combining product menu (left) and order summary (right) */
 export function OrderPage() {
+  // Reset window scroll to restore header sticky/shadow state
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [])
+
   return (
     <div className="flex h-[calc(100vh-57px)] gap-0 overflow-hidden">
       {/* Left panel — product menu (65%), relative for calculator overlay */}
