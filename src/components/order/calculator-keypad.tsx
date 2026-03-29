@@ -91,7 +91,7 @@ export function CalculatorKeypad({
               onClick={() => onKey(def.key)}
               rippleColor="rgba(127, 149, 106, 0.25)"
               className={cn(
-                'flex size-14 items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]',
+                'flex size-18 items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]',
                 isActive && 'border-primary/40 bg-primary/15 text-primary',
                 def.type === 'equals' &&
                   'bg-primary text-primary-foreground border-primary/30',
