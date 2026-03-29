@@ -17,6 +17,8 @@ import type { CalculatorKey } from '@/lib/calculator-engine'
 interface CalculatorKeypadProps {
   readonly activeOperator: string | null
   readonly onKey: (key: CalculatorKey) => void
+  /** Use smaller buttons for modal context */
+  readonly compact?: boolean
 }
 
 interface KeyDef {
@@ -27,7 +29,7 @@ interface KeyDef {
 
 // ─── Key layout ─────────────────────────────────────────────────────────────
 
-const ICON = 'size-5'
+const ICON = 'size-6'
 
 const NEGATE_LABEL = (
   <span className="flex items-center gap-0.5">
@@ -79,7 +81,9 @@ const ROWS: readonly (readonly KeyDef[])[] = [
 export function CalculatorKeypad({
   activeOperator,
   onKey,
+  compact = false,
 }: CalculatorKeypadProps) {
+  const btnSize = compact ? 'size-15' : 'size-17'
   return (
     <div className="grid w-fit grid-cols-4 gap-1">
       {ROWS.flatMap(row =>
@@ -91,7 +95,7 @@ export function CalculatorKeypad({
               onClick={() => onKey(def.key)}
               rippleColor="rgba(127, 149, 106, 0.25)"
               className={cn(
-                'flex size-16 items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]',
+                `flex ${btnSize} items-center justify-center rounded-full border border-black/8 bg-white text-2xl text-foreground shadow-xs transition-all duration-200 active:scale-[0.9]`,
                 isActive && 'border-primary/40 bg-primary/15 text-primary',
                 def.type === 'equals' &&
                   'bg-primary text-primary-foreground border-primary/30',

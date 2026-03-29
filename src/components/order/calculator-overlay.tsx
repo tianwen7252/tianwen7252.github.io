@@ -20,20 +20,19 @@ import { CalculatorKeypad } from './calculator-keypad'
 
 interface CalculatorOverlayProps {
   readonly onClose: () => void
-  /** When true, overlay acts as a backdrop with centered 80% content card (order page mode) */
-  readonly floating?: boolean
+  /** Use smaller buttons for modal context */
+  readonly compact?: boolean
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 /**
- * Full calculator overlay rendered inside ProductGrid.
- * White glassmorphism, absolute positioned to fill the parent container.
+ * Calculator overlay with glassmorphism backdrop and centered floating content.
  * Vertical layout: display → keypad → combobox → submit.
  */
 export function CalculatorOverlay({
   onClose,
-  floating = false,
+  compact = false,
 }: CalculatorOverlayProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
@@ -96,81 +95,68 @@ export function CalculatorOverlay({
   const isZeroResult = numericValue === 0
   const canSubmit = !errorState && !isZeroResult && numericValue !== null
 
-  const content = (
-    <div className="flex h-full flex-col overflow-hidden p-4">
-      {/* Display area: expression + result */}
-      <div className="mb-3 flex min-h-24 shrink-0 items-start justify-between">
-        <div className="flex min-w-0 flex-1 flex-col items-end justify-end pr-3">
-          {calcState.expression && (
-            <span className="truncate text-base text-muted-foreground">
-              {calcState.expression}
-            </span>
-          )}
-          <span
-            className={`font-mono text-5xl truncate max-w-full ${
-              errorState ? 'text-destructive' : 'text-foreground'
-            }`}
-          >
-            {calcState.display}
-          </span>
-        </div>
-        <RippleButton
-          onClick={onClose}
-          rippleColor="rgba(0,0,0,0.1)"
-          className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
-        >
-          <X className="size-5" />
-        </RippleButton>
-      </div>
-
-      {/* Keypad — fills remaining space between display and bottom */}
-      <CalculatorKeypad activeOperator={calcState.operator} onKey={handleKey} />
-
-      {/* Bottom: Combobox + Submit — always visible */}
-      <div className="mt-3 flex shrink-0 flex-col gap-2">
-        <Combobox
-          value={customName}
-          onChange={setCustomName}
-          options={nameOptions}
-          onDelete={handleDeleteNameOption}
-          placeholder={t('order.calculatorNamePlaceholder')}
-        />
-        <RippleButton
-          onClick={handleSubmit}
-          disabled={!canSubmit}
-          className="h-12 w-full rounded-xl bg-primary text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
-        >
-          {t('order.calculatorSubmit')}
-        </RippleButton>
-      </div>
-    </div>
-  )
-
-  // Floating mode: dark backdrop + centered 80% content card
-  if (floating) {
-    return (
-      <div
-        data-testid="calculator-overlay"
-        className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-xl"
-        onClick={onClose}
-      >
-        <div
-          className="flex h-[80%] w-[80%] flex-col rounded-2xl bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
-          onClick={e => e.stopPropagation()}
-        >
-          {content}
-        </div>
-      </div>
-    )
-  }
-
-  // Inline mode: full coverage (edit order modal)
   return (
     <div
       data-testid="calculator-overlay"
-      className="absolute inset-0 z-20 border border-black/5 bg-white/70 backdrop-blur-xl"
+      className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-xl"
+      onClick={onClose}
     >
-      {content}
+      <div
+        className="flex flex-col rounded-2xl bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="flex flex-col overflow-hidden p-4">
+          {/* Display area: expression + result */}
+          <div className="mb-3 flex min-h-24 shrink-0 items-start justify-between">
+            <div className="flex min-w-0 flex-1 flex-col items-end justify-end pr-3">
+              {calcState.expression && (
+                <span className="truncate text-base text-muted-foreground">
+                  {calcState.expression}
+                </span>
+              )}
+              <span
+                className={`font-mono text-5xl truncate max-w-full ${
+                  errorState ? 'text-destructive' : 'text-foreground'
+                }`}
+              >
+                {calcState.display}
+              </span>
+            </div>
+            <RippleButton
+              onClick={onClose}
+              rippleColor="rgba(0,0,0,0.1)"
+              className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+            >
+              <X className="size-5" />
+            </RippleButton>
+          </div>
+
+          {/* Keypad */}
+          <CalculatorKeypad
+            activeOperator={calcState.operator}
+            onKey={handleKey}
+            compact={compact}
+          />
+
+          {/* Bottom: Combobox + Submit */}
+          <div className="mt-3 flex shrink-0 flex-col gap-2">
+            <Combobox
+              value={customName}
+              onChange={setCustomName}
+              options={nameOptions}
+              onDelete={handleDeleteNameOption}
+              placeholder={t('order.calculatorNamePlaceholder')}
+            />
+            <RippleButton
+              onClick={handleSubmit}
+              disabled={!canSubmit}
+              className="h-12 w-full rounded-xl bg-primary text-md text-primary-foreground hover:bg-primary/90 disabled:pointer-events-none disabled:opacity-50"
+            >
+              {t('order.calculatorSubmit')}
+            </RippleButton>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

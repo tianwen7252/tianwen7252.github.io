@@ -19,11 +19,11 @@ import { QuickSubmitSwitch } from './quick-submit-switch'
  * manages selected category state, and renders the grid of products.
  */
 interface ProductGridProps {
-  /** When true, calculator overlay uses floating centered mode instead of full coverage */
-  readonly floatingCalculator?: boolean
+  /** Use smaller calculator buttons for modal context */
+  readonly compactCalculator?: boolean
 }
 
-export function ProductGrid({ floatingCalculator = false }: ProductGridProps) {
+export function ProductGrid({ compactCalculator = false }: ProductGridProps) {
   const { t } = useTranslation()
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>('bento')
   const [showCalculator, setShowCalculator] = useState(false)
@@ -138,7 +138,7 @@ export function ProductGrid({ floatingCalculator = false }: ProductGridProps) {
       {showCalculator && (
         <CalculatorOverlay
           onClose={() => setShowCalculator(false)}
-          floating={floatingCalculator}
+          compact={compactCalculator}
         />
       )}
     </div>
