@@ -172,8 +172,7 @@
     "calculatorTitle": "計算機",
     "calculatorSubmit": "確定送出",
     "calculatorNamePlaceholder": "客製訂單名稱",
-    "calculatorError": "錯誤",
-    "calculatorZeroResult": "結果不可為零"
+    "calculatorError": "錯誤"
   },
   "orders": {
     "title": "訂單紀錄",

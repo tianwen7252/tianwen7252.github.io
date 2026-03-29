@@ -44,7 +44,7 @@ export function ChangePrediction({
           <span
             key={`${bill}-${money}`}
             data-testid="change-badge"
-            className={`inline-flex items-center ml-0 mr-2 ${compact ? 'text-sm' : 'text-md'} ${BILL_COLOR_MAP[bill] ?? ''}`}
+            className={`inline-flex items-center ml-0 mr-2 ${compact ? 'text-base' : 'text-md'} ${BILL_COLOR_MAP[bill] ?? ''}`}
           >
             ${money} {t('order.change')} ${change}
           </span>

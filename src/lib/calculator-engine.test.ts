@@ -46,16 +46,6 @@ describe('createInitialState', () => {
     expect(state.waitingForOperand).toBe(false)
   })
 
-  it('should have null lastOperator', () => {
-    const state = createInitialState()
-    expect(state.lastOperator).toBeNull()
-  })
-
-  it('should have null lastOperand', () => {
-    const state = createInitialState()
-    expect(state.lastOperand).toBeNull()
-  })
-
   it('should not be in error state', () => {
     const state = createInitialState()
     expect(state.error).toBe(false)
@@ -642,8 +632,6 @@ describe('Infinity handling in formatResult', () => {
       previousValue: null,
       operator: null,
       waitingForOperand: false,
-      lastOperator: null,
-      lastOperand: null,
       error: false,
     }
     // getNumericValue will parse "Infinity" as Infinity
@@ -670,8 +658,6 @@ describe('extreme value formatting', () => {
       previousValue: 1e14,
       operator: '*',
       waitingForOperand: false,
-      lastOperator: null,
-      lastOperand: null,
       error: false,
     }
     // expression "100000000000000×" + display "100" = "100000000000000×100" → 1e16 → Error
@@ -687,8 +673,6 @@ describe('extreme value formatting', () => {
       previousValue: 1,
       operator: '/',
       waitingForOperand: false,
-      lastOperator: null,
-      lastOperand: null,
       error: false,
     }
     // 1 / 10000000 = 1e-7 < 1e-6 → Error

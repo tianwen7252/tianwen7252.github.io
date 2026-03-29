@@ -105,39 +105,45 @@ export function CalculatorOverlay({
 
   const handleDeleteNameOption = useCallback(
     async (id: string) => {
-      await getCustomOrderNameRepo().remove(id)
-      queryClient.invalidateQueries({ queryKey: ['custom-order-names'] })
+      try {
+        await getCustomOrderNameRepo().remove(id)
+        queryClient.invalidateQueries({ queryKey: ['custom-order-names'] })
+      } catch {
+        // Silently ignore — option will reappear on next fetch
+      }
     },
     [queryClient],
   )
 
   const handleSubmit = useCallback(async () => {
     // Auto-evaluate if user forgot to press = (has pending expression)
-    let finalState = calcState
-    if (calcState.expression && !calcState.expression.includes('=')) {
-      finalState = processKey(calcState, '=')
-      setCalcState(finalState)
-    }
+    const needsEval =
+      calcState.expression && !calcState.expression.includes('=')
+    const finalState = needsEval ? processKey(calcState, '=') : calcState
+    if (needsEval) setCalcState(finalState)
 
     const value = getNumericValue(finalState)
     if (value === null || value === 0) return
 
-    let orderName = customName.trim()
-    if (!orderName) {
-      orderName =
-        value < 0 ? t('order.discountDefault') : t('order.customOrderDefault')
-    }
+    const orderName =
+      customName.trim() ||
+      (value < 0 ? t('order.discountDefault') : t('order.customOrderDefault'))
 
     addCustomItem(orderName, value)
 
     // Persist custom name if it's user-defined
+    const trimmedName = customName.trim()
     if (
-      customName.trim() &&
-      customName.trim() !== t('order.customOrderDefault') &&
-      customName.trim() !== t('order.discountDefault')
+      trimmedName &&
+      trimmedName !== t('order.customOrderDefault') &&
+      trimmedName !== t('order.discountDefault')
     ) {
-      await getCustomOrderNameRepo().create(customName.trim())
-      queryClient.invalidateQueries({ queryKey: ['custom-order-names'] })
+      try {
+        await getCustomOrderNameRepo().create(trimmedName)
+        queryClient.invalidateQueries({ queryKey: ['custom-order-names'] })
+      } catch {
+        // Name persistence failure is non-blocking — item already added to cart
+      }
     }
 
     onClose()

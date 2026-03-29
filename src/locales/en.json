@@ -172,8 +172,7 @@
     "calculatorTitle": "Calculator",
     "calculatorSubmit": "Confirm",
     "calculatorNamePlaceholder": "Custom order name",
-    "calculatorError": "Error",
-    "calculatorZeroResult": "Result cannot be zero"
+    "calculatorError": "Error"
   },
   "orders": {
     "title": "Order History",

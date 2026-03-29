@@ -31,8 +31,6 @@ export interface CalculatorState {
   readonly previousValue: number | null
   readonly operator: string | null
   readonly waitingForOperand: boolean
-  readonly lastOperator: string | null
-  readonly lastOperand: number | null
   readonly error: boolean
 }
 
@@ -59,8 +57,6 @@ export function createInitialState(): CalculatorState {
     previousValue: null,
     operator: null,
     waitingForOperand: false,
-    lastOperator: null,
-    lastOperand: null,
     error: false,
   }
 }
@@ -108,8 +104,6 @@ function toErrorState(state: CalculatorState): CalculatorState {
     previousValue: null,
     operator: null,
     waitingForOperand: false,
-    lastOperator: null,
-    lastOperand: null,
   }
 }
 
@@ -181,8 +175,6 @@ function handleOperator(state: CalculatorState, op: string): CalculatorState {
       previousValue: parseDisplay(state.display),
       operator: op,
       waitingForOperand: true,
-      lastOperator: null,
-      lastOperand: null,
       expression: state.display + displayOp,
     }
   }
@@ -206,8 +198,6 @@ function handleOperator(state: CalculatorState, op: string): CalculatorState {
     previousValue: parseDisplay(state.display),
     operator: op,
     waitingForOperand: true,
-    lastOperator: null,
-    lastOperand: null,
     expression: newExpression,
   }
 }
@@ -244,8 +234,6 @@ function handleEquals(state: CalculatorState): CalculatorState {
       previousValue: null,
       operator: null,
       waitingForOperand: false,
-      lastOperator: null,
-      lastOperand: null,
     }
   } catch {
     return toErrorState(state)

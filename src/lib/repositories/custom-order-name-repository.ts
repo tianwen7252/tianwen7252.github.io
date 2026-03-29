@@ -46,7 +46,10 @@ export function createCustomOrderNameRepository(
         'SELECT * FROM custom_order_names WHERE name = ?',
         [name],
       )
-      return toCustomOrderName(result.rows[0]!)
+      const row = result.rows[0]
+      if (!row)
+        throw new Error(`custom_order_names: row not found for name="${name}"`)
+      return toCustomOrderName(row)
     },
 
     async remove(id: string) {
