@@ -112,7 +112,14 @@ export function CalculatorOverlay({
   )
 
   const handleSubmit = useCallback(async () => {
-    const value = getNumericValue(calcState)
+    // Auto-evaluate if user forgot to press = (has pending expression)
+    let finalState = calcState
+    if (calcState.expression && !calcState.expression.includes('=')) {
+      finalState = processKey(calcState, '=')
+      setCalcState(finalState)
+    }
+
+    const value = getNumericValue(finalState)
     if (value === null || value === 0) return
 
     let orderName = customName.trim()
