@@ -156,13 +156,13 @@ export function CalculatorOverlay({
         <X className="size-5" />
       </RippleButton>
 
-      {/* Content card — w-fit so it matches keypad width */}
+      {/* Content card — width driven by keypad (inline-flex + w-fit on inner) */}
       <div
-        className="flex w-fit flex-col rounded-2xl bg-[#ffffff60] p-4 shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
+        className="inline-flex flex-col rounded-2xl bg-[#ffffff60] p-4 shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
         onClick={e => e.stopPropagation()}
       >
-        {/* Display area: live expression + current value */}
-        <div className="mb-3 flex min-h-24 shrink-0 flex-col items-end justify-end">
+        {/* Display area: constrained to same width as keypad */}
+        <div className="mb-3 flex min-h-24 w-0 min-w-full shrink-0 flex-col items-end justify-end overflow-hidden">
           {(calcState.expression || calcState.operator) && (
             <span className="max-w-full truncate text-xl text-muted-foreground">
               {calcState.expression.includes('=')
@@ -186,8 +186,8 @@ export function CalculatorOverlay({
           compact={compact}
         />
 
-        {/* Bottom: Combobox (left) + Submit (right) in one row */}
-        <div className="mt-3 flex shrink-0 items-center gap-2">
+        {/* Bottom: Combobox (left) + Submit (right) — constrained to keypad width */}
+        <div className="mt-3 flex w-0 min-w-full shrink-0 items-center gap-2">
           <Combobox
             value={customName}
             onChange={setCustomName}
