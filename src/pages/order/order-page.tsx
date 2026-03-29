@@ -3,8 +3,9 @@ import { ProductGrid, OrderPanel } from '@/components/order'
 
 /** Main order page combining product menu (left) and order summary (right) */
 export function OrderPage() {
-  // Lock body scroll on order page; reset scroll position to restore header state on leave
+  // Lock body scroll on order page; reset scroll to clear header glassmorphism shadow
   useEffect(() => {
+    window.scrollTo(0, 0)
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => {
