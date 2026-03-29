@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { X } from 'lucide-react'
+import { CircleX, X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { cn } from '@/lib/cn'
@@ -107,19 +107,35 @@ export function Combobox({
   return (
     <Popover open={open && hasFilteredOptions} onOpenChange={handleOpenChange}>
       <PopoverAnchor asChild>
-        <input
-          ref={inputRef}
-          type="text"
-          value={search}
-          placeholder={placeholder}
-          onChange={e => handleInputChange(e.target.value)}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={cn(
-            'w-full rounded-md border border-border bg-card px-3 py-2 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring',
-            className,
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            value={search}
+            placeholder={placeholder}
+            onChange={e => handleInputChange(e.target.value)}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            className={cn(
+              'w-full rounded-md border border-border bg-card px-3 py-2 pr-8 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring',
+              className,
+            )}
+          />
+          {search && (
+            <RippleButton
+              onMouseDown={e => {
+                e.preventDefault()
+                setSearch('')
+                onChange('')
+                inputRef.current?.focus()
+              }}
+              rippleColor="rgba(0,0,0,0.1)"
+              className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+            >
+              <CircleX className="size-4" />
+            </RippleButton>
           )}
-        />
+        </div>
       </PopoverAnchor>
 
       <PopoverContent
