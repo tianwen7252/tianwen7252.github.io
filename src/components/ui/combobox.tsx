@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { X } from 'lucide-react'
 import { Popover, PopoverContent, PopoverAnchor } from '@/components/ui/popover'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -24,6 +24,8 @@ interface ComboboxProps {
   readonly placeholder?: string
   /** CSS class for the input wrapper */
   readonly className?: string
+  /** Called when input focus state changes */
+  readonly onFocusChange?: (focused: boolean) => void
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -39,6 +41,7 @@ export function Combobox({
   onDelete,
   placeholder,
   className,
+  onFocusChange,
 }: ComboboxProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState(value)
@@ -56,8 +59,21 @@ export function Combobox({
   const handleInputChange = (text: string) => {
     setSearch(text)
     onChange(text)
-    if (!open) setOpen(true)
+    // Only open if there are options to show
+    if (options.length > 0 && !open) setOpen(true)
   }
+
+  const handleFocus = useCallback(() => {
+    onFocusChange?.(true)
+    // Only open popover if there are options
+    if (options.length > 0) {
+      setOpen(true)
+    }
+  }, [options.length, onFocusChange])
+
+  const handleBlur = useCallback(() => {
+    onFocusChange?.(false)
+  }, [onFocusChange])
 
   const handleSelect = (optionValue: string) => {
     const option = options.find(o => o.value === optionValue)
@@ -67,10 +83,12 @@ export function Combobox({
     setOpen(false)
   }
 
-  const handleDelete = (optionValue: string, e: React.MouseEvent) => {
-    e.stopPropagation()
-    onDelete?.(optionValue)
-  }
+  // Close popover when no options remain after deletion
+  useEffect(() => {
+    if (options.length === 0 && open) {
+      setOpen(false)
+    }
+  }, [options.length, open])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -81,7 +99,8 @@ export function Combobox({
           value={search}
           placeholder={placeholder}
           onChange={e => handleInputChange(e.target.value)}
-          onFocus={() => setOpen(true)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           className={cn(
             'w-full rounded-md border border-border bg-card px-3 py-2 text-base outline-none placeholder:text-muted-foreground focus:ring-2 focus:ring-ring',
             className,
@@ -89,28 +108,32 @@ export function Combobox({
         />
       </PopoverAnchor>
 
-      <PopoverContent
-        className="w-(--radix-popover-trigger-width) p-1"
-        side="top"
-        align="start"
-        onOpenAutoFocus={e => e.preventDefault()}
-      >
-        {filtered.length === 0 ? (
-          <p className="px-2 py-1.5 text-base text-muted-foreground">
-            {search ? search : '—'}
-          </p>
-        ) : (
+      {filtered.length > 0 && (
+        <PopoverContent
+          className="w-(--radix-popover-trigger-width) p-1"
+          side="top"
+          align="start"
+          onOpenAutoFocus={e => e.preventDefault()}
+          onCloseAutoFocus={e => e.preventDefault()}
+        >
           <ul className="max-h-48 overflow-y-auto">
             {filtered.map(opt => (
               <li
                 key={opt.value}
-                onClick={() => handleSelect(opt.value)}
+                onMouseDown={e => {
+                  e.preventDefault()
+                  handleSelect(opt.value)
+                }}
                 className="flex cursor-pointer items-center justify-between rounded px-2 py-1.5 text-base hover:bg-accent"
               >
                 <span className="truncate">{opt.label}</span>
                 {onDelete && (
                   <RippleButton
-                    onClick={e => handleDelete(opt.value, e)}
+                    onMouseDown={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onDelete(opt.value)
+                    }}
                     rippleColor="rgba(0,0,0,0.1)"
                     className="ml-2 flex shrink-0 items-center justify-center rounded text-muted-foreground hover:text-destructive"
                   >
@@ -120,8 +143,8 @@ export function Combobox({
               </li>
             ))}
           </ul>
-        )}
-      </PopoverContent>
+        </PopoverContent>
+      )}
     </Popover>
   )
 }

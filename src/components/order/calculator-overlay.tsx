@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { X } from 'lucide-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
@@ -16,6 +16,33 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { Combobox, type ComboboxOption } from '@/components/ui/combobox'
 import { CalculatorKeypad } from './calculator-keypad'
 
+// ─── Constants ──────────────────────────────────────────────────────────────
+
+/** Map physical keyboard keys to calculator keys */
+const KEYBOARD_MAP: Readonly<Record<string, CalculatorKey>> = {
+  '0': '0',
+  '1': '1',
+  '2': '2',
+  '3': '3',
+  '4': '4',
+  '5': '5',
+  '6': '6',
+  '7': '7',
+  '8': '8',
+  '9': '9',
+  '.': '.',
+  '+': '+',
+  '-': '-',
+  '*': '*',
+  '/': '/',
+  Enter: '=',
+  '=': '=',
+  '%': '%',
+  Backspace: 'backspace',
+  Delete: 'c',
+  Escape: 'c',
+}
+
 // ─── Types ──────────────────────────────────────────────────────────────────
 
 interface CalculatorOverlayProps {
@@ -29,6 +56,7 @@ interface CalculatorOverlayProps {
 /**
  * Calculator overlay with glassmorphism backdrop and centered floating content.
  * Vertical layout: display → keypad → combobox → submit.
+ * Supports physical keyboard input.
  */
 export function CalculatorOverlay({
   onClose,
@@ -41,6 +69,8 @@ export function CalculatorOverlay({
   const [calcState, setCalcState] =
     useState<CalculatorState>(createInitialState)
   const [customName, setCustomName] = useState('')
+  // Track whether combobox input is focused to suppress keyboard calculator input
+  const [nameInputFocused, setNameInputFocused] = useState(false)
 
   // Fetch saved custom order names
   const { data: savedNames = [] } = useQuery({
@@ -56,6 +86,22 @@ export function CalculatorOverlay({
   const handleKey = useCallback((key: CalculatorKey) => {
     setCalcState(prev => processKey(prev, key))
   }, [])
+
+  // Keyboard support — listen for physical key presses
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't intercept when combobox input is focused
+      if (nameInputFocused) return
+
+      const calcKey = KEYBOARD_MAP[e.key]
+      if (calcKey) {
+        e.preventDefault()
+        handleKey(calcKey)
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [handleKey, nameInputFocused])
 
   const handleDeleteNameOption = useCallback(
     async (id: string) => {
@@ -101,34 +147,35 @@ export function CalculatorOverlay({
       className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-xl"
       onClick={onClose}
     >
+      {/* Close button — overlay top-right corner */}
+      <RippleButton
+        onClick={onClose}
+        rippleColor="rgba(0,0,0,0.1)"
+        className="absolute right-3 top-3 z-30 flex size-8 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+      >
+        <X className="size-5" />
+      </RippleButton>
+
+      {/* Content card */}
       <div
-        className="flex flex-col rounded-2xl bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
+        className="flex flex-col rounded-2xl bg-[#ffffff60] shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
         onClick={e => e.stopPropagation()}
       >
         <div className="flex flex-col overflow-hidden p-4">
           {/* Display area: expression + result */}
-          <div className="mb-3 flex min-h-24 shrink-0 items-start justify-between">
-            <div className="flex min-w-0 flex-1 flex-col items-end justify-end pr-3">
-              {calcState.expression && (
-                <span className="truncate text-base text-muted-foreground">
-                  {calcState.expression}
-                </span>
-              )}
-              <span
-                className={`font-mono text-5xl truncate max-w-full ${
-                  errorState ? 'text-destructive' : 'text-foreground'
-                }`}
-              >
-                {calcState.display}
+          <div className="mb-3 flex min-h-24 shrink-0 flex-col items-end justify-end">
+            {calcState.expression && (
+              <span className="truncate text-base text-muted-foreground">
+                {calcState.expression}
               </span>
-            </div>
-            <RippleButton
-              onClick={onClose}
-              rippleColor="rgba(0,0,0,0.1)"
-              className="flex size-8 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
+            )}
+            <span
+              className={`font-mono text-5xl truncate max-w-full ${
+                errorState ? 'text-destructive' : 'text-foreground'
+              }`}
             >
-              <X className="size-5" />
-            </RippleButton>
+              {calcState.display}
+            </span>
           </div>
 
           {/* Keypad */}
@@ -146,6 +193,7 @@ export function CalculatorOverlay({
               options={nameOptions}
               onDelete={handleDeleteNameOption}
               placeholder={t('order.calculatorNamePlaceholder')}
+              onFocusChange={setNameInputFocused}
             />
             <RippleButton
               onClick={handleSubmit}

@@ -1,4 +1,5 @@
 // Calculator Engine — iPhone-style calculator (pure functions, immutable state)
+import { evaluate } from 'mathjs/number'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -88,19 +89,15 @@ function isOutOfRange(value: number): boolean {
   return abs !== 0 && (abs >= 1e15 || abs < 1e-6)
 }
 
-/** Perform a binary arithmetic operation. Returns null for division by zero. */
+/** Perform a binary arithmetic operation via mathjs. Returns null for division by zero. */
 function calculate(left: number, op: string, right: number): number | null {
-  switch (op) {
-    case '+':
-      return left + right
-    case '-':
-      return left - right
-    case '*':
-      return left * right
-    case '/':
-      return right === 0 ? null : left / right
-    default:
-      return left
+  if (op === '/' && right === 0) return null
+  try {
+    const expr = `(${left}) ${op} (${right})`
+    const result = evaluate(expr) as number
+    return typeof result === 'number' && Number.isFinite(result) ? result : null
+  } catch {
+    return null
   }
 }
 
