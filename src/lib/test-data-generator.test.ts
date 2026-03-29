@@ -301,11 +301,14 @@ describe('generateOrdersForDay', () => {
     const rng = createSeededRandom(42)
     const result = generateOrdersForDay(TEST_DATE, TEST_COMMODITIES, 10, rng)
 
+    const ORDER_TAGS = ['攤位', '外送', '電話自取']
     for (const order of result.orders) {
       expect(order.memo.length).toBeGreaterThan(0)
       for (const entry of order.memo) {
-        // Each memo entry should be like 'name x1' or 'name x2'
-        expect(entry).toMatch(/.+ x\d+/)
+        // Each memo entry is either 'name xN' or an order tag
+        const isItemEntry = /.+ x\d+/.test(entry)
+        const isTag = ORDER_TAGS.includes(entry)
+        expect(isItemEntry || isTag).toBe(true)
       }
     }
   })

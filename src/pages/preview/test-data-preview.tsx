@@ -5,12 +5,19 @@
 
 import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Database, AlertTriangle, CheckCircle, Loader2 } from 'lucide-react'
-import { RippleButton } from '@/components/ui/ripple-button'
+import {
+  Database,
+  AlertTriangle,
+  CheckCircle,
+  Loader2,
+  Trash2,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { ConfirmModal } from '@/components/modal'
 import { getDatabase } from '@/lib/repositories'
 import {
   insertTestData,
+  clearTestData,
   type InsertProgress,
   type InsertTestDataResult,
 } from '@/lib/test-data-inserter'
@@ -20,9 +27,12 @@ import { cn } from '@/lib/cn'
 
 type GenerationState =
   | { status: 'idle' }
-  | { status: 'confirming' }
+  | { status: 'confirmGenerate' }
+  | { status: 'confirmClear' }
   | { status: 'running'; progress: InsertProgress }
+  | { status: 'clearing' }
   | { status: 'complete'; result: InsertTestDataResult }
+  | { status: 'cleared' }
   | { status: 'error'; message: string }
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -58,13 +68,26 @@ export function TestDataPreview() {
     }
   }, [])
 
-  const handleConfirm = useCallback(() => {
-    void handleGenerate()
-  }, [handleGenerate])
+  const handleClear = useCallback(async () => {
+    setState({ status: 'clearing' })
+    try {
+      const db = getDatabase()
+      await clearTestData(db)
+      setState({ status: 'cleared' })
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      setState({ status: 'error', message })
+    }
+  }, [])
 
   const handleReset = useCallback(() => {
     setState({ status: 'idle' })
   }, [])
+
+  const isIdle =
+    state.status === 'idle' ||
+    state.status === 'complete' ||
+    state.status === 'cleared'
 
   return (
     <div className="space-y-6">
@@ -85,14 +108,20 @@ export function TestDataPreview() {
         </p>
       </div>
 
-      {/* Action area */}
-      {state.status === 'idle' && (
-        <RippleButton
-          className="bg-primary text-primary-foreground"
-          onClick={() => setState({ status: 'confirming' })}
-        >
-          {t('preview.testData.generateButton')}
-        </RippleButton>
+      {/* Action buttons */}
+      {isIdle && (
+        <div className="flex gap-3">
+          <Button onClick={() => setState({ status: 'confirmGenerate' })}>
+            {t('preview.testData.generateButton')}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => setState({ status: 'confirmClear' })}
+          >
+            <Trash2 size={16} className="mr-1.5" />
+            {t('preview.testData.clearButton')}
+          </Button>
+        </div>
       )}
 
       {/* Progress display */}
@@ -100,9 +129,23 @@ export function TestDataPreview() {
         <ProgressDisplay progress={state.progress} />
       )}
 
+      {/* Clearing display */}
+      {state.status === 'clearing' && (
+        <div className="flex items-center gap-2 text-md text-muted-foreground">
+          <Loader2 size={16} className="animate-spin" />
+          <span>{t('preview.testData.clearingMessage')}</span>
+        </div>
+      )}
+
       {/* Complete display */}
-      {state.status === 'complete' && (
-        <CompleteDisplay result={state.result} onReset={handleReset} />
+      {state.status === 'complete' && <CompleteDisplay result={state.result} />}
+
+      {/* Cleared display */}
+      {state.status === 'cleared' && (
+        <div className="flex items-center gap-2 text-green-600">
+          <CheckCircle size={20} />
+          <span className="text-md">{t('preview.testData.clearComplete')}</span>
+        </div>
       )}
 
       {/* Error display */}
@@ -110,16 +153,29 @@ export function TestDataPreview() {
         <ErrorDisplay message={state.message} onReset={handleReset} />
       )}
 
-      {/* Confirm modal */}
+      {/* Confirm generate modal */}
       <ConfirmModal
-        open={state.status === 'confirming'}
+        open={state.status === 'confirmGenerate'}
         title={t('preview.testData.confirmTitle')}
         variant="warm"
-        onConfirm={handleConfirm}
+        onConfirm={() => void handleGenerate()}
         onCancel={handleReset}
       >
         <p className="text-md text-muted-foreground">
           {t('preview.testData.confirmMessage')}
+        </p>
+      </ConfirmModal>
+
+      {/* Confirm clear modal */}
+      <ConfirmModal
+        open={state.status === 'confirmClear'}
+        title={t('preview.testData.clearConfirmTitle')}
+        variant="red"
+        onConfirm={() => void handleClear()}
+        onCancel={handleReset}
+      >
+        <p className="text-md text-muted-foreground">
+          {t('preview.testData.clearConfirmMessage')}
         </p>
       </ConfirmModal>
     </div>
@@ -176,13 +232,7 @@ function ProgressDisplay({ progress }: { progress: InsertProgress }) {
 
 // ─── Complete ───────────────────────────────────────────────────────────────
 
-function CompleteDisplay({
-  result,
-  onReset,
-}: {
-  result: InsertTestDataResult
-  onReset: () => void
-}) {
+function CompleteDisplay({ result }: { result: InsertTestDataResult }) {
   const { t } = useTranslation()
 
   const rows = [
@@ -224,13 +274,6 @@ function CompleteDisplay({
           ))}
         </div>
       </div>
-
-      <RippleButton
-        className="bg-muted text-muted-foreground"
-        onClick={onReset}
-      >
-        {t('preview.testData.generateButton')}
-      </RippleButton>
     </div>
   )
 }
@@ -254,12 +297,9 @@ function ErrorDisplay({
         </p>
       </div>
 
-      <RippleButton
-        className="bg-muted text-muted-foreground"
-        onClick={onReset}
-      >
+      <Button variant="secondary" onClick={onReset}>
         {t('common.retry')}
-      </RippleButton>
+      </Button>
     </div>
   )
 }

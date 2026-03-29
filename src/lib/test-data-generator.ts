@@ -144,6 +144,10 @@ export function getActiveEmployeeIds(): string[] {
   )
 }
 
+// ─── Order Tags ───────────────────────────────────────────────────────────
+
+const ORDER_TAGS = ['攤位', '外送', '電話自取'] as const
+
 // ─── Internal Helpers ──────────────────────────────────────────────────────
 
 /**
@@ -231,9 +235,14 @@ export function generateOrdersForDay(
   const orderItems: GeneratedOrderItem[] = []
   const orderDiscounts: GeneratedOrderDiscount[] = []
 
+  // Pre-generate and sort timestamps so orders appear in chronological order
+  const timestamps = Array.from({ length: orderCount }, () =>
+    generateOrderTimestamp(date, random),
+  ).sort((a, b) => a - b)
+
   for (let n = 1; n <= orderCount; n++) {
     const orderId = nanoid()
-    const timestamp = generateOrderTimestamp(date, random)
+    const timestamp = timestamps[n - 1]!
 
     // Generate 1-5 items for this order
     const itemCount = Math.floor(random() * 5) + 1
@@ -279,8 +288,12 @@ export function generateOrdersForDay(
       discountTotal = discountAmount
     }
 
-    // Build memo from items
+    // Build memo from items, with 5% chance of a source tag
     const memo = items.map(item => `${item.name} x${item.quantity}`)
+    if (random() < 0.05) {
+      const tag = ORDER_TAGS[Math.floor(random() * ORDER_TAGS.length)]!
+      memo.push(tag)
+    }
 
     const order: GeneratedOrder = {
       id: orderId,

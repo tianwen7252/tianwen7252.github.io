@@ -468,6 +468,11 @@
         "inserting": "Writing to database..."
       },
       "complete": "Generation Complete",
+      "clearButton": "Clear All Orders",
+      "clearConfirmTitle": "Clear All Order Data?",
+      "clearConfirmMessage": "This will delete all orders, order items, discounts, attendance records, and daily summaries. This cannot be undone.",
+      "clearingMessage": "Clearing data...",
+      "clearComplete": "All order and attendance data cleared.",
       "error": "Generation failed: {{message}}",
       "summary": {
         "title": "Summary",

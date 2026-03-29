@@ -229,3 +229,29 @@ export async function insertTestData(
     totalDays,
   }
 }
+
+// ─── Clear test data ──────────────────────────────────────────────────────
+
+/**
+ * Delete all order-related data (orders, order_items, order_discounts,
+ * daily_data) and attendance records from the database.
+ * FK-safe deletion order: children first, then parents.
+ */
+export async function clearTestData(db: AsyncDatabase): Promise<void> {
+  await db.exec('BEGIN')
+  try {
+    await db.exec('DELETE FROM order_items')
+    await db.exec('DELETE FROM order_discounts')
+    await db.exec('DELETE FROM orders')
+    await db.exec('DELETE FROM daily_data')
+    await db.exec('DELETE FROM attendances')
+    await db.exec('COMMIT')
+  } catch (error: unknown) {
+    try {
+      await db.exec('ROLLBACK')
+    } catch {
+      // ROLLBACK failed; original error is still re-thrown below
+    }
+    throw error
+  }
+}
