@@ -151,11 +151,11 @@ export function CalculatorOverlay({
     return (
       <div
         data-testid="calculator-overlay"
-        className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+        className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-xl"
         onClick={onClose}
       >
         <div
-          className="flex h-[80%] w-[80%] flex-col rounded-2xl border border-black/5 bg-white/90 shadow-xl backdrop-blur-xl"
+          className="flex h-[80%] w-[80%] flex-col rounded-2xl bg-white shadow-[0_8px_40px_rgba(0,0,0,0.12)]"
           onClick={e => e.stopPropagation()}
         >
           {content}
