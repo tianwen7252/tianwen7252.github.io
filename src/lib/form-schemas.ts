@@ -45,7 +45,6 @@ export type RecordFormValues = z.input<typeof recordFormSchema>
 export const commodityFormSchema = z.object({
   name: z.string().min(1),
   price: z.number().min(0),
-  hideOnMode: z.enum(['', 'calculator', 'commondity', 'both']).default(''),
   includesSoup: z.boolean().default(false),
 })
 

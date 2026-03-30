@@ -184,6 +184,17 @@ describe('CommoditySection', () => {
     })
   })
 
+  describe('swipe to delete', () => {
+    it('should wrap each commodity card with SwipeToDelete', async () => {
+      render(<CommoditySection />)
+      await screen.findByText('油淋雞腿飯')
+
+      // Each card should be wrapped in SwipeToDelete
+      const swipeWrappers = screen.getAllByTestId('swipe-to-delete')
+      expect(swipeWrappers.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('delete product', () => {
     it('should open confirm modal when delete button is clicked', async () => {
       const user = userEvent.setup()

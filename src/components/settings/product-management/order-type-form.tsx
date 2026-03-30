@@ -30,44 +30,45 @@ export interface OrderTypeFormProps {
 interface ColorOption {
   readonly value: string
   readonly i18nKey: string
-  readonly bgClass: string
+  /** CSS color value using theme variables */
+  readonly color: string
 }
 
 const COLOR_OPTIONS: readonly ColorOption[] = [
   {
     value: '',
     i18nKey: 'productMgmt.orderTypes.colorNone',
-    bgClass: 'bg-gray-200',
+    color: '#e5e7eb',
   },
   {
     value: 'green',
     i18nKey: 'productMgmt.orderTypes.colorGreen',
-    bgClass: 'bg-green-500',
+    color: 'var(--color-green)',
   },
   {
     value: 'blue',
     i18nKey: 'productMgmt.orderTypes.colorBlue',
-    bgClass: 'bg-blue-500',
+    color: 'var(--color-blue)',
   },
   {
     value: 'yellow',
     i18nKey: 'productMgmt.orderTypes.colorYellow',
-    bgClass: 'bg-yellow-500',
+    color: 'var(--color-yellow)',
   },
   {
     value: 'red',
     i18nKey: 'productMgmt.orderTypes.colorRed',
-    bgClass: 'bg-red-500',
+    color: 'var(--color-red)',
   },
   {
     value: 'purple',
     i18nKey: 'productMgmt.orderTypes.colorPurple',
-    bgClass: 'bg-purple-500',
+    color: '#9333ea',
   },
   {
     value: 'gray',
     i18nKey: 'productMgmt.orderTypes.colorGray',
-    bgClass: 'bg-gray-400',
+    color: '#9ca3af',
   },
 ]
 
@@ -195,7 +196,10 @@ export function OrderTypeForm({
                     )}
                     onClick={() => field.onChange(opt.value)}
                   >
-                    <span className={cn('size-3 rounded-full', opt.bgClass)} />
+                    <span
+                      className="size-3 rounded-full"
+                      style={{ backgroundColor: opt.color }}
+                    />
                     {t(opt.i18nKey)}
                   </RippleButton>
                 ))}

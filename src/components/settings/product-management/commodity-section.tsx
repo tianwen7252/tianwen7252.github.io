@@ -8,42 +8,26 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { notify } from '@/components/ui/sonner'
 import { getCommodityTypeRepo, getCommodityRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
 import { CommodityCard } from './commodity-card'
 import { CommodityForm } from './commodity-form'
-import { cn } from '@/lib/cn'
 import type { CommodityType, Commodity } from '@/lib/schemas'
 import type { CommodityFormValues } from '@/lib/form-schemas'
 
-// ── Color mapping for tab pill styling ────────────────────────────────────
+// ── Color mapping for tab pill styling using theme variables ──────────────
 
-const TAB_COLOR_MAP: Record<
-  string,
-  { bg: string; text: string; activeBg: string }
-> = {
-  green: {
-    bg: 'bg-green-100',
-    text: 'text-green-700',
-    activeBg: 'bg-green-600 text-white',
-  },
-  brown: {
-    bg: 'bg-amber-100',
-    text: 'text-amber-700',
-    activeBg: 'bg-amber-600 text-white',
-  },
-  indigo: {
-    bg: 'bg-indigo-100',
-    text: 'text-indigo-700',
-    activeBg: 'bg-indigo-600 text-white',
-  },
+const TAB_COLOR_MAP: Record<string, string> = {
+  green: 'var(--color-green)',
+  brown: 'var(--color-gold)',
+  indigo: 'var(--color-blue)',
 }
 
-function getTabStyle(color: string, isActive: boolean): string {
-  const scheme = TAB_COLOR_MAP[color] ?? TAB_COLOR_MAP['green']!
-  return isActive ? scheme.activeBg : `${scheme.bg} ${scheme.text}`
+function resolveTabColor(color: string): string {
+  return TAB_COLOR_MAP[color] ?? TAB_COLOR_MAP['green']!
 }
 
 export function CommoditySection() {
@@ -128,7 +112,6 @@ export function CommoditySection() {
           await getCommodityRepo().update(editingCommodity.id, {
             name: values.name,
             price: values.price,
-            hideOnMode: values.hideOnMode || undefined,
             includesSoup: values.includesSoup ?? false,
           })
           notify.success(t('productMgmt.commodities.toastUpdated'))
@@ -149,7 +132,6 @@ export function CommoditySection() {
             price: values.price,
             priority: maxPriority + 1,
             onMarket: true,
-            hideOnMode: values.hideOnMode || undefined,
             includesSoup: values.includesSoup ?? false,
           })
           notify.success(t('productMgmt.commodities.toastAdded'))
@@ -221,27 +203,38 @@ export function CommoditySection() {
 
       {/* Category tabs */}
       <div className="mb-4 flex flex-wrap gap-2">
-        {commodityTypes.map(ct => (
-          <RippleButton
-            key={ct.typeId}
-            data-testid={`category-tab-${ct.typeId}`}
-            className={cn(
-              'inline-flex items-center gap-2 rounded-full px-4 py-2 text-base transition-colors',
-              getTabStyle(ct.color, ct.typeId === selectedTypeId),
-            )}
-            onClick={() => handleTabClick(ct.typeId)}
-          >
-            {ct.label}
-            <span
-              className={cn(
-                'inline-flex size-6 items-center justify-center rounded-full text-base',
-                ct.typeId === selectedTypeId ? 'bg-white/20' : 'bg-black/5',
-              )}
+        {commodityTypes.map(ct => {
+          const isActive = ct.typeId === selectedTypeId
+          const themeColor = resolveTabColor(ct.color)
+          return (
+            <RippleButton
+              key={ct.typeId}
+              data-testid={`category-tab-${ct.typeId}`}
+              className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-base transition-colors"
+              style={
+                isActive
+                  ? { backgroundColor: themeColor, color: '#fff' }
+                  : {
+                      backgroundColor: `color-mix(in srgb, ${themeColor} 15%, transparent)`,
+                      color: themeColor,
+                    }
+              }
+              onClick={() => handleTabClick(ct.typeId)}
             >
-              {countByType(ct.typeId)}
-            </span>
-          </RippleButton>
-        ))}
+              {ct.label}
+              <span
+                className="inline-flex size-6 items-center justify-center rounded-full text-base"
+                style={{
+                  backgroundColor: isActive
+                    ? 'rgba(255,255,255,0.2)'
+                    : 'rgba(0,0,0,0.05)',
+                }}
+              >
+                {countByType(ct.typeId)}
+              </span>
+            </RippleButton>
+          )
+        })}
       </div>
 
       {/* Sortable commodity list */}
@@ -249,12 +242,14 @@ export function CommoditySection() {
         items={commodities}
         getId={c => c.id}
         renderItem={(commodity, dragHandleProps) => (
-          <CommodityCard
-            commodity={commodity}
-            dragHandleProps={dragHandleProps}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-          />
+          <SwipeToDelete onDelete={() => handleDeleteClick(commodity)}>
+            <CommodityCard
+              commodity={commodity}
+              dragHandleProps={dragHandleProps}
+              onEdit={handleEdit}
+              onDelete={handleDeleteClick}
+            />
+          </SwipeToDelete>
         )}
         onReorder={handleReorder}
       />

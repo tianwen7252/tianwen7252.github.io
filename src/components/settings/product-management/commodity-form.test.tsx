@@ -44,7 +44,6 @@ const EXISTING_COMMODITY: Commodity = {
   priority: 1,
   onMarket: true,
   includesSoup: true,
-  hideOnMode: 'calculator',
   createdAt: 1700000000000,
   updatedAt: 1700000000000,
 }
@@ -54,7 +53,9 @@ describe('CommodityForm', () => {
   let onClose: CommodityFormProps['onClose']
 
   beforeEach(() => {
-    onSubmit = vi.fn().mockResolvedValue(undefined) as unknown as CommodityFormProps['onSubmit']
+    onSubmit = vi
+      .fn()
+      .mockResolvedValue(undefined) as unknown as CommodityFormProps['onSubmit']
     onClose = vi.fn() as unknown as CommodityFormProps['onClose']
   })
 

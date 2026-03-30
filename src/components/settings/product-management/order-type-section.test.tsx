@@ -147,6 +147,16 @@ describe('OrderTypeSection', () => {
     })
   })
 
+  describe('swipe to delete', () => {
+    it('should wrap each order type card with SwipeToDelete', async () => {
+      render(<OrderTypeSection />)
+      await screen.findByText('攤位')
+
+      const swipeWrappers = screen.getAllByTestId('swipe-to-delete')
+      expect(swipeWrappers.length).toBeGreaterThan(0)
+    })
+  })
+
   describe('add order type', () => {
     it('should open add form modal when add button is clicked', async () => {
       const user = userEvent.setup()

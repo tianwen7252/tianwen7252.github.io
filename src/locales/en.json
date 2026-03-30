@@ -410,7 +410,11 @@
     },
     "types": {
       "title": "Commodity Types",
+      "editLabel": "Edit Type Name",
+      "labelField": "Name",
       "labelUpdated": "Type label updated",
+      "toastReordered": "Order updated",
+      "reorderError": "Reorder failed",
       "saveError": "Failed to save, please try again"
     },
     "orderTypes": {

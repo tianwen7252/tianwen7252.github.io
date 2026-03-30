@@ -214,6 +214,7 @@ export interface CommodityTypeSeed {
   readonly type: string
   readonly label: string
   readonly color: string
+  readonly priority: number
 }
 
 export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
@@ -223,6 +224,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'main-dish',
     label: '餐盒',
     color: 'green',
+    priority: 1,
   },
   {
     id: 'ct-002',
@@ -230,6 +232,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'à-la-carte',
     label: '單點',
     color: 'brown',
+    priority: 2,
   },
   {
     id: 'ct-003',
@@ -237,6 +240,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'drink',
     label: '飲料',
     color: 'indigo',
+    priority: 3,
   },
   {
     id: 'ct-004',
@@ -244,6 +248,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'dumpling',
     label: '水餃',
     color: 'indigo',
+    priority: 4,
   },
 ] as const
 

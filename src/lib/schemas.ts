@@ -65,6 +65,7 @@ export const commodityTypeSchema = z.object({
   type: z.string(),
   label: z.string(),
   color: z.string().default(''),
+  priority: z.number().default(0),
   createdAt: z.number(),
   updatedAt: z.number(),
 })

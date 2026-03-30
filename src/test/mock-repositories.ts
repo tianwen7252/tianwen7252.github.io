@@ -217,7 +217,7 @@ export const mockAttendanceRepo = {
 
 export const mockCommodityTypeRepo = {
   async findAll(): Promise<CommodityType[]> {
-    return [...commodityTypes]
+    return [...commodityTypes].sort((a, b) => a.priority - b.priority)
   },
 
   async findById(id: string): Promise<CommodityType | undefined> {
@@ -260,6 +260,17 @@ export const mockCommodityTypeRepo = {
     const before = commodityTypes.length
     commodityTypes = commodityTypes.filter(ct => ct.id !== id)
     return commodityTypes.length < before
+  },
+
+  async updatePriorities(ids: string[]): Promise<void> {
+    for (let i = 0; i < ids.length; i++) {
+      const idx = commodityTypes.findIndex(ct => ct.id === ids[i])
+      if (idx !== -1) {
+        commodityTypes = commodityTypes.map((ct, j) =>
+          j === idx ? { ...ct, priority: i + 1, updatedAt: Date.now() } : ct,
+        )
+      }
+    }
   },
 }
 

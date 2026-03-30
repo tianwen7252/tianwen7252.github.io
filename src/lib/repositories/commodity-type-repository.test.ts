@@ -29,7 +29,7 @@ describe('CommodityTypeRepository', () => {
       await repo.findAll()
 
       expect(db.exec).toHaveBeenCalledWith(
-        'SELECT * FROM commodity_types ORDER BY id ASC',
+        'SELECT * FROM commodity_types ORDER BY priority ASC, id ASC',
       )
     })
 
@@ -48,6 +48,7 @@ describe('CommodityTypeRepository', () => {
           type: 'bento',
           label: '便當',
           color: '#ff0000',
+          priority: 1,
           created_at: 1700000000000,
           updated_at: 1700000000000,
         },
@@ -57,6 +58,7 @@ describe('CommodityTypeRepository', () => {
           type: 'drink',
           label: '飲料',
           color: '',
+          priority: 2,
           created_at: 1700000000000,
           updated_at: 1700000000000,
         },
@@ -77,6 +79,7 @@ describe('CommodityTypeRepository', () => {
         type: 'bento',
         label: '便當',
         color: '#ff0000',
+        priority: 1,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -86,6 +89,7 @@ describe('CommodityTypeRepository', () => {
         type: 'drink',
         label: '飲料',
         color: '',
+        priority: 2,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -121,6 +125,7 @@ describe('CommodityTypeRepository', () => {
             type: 'bento',
             label: '便當',
             color: '',
+            priority: 0,
             created_at: 1700000000000,
             updated_at: 1700000000000,
           },
@@ -137,6 +142,7 @@ describe('CommodityTypeRepository', () => {
         type: 'bento',
         label: '便當',
         color: '',
+        priority: 0,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -172,6 +178,7 @@ describe('CommodityTypeRepository', () => {
             type: 'bento',
             label: '便當',
             color: '',
+            priority: 0,
             created_at: 1700000000000,
             updated_at: 1700000000000,
           },
@@ -188,6 +195,7 @@ describe('CommodityTypeRepository', () => {
         type: 'bento',
         label: '便當',
         color: '',
+        priority: 0,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -209,6 +217,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '便當',
               color: '#ff0000',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000000000,
             },
@@ -222,6 +231,7 @@ describe('CommodityTypeRepository', () => {
         type: 'bento',
         label: '便當',
         color: '#ff0000',
+        priority: 1,
       })
 
       const insertCall = vi.mocked(db.exec).mock.calls[0]
@@ -242,6 +252,7 @@ describe('CommodityTypeRepository', () => {
               type: 'drink',
               label: '飲料',
               color: '',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000000000,
             },
@@ -255,6 +266,7 @@ describe('CommodityTypeRepository', () => {
         type: 'drink',
         label: '飲料',
         color: '',
+        priority: 0,
       })
 
       expect(result).toEqual({
@@ -263,6 +275,7 @@ describe('CommodityTypeRepository', () => {
         type: 'drink',
         label: '飲料',
         color: '',
+        priority: 0,
         createdAt: 1700000000000,
         updatedAt: 1700000000000,
       })
@@ -288,6 +301,7 @@ describe('CommodityTypeRepository', () => {
             type: 'bento',
             label: '便當',
             color: '#ff0000',
+            priority: 0,
             created_at: 1700000000000,
             updated_at: 1700000000000,
           },
@@ -312,6 +326,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '便當',
               color: '#ff0000',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000000000,
             },
@@ -327,6 +342,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '主餐',
               color: '#00ff00',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000050000,
             },
@@ -361,6 +377,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '便當',
               color: '',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000000000,
             },
@@ -376,6 +393,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '便當',
               color: '',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000050000,
             },
@@ -401,6 +419,7 @@ describe('CommodityTypeRepository', () => {
               type: 'bento',
               label: '便當',
               color: '',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000000000,
             },
@@ -416,6 +435,7 @@ describe('CommodityTypeRepository', () => {
               type: 'main-dish',
               label: '便當',
               color: '',
+              priority: 0,
               created_at: 1700000000000,
               updated_at: 1700000050000,
             },
@@ -459,6 +479,31 @@ describe('CommodityTypeRepository', () => {
       const result = await repo.remove('non-existent')
 
       expect(result).toBe(false)
+    })
+  })
+
+  // ─── updatePriorities ──────────────────────────────────────────────────────
+
+  describe('updatePriorities()', () => {
+    it('calls UPDATE for each id with correct priority', async () => {
+      const repo = createCommodityTypeRepository(db)
+      await repo.updatePriorities(['ct-003', 'ct-001', 'ct-002'])
+
+      // Should have called exec 3 times (one for each id)
+      expect(db.exec).toHaveBeenCalledTimes(3)
+
+      // First call sets priority 1 for ct-003
+      const call0 = vi.mocked(db.exec).mock.calls[0]
+      expect(call0![0]).toContain('UPDATE commodity_types SET priority = ?')
+      expect(call0![1]).toEqual(expect.arrayContaining([1, 'ct-003']))
+
+      // Second call sets priority 2 for ct-001
+      const call1 = vi.mocked(db.exec).mock.calls[1]
+      expect(call1![1]).toEqual(expect.arrayContaining([2, 'ct-001']))
+
+      // Third call sets priority 3 for ct-002
+      const call2 = vi.mocked(db.exec).mock.calls[2]
+      expect(call2![1]).toEqual(expect.arrayContaining([3, 'ct-002']))
     })
   })
 })

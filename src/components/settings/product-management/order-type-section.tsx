@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
 import { notify } from '@/components/ui/sonner'
 import { getOrderTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
@@ -164,12 +165,14 @@ export function OrderTypeSection() {
         items={orderTypes}
         getId={ot => ot.id}
         renderItem={(orderType, dragHandleProps) => (
-          <OrderTypeCard
-            orderType={orderType}
-            dragHandleProps={dragHandleProps}
-            onEdit={handleEdit}
-            onDelete={handleDeleteClick}
-          />
+          <SwipeToDelete onDelete={() => handleDeleteClick(orderType)}>
+            <OrderTypeCard
+              orderType={orderType}
+              dragHandleProps={dragHandleProps}
+              onEdit={handleEdit}
+              onDelete={handleDeleteClick}
+            />
+          </SwipeToDelete>
         )}
         onReorder={handleReorder}
       />

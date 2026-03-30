@@ -25,11 +25,10 @@ const BASE_COMMODITY: Commodity = {
   updatedAt: 1700000000000,
 }
 
-const COMMODITY_WITH_HIDE: Commodity = {
+const COMMODITY_NO_SOUP: Commodity = {
   ...BASE_COMMODITY,
   id: 'com-002',
   name: '排骨飯',
-  hideOnMode: 'calculator',
   includesSoup: false,
 }
 
@@ -126,41 +125,13 @@ describe('CommodityCard', () => {
       const onDelete = vi.fn()
       render(
         <CommodityCard
-          commodity={COMMODITY_WITH_HIDE}
+          commodity={COMMODITY_NO_SOUP}
           dragHandleProps={MOCK_DRAG_HANDLE_PROPS}
           onEdit={onEdit}
           onDelete={onDelete}
         />,
       )
       expect(screen.queryByTestId('soup-tag')).toBeNull()
-    })
-
-    it('should render hideOnMode tag when set', () => {
-      const onEdit = vi.fn()
-      const onDelete = vi.fn()
-      render(
-        <CommodityCard
-          commodity={COMMODITY_WITH_HIDE}
-          dragHandleProps={MOCK_DRAG_HANDLE_PROPS}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />,
-      )
-      expect(screen.getByTestId('hide-mode-tag')).toBeTruthy()
-    })
-
-    it('should not render hideOnMode tag when not set', () => {
-      const onEdit = vi.fn()
-      const onDelete = vi.fn()
-      render(
-        <CommodityCard
-          commodity={BASE_COMMODITY}
-          dragHandleProps={MOCK_DRAG_HANDLE_PROPS}
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />,
-      )
-      expect(screen.queryByTestId('hide-mode-tag')).toBeNull()
     })
   })
 

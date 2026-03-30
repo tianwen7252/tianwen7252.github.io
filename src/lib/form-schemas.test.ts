@@ -238,7 +238,6 @@ describe('commodityFormSchema', () => {
       const data: CommodityFormValues = {
         name: '油淋雞腿飯',
         price: 140,
-        hideOnMode: 'calculator',
         includesSoup: true,
       }
       const result = commodityFormSchema.safeParse(data)
@@ -246,7 +245,6 @@ describe('commodityFormSchema', () => {
       if (result.success) {
         expect(result.data.name).toBe('油淋雞腿飯')
         expect(result.data.price).toBe(140)
-        expect(result.data.hideOnMode).toBe('calculator')
         expect(result.data.includesSoup).toBe(true)
       }
     })
@@ -258,36 +256,8 @@ describe('commodityFormSchema', () => {
       })
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data.hideOnMode).toBe('')
         expect(result.data.includesSoup).toBe(false)
       }
-    })
-
-    it('accepts hideOnMode as empty string', () => {
-      const result = commodityFormSchema.safeParse({
-        name: '紅茶',
-        price: 25,
-        hideOnMode: '',
-      })
-      expect(result.success).toBe(true)
-    })
-
-    it('accepts hideOnMode "commondity"', () => {
-      const result = commodityFormSchema.safeParse({
-        name: '紅茶',
-        price: 25,
-        hideOnMode: 'commondity',
-      })
-      expect(result.success).toBe(true)
-    })
-
-    it('accepts hideOnMode "both"', () => {
-      const result = commodityFormSchema.safeParse({
-        name: '紅茶',
-        price: 25,
-        hideOnMode: 'both',
-      })
-      expect(result.success).toBe(true)
     })
 
     it('accepts price of 0', () => {
@@ -319,15 +289,6 @@ describe('commodityFormSchema', () => {
       const result = commodityFormSchema.safeParse({
         name: '紅茶',
         price: -10,
-      })
-      expect(result.success).toBe(false)
-    })
-
-    it('rejects invalid hideOnMode value', () => {
-      const result = commodityFormSchema.safeParse({
-        name: '紅茶',
-        price: 25,
-        hideOnMode: 'invalid',
       })
       expect(result.success).toBe(false)
     })

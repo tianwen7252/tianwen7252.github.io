@@ -1,7 +1,7 @@
 /**
  * Tests for CommodityTypeSection component.
- * Verifies rendering of commodity type cards, inline label editing,
- * and update operations via the repository.
+ * Verifies rendering as row list with drag handle, edit via modal,
+ * and reorder operations via the repository.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
@@ -20,16 +20,76 @@ vi.mock('@/lib/repositories', () => ({
 
 // Mock sonner notify
 const mockNotifySuccess = vi.fn()
+const mockNotifyError = vi.fn()
 vi.mock('@/components/ui/sonner', () => ({
   notify: {
     success: (...args: unknown[]) => mockNotifySuccess(...args),
+    error: (...args: unknown[]) => mockNotifyError(...args),
   },
+}))
+
+// Mock the modal component to avoid Radix Portal issues in tests
+vi.mock('@/components/modal', () => ({
+  Modal: ({
+    open,
+    title,
+    children,
+    footer,
+    onClose,
+  }: {
+    open: boolean
+    title: string
+    children: React.ReactNode
+    footer?: React.ReactNode
+    onClose: () => void
+  }) =>
+    open ? (
+      <div data-testid="modal" role="dialog" aria-label={title}>
+        <h2>{title}</h2>
+        {children}
+        {footer}
+        <button onClick={onClose}>close-modal</button>
+      </div>
+    ) : null,
+}))
+
+// Mock SortableList to avoid dnd-kit complexity in unit tests
+vi.mock('./sortable-list', () => ({
+  SortableList: ({
+    items,
+    renderItem,
+    getId,
+  }: {
+    items: readonly unknown[]
+    renderItem: (item: unknown, dragProps: unknown) => React.ReactNode
+    getId: (item: unknown) => string
+    onReorder: (ids: readonly string[]) => void
+  }) => (
+    <div data-testid="sortable-list">
+      {items.map(item => (
+        <div key={getId(item)} data-testid={`sortable-item-${getId(item)}`}>
+          {renderItem(item, {
+            attributes: {
+              role: 'button',
+              tabIndex: 0,
+              'aria-disabled': false,
+              'aria-pressed': undefined,
+              'aria-roledescription': 'sortable',
+              'aria-describedby': 'test-desc',
+            },
+            listeners: undefined,
+          })}
+        </div>
+      ))}
+    </div>
+  ),
 }))
 
 describe('CommodityTypeSection', () => {
   beforeEach(() => {
     resetMockRepositories()
     mockNotifySuccess.mockClear()
+    mockNotifyError.mockClear()
   })
 
   afterEach(() => {
@@ -42,117 +102,114 @@ describe('CommodityTypeSection', () => {
       await screen.findByText('商品種類')
     })
 
-    it('should render all 4 commodity type cards', async () => {
+    it('should render all 4 commodity types as rows in a sortable list', async () => {
       render(<CommodityTypeSection />)
       await screen.findByText('餐盒')
       expect(screen.getByText('單點')).toBeTruthy()
       expect(screen.getByText('飲料')).toBeTruthy()
       expect(screen.getByText('水餃')).toBeTruthy()
+      expect(screen.getByTestId('sortable-list')).toBeTruthy()
     })
 
-    it('should render typeId badges for each type', async () => {
-      render(<CommodityTypeSection />)
-      await screen.findByText('bento')
-      expect(screen.getByText('single')).toBeTruthy()
-      expect(screen.getByText('drink')).toBeTruthy()
-      expect(screen.getByText('dumpling')).toBeTruthy()
-    })
-
-    it('should render color dots for each type', async () => {
+    it('should render priority badges for each type', async () => {
       render(<CommodityTypeSection />)
       await screen.findByText('餐盒')
 
-      // Each card should have a color dot element
-      const dots = screen.getAllByTestId('type-color-dot')
-      expect(dots.length).toBe(4)
+      // Priority badges show numbers 1-4
+      expect(screen.getByText('1')).toBeTruthy()
+      expect(screen.getByText('2')).toBeTruthy()
+      expect(screen.getByText('3')).toBeTruthy()
+      expect(screen.getByText('4')).toBeTruthy()
+    })
+
+    it('should render drag handles for each type', async () => {
+      render(<CommodityTypeSection />)
+      await screen.findByText('餐盒')
+
+      const handles = screen.getAllByTestId('drag-handle')
+      expect(handles.length).toBe(4)
+    })
+
+    it('should render edit buttons for each type', async () => {
+      render(<CommodityTypeSection />)
+      await screen.findByText('餐盒')
+
+      const editButtons = screen.getAllByTestId('edit-button')
+      expect(editButtons.length).toBe(4)
+    })
+
+    it('should NOT render typeId badges (removed from UI)', async () => {
+      render(<CommodityTypeSection />)
+      await screen.findByText('餐盒')
+
+      // typeId values should not appear in the rendered output
+      expect(screen.queryByText('bento')).toBeNull()
+      expect(screen.queryByText('single')).toBeNull()
+      expect(screen.queryByText('drink')).toBeNull()
+      expect(screen.queryByText('dumpling')).toBeNull()
     })
   })
 
-  describe('inline label editing', () => {
-    it('should enter edit mode when label is clicked', async () => {
+  describe('edit via modal', () => {
+    it('should open edit modal when edit button is clicked', async () => {
       const user = userEvent.setup()
       render(<CommodityTypeSection />)
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
+      await screen.findByText('餐盒')
 
-      // Should show an input with the current label value
-      const input = screen.getByDisplayValue('餐盒')
-      expect(input).toBeTruthy()
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+
+      // Modal should be open with edit title
+      expect(screen.getByRole('dialog', { name: '編輯種類名稱' })).toBeTruthy()
     })
 
-    it('should save on Enter key', async () => {
+    it('should pre-fill the input with the current label', async () => {
       const user = userEvent.setup()
       render(<CommodityTypeSection />)
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
+      await screen.findByText('餐盒')
 
-      const input = screen.getByDisplayValue('餐盒')
-      await user.clear(input)
-      await user.type(input, '主食{Enter}')
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
 
-      // Should exit edit mode and show new label
-      await waitFor(() => {
-        expect(screen.getByText('主食')).toBeTruthy()
-        expect(screen.queryByDisplayValue('主食')).toBeNull()
-      })
-
-      // Should show success toast
-      expect(mockNotifySuccess).toHaveBeenCalledWith('種類名稱已更新')
+      expect(screen.getByDisplayValue('餐盒')).toBeTruthy()
     })
 
-    it('should cancel on Escape key', async () => {
+    it('should save the new label when confirm is clicked', async () => {
       const user = userEvent.setup()
       render(<CommodityTypeSection />)
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
+      await screen.findByText('餐盒')
+
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
 
       const input = screen.getByDisplayValue('餐盒')
       await user.clear(input)
       await user.type(input, '主食')
-      await user.keyboard('{Escape}')
 
-      // Should revert to the original label
-      await waitFor(() => {
-        expect(screen.getByText('餐盒')).toBeTruthy()
-        expect(screen.queryByDisplayValue('主食')).toBeNull()
-      })
-
-      // Should NOT call the notify
-      expect(mockNotifySuccess).not.toHaveBeenCalled()
-    })
-
-    it('should save on blur', async () => {
-      const user = userEvent.setup()
-      render(<CommodityTypeSection />)
-
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
-
-      const input = screen.getByDisplayValue('餐盒')
-      await user.clear(input)
-      await user.type(input, '便當')
-      await user.tab() // blur the input
+      await user.click(screen.getByRole('button', { name: '確認' }))
 
       await waitFor(() => {
-        expect(screen.getByText('便當')).toBeTruthy()
+        expect(mockNotifySuccess).toHaveBeenCalledWith('種類名稱已更新')
       })
-
-      expect(mockNotifySuccess).toHaveBeenCalledWith('種類名稱已更新')
     })
 
     it('should update the repository when saving', async () => {
       const user = userEvent.setup()
       render(<CommodityTypeSection />)
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
+      await screen.findByText('餐盒')
+
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
 
       const input = screen.getByDisplayValue('餐盒')
       await user.clear(input)
-      await user.type(input, '主食{Enter}')
+      await user.type(input, '主食')
+
+      await user.click(screen.getByRole('button', { name: '確認' }))
 
       await waitFor(async () => {
         const updated = await getCommodityTypeRepo().findById('ct-001')
@@ -160,37 +217,22 @@ describe('CommodityTypeSection', () => {
       })
     })
 
-    it('should not save when label is unchanged', async () => {
+    it('should close modal when cancel is clicked', async () => {
       const user = userEvent.setup()
       render(<CommodityTypeSection />)
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
+      await screen.findByText('餐盒')
 
-      // Press Enter without changing value
-      await user.keyboard('{Enter}')
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
 
-      // Should exit edit mode but not show toast
-      expect(mockNotifySuccess).not.toHaveBeenCalled()
-    })
+      // Modal is open
+      expect(screen.getByTestId('modal')).toBeTruthy()
 
-    it('should not save when label is empty', async () => {
-      const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      await user.click(screen.getByRole('button', { name: '取消' }))
 
-      const label = await screen.findByText('餐盒')
-      await user.click(label)
-
-      const input = screen.getByDisplayValue('餐盒')
-      await user.clear(input)
-      await user.keyboard('{Enter}')
-
-      // Should revert to original label
-      await waitFor(() => {
-        expect(screen.getByText('餐盒')).toBeTruthy()
-      })
-
-      expect(mockNotifySuccess).not.toHaveBeenCalled()
+      // Modal should close
+      expect(screen.queryByTestId('modal')).toBeNull()
     })
   })
 })

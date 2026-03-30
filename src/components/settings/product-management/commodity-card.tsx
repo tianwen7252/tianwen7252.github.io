@@ -1,5 +1,5 @@
 /**
- * CommodityCard — Draggable product card for the sortable list.
+ * CommodityCard -- Draggable product card for the sortable list.
  * Displays product info, tags, and edit/delete action buttons.
  * Drag handle receives DragHandleProps from SortableList.
  */
@@ -18,15 +18,6 @@ interface CommodityCardProps {
   readonly onDelete: (commodity: Commodity) => void
 }
 
-/**
- * Map hideOnMode values to their i18n keys for the display tag.
- */
-const HIDE_MODE_I18N: Record<string, string> = {
-  calculator: 'productMgmt.commodities.hideOnModeCalculator',
-  commondity: 'productMgmt.commodities.hideOnModeCommodity',
-  both: 'productMgmt.commodities.hideOnModeBoth',
-}
-
 export function CommodityCard({
   commodity,
   dragHandleProps,
@@ -42,10 +33,6 @@ export function CommodityCard({
   const handleDelete = useCallback(() => {
     onDelete(commodity)
   }, [commodity, onDelete])
-
-  const hideModeLabelKey = commodity.hideOnMode
-    ? HIDE_MODE_I18N[commodity.hideOnMode]
-    : undefined
 
   return (
     <div className="mb-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3">
@@ -77,18 +64,15 @@ export function CommodityCard({
 
       {/* Tags row */}
       <div className="flex shrink-0 items-center gap-2">
-        {hideModeLabelKey && (
-          <span
-            data-testid="hide-mode-tag"
-            className="rounded-full bg-amber-100 px-2 py-0.5 text-base text-amber-700"
-          >
-            {t(hideModeLabelKey)}
-          </span>
-        )}
         {commodity.includesSoup && (
           <span
             data-testid="soup-tag"
-            className="flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 text-base text-blue-700"
+            className="flex items-center gap-1 rounded-full px-2 py-0.5 text-base"
+            style={{
+              backgroundColor:
+                'color-mix(in srgb, var(--color-blue) 15%, transparent)',
+              color: 'var(--color-blue)',
+            }}
           >
             <Soup size={14} />
             {t('productMgmt.commodities.includesSoup')}

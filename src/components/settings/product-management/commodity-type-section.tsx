@@ -1,135 +1,68 @@
 /**
- * CommodityTypeSection — Card grid showing all commodity types
- * with inline label editing capability.
+ * CommodityTypeSection -- Row list showing all commodity types
+ * with drag-and-drop reorder and edit-via-modal capability.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
+import { GripVertical, Pencil } from 'lucide-react'
+import { Modal } from '@/components/modal'
+import { RippleButton } from '@/components/ui/ripple-button'
+import { Input } from '@/components/ui/input'
 import { notify } from '@/components/ui/sonner'
 import { getCommodityTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
+import { SortableList } from './sortable-list'
 import type { CommodityType } from '@/lib/schemas'
+import type { DragHandleProps } from './sortable-list'
 
-// ── Color mapping for type color dots ──────────────────────────────────────
+// ── TypeRow ───────────────────────────────────────────────────────────────
 
-const COLOR_MAP: Record<string, string> = {
-  green: 'var(--color-green)',
-  brown: '#8B6914',
-  indigo: '#4F46E5',
-  red: 'var(--color-red)',
-  blue: 'var(--color-blue)',
-  gold: 'var(--color-gold)',
-}
-
-function resolveColor(color: string): string {
-  return COLOR_MAP[color] ?? color
-}
-
-// ── TypeCard ───────────────────────────────────────────────────────────────
-
-interface TypeCardProps {
+interface TypeRowProps {
   readonly type: CommodityType
-  readonly onLabelSaved: () => void
+  readonly dragHandleProps: DragHandleProps
+  readonly onEdit: (type: CommodityType) => void
 }
 
-function TypeCard({ type, onLabelSaved }: TypeCardProps) {
+function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
   const { t } = useTranslation()
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState(type.label)
-  const inputRef = useRef<HTMLInputElement>(null)
-  // Tracks whether the current edit was cancelled (Escape) to suppress the
-  // subsequent blur event from triggering a save.
-  const isCancelledRef = useRef(false)
 
-  // Enter edit mode
-  const handleStartEdit = useCallback(() => {
-    isCancelledRef.current = false
-    setEditValue(type.label)
-    setIsEditing(true)
-    // Focus the input after render
-    setTimeout(() => inputRef.current?.focus(), 0)
-  }, [type.label])
-
-  // Save the new label
-  const handleSave = useCallback(async () => {
-    // If cancel was already triggered (Escape), do not save on blur
-    if (isCancelledRef.current) return
-
-    const trimmed = editValue.trim()
-    setIsEditing(false)
-
-    // If empty or unchanged, revert
-    if (!trimmed || trimmed === type.label) {
-      setEditValue(type.label)
-      return
-    }
-
-    try {
-      await getCommodityTypeRepo().update(type.id, { label: trimmed })
-      notify.success(t('productMgmt.types.labelUpdated'))
-      onLabelSaved()
-    } catch {
-      notify.error(t('productMgmt.types.saveError'))
-      setEditValue(type.label)
-    }
-  }, [editValue, type.id, type.label, t, onLabelSaved])
-
-  // Cancel editing and revert
-  const handleCancel = useCallback(() => {
-    isCancelledRef.current = true
-    setIsEditing(false)
-    setEditValue(type.label)
-  }, [type.label])
-
-  // Handle keyboard events
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
-        e.preventDefault()
-        handleSave()
-      } else if (e.key === 'Escape') {
-        e.preventDefault()
-        handleCancel()
-      }
-    },
-    [handleSave, handleCancel],
-  )
+  const handleEdit = useCallback(() => {
+    onEdit(type)
+  }, [type, onEdit])
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-4">
-      {/* Color dot */}
-      <span
-        data-testid="type-color-dot"
-        className="size-3 shrink-0 rounded-full"
-        style={{ backgroundColor: resolveColor(type.color) }}
-      />
-
-      {/* Label — inline editable */}
-      <div className="min-w-0 flex-1">
-        {isEditing ? (
-          <input
-            ref={inputRef}
-            type="text"
-            value={editValue}
-            onChange={e => setEditValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onBlur={handleSave}
-            className="w-full rounded border border-input bg-background px-2 py-1 text-base text-foreground outline-none focus:border-primary"
-          />
-        ) : (
-          <span
-            className="cursor-pointer text-base text-foreground hover:text-primary"
-            onClick={handleStartEdit}
-          >
-            {type.label}
-          </span>
-        )}
+    <div className="mb-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+      {/* Drag handle */}
+      <div
+        data-testid="drag-handle"
+        className="flex shrink-0 cursor-grab items-center justify-center touch-none"
+        style={{ width: 44, height: 44 }}
+        {...dragHandleProps.attributes}
+        {...dragHandleProps.listeners}
+      >
+        <GripVertical size={20} className="text-muted-foreground" />
       </div>
 
-      {/* TypeId badge */}
-      <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-base text-muted-foreground">
-        {type.typeId}
+      {/* Priority badge */}
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-base text-muted-foreground">
+        {type.priority}
       </span>
+
+      {/* Label */}
+      <span className="min-w-0 flex-1 truncate text-base text-foreground">
+        {type.label}
+      </span>
+
+      {/* Edit button */}
+      <RippleButton
+        data-testid="edit-button"
+        aria-label={t('common.edit')}
+        className="flex size-9 items-center justify-center rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
+        onClick={handleEdit}
+      >
+        <Pencil size={16} />
+      </RippleButton>
     </div>
   )
 }
@@ -139,26 +72,128 @@ function TypeCard({ type, onLabelSaved }: TypeCardProps) {
 export function CommodityTypeSection() {
   const { t } = useTranslation()
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Edit modal state
+  const [editingType, setEditingType] = useState<CommodityType | null>(null)
+  const [editValue, setEditValue] = useState('')
+
   const commodityTypes = useDbQuery(
     () => getCommodityTypeRepo().findAll(),
     [refreshKey],
     [] as CommodityType[],
   )
 
-  const handleLabelSaved = useCallback(() => {
+  // Refresh data
+  const refresh = useCallback(() => {
     setRefreshKey(k => k + 1)
   }, [])
+
+  // Open edit modal
+  const handleEdit = useCallback((type: CommodityType) => {
+    setEditingType(type)
+    setEditValue(type.label)
+  }, [])
+
+  // Close edit modal
+  const handleEditClose = useCallback(() => {
+    setEditingType(null)
+    setEditValue('')
+  }, [])
+
+  // Save label change
+  const handleEditSave = useCallback(async () => {
+    if (!editingType) return
+
+    const trimmed = editValue.trim()
+    if (!trimmed || trimmed === editingType.label) {
+      handleEditClose()
+      return
+    }
+
+    try {
+      await getCommodityTypeRepo().update(editingType.id, { label: trimmed })
+      notify.success(t('productMgmt.types.labelUpdated'))
+      refresh()
+      handleEditClose()
+    } catch {
+      notify.error(t('productMgmt.types.saveError'))
+    }
+  }, [editingType, editValue, t, refresh, handleEditClose])
+
+  // Drag reorder
+  const handleReorder = useCallback(
+    async (orderedIds: readonly string[]) => {
+      try {
+        await getCommodityTypeRepo().updatePriorities([...orderedIds])
+        notify.success(t('productMgmt.types.toastReordered'))
+        refresh()
+      } catch {
+        notify.error(t('productMgmt.types.reorderError'))
+      }
+    },
+    [refresh, t],
+  )
 
   return (
     <section className="mb-8">
       <h2 className="mb-4 text-lg text-foreground">
         {t('productMgmt.types.title')}
       </h2>
-      <div className="grid grid-cols-2 gap-3">
-        {commodityTypes.map(ct => (
-          <TypeCard key={ct.id} type={ct} onLabelSaved={handleLabelSaved} />
-        ))}
-      </div>
+
+      {/* Sortable type list */}
+      <SortableList
+        items={commodityTypes}
+        getId={ct => ct.id}
+        renderItem={(ct, dragHandleProps) => (
+          <TypeRow
+            type={ct}
+            dragHandleProps={dragHandleProps}
+            onEdit={handleEdit}
+          />
+        )}
+        onReorder={handleReorder}
+      />
+
+      {/* Edit label modal */}
+      <Modal
+        open={!!editingType}
+        title={t('productMgmt.types.editLabel')}
+        variant="warm"
+        shineColor="purple"
+        onClose={handleEditClose}
+        footer={
+          <div className="flex justify-center gap-3">
+            <RippleButton
+              className="rounded-lg border border-border px-6 py-2 text-base text-muted-foreground hover:bg-accent"
+              onClick={handleEditClose}
+            >
+              {t('common.cancel')}
+            </RippleButton>
+            <RippleButton
+              className="rounded-lg bg-primary px-6 py-2 text-base text-primary-foreground hover:bg-primary/90"
+              onClick={handleEditSave}
+            >
+              {t('common.confirm')}
+            </RippleButton>
+          </div>
+        }
+      >
+        <div className="flex flex-col gap-1.5">
+          <label
+            htmlFor="commodity-type-label"
+            className="text-base text-foreground"
+          >
+            {t('productMgmt.types.labelField')}
+          </label>
+          <Input
+            id="commodity-type-label"
+            value={editValue}
+            onChange={e => setEditValue(e.target.value)}
+            placeholder={t('productMgmt.types.labelField')}
+            className="text-base"
+          />
+        </div>
+      </Modal>
     </section>
   )
 }

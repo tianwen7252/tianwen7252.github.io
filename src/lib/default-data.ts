@@ -265,9 +265,18 @@ export async function resetCommodityDataAsync(): Promise<void> {
     // Re-insert default commodity types
     for (const ct of DEFAULT_COMMODITY_TYPES) {
       await db.exec(
-        `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [ct.id, ct.typeId, ct.type, ct.label, ct.color, ct.createdAt, ct.updatedAt],
+        `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, priority, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          ct.id,
+          ct.typeId,
+          ct.type,
+          ct.label,
+          ct.color,
+          ct.priority,
+          ct.createdAt,
+          ct.updatedAt,
+        ],
       )
     }
 
@@ -298,7 +307,15 @@ export async function resetCommodityDataAsync(): Promise<void> {
       await db.exec(
         `INSERT OR IGNORE INTO order_types (id, name, priority, type, color, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [ot.id, ot.name, ot.priority, ot.type, ot.color ?? null, ot.createdAt, ot.updatedAt],
+        [
+          ot.id,
+          ot.name,
+          ot.priority,
+          ot.type,
+          ot.color ?? null,
+          ot.createdAt,
+          ot.updatedAt,
+        ],
       )
     }
 
@@ -313,14 +330,15 @@ export async function resetCommodityDataAsync(): Promise<void> {
 export function insertDefaultCommodities(db: Database): void {
   for (const ct of DEFAULT_COMMODITY_TYPES) {
     db.exec(
-      `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, priority, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         ct.id,
         ct.typeId,
         ct.type,
         ct.label,
         ct.color,
+        ct.priority,
         ct.createdAt,
         ct.updatedAt,
       ],

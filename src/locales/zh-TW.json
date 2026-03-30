@@ -410,7 +410,11 @@
     },
     "types": {
       "title": "商品種類",
+      "editLabel": "編輯種類名稱",
+      "labelField": "名稱",
       "labelUpdated": "種類名稱已更新",
+      "toastReordered": "排序已更新",
+      "reorderError": "排序失敗",
       "saveError": "儲存失敗，請重試"
     },
     "orderTypes": {

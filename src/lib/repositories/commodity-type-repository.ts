@@ -12,6 +12,7 @@ export interface CommodityTypeRepository {
     data: Partial<CreateCommodityType>,
   ): Promise<CommodityType | undefined>
   remove(id: string): Promise<boolean>
+  updatePriorities(ids: string[]): Promise<void>
 }
 
 /**
@@ -24,6 +25,7 @@ function toCommodityType(row: Record<string, unknown>): CommodityType {
     type: String(row['type']),
     label: String(row['label']),
     color: String(row['color'] ?? ''),
+    priority: Number(row['priority'] ?? 0),
     createdAt: Number(row['created_at']),
     updatedAt: Number(row['updated_at']),
   }
@@ -35,7 +37,7 @@ export function createCommodityTypeRepository(
   return {
     async findAll() {
       const result = await db.exec<Record<string, unknown>>(
-        'SELECT * FROM commodity_types ORDER BY id ASC',
+        'SELECT * FROM commodity_types ORDER BY priority ASC, id ASC',
       )
       return result.rows.map(toCommodityType)
     },
@@ -62,9 +64,18 @@ export function createCommodityTypeRepository(
       const id = nanoid()
       const now = Date.now()
       await db.exec(
-        `INSERT INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [id, data.typeId, data.type, data.label, data.color, now, now],
+        `INSERT INTO commodity_types (id, type_id, type, label, color, priority, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          data.typeId,
+          data.type,
+          data.label,
+          data.color,
+          data.priority ?? 0,
+          now,
+          now,
+        ],
       )
       const created = await this.findById(id)
       if (!created)
@@ -97,6 +108,10 @@ export function createCommodityTypeRepository(
         fields.push('color = ?')
         values.push(data.color)
       }
+      if (data.priority !== undefined) {
+        fields.push('priority = ?')
+        values.push(data.priority)
+      }
 
       if (fields.length === 0) return existing
 
@@ -117,6 +132,16 @@ export function createCommodityTypeRepository(
         id,
       ])
       return result.changes > 0
+    },
+
+    async updatePriorities(ids: string[]) {
+      const now = Date.now()
+      for (let i = 0; i < ids.length; i++) {
+        await db.exec(
+          'UPDATE commodity_types SET priority = ?, updated_at = ? WHERE id = ?',
+          [i + 1, now, ids[i]],
+        )
+      }
     },
   }
 }

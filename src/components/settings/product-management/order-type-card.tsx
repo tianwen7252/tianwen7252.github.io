@@ -13,13 +13,14 @@ import type { DragHandleProps } from './sortable-list'
 
 // ── Color mapping for the color dot ──────────────────────────────────────
 
+// Color mapping using theme CSS variables
 const COLOR_MAP: Record<string, string> = {
-  green: 'bg-green-500',
-  blue: 'bg-blue-500',
-  yellow: 'bg-yellow-500',
-  red: 'bg-red-500',
-  purple: 'bg-purple-500',
-  gray: 'bg-gray-400',
+  green: 'var(--color-green)',
+  blue: 'var(--color-blue)',
+  yellow: 'var(--color-yellow)',
+  red: 'var(--color-red)',
+  purple: '#9333ea',
+  gray: '#9ca3af',
 }
 
 interface OrderTypeCardProps {
@@ -43,7 +44,7 @@ export function OrderTypeCard({
   const { t } = useTranslation()
 
   const isDefault = isDefaultOrderType(orderType.id)
-  const colorClass = orderType.color ? COLOR_MAP[orderType.color] : undefined
+  const colorValue = orderType.color ? COLOR_MAP[orderType.color] : undefined
 
   const handleEdit = useCallback(() => {
     onEdit(orderType)
@@ -67,10 +68,11 @@ export function OrderTypeCard({
       </div>
 
       {/* Color dot */}
-      {colorClass && (
+      {colorValue && (
         <span
           data-testid="color-dot"
-          className={`size-3 shrink-0 rounded-full ${colorClass}`}
+          className="size-3 shrink-0 rounded-full"
+          style={{ backgroundColor: colorValue }}
         />
       )}
 

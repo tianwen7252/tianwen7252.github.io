@@ -14,6 +14,7 @@ export const CREATE_TABLES = `
     type TEXT NOT NULL,
     label TEXT NOT NULL,
     color TEXT NOT NULL DEFAULT '',
+    priority INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
@@ -254,6 +255,15 @@ function runMigrations(exec: (sql: string) => void): void {
   exec(
     'CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)',
   )
+
+  // V2-PM: Add priority column to commodity_types for drag-and-drop reorder
+  try {
+    exec(
+      'ALTER TABLE commodity_types ADD COLUMN priority INTEGER NOT NULL DEFAULT 0',
+    )
+  } catch {
+    // Column already exists -- safe to ignore
+  }
 
   // V2-130: Add backup_logs table
   exec(`CREATE TABLE IF NOT EXISTS backup_logs (

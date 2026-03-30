@@ -1,5 +1,5 @@
 /**
- * CommodityForm — Modal form for add/edit commodity.
+ * CommodityForm -- Modal form for add/edit commodity.
  * Uses React Hook Form + Zod for validation.
  * Opens in Modal from @/components/modal.
  */
@@ -27,7 +27,6 @@ export interface CommodityFormProps {
 const DEFAULT_VALUES: CommodityFormValues = {
   name: '',
   price: 0,
-  hideOnMode: '',
   includesSoup: false,
 }
 
@@ -36,24 +35,9 @@ function commodityToFormValues(c: Commodity): CommodityFormValues {
   return {
     name: c.name,
     price: c.price,
-    hideOnMode: (c.hideOnMode ?? '') as CommodityFormValues['hideOnMode'],
     includesSoup: c.includesSoup,
   }
 }
-
-/** hideOnMode select options. */
-const HIDE_MODE_OPTIONS = [
-  { value: '', i18nKey: 'productMgmt.commodities.hideOnModeNone' },
-  {
-    value: 'calculator',
-    i18nKey: 'productMgmt.commodities.hideOnModeCalculator',
-  },
-  {
-    value: 'commondity',
-    i18nKey: 'productMgmt.commodities.hideOnModeCommodity',
-  },
-  { value: 'both', i18nKey: 'productMgmt.commodities.hideOnModeBoth' },
-] as const
 
 export function CommodityForm({
   open,
@@ -159,29 +143,8 @@ export function CommodityForm({
           )}
         </div>
 
-        {/* hideOnMode field */}
+        {/* includesSoup toggle -- label and switch on separate lines */}
         <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor="commodity-hide-mode"
-            className="text-base text-foreground"
-          >
-            {t('productMgmt.commodities.hideOnMode')}
-          </label>
-          <select
-            id="commodity-hide-mode"
-            {...form.register('hideOnMode')}
-            className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base"
-          >
-            {HIDE_MODE_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>
-                {t(opt.i18nKey)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* includesSoup toggle */}
-        <div className="flex items-center justify-between">
           <span className="text-base text-foreground">
             {t('productMgmt.commodities.includesSoup')}
           </span>
