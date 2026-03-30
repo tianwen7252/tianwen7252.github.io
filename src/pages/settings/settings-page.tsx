@@ -12,7 +12,7 @@ import { AuthGuard } from '@/components/auth-guard'
 interface Tab {
   readonly path: string
   readonly labelKey: string
-  readonly guard?: 'backup' | 'staffAdmin'
+  readonly guard?: 'backup' | 'staffAdmin' | 'productAdmin'
 }
 
 const TABS: readonly Tab[] = [
@@ -27,6 +27,11 @@ const TABS: readonly Tab[] = [
     path: '/settings/staff-admin',
     labelKey: 'nav.staffAdmin',
     guard: 'staffAdmin',
+  },
+  {
+    path: '/settings/product-management',
+    labelKey: 'productMgmt.tabTitle',
+    guard: 'productAdmin',
   },
 ]
 

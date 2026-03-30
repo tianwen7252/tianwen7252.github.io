@@ -11,6 +11,7 @@ import type {
   OrderType,
 } from '@/lib/schemas'
 import type { Database } from '@/lib/database'
+import { getDatabase } from '@/lib/repositories/provider'
 import {
   EMPLOYEE_SEEDS,
   COMMODITY_TYPE_SEEDS,
@@ -245,6 +246,67 @@ export function resetCommodityData(db: Database): void {
   db.exec('DELETE FROM order_types')
   insertDefaultCommodities(db)
   insertDefaultOrderTypes(db)
+}
+
+/**
+ * Async version of resetCommodityData for use from the main thread.
+ * Deletes all commodities, commodity_types, and order_types via AsyncDatabase,
+ * then re-inserts defaults. Does NOT touch employees or attendances.
+ */
+export async function resetCommodityDataAsync(): Promise<void> {
+  const db = getDatabase()
+
+  await db.exec('BEGIN')
+  try {
+    await db.exec('DELETE FROM commodities')
+    await db.exec('DELETE FROM commodity_types')
+    await db.exec('DELETE FROM order_types')
+
+    // Re-insert default commodity types
+    for (const ct of DEFAULT_COMMODITY_TYPES) {
+      await db.exec(
+        `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [ct.id, ct.typeId, ct.type, ct.label, ct.color, ct.createdAt, ct.updatedAt],
+      )
+    }
+
+    // Re-insert default commodities
+    for (const com of DEFAULT_COMMODITIES) {
+      await db.exec(
+        `INSERT OR IGNORE INTO commodities (id, type_id, name, image, price, priority, on_market, hide_on_mode, editor, includes_soup, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          com.id,
+          com.typeId,
+          com.name,
+          com.image ?? null,
+          com.price,
+          com.priority,
+          com.onMarket ? 1 : 0,
+          com.hideOnMode ?? null,
+          com.editor ?? null,
+          com.includesSoup ? 1 : 0,
+          com.createdAt,
+          com.updatedAt,
+        ],
+      )
+    }
+
+    // Re-insert default order types
+    for (const ot of DEFAULT_ORDER_TYPES) {
+      await db.exec(
+        `INSERT OR IGNORE INTO order_types (id, name, priority, type, color, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [ot.id, ot.name, ot.priority, ot.type, ot.color ?? null, ot.createdAt, ot.updatedAt],
+      )
+    }
+
+    await db.exec('COMMIT')
+  } catch (err) {
+    await db.exec('ROLLBACK')
+    throw err
+  }
 }
 
 /** Insert all default commodity types and commodities into the database. Skips existing rows. */

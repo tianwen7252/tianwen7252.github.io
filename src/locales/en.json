@@ -116,6 +116,7 @@
     "title": "Access Denied",
     "staffAdminSubtitle": "This page is for admins only. Please sign in with an admin account.",
     "backupSubtitle": "This feature is for admins only. Please sign in with an admin account.",
+    "productAdminSubtitle": "Admin access required to manage product settings.",
     "login": "Admin Login",
     "logout": "Logout",
     "adminOnly": "Admin Only",
@@ -399,6 +400,14 @@
     "countCol": "Count"
   },
   "productMgmt": {
+    "tabTitle": "Products",
+    "reset": {
+      "button": "Reset to Default",
+      "confirmTitle": "Confirm Reset",
+      "confirmMessage": "Reset all commodity types, products, and order types to defaults? This cannot be undone. Employee and attendance data will not be affected.",
+      "success": "Data reset successfully",
+      "error": "Reset failed"
+    },
     "types": {
       "title": "Commodity Types",
       "labelUpdated": "Type label updated",

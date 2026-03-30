@@ -116,6 +116,7 @@
     "title": "權限不足",
     "staffAdminSubtitle": "此頁面僅限管理員使用，請以管理員帳號登入",
     "backupSubtitle": "此功能僅限管理員使用，請以管理員帳號登入",
+    "productAdminSubtitle": "需要管理員權限才能管理商品設定",
     "login": "管理員登入",
     "logout": "登出",
     "adminOnly": "僅限管理員",
@@ -399,6 +400,14 @@
     "countCol": "次數"
   },
   "productMgmt": {
+    "tabTitle": "商品管理",
+    "reset": {
+      "button": "還原預設",
+      "confirmTitle": "確認還原預設",
+      "confirmMessage": "確定要將所有商品種類、商品和訂單分類還原為預設值嗎？此操作無法復原。員工和打卡資料不受影響。",
+      "success": "資料已還原成功",
+      "error": "還原失敗"
+    },
     "types": {
       "title": "商品種類",
       "labelUpdated": "種類名稱已更新",
