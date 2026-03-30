@@ -396,6 +396,36 @@
     "noteCol": "備註",
     "countCol": "次數"
   },
+  "productMgmt": {
+    "types": {
+      "title": "商品種類",
+      "labelUpdated": "種類名稱已更新",
+      "saveError": "儲存失敗，請重試"
+    },
+    "commodities": {
+      "title": "商品設定",
+      "addProduct": "新增商品",
+      "editProduct": "編輯商品",
+      "name": "品名",
+      "price": "價格",
+      "hideOnMode": "鍵盤顯示",
+      "hideOnModeNone": "皆顯示",
+      "hideOnModeCalculator": "僅計算機",
+      "hideOnModeCommodity": "僅商品",
+      "hideOnModeBoth": "皆不顯示",
+      "includesSoup": "附湯",
+      "deleteConfirmTitle": "確認刪除商品",
+      "deleteConfirmMessage": "確定要刪除「{{name}}」嗎？",
+      "toastAdded": "商品已新增",
+      "toastUpdated": "商品已更新",
+      "toastDeleted": "商品已刪除",
+      "toastReordered": "排序已更新",
+      "itemCount": "{{count}} 項",
+      "saveError": "儲存失敗，請重試",
+      "deleteError": "刪除失敗，請重試",
+      "reorderError": "排序失敗，請重試"
+    }
+  },
   "backup": {
     "tabTitle": "雲端備份",
     "cloudSize": "雲端資料庫大小",

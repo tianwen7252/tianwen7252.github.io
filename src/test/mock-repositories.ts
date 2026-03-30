@@ -6,12 +6,20 @@
 
 import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
-import { DEFAULT_EMPLOYEES } from '@/lib/default-data'
+import {
+  DEFAULT_EMPLOYEES,
+  DEFAULT_COMMODITY_TYPES,
+  DEFAULT_COMMODITIES,
+} from '@/lib/default-data'
 import type {
   Employee,
   CreateEmployee,
   Attendance,
   CreateAttendance,
+  CommodityType,
+  CreateCommodityType,
+  Commodity,
+  CreateCommodity,
 } from '@/lib/schemas'
 import type {
   StatisticsRepository,
@@ -71,10 +79,14 @@ function buildTestAttendances(): readonly Attendance[] {
 
 let employees: Employee[] = []
 let attendances: Attendance[] = []
+let commodityTypes: CommodityType[] = []
+let commodities: Commodity[] = []
 
 function resetState(): void {
   employees = DEFAULT_EMPLOYEES.map(e => ({ ...e }))
   attendances = [...buildTestAttendances()]
+  commodityTypes = DEFAULT_COMMODITY_TYPES.map(ct => ({ ...ct }))
+  commodities = DEFAULT_COMMODITIES.filter(c => c.onMarket).map(c => ({ ...c }))
 }
 
 // Initialize on load
@@ -196,6 +208,125 @@ export const mockAttendanceRepo = {
   },
 }
 
+// ─── Mock CommodityType Repository ────────────────────────────────────────
+
+export const mockCommodityTypeRepo = {
+  async findAll(): Promise<CommodityType[]> {
+    return [...commodityTypes]
+  },
+
+  async findById(id: string): Promise<CommodityType | undefined> {
+    return commodityTypes.find(ct => ct.id === id)
+  },
+
+  async findByTypeId(typeId: string): Promise<CommodityType | undefined> {
+    return commodityTypes.find(ct => ct.typeId === typeId)
+  },
+
+  async create(data: CreateCommodityType): Promise<CommodityType> {
+    const now = Date.now()
+    const newType: CommodityType = {
+      ...data,
+      id: nanoid(),
+      createdAt: now,
+      updatedAt: now,
+    }
+    commodityTypes = [...commodityTypes, newType]
+    return newType
+  },
+
+  async update(
+    id: string,
+    data: Partial<CreateCommodityType>,
+  ): Promise<CommodityType | undefined> {
+    const index = commodityTypes.findIndex(ct => ct.id === id)
+    if (index === -1) return undefined
+
+    const updated: CommodityType = {
+      ...commodityTypes[index]!,
+      ...data,
+      updatedAt: Date.now(),
+    }
+    commodityTypes = commodityTypes.map((ct, i) => (i === index ? updated : ct))
+    return updated
+  },
+
+  async remove(id: string): Promise<boolean> {
+    const before = commodityTypes.length
+    commodityTypes = commodityTypes.filter(ct => ct.id !== id)
+    return commodityTypes.length < before
+  },
+}
+
+// ─── Mock Commodity Repository ────────────────────────────────────────────
+
+export const mockCommodityRepo = {
+  async findAll(): Promise<Commodity[]> {
+    return [...commodities].sort((a, b) => a.priority - b.priority)
+  },
+
+  async findByTypeId(typeId: string): Promise<Commodity[]> {
+    return commodities
+      .filter(c => c.typeId === typeId && c.onMarket)
+      .sort((a, b) => a.priority - b.priority)
+  },
+
+  async findById(id: string): Promise<Commodity | undefined> {
+    return commodities.find(c => c.id === id)
+  },
+
+  async findOnMarket(): Promise<Commodity[]> {
+    return commodities
+      .filter(c => c.onMarket)
+      .sort((a, b) => a.priority - b.priority)
+  },
+
+  async create(data: CreateCommodity): Promise<Commodity> {
+    const now = Date.now()
+    const newCommodity: Commodity = {
+      ...data,
+      id: nanoid(),
+      createdAt: now,
+      updatedAt: now,
+    }
+    commodities = [...commodities, newCommodity]
+    return newCommodity
+  },
+
+  async update(
+    id: string,
+    data: Partial<CreateCommodity>,
+  ): Promise<Commodity | undefined> {
+    const index = commodities.findIndex(c => c.id === id)
+    if (index === -1) return undefined
+
+    const updated: Commodity = {
+      ...commodities[index]!,
+      ...data,
+      updatedAt: Date.now(),
+    }
+    commodities = commodities.map((c, i) => (i === index ? updated : c))
+    return updated
+  },
+
+  async remove(id: string): Promise<boolean> {
+    const before = commodities.length
+    commodities = commodities.filter(c => c.id !== id)
+    return commodities.length < before
+  },
+
+  async updatePriorities(ids: string[]): Promise<void> {
+    for (let i = 0; i < ids.length; i++) {
+      const idx = commodities.findIndex(c => c.id === ids[i])
+      if (idx !== -1) {
+        commodities = commodities.map((c, j) =>
+          j === idx ? { ...c, priority: i + 1, updatedAt: Date.now() } : c,
+        )
+      }
+    }
+  },
+}
+
 // ─── Reset helper for tests ────────────────────────────────────────────────
 
 export function resetMockRepositories(): void {
@@ -278,6 +409,14 @@ export function getEmployeeRepo() {
 
 export function getAttendanceRepo() {
   return mockAttendanceRepo
+}
+
+export function getCommodityTypeRepo() {
+  return mockCommodityTypeRepo
+}
+
+export function getCommodityRepo() {
+  return mockCommodityRepo
 }
 
 export function getStatisticsRepo() {

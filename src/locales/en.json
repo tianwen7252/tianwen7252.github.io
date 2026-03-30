@@ -396,6 +396,36 @@
     "noteCol": "Note",
     "countCol": "Count"
   },
+  "productMgmt": {
+    "types": {
+      "title": "Commodity Types",
+      "labelUpdated": "Type label updated",
+      "saveError": "Failed to save, please try again"
+    },
+    "commodities": {
+      "title": "Commodity Settings",
+      "addProduct": "Add Product",
+      "editProduct": "Edit Product",
+      "name": "Product Name",
+      "price": "Price",
+      "hideOnMode": "Display Mode",
+      "hideOnModeNone": "Show All",
+      "hideOnModeCalculator": "Calculator Only",
+      "hideOnModeCommodity": "Product Only",
+      "hideOnModeBoth": "Hidden",
+      "includesSoup": "Includes Soup",
+      "deleteConfirmTitle": "Confirm Delete Product",
+      "deleteConfirmMessage": "Delete '{{name}}'?",
+      "toastAdded": "Product added",
+      "toastUpdated": "Product updated",
+      "toastDeleted": "Product deleted",
+      "toastReordered": "Order updated",
+      "itemCount": "{{count}} items",
+      "saveError": "Failed to save, please try again",
+      "deleteError": "Failed to delete, please try again",
+      "reorderError": "Failed to reorder, please try again"
+    }
+  },
   "backup": {
     "tabTitle": "Cloud Backup",
     "cloudSize": "Cloud DB Size",
