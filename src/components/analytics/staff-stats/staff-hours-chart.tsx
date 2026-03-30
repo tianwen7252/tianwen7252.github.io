@@ -48,7 +48,7 @@ function buildChartData(data: EmployeeHours[]): ChartRow[] {
   return data
     .map(row => ({
       name: row.employeeName,
-      totalHours: row.regular + row.paidLeave + row.sickLeave + row.personalLeave,
+      totalHours: Math.round(row.regular + row.paidLeave + row.sickLeave + row.personalLeave),
     }))
     .sort((a, b) => b.totalHours - a.totalHours)
 }
