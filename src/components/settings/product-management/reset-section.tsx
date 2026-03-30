@@ -21,6 +21,7 @@ export function ResetSection() {
     setIsLoading(true)
     try {
       await resetCommodityDataAsync()
+      setIsOpen(false)
       notify.success(t('productMgmt.reset.success'))
       setTimeout(() => {
         window.location.reload()
