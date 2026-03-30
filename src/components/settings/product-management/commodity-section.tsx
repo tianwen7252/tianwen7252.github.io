@@ -267,16 +267,22 @@ export function CommoditySection() {
       <SortableList
         items={displayedCommodities}
         getId={c => c.id}
-        renderItem={(commodity, dragHandleProps) => (
-          <SwipeToDelete onDelete={() => handleDeleteClick(commodity)}>
+        renderItem={(commodity, dragHandleProps) => {
+          const card = (
             <CommodityCard
               commodity={commodity}
               dragHandleProps={dragHandleProps}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
             />
-          </SwipeToDelete>
-        )}
+          )
+          // Skip SwipeToDelete in DragOverlay (overflow-hidden clips the ring)
+          return dragHandleProps.isOverlay ? card : (
+            <SwipeToDelete onDelete={() => handleDeleteClick(commodity)}>
+              {card}
+            </SwipeToDelete>
+          )
+        }}
         onReorder={handleReorder}
       />
 

@@ -186,16 +186,21 @@ export function OrderTypeSection() {
       <SortableList
         items={displayedOrderTypes}
         getId={ot => ot.id}
-        renderItem={(orderType, dragHandleProps) => (
-          <SwipeToDelete onDelete={() => handleDeleteClick(orderType)}>
+        renderItem={(orderType, dragHandleProps) => {
+          const card = (
             <OrderTypeCard
               orderType={orderType}
               dragHandleProps={dragHandleProps}
               onEdit={handleEdit}
               onDelete={handleDeleteClick}
             />
-          </SwipeToDelete>
-        )}
+          )
+          return dragHandleProps.isOverlay ? card : (
+            <SwipeToDelete onDelete={() => handleDeleteClick(orderType)}>
+              {card}
+            </SwipeToDelete>
+          )
+        }}
         onReorder={handleReorder}
       />
 
