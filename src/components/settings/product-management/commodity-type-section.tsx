@@ -32,7 +32,7 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
   }, [type, onEdit])
 
   return (
-    <div className="mb-2 flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
       {/* Drag handle */}
       <div
         data-testid="drag-handle"

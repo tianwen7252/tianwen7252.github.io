@@ -112,7 +112,7 @@ function SortableItem<T>({ item, id, renderItem }: SortableItemProps<T>) {
   const dragHandleProps: DragHandleProps = { attributes, listeners }
 
   return (
-    <div ref={setNodeRef} style={style}>
+    <div ref={setNodeRef} style={style} className="mb-2">
       {renderItem(item, dragHandleProps)}
     </div>
   )
@@ -204,7 +204,7 @@ export function SortableList<T>({
 
       <DragOverlay dropAnimation={DROP_ANIMATION}>
         {activeItem ? (
-          <div className="[&>*]:ring-2 [&>*]:ring-primary">
+          <div className="rounded-lg ring-2 ring-primary">
             {renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)}
           </div>
         ) : null}
