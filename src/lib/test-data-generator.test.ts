@@ -297,18 +297,21 @@ describe('generateOrdersForDay', () => {
     }
   })
 
-  it('memo contains item descriptions', () => {
+  it('memo contains item descriptions or a single source tag', () => {
     const rng = createSeededRandom(42)
-    const result = generateOrdersForDay(TEST_DATE, TEST_COMMODITIES, 10, rng)
+    const result = generateOrdersForDay(TEST_DATE, TEST_COMMODITIES, 200, rng)
 
     const ORDER_TAGS = ['攤位', '外送', '電話自取']
     for (const order of result.orders) {
       expect(order.memo.length).toBeGreaterThan(0)
-      for (const entry of order.memo) {
-        // Each memo entry is either 'name xN' or an order tag
-        const isItemEntry = /.+ x\d+/.test(entry)
-        const isTag = ORDER_TAGS.includes(entry)
-        expect(isItemEntry || isTag).toBe(true)
+
+      // Memo is either all item entries OR a single source tag
+      const isSingleTag =
+        order.memo.length === 1 && ORDER_TAGS.includes(order.memo[0]!)
+      if (!isSingleTag) {
+        for (const entry of order.memo) {
+          expect(entry).toMatch(/.+ x\d+/)
+        }
       }
     }
   })

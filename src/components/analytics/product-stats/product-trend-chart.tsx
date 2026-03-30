@@ -4,7 +4,7 @@
  * Pie is not applicable for this data type.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   LineChart,
@@ -41,6 +41,8 @@ import {
   SelectValue,
   SelectContent,
   SelectItem,
+  SelectGroup,
+  SelectLabel,
 } from '@/components/ui/select'
 import { ChartEmpty } from '@/components/analytics/chart-empty'
 import { RippleButton } from '@/components/ui/ripple-button'
@@ -48,6 +50,7 @@ import { cn } from '@/lib/cn'
 import { useAppStore } from '@/stores/app-store'
 import { CHART_PALETTES } from '@/lib/analytics/chart-colors'
 import type { DailyRevenue } from '@/lib/repositories/statistics-repository'
+import type { CommodityType } from '@/types/database'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -56,11 +59,13 @@ type ViewMode = 'line' | 'bar' | 'table'
 interface CommodityOption {
   id: string
   name: string
+  typeId: string
 }
 
 interface ProductTrendChartProps {
   data: DailyRevenue[]
   commodities: CommodityOption[]
+  commodityTypes: CommodityType[]
   selectedId: string
   onSelectChange: (id: string) => void
 }
@@ -89,6 +94,7 @@ function buildChartData(data: DailyRevenue[]): ChartRow[] {
 export function ProductTrendChart({
   data,
   commodities,
+  commodityTypes,
   selectedId,
   onSelectChange,
 }: ProductTrendChartProps) {
@@ -96,6 +102,29 @@ export function ProductTrendChart({
   const fontSize = useAppStore().fontSize
   const [viewMode, setViewMode] = useState<ViewMode>('line')
   const chartData = buildChartData(data)
+
+  // Group commodities by type for SelectGroup
+  const groupedCommodities = useMemo(() => {
+    const typeMap = new Map(commodityTypes.map(ct => [ct.typeId, ct.label]))
+    const groups = new Map<
+      string,
+      { label: string; items: CommodityOption[] }
+    >()
+
+    for (const c of commodities) {
+      const existing = groups.get(c.typeId)
+      if (existing) {
+        existing.items.push(c)
+      } else {
+        groups.set(c.typeId, {
+          label: typeMap.get(c.typeId) ?? c.typeId,
+          items: [c],
+        })
+      }
+    }
+
+    return [...groups.values()]
+  }, [commodities, commodityTypes])
 
   // Palette 1: Moss Forest
   const chartConfig = {
@@ -135,10 +164,15 @@ export function ProductTrendChart({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {commodities.map(c => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
+                {groupedCommodities.map(group => (
+                  <SelectGroup key={group.label}>
+                    <SelectLabel>{group.label}</SelectLabel>
+                    {group.items.map(c => (
+                      <SelectItem key={c.id} value={c.id}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 ))}
               </SelectContent>
             </Select>

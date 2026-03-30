@@ -102,6 +102,7 @@ function ProductStats({
         <ProductTrendChart
           data={data.productTrendData}
           commodities={data.commodities}
+          commodityTypes={data.commodityTypes}
           selectedId={data.selectedCommodityId}
           onSelectChange={data.onSelectCommodityChange}
         />

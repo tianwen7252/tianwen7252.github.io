@@ -40,7 +40,7 @@ export interface ProductChartData {
   prevMonthData: DailyRevenue[]
   avgOrderValue: DailyRevenue[]
   productTrendData: DailyRevenue[]
-  commodities: Array<{ id: string; name: string }>
+  commodities: Array<{ id: string; name: string; typeId: string }>
   selectedCommodityId: string
   onSelectCommodityChange: (id: string) => void
   heatmapData: DailyRevenue[]
@@ -79,7 +79,7 @@ export function useProductChartData({
   const [avgOrderValue, setAvgOrderValue] = useState<DailyRevenue[]>([])
   const [productTrendData, setProductTrendData] = useState<DailyRevenue[]>([])
   const [commodities, setCommodities] = useState<
-    Array<{ id: string; name: string }>
+    Array<{ id: string; name: string; typeId: string }>
   >([])
   const [selectedCommodityId, setSelectedCommodityId] = useState<string>('')
   const [error, setError] = useState<string | null>(null)
@@ -234,12 +234,14 @@ export function useProductChartData({
       .then(({ getCommodityRepo, getCommodityTypeRepo }) => {
         // Fetch both commodities and types in parallel
         const commoditiesPromise = ((): Promise<
-          Array<{ id: string; name: string }>
+          Array<{ id: string; name: string; typeId: string }>
         > => {
           try {
             return getCommodityRepo()
               .findOnMarket()
-              .then(items => items.map(c => ({ id: c.id, name: c.name })))
+              .then(items =>
+                items.map(c => ({ id: c.id, name: c.name, typeId: c.typeId })),
+              )
           } catch {
             return Promise.resolve([])
           }

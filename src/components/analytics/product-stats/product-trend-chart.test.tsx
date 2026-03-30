@@ -52,6 +52,12 @@ vi.mock('@/components/ui/select', () => ({
   SelectItem: ({ children, value }: { children: ReactNode; value: string }) => (
     <div data-testid={`select-item-${value}`}>{children}</div>
   ),
+  SelectGroup: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-group">{children}</div>
+  ),
+  SelectLabel: ({ children }: { children: ReactNode }) => (
+    <div data-testid="select-label">{children}</div>
+  ),
 }))
 
 vi.mock('@/stores/app-store', () => ({
@@ -63,9 +69,21 @@ import { ProductTrendChart } from './product-trend-chart'
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 const COMMODITIES = [
-  { id: 'com-001', name: '招牌便當' },
-  { id: 'com-002', name: '排骨便當' },
-  { id: 'com-003', name: '雞腿便當' },
+  { id: 'com-001', name: '招牌便當', typeId: 'bento' },
+  { id: 'com-002', name: '排骨便當', typeId: 'bento' },
+  { id: 'com-003', name: '雞腿便當', typeId: 'bento' },
+]
+
+const COMMODITY_TYPES = [
+  {
+    id: 'ct-001',
+    typeId: 'bento',
+    type: 'main-dish',
+    label: '餐盒',
+    color: 'green',
+    createdAt: 0,
+    updatedAt: 0,
+  },
 ]
 
 function buildTrendData(): DailyRevenue[] {
@@ -84,6 +102,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -98,6 +117,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -110,6 +130,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -122,6 +143,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -136,6 +158,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -148,6 +171,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -164,6 +188,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={[]}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -176,6 +201,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={[]}
           commodities={[]}
+          commodityTypes={[]}
           selectedId=""
           onSelectChange={vi.fn()}
         />,
@@ -188,6 +214,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={[]}
           commodities={[]}
+          commodityTypes={[]}
           selectedId=""
           onSelectChange={vi.fn()}
         />,
@@ -201,7 +228,8 @@ describe('ProductTrendChart', () => {
       render(
         <ProductTrendChart
           data={buildTrendData()}
-          commodities={[{ id: 'com-001', name: '招牌便當' }]}
+          commodities={[{ id: 'com-001', name: '招牌便當', typeId: 'bento' }]}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
@@ -216,6 +244,7 @@ describe('ProductTrendChart', () => {
         <ProductTrendChart
           data={buildTrendData()}
           commodities={COMMODITIES}
+          commodityTypes={COMMODITY_TYPES}
           selectedId="com-001"
           onSelectChange={vi.fn()}
         />,
