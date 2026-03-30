@@ -10,6 +10,7 @@ import { Modal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
 import { notify } from '@/components/ui/sonner'
+import { ShineBorder } from '@/components/ui/shine-border'
 import { cn } from '@/lib/cn'
 import { getCommodityTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
@@ -34,9 +35,11 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
 
   return (
     <div className={cn(
-      'flex items-center gap-3 rounded-lg border border-border bg-card p-3',
-      dragHandleProps.isOverlay && 'ring-2 ring-primary',
+      'relative flex items-center gap-3 rounded-lg border border-border bg-card p-3',
     )}>
+      {dragHandleProps.isOverlay && (
+        <ShineBorder shineColor={['#a8c896', '#c8deb8', '#e4fad9']} duration={4} borderWidth={2} />
+      )}
       {/* Drag handle */}
       <div
         data-testid="drag-handle"
