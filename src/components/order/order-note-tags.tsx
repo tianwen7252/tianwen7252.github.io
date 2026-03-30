@@ -9,11 +9,10 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover'
-
-// ─── Constants ──────────────────────────────────────────────────────────────
-
-const DEFAULT_TAGS = ['攤位', '外送', '電話自取'] as const
-const STORAGE_KEY = 'order-note-tags'
+import { getOrderTypeRepo } from '@/lib/repositories'
+import { notify } from '@/components/ui/sonner'
+import { useDbQuery } from '@/hooks/use-db-query'
+import type { OrderType } from '@/lib/schemas'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -24,47 +23,48 @@ interface OrderNoteTagsProps {
   readonly onSelectedTagsChange: (tags: string[]) => void
 }
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/** Load custom tags from localStorage. Returns empty array on failure. */
-function loadCustomTags(): string[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return []
-    const parsed: unknown = JSON.parse(raw)
-    if (!Array.isArray(parsed)) return []
-    return parsed.filter((item): item is string => typeof item === 'string')
-  } catch {
-    return []
-  }
-}
-
-/** Save custom tags to localStorage. */
-function saveCustomTags(tags: readonly string[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(tags))
-  } catch {
-    // Quota exceeded or private browsing — tags remain in memory for this session
-  }
+interface TagItem {
+  readonly id: string
+  readonly name: string
+  readonly isDefault: boolean
 }
 
 // ─── Component ──────────────────────────────────────────────────────────────
 
 /**
  * Renders order note tags (default + custom) as toggleable pills.
- * Custom tags are persisted to localStorage.
+ * Tags are loaded from the order_types DB table.
  */
 export function OrderNoteTags({
   selectedTags,
   onSelectedTagsChange,
 }: OrderNoteTagsProps) {
   const { t } = useTranslation()
-  const [customTags, setCustomTags] =
-    useState<readonly string[]>(loadCustomTags)
+  const [refreshKey, setRefreshKey] = useState(0)
   const [inputValue, setInputValue] = useState('')
   const [pendingDeleteTag, setPendingDeleteTag] = useState<string | null>(null)
 
-  const allTags = useMemo(() => [...DEFAULT_TAGS, ...customTags], [customTags])
+  // Load all order types from DB
+  const orderTypes = useDbQuery(
+    () => getOrderTypeRepo().findAll(),
+    [refreshKey],
+    [] as OrderType[],
+  )
+
+  // Map order types to tag items
+  const allTags: readonly TagItem[] = useMemo(
+    () =>
+      orderTypes.map(ot => ({
+        id: ot.id,
+        name: ot.name,
+        isDefault: ot.id.startsWith('ot-'),
+      })),
+    [orderTypes],
+  )
+
+  const refresh = useCallback(() => {
+    setRefreshKey(k => k + 1)
+  }, [])
 
   const handleToggleTag = useCallback(
     (tag: string) => {
@@ -78,41 +78,55 @@ export function OrderNoteTags({
   )
 
   const handleAddTag = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    async (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key !== 'Enter') return
       const trimmed = inputValue.trim()
       if (!trimmed) return
 
       // Reject duplicates
-      if (allTags.includes(trimmed)) {
+      if (allTags.some(tag => tag.name === trimmed)) {
         setInputValue('')
         return
       }
 
-      const nextCustomTags = [...customTags, trimmed]
-      setCustomTags(nextCustomTags)
-      saveCustomTags(nextCustomTags)
+      // Determine next priority
+      const maxPriority = orderTypes.reduce(
+        (max, ot) => Math.max(max, ot.priority),
+        0,
+      )
+
+      try {
+        await getOrderTypeRepo().create({
+          name: trimmed,
+          priority: maxPriority + 1,
+          type: 'order',
+          color: '',
+        })
+        refresh()
+      } catch {
+        notify.error(t('order.addTagError'))
+      }
+
       setInputValue('')
     },
-    [inputValue, allTags, customTags],
+    [inputValue, allTags, orderTypes, refresh, t],
   )
 
   const handleDeleteTag = useCallback(
-    (tag: string) => {
-      const nextCustomTags = customTags.filter(t => t !== tag)
-      setCustomTags(nextCustomTags)
-      saveCustomTags(nextCustomTags)
-
-      // Also remove from selected if it was selected
-      if (selectedTags.includes(tag)) {
-        onSelectedTagsChange(selectedTags.filter(t => t !== tag))
+    async (tag: TagItem) => {
+      try {
+        await getOrderTypeRepo().remove(tag.id)
+        // Only update selected tags if removal succeeded
+        if (selectedTags.includes(tag.name)) {
+          onSelectedTagsChange(selectedTags.filter(t => t !== tag.name))
+        }
+        refresh()
+      } catch {
+        notify.error(t('order.deleteTagError'))
       }
     },
-    [customTags, selectedTags, onSelectedTagsChange],
+    [selectedTags, onSelectedTagsChange, refresh, t],
   )
-
-  const isDefaultTag = (tag: string): boolean =>
-    (DEFAULT_TAGS as readonly string[]).includes(tag)
 
   return (
     <div className="space-y-2.5">
@@ -123,24 +137,24 @@ export function OrderNoteTags({
       {/* Tag pills */}
       <div className="flex flex-wrap gap-2">
         {allTags.map(tag => {
-          const isSelected = selectedTags.includes(tag)
-          const isDefault = isDefaultTag(tag)
+          const isSelected = selectedTags.includes(tag.name)
 
           return (
             <span
-              key={tag}
-              data-tag={tag}
+              key={tag.id}
+              data-tag={tag.name}
               className={cn(
                 'inline-flex cursor-pointer items-center gap-1 rounded-full px-3 py-1 text-sm transition-colors select-none',
                 isSelected
                   ? 'bg-primary text-primary-foreground'
                   : 'bg-muted text-muted-foreground',
               )}
-              onClick={() => handleToggleTag(tag)}
+              onClick={() => handleToggleTag(tag.name)}
               role="button"
               tabIndex={0}
               onKeyDown={e => {
-                if (e.key === 'Enter' || e.key === ' ') handleToggleTag(tag)
+                if (e.key === 'Enter' || e.key === ' ')
+                  handleToggleTag(tag.name)
               }}
             >
               {isSelected ? (
@@ -148,22 +162,22 @@ export function OrderNoteTags({
               ) : (
                 <Square className="size-3.5" />
               )}
-              {tag}
-              {!isDefault && (
+              {tag.name}
+              {!tag.isDefault && (
                 <Popover
-                  open={pendingDeleteTag === tag}
+                  open={pendingDeleteTag === tag.name}
                   onOpenChange={open => !open && setPendingDeleteTag(null)}
                 >
                   <PopoverTrigger asChild>
                     <RippleButton
-                      data-tag-delete={tag}
+                      data-tag-delete={tag.name}
                       rippleColor="rgba(0,0,0,0.1)"
                       className="ml-0.5 inline-flex items-center rounded-full p-0.5 hover:bg-destructive/20"
                       onClick={e => {
                         e.stopPropagation()
-                        setPendingDeleteTag(tag)
+                        setPendingDeleteTag(tag.name)
                       }}
-                      aria-label={`delete ${tag}`}
+                      aria-label={`delete ${tag.name}`}
                     >
                       <X className="size-3" />
                     </RippleButton>
@@ -179,7 +193,7 @@ export function OrderNoteTags({
                       onClick={e => e.stopPropagation()}
                     >
                       <p className="text-base text-gray-600">
-                        {t('order.deleteTagConfirm', { tag })}
+                        {t('order.deleteTagConfirm', { tag: tag.name })}
                       </p>
                       <div className="flex gap-2">
                         <RippleButton

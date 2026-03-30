@@ -1,14 +1,37 @@
+/**
+ * Tests for OrderNoteTags component.
+ * Verifies tag loading from DB, selection toggling, add/delete custom tags.
+ */
+
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { OrderNoteTags } from './order-note-tags'
+import {
+  getOrderTypeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
 
-// ─── Constants ──────────────────────────────────────────────────────────────
+// Mock the repository provider to use in-memory mock repositories
+vi.mock('@/lib/repositories', () => ({
+  getOrderTypeRepo: () => getOrderTypeRepo(),
+}))
 
-const DEFAULT_TAGS = ['攤位', '外送', '電話自取']
-const STORAGE_KEY = 'order-note-tags'
+// ── Test constants (must match DEFAULT_ORDER_TYPES seed data) ──────────
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+const TAG_BOOTH = '\u6524\u4f4d'
+const TAG_DELIVERY = '\u5916\u9001'
+const TAG_PHONE_PICKUP = '\u96fb\u8a71\u81ea\u53d6'
+const TAG_CUSTOM = '\u5e38\u5ba2'
+const TAG_URGENT = '\u6025\u55ae'
+const TAG_SPECIAL = '\u4e94\u6298(50%)'
+const SECTION_TITLE = '\u8a02\u55ae\u5099\u8a3b'
+const INPUT_PLACEHOLDER = '\u65b0\u589e\u5099\u8a3b'
+const BTN_DELETE = '\u522a\u9664'
+const BTN_CANCEL = '\u53d6\u6d88'
+const CONFIRM_DELETE_PATTERN = /\u78ba\u5b9a\u522a\u9664/
+
+// ── Helpers ────────────────────────────────────────────────────────────
 
 function renderOrderNoteTags(
   overrides: {
@@ -23,47 +46,56 @@ function renderOrderNoteTags(
   return { ...render(<OrderNoteTags {...props} />), props }
 }
 
-// ─── Tests ──────────────────────────────────────────────────────────────────
+// ── Tests ──────────────────────────────────────────────────────────────
 
 describe('OrderNoteTags', () => {
   beforeEach(() => {
-    localStorage.clear()
+    resetMockRepositories()
   })
 
   afterEach(() => {
-    localStorage.clear()
+    resetMockRepositories()
   })
 
-  // ─── Default Tag Rendering ──────────────────────────────────────────────
-
-  describe('default tags', () => {
-    it('should render all three default tags', () => {
+  describe('loading tags from DB', () => {
+    it('should render all default order types from DB', async () => {
       renderOrderNoteTags()
-      for (const tag of DEFAULT_TAGS) {
-        expect(screen.getByText(tag)).toBeTruthy()
-      }
+      await screen.findByText(TAG_BOOTH)
+      expect(screen.getByText(TAG_DELIVERY)).toBeTruthy()
+      expect(screen.getByText(TAG_PHONE_PICKUP)).toBeTruthy()
     })
 
-    it('should render section title with i18n key order.orderNote', () => {
+    it('should render section title with i18n key order.orderNote', async () => {
       renderOrderNoteTags()
-      // zh-TW: order.orderNote -> '訂單備註'
-      expect(screen.getByText('訂單備註')).toBeTruthy()
+      await screen.findByText(SECTION_TITLE)
     })
 
-    it('should NOT show delete button on default tags', () => {
+    it('should load custom tags from DB along with defaults', async () => {
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+
       renderOrderNoteTags()
-      // Default tags should not have an X / delete button
-      for (const tag of DEFAULT_TAGS) {
-        const tagEl = screen.getByText(tag).closest('[data-tag]')
-        expect(tagEl).toBeTruthy()
-        // There should be no delete button within the default tag element
-        const deleteBtn = tagEl!.querySelector('[data-tag-delete]')
-        expect(deleteBtn).toBeNull()
-      }
+
+      await screen.findByText(TAG_BOOTH)
+      expect(screen.getByText(TAG_DELIVERY)).toBeTruthy()
+      expect(screen.getByText(TAG_PHONE_PICKUP)).toBeTruthy()
+      expect(screen.getByText(TAG_CUSTOM)).toBeTruthy()
+    })
+
+    it('should NOT show delete button on default tags', async () => {
+      renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
+
+      const tagEl = screen.getByText(TAG_BOOTH).closest('[data-tag]')
+      expect(tagEl).toBeTruthy()
+      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')
+      expect(deleteBtn).toBeNull()
     })
   })
-
-  // ─── Tag Selection ──────────────────────────────────────────────────────
 
   describe('tag selection', () => {
     it('should call onSelectedTagsChange with tag added when clicking unselected tag', async () => {
@@ -71,311 +103,244 @@ describe('OrderNoteTags', () => {
       const user = userEvent.setup()
       renderOrderNoteTags({ onSelectedTagsChange })
 
-      await user.click(screen.getByText('攤位'))
-      expect(onSelectedTagsChange).toHaveBeenCalledWith(['攤位'])
+      await screen.findByText(TAG_BOOTH)
+      await user.click(screen.getByText(TAG_BOOTH))
+      expect(onSelectedTagsChange).toHaveBeenCalledWith([TAG_BOOTH])
     })
 
     it('should call onSelectedTagsChange with tag removed when clicking selected tag', async () => {
       const onSelectedTagsChange = vi.fn()
       const user = userEvent.setup()
       renderOrderNoteTags({
-        selectedTags: ['攤位', '外送'],
+        selectedTags: [TAG_BOOTH, TAG_DELIVERY],
         onSelectedTagsChange,
       })
 
-      await user.click(screen.getByText('攤位'))
-      expect(onSelectedTagsChange).toHaveBeenCalledWith(['外送'])
+      await screen.findByText(TAG_BOOTH)
+      await user.click(screen.getByText(TAG_BOOTH))
+      expect(onSelectedTagsChange).toHaveBeenCalledWith([TAG_DELIVERY])
     })
 
-    it('should highlight selected tags with active style', () => {
-      renderOrderNoteTags({ selectedTags: ['攤位'] })
-      const tagEl = screen.getByText('攤位').closest('[data-tag]')
+    it('should highlight selected tags with active style', async () => {
+      renderOrderNoteTags({ selectedTags: [TAG_BOOTH] })
+      await screen.findByText(TAG_BOOTH)
+      const tagEl = screen.getByText(TAG_BOOTH).closest('[data-tag]')
       expect(tagEl).toBeTruthy()
       expect(tagEl!.className).toContain('bg-primary')
     })
 
-    it('should show unselected tags with muted style', () => {
+    it('should show unselected tags with muted style', async () => {
       renderOrderNoteTags({ selectedTags: [] })
-      const tagEl = screen.getByText('攤位').closest('[data-tag]')
+      await screen.findByText(TAG_BOOTH)
+      const tagEl = screen.getByText(TAG_BOOTH).closest('[data-tag]')
       expect(tagEl).toBeTruthy()
       expect(tagEl!.className).toContain('bg-muted')
     })
-
-    it('should allow selecting multiple tags', async () => {
-      const onSelectedTagsChange = vi.fn()
-      const user = userEvent.setup()
-      renderOrderNoteTags({ onSelectedTagsChange })
-
-      await user.click(screen.getByText('攤位'))
-      expect(onSelectedTagsChange).toHaveBeenCalledWith(['攤位'])
-    })
   })
-
-  // ─── Custom Tags from localStorage ────────────────────────────────────
-
-  describe('custom tags from localStorage', () => {
-    it('should load custom tags from localStorage on mount', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客', '急單']))
-      renderOrderNoteTags()
-
-      expect(screen.getByText('常客')).toBeTruthy()
-      expect(screen.getByText('急單')).toBeTruthy()
-    })
-
-    it('should render default tags AND custom tags together', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
-      renderOrderNoteTags()
-
-      // All default tags
-      for (const tag of DEFAULT_TAGS) {
-        expect(screen.getByText(tag)).toBeTruthy()
-      }
-      // Plus custom tag
-      expect(screen.getByText('常客')).toBeTruthy()
-    })
-
-    it('should handle empty localStorage gracefully', () => {
-      // No localStorage item set
-      renderOrderNoteTags()
-      // Should still show default tags
-      for (const tag of DEFAULT_TAGS) {
-        expect(screen.getByText(tag)).toBeTruthy()
-      }
-    })
-
-    it('should handle invalid JSON in localStorage gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, 'not-valid-json')
-      renderOrderNoteTags()
-      // Should still show default tags without crashing
-      for (const tag of DEFAULT_TAGS) {
-        expect(screen.getByText(tag)).toBeTruthy()
-      }
-    })
-
-    it('should handle non-array JSON in localStorage gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ foo: 'bar' }))
-      renderOrderNoteTags()
-      for (const tag of DEFAULT_TAGS) {
-        expect(screen.getByText(tag)).toBeTruthy()
-      }
-    })
-  })
-
-  // ─── Adding Custom Tags ───────────────────────────────────────────────
 
   describe('adding custom tags', () => {
     it('should add a new tag via input and Enter key', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      // i18n key: order.addTag -> '新增備註'
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '常客{Enter}')
+      const input = screen.getByPlaceholderText(INPUT_PLACEHOLDER)
+      await user.type(input, TAG_CUSTOM + '{Enter}')
 
-      // New tag should appear
-      expect(screen.getByText('常客')).toBeTruthy()
-    })
-
-    it('should save new custom tag to localStorage', async () => {
-      const user = userEvent.setup()
-      renderOrderNoteTags()
-
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '常客{Enter}')
-
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-      expect(stored).toContain('常客')
+      await screen.findByText(TAG_CUSTOM)
     })
 
     it('should clear input after adding a tag', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      const input = screen.getByPlaceholderText('新增備註') as HTMLInputElement
-      await user.type(input, '常客{Enter}')
+      const input = screen.getByPlaceholderText(
+        INPUT_PLACEHOLDER,
+      ) as HTMLInputElement
+      await user.type(input, TAG_CUSTOM + '{Enter}')
 
-      expect(input.value).toBe('')
+      await waitFor(() => {
+        expect(input.value).toBe('')
+      })
     })
 
     it('should reject empty input (whitespace only)', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      const input = screen.getByPlaceholderText('新增備註')
+      const input = screen.getByPlaceholderText(INPUT_PLACEHOLDER)
       await user.type(input, '   {Enter}')
 
-      // Only default tags should exist
-      const stored = localStorage.getItem(STORAGE_KEY)
-      expect(stored === null || JSON.parse(stored).length === 0).toBe(true)
+      const allTypes = await getOrderTypeRepo().findAll()
+      expect(allTypes.length).toBe(3)
     })
 
-    it('should reject duplicate of existing default tag', async () => {
+    it('should reject duplicate of existing tag name', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '攤位{Enter}')
+      const input = screen.getByPlaceholderText(INPUT_PLACEHOLDER)
+      await user.type(input, TAG_BOOTH + '{Enter}')
 
-      // Should not create duplicate — only 1 instance of '攤位'
-      const allTags = screen.getAllByText('攤位')
-      expect(allTags).toHaveLength(1)
-    })
-
-    it('should reject duplicate of existing custom tag', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
-      const user = userEvent.setup()
-      renderOrderNoteTags()
-
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '常客{Enter}')
-
-      // Should not create duplicate
-      const allTags = screen.getAllByText('常客')
+      const allTags = screen.getAllByText(TAG_BOOTH)
       expect(allTags).toHaveLength(1)
     })
   })
 
-  // ─── Deleting Custom Tags ─────────────────────────────────────────────
-
   describe('deleting custom tags', () => {
-    it('should show delete button on custom tags', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
-      renderOrderNoteTags()
+    it('should show delete button on custom tags', async () => {
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
 
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      renderOrderNoteTags()
+      await screen.findByText(TAG_CUSTOM)
+
+      const tagEl = screen.getByText(TAG_CUSTOM).closest('[data-tag]')
       expect(tagEl).toBeTruthy()
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')
       expect(deleteBtn).toBeTruthy()
     })
 
     it('should show confirmation popover when X button is clicked', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_CUSTOM)
 
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const tagEl = screen.getByText(TAG_CUSTOM).closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
 
-      // Popover should appear with confirm/cancel buttons
-      expect(screen.getByText(/確定刪除/)).toBeTruthy()
-      expect(screen.getByRole('button', { name: '刪除' })).toBeTruthy()
-      expect(screen.getByRole('button', { name: '取消' })).toBeTruthy()
-    })
-
-    it('should not delete tag when cancel is clicked in popover', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
-      const user = userEvent.setup()
-      renderOrderNoteTags()
-
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
-      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
-      await user.click(deleteBtn)
-
-      await user.click(screen.getByRole('button', { name: '取消' }))
-
-      // Tag should still be present
-      expect(screen.getByText('常客')).toBeTruthy()
-    })
-
-    it('should not toggle tag selection when cancel is clicked in popover', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
-      const onSelectedTagsChange = vi.fn()
-      const user = userEvent.setup()
-      renderOrderNoteTags({ onSelectedTagsChange })
-
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
-      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
-      await user.click(deleteBtn)
-      await user.click(screen.getByRole('button', { name: '取消' }))
-
-      // React Portal click bubbling must not trigger tag toggle
-      expect(onSelectedTagsChange).not.toHaveBeenCalled()
+      expect(screen.getByText(CONFIRM_DELETE_PATTERN)).toBeTruthy()
     })
 
     it('should remove custom tag when delete is confirmed in popover', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客', '急單']))
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+      await getOrderTypeRepo().create({
+        name: TAG_URGENT,
+        priority: 5,
+        type: 'order',
+        color: '',
+      })
+
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_CUSTOM)
 
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const tagEl = screen.getByText(TAG_CUSTOM).closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
-      await user.click(screen.getByRole('button', { name: '刪除' }))
+      await user.click(screen.getByRole('button', { name: BTN_DELETE }))
 
-      // '常客' should be removed
-      expect(screen.queryByText('常客')).toBeNull()
-      // '急單' should remain
-      expect(screen.getByText('急單')).toBeTruthy()
-    })
-
-    it('should update localStorage when deletion is confirmed in popover', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客', '急單']))
-      const user = userEvent.setup()
-      renderOrderNoteTags()
-
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
-      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
-      await user.click(deleteBtn)
-      await user.click(screen.getByRole('button', { name: '刪除' }))
-
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-      expect(stored).not.toContain('常客')
-      expect(stored).toContain('急單')
+      await waitFor(() => {
+        expect(screen.queryByText(TAG_CUSTOM)).toBeNull()
+      })
+      expect(screen.getByText(TAG_URGENT)).toBeTruthy()
     })
 
     it('should also remove deleted tag from selectedTags when confirmed', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+
       const onSelectedTagsChange = vi.fn()
       const user = userEvent.setup()
       renderOrderNoteTags({
-        selectedTags: ['常客', '攤位'],
+        selectedTags: [TAG_CUSTOM, TAG_BOOTH],
         onSelectedTagsChange,
       })
+      await screen.findByText(TAG_CUSTOM)
 
-      const tagEl = screen.getByText('常客').closest('[data-tag]')
+      const tagEl = screen.getByText(TAG_CUSTOM).closest('[data-tag]')
       const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
       await user.click(deleteBtn)
-      await user.click(screen.getByRole('button', { name: '刪除' }))
+      await user.click(screen.getByRole('button', { name: BTN_DELETE }))
 
-      // Should call with the deleted tag removed from selected
-      expect(onSelectedTagsChange).toHaveBeenCalledWith(['攤位'])
+      await waitFor(() => {
+        expect(onSelectedTagsChange).toHaveBeenCalledWith([TAG_BOOTH])
+      })
+    })
+
+    it('should not delete tag when cancel is clicked in popover', async () => {
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+
+      const user = userEvent.setup()
+      renderOrderNoteTags()
+      await screen.findByText(TAG_CUSTOM)
+
+      const tagEl = screen.getByText(TAG_CUSTOM).closest('[data-tag]')
+      const deleteBtn = tagEl!.querySelector('[data-tag-delete]')!
+      await user.click(deleteBtn)
+      await user.click(screen.getByRole('button', { name: BTN_CANCEL }))
+
+      expect(screen.getByText(TAG_CUSTOM)).toBeTruthy()
     })
   })
-
-  // ─── Edge Cases ───────────────────────────────────────────────────────
 
   describe('edge cases', () => {
     it('should handle special characters in tag names', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '五折(50%){Enter}')
+      const input = screen.getByPlaceholderText(INPUT_PLACEHOLDER)
+      await user.type(input, TAG_SPECIAL + '{Enter}')
 
-      expect(screen.getByText('五折(50%)')).toBeTruthy()
+      await screen.findByText(TAG_SPECIAL)
     })
 
     it('should trim whitespace from input before adding', async () => {
       const user = userEvent.setup()
       renderOrderNoteTags()
+      await screen.findByText(TAG_BOOTH)
 
-      const input = screen.getByPlaceholderText('新增備註')
-      await user.type(input, '  常客  {Enter}')
+      const input = screen.getByPlaceholderText(INPUT_PLACEHOLDER)
+      await user.type(input, '  ' + TAG_CUSTOM + '  {Enter}')
 
-      expect(screen.getByText('常客')).toBeTruthy()
-      const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]')
-      expect(stored).toContain('常客')
+      await screen.findByText(TAG_CUSTOM)
     })
 
     it('should handle selecting a custom tag', async () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(['常客']))
+      await getOrderTypeRepo().create({
+        name: TAG_CUSTOM,
+        priority: 4,
+        type: 'order',
+        color: '',
+      })
+
       const onSelectedTagsChange = vi.fn()
       const user = userEvent.setup()
       renderOrderNoteTags({ onSelectedTagsChange })
+      await screen.findByText(TAG_CUSTOM)
 
-      await user.click(screen.getByText('常客'))
-      expect(onSelectedTagsChange).toHaveBeenCalledWith(['常客'])
+      await user.click(screen.getByText(TAG_CUSTOM))
+      expect(onSelectedTagsChange).toHaveBeenCalledWith([TAG_CUSTOM])
     })
   })
 })

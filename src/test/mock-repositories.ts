@@ -10,6 +10,7 @@ import {
   DEFAULT_EMPLOYEES,
   DEFAULT_COMMODITY_TYPES,
   DEFAULT_COMMODITIES,
+  DEFAULT_ORDER_TYPES,
 } from '@/lib/default-data'
 import type {
   Employee,
@@ -20,6 +21,8 @@ import type {
   CreateCommodityType,
   Commodity,
   CreateCommodity,
+  OrderType,
+  CreateOrderType,
 } from '@/lib/schemas'
 import type {
   StatisticsRepository,
@@ -81,12 +84,14 @@ let employees: Employee[] = []
 let attendances: Attendance[] = []
 let commodityTypes: CommodityType[] = []
 let commodities: Commodity[] = []
+let orderTypes: OrderType[] = []
 
 function resetState(): void {
   employees = DEFAULT_EMPLOYEES.map(e => ({ ...e }))
   attendances = [...buildTestAttendances()]
   commodityTypes = DEFAULT_COMMODITY_TYPES.map(ct => ({ ...ct }))
   commodities = DEFAULT_COMMODITIES.filter(c => c.onMarket).map(c => ({ ...c }))
+  orderTypes = DEFAULT_ORDER_TYPES.map(ot => ({ ...ot }))
 }
 
 // Initialize on load
@@ -327,6 +332,63 @@ export const mockCommodityRepo = {
   },
 }
 
+// ─── Mock OrderType Repository ───────────────────────────────────────────
+
+export const mockOrderTypeRepo = {
+  async findAll(): Promise<OrderType[]> {
+    return [...orderTypes].sort((a, b) => a.priority - b.priority)
+  },
+
+  async findById(id: string): Promise<OrderType | undefined> {
+    return orderTypes.find(ot => ot.id === id)
+  },
+
+  async create(data: CreateOrderType): Promise<OrderType> {
+    const now = Date.now()
+    const newOrderType: OrderType = {
+      ...data,
+      id: nanoid(),
+      createdAt: now,
+      updatedAt: now,
+    }
+    orderTypes = [...orderTypes, newOrderType]
+    return newOrderType
+  },
+
+  async update(
+    id: string,
+    data: Partial<CreateOrderType>,
+  ): Promise<OrderType | undefined> {
+    const index = orderTypes.findIndex(ot => ot.id === id)
+    if (index === -1) return undefined
+
+    const updated: OrderType = {
+      ...orderTypes[index]!,
+      ...data,
+      updatedAt: Date.now(),
+    }
+    orderTypes = orderTypes.map((ot, i) => (i === index ? updated : ot))
+    return updated
+  },
+
+  async remove(id: string): Promise<boolean> {
+    const before = orderTypes.length
+    orderTypes = orderTypes.filter(ot => ot.id !== id)
+    return orderTypes.length < before
+  },
+
+  async updatePriorities(ids: string[]): Promise<void> {
+    for (let i = 0; i < ids.length; i++) {
+      const idx = orderTypes.findIndex(ot => ot.id === ids[i])
+      if (idx !== -1) {
+        orderTypes = orderTypes.map((ot, j) =>
+          j === idx ? { ...ot, priority: i + 1, updatedAt: Date.now() } : ot,
+        )
+      }
+    }
+  },
+}
+
 // ─── Reset helper for tests ────────────────────────────────────────────────
 
 export function resetMockRepositories(): void {
@@ -417,6 +479,10 @@ export function getCommodityTypeRepo() {
 
 export function getCommodityRepo() {
   return mockCommodityRepo
+}
+
+export function getOrderTypeRepo() {
+  return mockOrderTypeRepo
 }
 
 export function getStatisticsRepo() {

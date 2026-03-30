@@ -177,7 +177,9 @@
     "calculatorTitle": "計算機",
     "calculatorSubmit": "確定送出",
     "calculatorNamePlaceholder": "客製訂單名稱",
-    "calculatorError": "錯誤"
+    "calculatorError": "錯誤",
+    "addTagError": "新增備註失敗",
+    "deleteTagError": "刪除備註失敗"
   },
   "orders": {
     "title": "訂單紀錄",
@@ -401,6 +403,31 @@
       "title": "商品種類",
       "labelUpdated": "種類名稱已更新",
       "saveError": "儲存失敗，請重試"
+    },
+    "orderTypes": {
+      "title": "訂單分類",
+      "addType": "新增分類",
+      "editType": "編輯分類",
+      "name": "名稱",
+      "color": "顏色",
+      "colorNone": "無",
+      "colorGreen": "綠色",
+      "colorBlue": "藍色",
+      "colorYellow": "黃色",
+      "colorRed": "紅色",
+      "colorPurple": "紫色",
+      "colorGray": "灰色",
+      "deleteConfirmTitle": "確認刪除分類",
+      "deleteConfirmMessage": "確定要刪除「{{name}}」嗎？",
+      "maxReached": "分類最多10個",
+      "defaultBadge": "預設",
+      "toastAdded": "分類已新增",
+      "toastUpdated": "分類已更新",
+      "toastDeleted": "分類已刪除",
+      "toastReordered": "排序已更新",
+      "saveError": "儲存失敗",
+      "deleteError": "刪除失敗",
+      "reorderError": "排序失敗"
     },
     "commodities": {
       "title": "商品設定",

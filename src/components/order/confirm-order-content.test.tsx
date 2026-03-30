@@ -1,7 +1,16 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import type { CategoryGroup } from '@/lib/group-cart-items'
 import { ConfirmOrderContent } from './confirm-order-content'
+import {
+  getOrderTypeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
+
+// Mock the repository provider so OrderNoteTags can load from mock DB
+vi.mock('@/lib/repositories', () => ({
+  getOrderTypeRepo: () => getOrderTypeRepo(),
+}))
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 
@@ -75,6 +84,14 @@ const defaultProps = {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('ConfirmOrderContent', () => {
+  beforeEach(() => {
+    resetMockRepositories()
+  })
+
+  afterEach(() => {
+    resetMockRepositories()
+  })
+
   it('should render categorized items with category headers', () => {
     const groups = [makeBentoGroup(), makeDrinkGroup()]
     render(
@@ -103,12 +120,12 @@ describe('ConfirmOrderContent', () => {
     expect(screen.getByText('-$50')).toBeTruthy()
   })
 
-  it('should render OrderNoteTags section', () => {
+  it('should render OrderNoteTags section', async () => {
     render(<ConfirmOrderContent {...defaultProps} />)
     // i18n key: order.orderNote -> '訂單備註'
     expect(screen.getByText('訂單備註')).toBeTruthy()
-    // Default note tags should appear
-    expect(screen.getByText('攤位')).toBeTruthy()
+    // Default note tags load async from DB
+    await screen.findByText('攤位')
     expect(screen.getByText('外送')).toBeTruthy()
     expect(screen.getByText('電話自取')).toBeTruthy()
   })

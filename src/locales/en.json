@@ -177,7 +177,9 @@
     "calculatorTitle": "Calculator",
     "calculatorSubmit": "Confirm",
     "calculatorNamePlaceholder": "Custom order name",
-    "calculatorError": "Error"
+    "calculatorError": "Error",
+    "addTagError": "Failed to add note",
+    "deleteTagError": "Failed to delete note"
   },
   "orders": {
     "title": "Order History",
@@ -401,6 +403,31 @@
       "title": "Commodity Types",
       "labelUpdated": "Type label updated",
       "saveError": "Failed to save, please try again"
+    },
+    "orderTypes": {
+      "title": "Order Types",
+      "addType": "Add Type",
+      "editType": "Edit Type",
+      "name": "Name",
+      "color": "Color",
+      "colorNone": "None",
+      "colorGreen": "Green",
+      "colorBlue": "Blue",
+      "colorYellow": "Yellow",
+      "colorRed": "Red",
+      "colorPurple": "Purple",
+      "colorGray": "Gray",
+      "deleteConfirmTitle": "Confirm Delete Type",
+      "deleteConfirmMessage": "Delete '{{name}}'?",
+      "maxReached": "Maximum 10 types",
+      "defaultBadge": "Default",
+      "toastAdded": "Type added",
+      "toastUpdated": "Type updated",
+      "toastDeleted": "Type deleted",
+      "toastReordered": "Order updated",
+      "saveError": "Save failed",
+      "deleteError": "Delete failed",
+      "reorderError": "Reorder failed"
     },
     "commodities": {
       "title": "Commodity Settings",
