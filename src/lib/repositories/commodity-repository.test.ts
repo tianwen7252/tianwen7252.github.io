@@ -730,6 +730,63 @@ describe('CommodityRepository', () => {
     })
   })
 
+  // ─── updatePriorities ──────────────────────────────────────────────────────
+
+  describe('updatePriorities()', () => {
+    it('calls db.exec for each ID with correct priority', async () => {
+      const repo = createCommodityRepository(db)
+      await repo.updatePriorities(['com-003', 'com-001', 'com-002'])
+
+      // Should call exec 3 times
+      expect(db.exec).toHaveBeenCalledTimes(3)
+
+      // First call: com-003 gets priority 1
+      const call0 = vi.mocked(db.exec).mock.calls[0]
+      expect(call0![0]).toContain(
+        'UPDATE commodities SET priority = ?, updated_at = ? WHERE id = ?',
+      )
+      expect(call0![1]![0]).toBe(1) // priority
+      expect(call0![1]![2]).toBe('com-003') // id
+
+      // Second call: com-001 gets priority 2
+      const call1 = vi.mocked(db.exec).mock.calls[1]
+      expect(call1![1]![0]).toBe(2)
+      expect(call1![1]![2]).toBe('com-001')
+
+      // Third call: com-002 gets priority 3
+      const call2 = vi.mocked(db.exec).mock.calls[2]
+      expect(call2![1]![0]).toBe(3)
+      expect(call2![1]![2]).toBe('com-002')
+    })
+
+    it('does nothing when given empty array', async () => {
+      const repo = createCommodityRepository(db)
+      await repo.updatePriorities([])
+
+      expect(db.exec).not.toHaveBeenCalled()
+    })
+
+    it('handles single item array', async () => {
+      const repo = createCommodityRepository(db)
+      await repo.updatePriorities(['com-001'])
+
+      expect(db.exec).toHaveBeenCalledTimes(1)
+      const call0 = vi.mocked(db.exec).mock.calls[0]
+      expect(call0![1]![0]).toBe(1)
+      expect(call0![1]![2]).toBe('com-001')
+    })
+
+    it('includes updated_at timestamp in each call', async () => {
+      const repo = createCommodityRepository(db)
+      await repo.updatePriorities(['com-001'])
+
+      const call0 = vi.mocked(db.exec).mock.calls[0]
+      // Param index 1 should be a timestamp (updated_at)
+      expect(typeof call0![1]![1]).toBe('number')
+      expect(call0![1]![1]).toBeGreaterThan(0)
+    })
+  })
+
   // ─── remove ─────────────────────────────────────────────────────────────────
 
   describe('remove()', () => {

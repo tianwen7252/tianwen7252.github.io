@@ -13,6 +13,7 @@ export interface CommodityRepository {
     data: Partial<CreateCommodity>,
   ): Promise<Commodity | undefined>
   remove(id: string): Promise<boolean>
+  updatePriorities(ids: string[]): Promise<void>
 }
 
 /**
@@ -159,6 +160,17 @@ export function createCommodityRepository(
     async remove(id: string) {
       const result = await db.exec('DELETE FROM commodities WHERE id = ?', [id])
       return result.changes > 0
+    },
+
+    async updatePriorities(ids: string[]) {
+      for (let i = 0; i < ids.length; i++) {
+        const priority = i + 1
+        const now = Date.now()
+        await db.exec(
+          'UPDATE commodities SET priority = ?, updated_at = ? WHERE id = ?',
+          [priority, now, ids[i]],
+        )
+      }
     },
   }
 }

@@ -4,12 +4,18 @@
  * This file builds typed domain objects and handles database insertion and cleanup.
  */
 
-import type { Employee, CommodityType, Commodity } from '@/lib/schemas'
+import type {
+  Employee,
+  CommodityType,
+  Commodity,
+  OrderType,
+} from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 import {
   EMPLOYEE_SEEDS,
   COMMODITY_TYPE_SEEDS,
   COMMODITY_SEEDS,
+  ORDER_TYPE_SEEDS,
   UPDATE_DEFAULT_DATA_NUMBER,
 } from '@/constants/default-data'
 
@@ -84,6 +90,16 @@ export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
     updatedAt: BASE_TS,
   }),
 ) as readonly Commodity[]
+
+// ─── Build Order Types ─────────────────────────────────────────────────────
+
+export const DEFAULT_ORDER_TYPES: readonly OrderType[] = ORDER_TYPE_SEEDS.map(
+  seed => ({
+    ...seed,
+    createdAt: BASE_TS,
+    updatedAt: BASE_TS,
+  }),
+) as readonly OrderType[]
 
 // ─── LocalStorage version check ──────────────────────────────────────────────
 
@@ -198,6 +214,37 @@ export function insertDefaultEmployees(db: Database): void {
       ],
     )
   }
+}
+
+/** Insert all default order types into the database. Skips existing rows. */
+export function insertDefaultOrderTypes(db: Database): void {
+  for (const ot of DEFAULT_ORDER_TYPES) {
+    db.exec(
+      `INSERT OR IGNORE INTO order_types (id, name, priority, type, color, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        ot.id,
+        ot.name,
+        ot.priority,
+        ot.type,
+        ot.color ?? null,
+        ot.createdAt,
+        ot.updatedAt,
+      ],
+    )
+  }
+}
+
+/**
+ * Reset commodity-related data: deletes all commodities, commodity_types, and order_types,
+ * then re-inserts defaults. Does NOT touch employees or attendances.
+ */
+export function resetCommodityData(db: Database): void {
+  db.exec('DELETE FROM commodities')
+  db.exec('DELETE FROM commodity_types')
+  db.exec('DELETE FROM order_types')
+  insertDefaultCommodities(db)
+  insertDefaultOrderTypes(db)
 }
 
 /** Insert all default commodity types and commodities into the database. Skips existing rows. */

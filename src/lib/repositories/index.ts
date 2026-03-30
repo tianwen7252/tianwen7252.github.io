@@ -33,6 +33,10 @@ export {
   type CustomOrderNameRepository,
 } from './custom-order-name-repository'
 export {
+  createOrderTypeRepository,
+  type OrderTypeRepository,
+} from './order-type-repository'
+export {
   initRepositories,
   getDatabase,
   getEmployeeRepo,
@@ -45,6 +49,7 @@ export {
   getStatisticsRepo,
   getErrorLogRepo,
   getCustomOrderNameRepo,
+  getOrderTypeRepo,
   resetRepositories,
 } from './provider'
 export {

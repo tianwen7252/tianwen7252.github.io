@@ -46,6 +46,10 @@ import {
   createBackupLogRepository,
   type BackupLogRepository,
 } from './backup-log-repository'
+import {
+  createOrderTypeRepository,
+  type OrderTypeRepository,
+} from './order-type-repository'
 
 let employeeRepo: EmployeeRepository | null = null
 let attendanceRepo: AttendanceRepository | null = null
@@ -58,6 +62,7 @@ let statisticsRepo: StatisticsRepository | null = null
 let errorLogRepo: ErrorLogRepository | null = null
 let customOrderNameRepo: CustomOrderNameRepository | null = null
 let backupLogRepo: BackupLogRepository | null = null
+let orderTypeRepo: OrderTypeRepository | null = null
 let dbInstance: AsyncDatabase | null = null
 
 /**
@@ -77,6 +82,7 @@ export function initRepositories(db: AsyncDatabase): void {
   errorLogRepo = createErrorLogRepository(db)
   customOrderNameRepo = createCustomOrderNameRepository(db)
   backupLogRepo = createBackupLogRepository(db)
+  orderTypeRepo = createOrderTypeRepository(db)
 }
 
 /**
@@ -223,6 +229,19 @@ export function getBackupLogRepo(): BackupLogRepository {
 }
 
 /**
+ * Get the OrderTypeRepository singleton.
+ * Throws if initRepositories() has not been called.
+ */
+export function getOrderTypeRepo(): OrderTypeRepository {
+  if (!orderTypeRepo) {
+    throw new Error(
+      'Repositories not initialized. Call initRepositories(db) first.',
+    )
+  }
+  return orderTypeRepo
+}
+
+/**
  * Get the raw AsyncDatabase instance.
  * Throws if initRepositories() has not been called.
  * Useful for raw SQL queries like table stats.
@@ -252,5 +271,6 @@ export function resetRepositories(): void {
   errorLogRepo = null
   customOrderNameRepo = null
   backupLogRepo = null
+  orderTypeRepo = null
   dbInstance = null
 }

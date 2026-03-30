@@ -17,6 +17,7 @@ import {
   getOrderDiscountRepo,
   getStatisticsRepo,
   getErrorLogRepo,
+  getOrderTypeRepo,
   resetRepositories,
 } from './provider'
 
@@ -448,6 +449,52 @@ describe('Repository Provider', () => {
       resetRepositories()
 
       expect(() => getErrorLogRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+  })
+
+  describe('getOrderTypeRepo()', () => {
+    it('throws before initRepositories() is called', () => {
+      expect(() => getOrderTypeRepo()).toThrow(
+        'Repositories not initialized. Call initRepositories(db) first.',
+      )
+    })
+
+    it('returns a repository after initRepositories() is called', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo = getOrderTypeRepo()
+      expect(repo).toBeDefined()
+      expect(typeof repo.findAll).toBe('function')
+      expect(typeof repo.findById).toBe('function')
+      expect(typeof repo.create).toBe('function')
+      expect(typeof repo.update).toBe('function')
+      expect(typeof repo.remove).toBe('function')
+      expect(typeof repo.updatePriorities).toBe('function')
+    })
+
+    it('returns the same instance on repeated calls', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      const repo1 = getOrderTypeRepo()
+      const repo2 = getOrderTypeRepo()
+      expect(repo1).toBe(repo2)
+    })
+  })
+
+  describe('resetRepositories() -- orderTypeRepo', () => {
+    it('causes getOrderTypeRepo() to throw after reset', () => {
+      const db = createMockAsyncDb()
+      initRepositories(db)
+
+      expect(() => getOrderTypeRepo()).not.toThrow()
+
+      resetRepositories()
+
+      expect(() => getOrderTypeRepo()).toThrow(
         'Repositories not initialized. Call initRepositories(db) first.',
       )
     })

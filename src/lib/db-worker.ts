@@ -10,6 +10,7 @@ import { initSchema } from '@/lib/schema'
 import {
   insertDefaultEmployees,
   insertDefaultCommodities,
+  insertDefaultOrderTypes,
   deleteDefaultData,
   clearAllData,
 } from '@/lib/default-data'
@@ -97,6 +98,7 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           deleteDefaultData(db)
           insertDefaultEmployees(db)
           insertDefaultCommodities(db)
+          insertDefaultOrderTypes(db)
         } else {
           // Insert only into empty tables
           const empCount = db.exec<{ cnt: number }>(
@@ -111,6 +113,13 @@ self.onmessage = async (e: MessageEvent<WorkerRequest>) => {
           )
           if (Number(comCount.rows[0]?.cnt) === 0) {
             insertDefaultCommodities(db)
+          }
+
+          const otCount = db.exec<{ cnt: number }>(
+            'SELECT COUNT(*) as cnt FROM order_types',
+          )
+          if (Number(otCount.rows[0]?.cnt) === 0) {
+            insertDefaultOrderTypes(db)
           }
         }
       }

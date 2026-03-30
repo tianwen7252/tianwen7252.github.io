@@ -7,6 +7,8 @@ import {
   commoditySchema,
   orderSchema,
   dailyDataSchema,
+  orderTypeSchema,
+  createOrderTypeSchema,
 } from './schemas'
 
 describe('schemas', () => {
@@ -158,6 +160,196 @@ describe('schemas', () => {
         editor: 'system',
       })
       expect(result.success).toBe(true)
+    })
+  })
+
+  // ─── orderTypeSchema ─────────────────────────────────────────────────────
+
+  describe('orderTypeSchema', () => {
+    it('parses a valid full order type object', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        color: 'green',
+        editor: 'admin',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      const result = orderTypeSchema.parse(input)
+
+      expect(result).toEqual(input)
+    })
+
+    it('applies default type "order" when type is omitted', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      const result = orderTypeSchema.parse(input)
+
+      expect(result.type).toBe('order')
+    })
+
+    it('allows optional color field (undefined)', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      const result = orderTypeSchema.parse(input)
+
+      expect(result.color).toBeUndefined()
+    })
+
+    it('allows optional editor field (undefined)', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      const result = orderTypeSchema.parse(input)
+
+      expect(result.editor).toBeUndefined()
+    })
+
+    it('rejects empty name', () => {
+      const input = {
+        id: 'ot-001',
+        name: '',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      expect(() => orderTypeSchema.parse(input)).toThrow()
+    })
+
+    it('requires id field', () => {
+      const input = {
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+        updatedAt: 1700000000000,
+      }
+
+      expect(() => orderTypeSchema.parse(input)).toThrow()
+    })
+
+    it('requires createdAt field', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        updatedAt: 1700000000000,
+      }
+
+      expect(() => orderTypeSchema.parse(input)).toThrow()
+    })
+
+    it('requires updatedAt field', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+      }
+
+      expect(() => orderTypeSchema.parse(input)).toThrow()
+    })
+  })
+
+  // ─── createOrderTypeSchema ───────────────────────────────────────────────
+
+  describe('createOrderTypeSchema', () => {
+    it('parses valid create data without id, createdAt, updatedAt', () => {
+      const input = {
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        color: 'green',
+      }
+
+      const result = createOrderTypeSchema.parse(input)
+
+      expect(result.name).toBe('攤位')
+      expect(result.priority).toBe(1)
+      expect(result.type).toBe('order')
+      expect(result.color).toBe('green')
+    })
+
+    it('omits id from create schema', () => {
+      const input = {
+        id: 'ot-001',
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+      }
+
+      const result = createOrderTypeSchema.parse(input)
+      expect((result as Record<string, unknown>)['id']).toBeUndefined()
+    })
+
+    it('omits createdAt from create schema', () => {
+      const input = {
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        createdAt: 1700000000000,
+      }
+
+      const result = createOrderTypeSchema.parse(input)
+      expect((result as Record<string, unknown>)['createdAt']).toBeUndefined()
+    })
+
+    it('omits updatedAt from create schema', () => {
+      const input = {
+        name: '攤位',
+        priority: 1,
+        type: 'order',
+        updatedAt: 1700000000000,
+      }
+
+      const result = createOrderTypeSchema.parse(input)
+      expect((result as Record<string, unknown>)['updatedAt']).toBeUndefined()
+    })
+
+    it('applies default type "order" when omitted', () => {
+      const input = {
+        name: '攤位',
+        priority: 1,
+      }
+
+      const result = createOrderTypeSchema.parse(input)
+
+      expect(result.type).toBe('order')
+    })
+
+    it('rejects empty name in create schema', () => {
+      const input = {
+        name: '',
+        priority: 1,
+      }
+
+      expect(() => createOrderTypeSchema.parse(input)).toThrow()
     })
   })
 })

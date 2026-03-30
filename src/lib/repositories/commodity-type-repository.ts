@@ -7,6 +7,10 @@ export interface CommodityTypeRepository {
   findById(id: string): Promise<CommodityType | undefined>
   findByTypeId(typeId: string): Promise<CommodityType | undefined>
   create(data: CreateCommodityType): Promise<CommodityType>
+  update(
+    id: string,
+    data: Partial<CreateCommodityType>,
+  ): Promise<CommodityType | undefined>
   remove(id: string): Promise<boolean>
 }
 
@@ -68,6 +72,44 @@ export function createCommodityTypeRepository(
           `Failed to retrieve created commodity type with id: ${id}`,
         )
       return created
+    },
+
+    async update(id: string, data: Partial<CreateCommodityType>) {
+      const existing = await this.findById(id)
+      if (!existing) return undefined
+
+      const fields: string[] = []
+      const values: unknown[] = []
+
+      if (data.typeId !== undefined) {
+        fields.push('type_id = ?')
+        values.push(data.typeId)
+      }
+      if (data.type !== undefined) {
+        fields.push('type = ?')
+        values.push(data.type)
+      }
+      if (data.label !== undefined) {
+        fields.push('label = ?')
+        values.push(data.label)
+      }
+      if (data.color !== undefined) {
+        fields.push('color = ?')
+        values.push(data.color)
+      }
+
+      if (fields.length === 0) return existing
+
+      fields.push('updated_at = ?')
+      values.push(Date.now())
+      values.push(id)
+
+      await db.exec(
+        `UPDATE commodity_types SET ${fields.join(', ')} WHERE id = ?`,
+        values,
+      )
+      const updated = await this.findById(id)
+      return updated!
     },
 
     async remove(id: string) {

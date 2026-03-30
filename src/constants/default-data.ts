@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 1
+export const UPDATE_DEFAULT_DATA_NUMBER = 2
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -169,6 +169,40 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
     isAdmin: false,
     hireDate: '2023-09-01',
     resignationDate: '2025-12-31',
+  },
+] as const
+
+// ─── Order Type Data ────────────────────────────────────────────────────────
+
+export interface OrderTypeSeed {
+  readonly id: string
+  readonly name: string
+  readonly priority: number
+  readonly type: string
+  readonly color: string
+}
+
+export const ORDER_TYPE_SEEDS: readonly OrderTypeSeed[] = [
+  {
+    id: 'ot-001',
+    name: '攤位',
+    priority: 1,
+    type: 'order',
+    color: 'green',
+  },
+  {
+    id: 'ot-002',
+    name: '外送',
+    priority: 2,
+    type: 'order',
+    color: 'blue',
+  },
+  {
+    id: 'ot-003',
+    name: '電話自取',
+    priority: 3,
+    type: 'order',
+    color: 'yellow',
   },
 ] as const
 
