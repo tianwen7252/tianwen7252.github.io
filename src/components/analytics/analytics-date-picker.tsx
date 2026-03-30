@@ -243,6 +243,7 @@ export function AnalyticsDatePicker({
                 mode="single"
                 selected={startDate}
                 onSelect={handleSingleSelect}
+                disabled={{ after: new Date() }}
               />
             ) : (
               <Calendar
@@ -250,6 +251,7 @@ export function AnalyticsDatePicker({
                 selected={pendingRange ?? { from: startDate, to: endDate }}
                 onSelect={handleRangeSelect}
                 numberOfMonths={2}
+                disabled={{ after: new Date() }}
               />
             )}
           </PopoverContent>
