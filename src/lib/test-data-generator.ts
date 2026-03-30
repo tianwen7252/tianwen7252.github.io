@@ -235,14 +235,19 @@ export function generateOrdersForDay(
   const orderItems: GeneratedOrderItem[] = []
   const orderDiscounts: GeneratedOrderDiscount[] = []
 
-  // Pre-generate and sort timestamps so orders appear in chronological order
-  const timestamps = Array.from({ length: orderCount }, () =>
+  // Pre-generate and sort timestamps so orders appear in chronological order.
+  // For today, exclude timestamps in the future.
+  const now = Date.now()
+  const allTimestamps = Array.from({ length: orderCount }, () =>
     generateOrderTimestamp(date, random),
-  ).sort((a, b) => a - b)
+  )
+    .filter(ts => ts <= now)
+    .sort((a, b) => a - b)
+  const actualCount = allTimestamps.length
 
-  for (let n = 1; n <= orderCount; n++) {
+  for (let n = 1; n <= actualCount; n++) {
     const orderId = nanoid()
-    const timestamp = timestamps[n - 1]!
+    const timestamp = allTimestamps[n - 1]!
 
     // Generate 1-5 items for this order
     const itemCount = Math.floor(random() * 5) + 1
