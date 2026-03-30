@@ -103,27 +103,26 @@ export function ProductTrendChart({
   const [viewMode, setViewMode] = useState<ViewMode>('line')
   const chartData = buildChartData(data)
 
-  // Group commodities by type for SelectGroup
+  // Group commodities by type for SelectGroup, preserving commodityTypes order
   const groupedCommodities = useMemo(() => {
-    const typeMap = new Map(commodityTypes.map(ct => [ct.typeId, ct.label]))
-    const groups = new Map<
-      string,
-      { label: string; items: CommodityOption[] }
-    >()
-
+    // Build a lookup: typeId -> commodities belonging to that type
+    const byType = new Map<string, CommodityOption[]>()
     for (const c of commodities) {
-      const existing = groups.get(c.typeId)
+      const existing = byType.get(c.typeId)
       if (existing) {
-        existing.items.push(c)
+        existing.push(c)
       } else {
-        groups.set(c.typeId, {
-          label: typeMap.get(c.typeId) ?? c.typeId,
-          items: [c],
-        })
+        byType.set(c.typeId, [c])
       }
     }
 
-    return [...groups.values()]
+    // Iterate in commodityTypes order to preserve: 餐盒 → 單點 → 飲料 → 水餃
+    return commodityTypes
+      .filter(ct => byType.has(ct.typeId))
+      .map(ct => ({
+        label: ct.label,
+        items: byType.get(ct.typeId)!,
+      }))
   }, [commodities, commodityTypes])
 
   // Palette 1: Moss Forest

@@ -288,11 +288,11 @@ export function generateOrdersForDay(
       discountTotal = discountAmount
     }
 
-    // Build memo: 5% chance of only a source tag, otherwise item descriptions
-    const memo =
+    // 5% chance of a single source tag, otherwise empty memo
+    const memo: string[] =
       random() < 0.05
         ? [ORDER_TAGS[Math.floor(random() * ORDER_TAGS.length)]!]
-        : items.map(item => `${item.name} x${item.quantity}`)
+        : []
 
     const order: GeneratedOrder = {
       id: orderId,

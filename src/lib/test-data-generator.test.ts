@@ -297,23 +297,26 @@ describe('generateOrdersForDay', () => {
     }
   })
 
-  it('memo contains item descriptions or a single source tag', () => {
+  it('memo is empty (95%) or a single source tag (5%)', () => {
     const rng = createSeededRandom(42)
     const result = generateOrdersForDay(TEST_DATE, TEST_COMMODITIES, 200, rng)
 
     const ORDER_TAGS = ['攤位', '外送', '電話自取']
+    let tagCount = 0
     for (const order of result.orders) {
-      expect(order.memo.length).toBeGreaterThan(0)
-
-      // Memo is either all item entries OR a single source tag
-      const isSingleTag =
-        order.memo.length === 1 && ORDER_TAGS.includes(order.memo[0]!)
-      if (!isSingleTag) {
-        for (const entry of order.memo) {
-          expect(entry).toMatch(/.+ x\d+/)
-        }
+      if (order.memo.length === 0) {
+        // Most orders have empty memo
+        continue
       }
+      // Tagged orders have exactly one tag
+      expect(order.memo.length).toBe(1)
+      expect(ORDER_TAGS).toContain(order.memo[0])
+      tagCount++
     }
+    // ~5% should have tags (tolerance: 1%-15% over 200 orders)
+    const pct = tagCount / 200
+    expect(pct).toBeGreaterThanOrEqual(0.01)
+    expect(pct).toBeLessThanOrEqual(0.15)
   })
 
   it('soups count matches includesSoup items', () => {
