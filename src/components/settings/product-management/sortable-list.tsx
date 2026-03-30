@@ -204,7 +204,7 @@ export function SortableList<T>({
 
       <DragOverlay dropAnimation={DROP_ANIMATION}>
         {activeItem ? (
-          <div className="rounded-lg border-2 border-primary">
+          <div className="[&>*]:ring-2 [&>*]:ring-primary">
             {renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)}
           </div>
         ) : null}
