@@ -12,7 +12,6 @@
  */
 
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
-import { ShineBorder } from '@/components/ui/shine-border'
 import {
   DndContext,
   DragOverlay,
@@ -59,9 +58,6 @@ interface SortableListProps<T> {
   readonly renderItem: (item: T, dragHandleProps: DragHandleProps) => ReactNode
   readonly onReorder: (orderedIds: readonly string[]) => void
 }
-
-// ── ShineBorder green preset (matches SHINE_COLOR_PRESETS.green in modal.tsx)
-const SHINE_COLORS_GREEN = ['#a8c896', '#c8deb8', '#e4fad9']
 
 // ── Drop animation config ──────────────────────────────────────────────────
 
@@ -208,12 +204,7 @@ export function SortableList<T>({
 
       <DragOverlay dropAnimation={DROP_ANIMATION}>
         {activeItem ? (
-          <div className="relative overflow-hidden rounded-lg">
-            <ShineBorder
-              shineColor={SHINE_COLORS_GREEN}
-              duration={4}
-              borderWidth={2}
-            />
+          <div className="rounded-lg border-2 border-primary">
             {renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)}
           </div>
         ) : null}
