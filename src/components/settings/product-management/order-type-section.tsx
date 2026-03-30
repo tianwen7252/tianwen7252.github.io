@@ -22,9 +22,13 @@ import type { OrderTypeFormValues } from '@/lib/form-schemas'
 
 const MAX_ORDER_TYPES = 10
 
-export function OrderTypeSection() {
+interface OrderTypeSectionProps {
+  readonly refreshKey: number
+  readonly onRefresh: () => void
+}
+
+export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProps) {
   const { t } = useTranslation()
-  const [refreshKey, setRefreshKey] = useState(0)
 
   // Optimistic reorder state
   const [optimisticOrderTypes, setOptimisticOrderTypes] = useState<
@@ -47,10 +51,7 @@ export function OrderTypeSection() {
 
   const isMaxReached = orderTypes.length >= MAX_ORDER_TYPES
 
-  // Refresh data
-  const refresh = useCallback(() => {
-    setRefreshKey(k => k + 1)
-  }, [])
+  const refresh = onRefresh
 
   // Add order type
   const handleAdd = useCallback(() => {
@@ -170,7 +171,7 @@ export function OrderTypeSection() {
           {t('productMgmt.orderTypes.title')}
         </h2>
         <RippleButton
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:opacity-50"
           onClick={handleAdd}
           disabled={isMaxReached}
           title={

@@ -1,12 +1,13 @@
 /**
  * CommodityTypeSection -- Row list showing all commodity types
  * with drag-and-drop reorder and edit-via-modal capability.
+ * Changes are accumulated locally and committed via "Save Settings" button.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GripVertical, Pencil } from 'lucide-react'
-import { Modal } from '@/components/modal'
+import { GripVertical, Pencil, Save } from 'lucide-react'
+import { Modal, ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
 import { notify } from '@/components/ui/sonner'
@@ -17,6 +18,20 @@ import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
 import type { CommodityType } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
+
+// ── Pending change types ─────────────────────────────────────────────────
+
+interface LabelChange {
+  readonly id: string
+  readonly oldLabel: string
+  readonly newLabel: string
+}
+
+interface OrderChange {
+  readonly oldOrder: readonly string[]
+  readonly newOrder: readonly string[]
+  readonly labels: ReadonlyMap<string, string>
+}
 
 // ── TypeRow ───────────────────────────────────────────────────────────────
 
@@ -76,29 +91,77 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
 
 // ── CommodityTypeSection ───────────────────────────────────────────────────
 
-export function CommodityTypeSection() {
+interface CommodityTypeSectionProps {
+  readonly refreshKey: number
+  readonly onRefresh: () => void
+}
+
+export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSectionProps) {
   const { t } = useTranslation()
-  const [refreshKey, setRefreshKey] = useState(0)
 
-  // Optimistic reorder state
-  const [optimisticTypes, setOptimisticTypes] = useState<
-    readonly CommodityType[] | null
-  >(null)
-
-  // Edit modal state
-  const [editingType, setEditingType] = useState<CommodityType | null>(null)
-  const [editValue, setEditValue] = useState('')
-
-  const commodityTypes = useDbQuery(
+  // DB source of truth
+  const dbTypes = useDbQuery(
     () => getCommodityTypeRepo().findAll(),
     [refreshKey],
     [] as CommodityType[],
   )
 
-  // Refresh data
-  const refresh = useCallback(() => {
-    setRefreshKey(k => k + 1)
-  }, [])
+  // Local working copy — starts as null (no changes), set on first edit/reorder
+  const [localTypes, setLocalTypes] = useState<readonly CommodityType[] | null>(null)
+
+  // Edit modal state
+  const [editingType, setEditingType] = useState<CommodityType | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  // Save confirm modal state
+  const [isSaveOpen, setIsSaveOpen] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+
+  // The displayed types — local changes override DB
+  const displayedTypes = localTypes ?? dbTypes
+
+  // Reset local state when DB refreshes (e.g. after save or external refresh)
+  const [prevDbTypes, setPrevDbTypes] = useState(dbTypes)
+  if (prevDbTypes !== dbTypes) {
+    setPrevDbTypes(dbTypes)
+    setLocalTypes(null)
+  }
+
+  // Compute pending changes for the confirm modal
+  const pendingChanges = useMemo(() => {
+    if (!localTypes) return null
+
+    const labelChanges: LabelChange[] = []
+    let orderChange: OrderChange | null = null
+
+    // Check label changes
+    for (const local of localTypes) {
+      const original = dbTypes.find(db => db.id === local.id)
+      if (original && original.label !== local.label) {
+        labelChanges.push({
+          id: local.id,
+          oldLabel: original.label,
+          newLabel: local.label,
+        })
+      }
+    }
+
+    // Check order changes
+    const dbOrder = dbTypes.map(t => t.id)
+    const localOrder = localTypes.map(t => t.id)
+    const orderChanged = dbOrder.some((id, i) => id !== localOrder[i])
+    if (orderChanged) {
+      const labels = new Map(localTypes.map(t => [t.id, t.label]))
+      orderChange = { oldOrder: dbOrder, newOrder: localOrder, labels }
+    }
+
+    if (labelChanges.length === 0 && !orderChange) return null
+    return { labelChanges, orderChange }
+  }, [localTypes, dbTypes])
+
+  const hasChanges = pendingChanges !== null
+
+  // ── Handlers ──────────────────────────────────────────────────────────
 
   // Open edit modal
   const handleEdit = useCallback((type: CommodityType) => {
@@ -112,62 +175,91 @@ export function CommodityTypeSection() {
     setEditValue('')
   }, [])
 
-  // Save label change
-  const handleEditSave = useCallback(async () => {
+  // Apply label change locally (not to DB)
+  const handleEditApply = useCallback(() => {
     if (!editingType) return
-
     const trimmed = editValue.trim()
     if (!trimmed || trimmed === editingType.label) {
       handleEditClose()
       return
     }
 
-    try {
-      await getCommodityTypeRepo().update(editingType.id, { label: trimmed })
-      notify.success(t('productMgmt.types.labelUpdated'))
-      refresh()
-      handleEditClose()
-    } catch {
-      notify.error(t('productMgmt.types.saveError'))
-    }
-  }, [editingType, editValue, t, refresh, handleEditClose])
+    const current = localTypes ?? dbTypes
+    setLocalTypes(
+      current.map(ct =>
+        ct.id === editingType.id ? { ...ct, label: trimmed } : ct,
+      ),
+    )
+    handleEditClose()
+  }, [editingType, editValue, localTypes, dbTypes, handleEditClose])
 
-  // Drag reorder with optimistic UI
+  // Drag reorder — apply locally
   const handleReorder = useCallback(
-    async (orderedIds: readonly string[]) => {
-      const displayItems = optimisticTypes ?? commodityTypes
+    (orderedIds: readonly string[]) => {
+      const current = localTypes ?? dbTypes
       const reordered = orderedIds
         .map((id, i) => {
-          const item = displayItems.find(ct => ct.id === id)
+          const item = current.find(ct => ct.id === id)
           return item ? { ...item, priority: i + 1 } : null
         })
         .filter((ct): ct is CommodityType => ct !== null)
-      setOptimisticTypes(reordered)
-
-      try {
-        await getCommodityTypeRepo().updatePriorities([...orderedIds])
-        refresh()
-      } catch {
-        notify.error(t('productMgmt.types.reorderError'))
-        setOptimisticTypes(null)
-      }
+      setLocalTypes(reordered)
     },
-    [commodityTypes, optimisticTypes, refresh, t],
+    [localTypes, dbTypes],
   )
 
-  // Clear optimistic state when DB data refreshes
-  const displayedTypes = optimisticTypes ?? commodityTypes
-  const prevTypesRef = useRef(commodityTypes)
-  if (prevTypesRef.current !== commodityTypes) {
-    prevTypesRef.current = commodityTypes
-    if (optimisticTypes) setOptimisticTypes(null)
-  }
+  // Open save confirm modal
+  const handleSaveClick = useCallback(() => {
+    setIsSaveOpen(true)
+  }, [])
+
+  // Confirm save — write all changes to DB
+  const handleSaveConfirm = useCallback(async () => {
+    if (!localTypes || !pendingChanges) return
+    setIsSaving(true)
+
+    try {
+      // Write label changes
+      for (const change of pendingChanges.labelChanges) {
+        await getCommodityTypeRepo().update(change.id, { label: change.newLabel })
+      }
+
+      // Write order changes
+      if (pendingChanges.orderChange) {
+        await getCommodityTypeRepo().updatePriorities([...pendingChanges.orderChange.newOrder])
+      }
+
+      setIsSaveOpen(false)
+      notify.success(t('productMgmt.types.saveSuccess'))
+      onRefresh()
+    } catch {
+      notify.error(t('productMgmt.types.saveError'))
+    } finally {
+      setIsSaving(false)
+    }
+  }, [localTypes, pendingChanges, t, onRefresh])
+
+  const handleSaveCancel = useCallback(() => {
+    setIsSaveOpen(false)
+  }, [])
 
   return (
     <section className="mb-8">
-      <h2 className="mb-4 text-lg text-foreground">
-        {t('productMgmt.types.title')}
-      </h2>
+      {/* Header with title and save button */}
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-lg text-foreground">
+          {t('productMgmt.types.title')}
+        </h2>
+        {hasChanges && (
+          <RippleButton
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90"
+            onClick={handleSaveClick}
+          >
+            <Save size={16} />
+            {t('productMgmt.types.saveSettings')}
+          </RippleButton>
+        )}
+      </div>
 
       {/* Sortable type list */}
       <SortableList
@@ -200,7 +292,7 @@ export function CommodityTypeSection() {
             </RippleButton>
             <RippleButton
               className="rounded-lg bg-primary px-6 py-2 text-base text-primary-foreground hover:bg-primary/90"
-              onClick={handleEditSave}
+              onClick={handleEditApply}
             >
               {t('common.confirm')}
             </RippleButton>
@@ -223,6 +315,43 @@ export function CommodityTypeSection() {
           />
         </div>
       </Modal>
+
+      {/* Save confirm modal — shows pending changes */}
+      <ConfirmModal
+        open={isSaveOpen}
+        title={t('productMgmt.types.saveConfirmTitle')}
+        variant="green"
+        shineColor="green"
+        confirmText={t('common.confirm')}
+        loading={isSaving}
+        onConfirm={handleSaveConfirm}
+        onCancel={handleSaveCancel}
+      >
+        <div className="space-y-3 text-base text-foreground">
+          {pendingChanges?.labelChanges.map(change => (
+            <div key={change.id} className="flex items-center gap-2">
+              <span className="text-muted-foreground">{change.oldLabel}</span>
+              <span className="text-muted-foreground">→</span>
+              <span>{change.newLabel}</span>
+            </div>
+          ))}
+          {pendingChanges?.orderChange && (
+            <div>
+              <span className="text-muted-foreground">
+                {t('productMgmt.types.orderChanged')}
+              </span>
+              <div className="mt-1 flex items-center gap-2">
+                {pendingChanges.orderChange.newOrder.map((id, i) => (
+                  <span key={id}>
+                    {i > 0 && <span className="mr-2 text-muted-foreground">→</span>}
+                    {pendingChanges!.orderChange!.labels.get(id)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </ConfirmModal>
     </section>
   )
 }

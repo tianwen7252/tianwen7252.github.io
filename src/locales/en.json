@@ -415,7 +415,11 @@
       "labelUpdated": "Type label updated",
       "toastReordered": "Order updated",
       "reorderError": "Reorder failed",
-      "saveError": "Failed to save, please try again"
+      "saveError": "Failed to save, please try again",
+      "saveSettings": "Save Settings",
+      "saveSuccess": "Commodity type settings saved",
+      "saveConfirmTitle": "Confirm Save Settings",
+      "orderChanged": "Order changed:"
     },
     "orderTypes": {
       "title": "Order Types",

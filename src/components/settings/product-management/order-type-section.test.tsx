@@ -118,19 +118,19 @@ describe('OrderTypeSection', () => {
 
   describe('rendering', () => {
     it('should render the section title', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       // i18n: productMgmt.orderTypes.title -> '訂單分類'
       await screen.findByText('訂單分類')
     })
 
     it('should render the add button', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       // i18n: productMgmt.orderTypes.addType -> '新增分類'
       await screen.findByText('新增分類')
     })
 
     it('should render all default order types', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       // Default order types: 攤位, 外送, 電話自取
       await screen.findByText('攤位')
       expect(screen.getByText('外送')).toBeTruthy()
@@ -138,7 +138,7 @@ describe('OrderTypeSection', () => {
     })
 
     it('should render default badges on default order types', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('攤位')
 
       // All default order types should have default badges
@@ -149,7 +149,7 @@ describe('OrderTypeSection', () => {
 
   describe('swipe to delete', () => {
     it('should wrap each order type card with SwipeToDelete', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('攤位')
 
       const swipeWrappers = screen.getAllByTestId('swipe-to-delete')
@@ -160,7 +160,7 @@ describe('OrderTypeSection', () => {
   describe('add order type', () => {
     it('should open add form modal when add button is clicked', async () => {
       const user = userEvent.setup()
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('新增分類')
       await user.click(screen.getByText('新增分類'))
@@ -181,7 +181,7 @@ describe('OrderTypeSection', () => {
       })
 
       const user = userEvent.setup()
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       // Wait for the custom type to appear
       await screen.findByText('自訂分類')
@@ -203,7 +203,7 @@ describe('OrderTypeSection', () => {
       })
 
       const user = userEvent.setup()
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('自訂分類')
 
@@ -228,7 +228,7 @@ describe('OrderTypeSection', () => {
       })
 
       const user = userEvent.setup()
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('自訂分類')
 
@@ -247,7 +247,7 @@ describe('OrderTypeSection', () => {
     })
 
     it('should not show delete button on default order types', async () => {
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('攤位')
 
       // Default order types should not have delete buttons
@@ -267,7 +267,7 @@ describe('OrderTypeSection', () => {
         })
       }
 
-      render(<OrderTypeSection />)
+      render(<OrderTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('自訂7')
 
       const addButton = screen.getByText('新增分類').closest('button')

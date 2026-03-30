@@ -117,12 +117,12 @@ describe('CommoditySection', () => {
 
   describe('rendering', () => {
     it('should render the section title', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('商品設定')
     })
 
     it('should render category tabs', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
       expect(screen.getByText('單點')).toBeTruthy()
       expect(screen.getByText('飲料')).toBeTruthy()
@@ -130,12 +130,12 @@ describe('CommoditySection', () => {
     })
 
     it('should render add product button', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('新增商品')
     })
 
     it('should show item count badges on tabs', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       // Wait for data to load
       await screen.findByText('餐盒')
 
@@ -147,7 +147,7 @@ describe('CommoditySection', () => {
 
   describe('tab switching', () => {
     it('should show bento products by default (first tab selected)', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       // The first commodity type (bento) should be selected by default
       // Wait for items to load and show some bento names
       await screen.findByText('油淋雞腿飯')
@@ -155,7 +155,7 @@ describe('CommoditySection', () => {
 
     it('should switch to a different tab when clicked', async () => {
       const user = userEvent.setup()
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
 
       // Wait for initial render
       await screen.findByText('油淋雞腿飯')
@@ -174,7 +174,7 @@ describe('CommoditySection', () => {
   describe('add product', () => {
     it('should open add product modal when add button is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('新增商品')
       await user.click(screen.getByText('新增商品'))
@@ -186,7 +186,7 @@ describe('CommoditySection', () => {
 
   describe('swipe to delete', () => {
     it('should wrap each commodity card with SwipeToDelete', async () => {
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('油淋雞腿飯')
 
       // Each card should be wrapped in SwipeToDelete
@@ -198,7 +198,7 @@ describe('CommoditySection', () => {
   describe('delete product', () => {
     it('should open confirm modal when delete button is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
 
       // Wait for products to load
       await screen.findByText('油淋雞腿飯')
@@ -213,7 +213,7 @@ describe('CommoditySection', () => {
 
     it('should soft delete product after confirm', async () => {
       const user = userEvent.setup()
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('油淋雞腿飯')
 
@@ -233,7 +233,7 @@ describe('CommoditySection', () => {
 
     it('should cancel deletion and keep product', async () => {
       const user = userEvent.setup()
-      render(<CommoditySection />)
+      render(<CommoditySection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('油淋雞腿飯')
 

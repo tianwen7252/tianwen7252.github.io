@@ -12,7 +12,11 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { resetCommodityDataAsync } from '@/lib/default-data'
 
-export function ResetSection() {
+interface ResetSectionProps {
+  readonly onReset: () => void
+}
+
+export function ResetSection({ onReset }: ResetSectionProps) {
   const { t } = useTranslation()
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -23,16 +27,14 @@ export function ResetSection() {
       await resetCommodityDataAsync()
       setIsOpen(false)
       notify.success(t('productMgmt.reset.success'))
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
+      onReset()
     } catch {
       notify.error(t('productMgmt.reset.error'))
       setIsOpen(false)
     } finally {
       setIsLoading(false)
     }
-  }, [t])
+  }, [t, onReset])
 
   const handleCancel = useCallback(() => {
     setIsOpen(false)

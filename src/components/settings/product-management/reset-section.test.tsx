@@ -73,12 +73,12 @@ describe('ResetSection', () => {
 
   describe('rendering', () => {
     it('should render the reset button', () => {
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
       expect(screen.getByText('還原預設')).toBeTruthy()
     })
 
     it('should not show confirm modal initially', () => {
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
       expect(screen.queryByTestId('confirm-modal')).toBeNull()
     })
   })
@@ -86,7 +86,7 @@ describe('ResetSection', () => {
   describe('confirm flow', () => {
     it('should open confirm modal when reset button is clicked', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       await user.click(screen.getByText('還原預設'))
 
@@ -96,7 +96,7 @@ describe('ResetSection', () => {
 
     it('should display warning message in confirm modal', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       await user.click(screen.getByText('還原預設'))
 
@@ -109,7 +109,7 @@ describe('ResetSection', () => {
 
     it('should call resetCommodityDataAsync and show success toast on confirm', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       // Open modal
       await user.click(screen.getByText('還原預設'))
@@ -122,9 +122,10 @@ describe('ResetSection', () => {
       expect(mockNotifySuccess).toHaveBeenCalledWith('資料已還原成功')
     })
 
-    it('should reload the page after successful reset', async () => {
+    it('should call onReset callback after successful reset', async () => {
+      const onReset = vi.fn()
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={onReset} />)
 
       await user.click(screen.getByText('還原預設'))
       await user.click(screen.getByText('確認'))
@@ -133,17 +134,14 @@ describe('ResetSection', () => {
         expect(mockNotifySuccess).toHaveBeenCalled()
       })
 
-      // Advance timer by 2 seconds for the reload delay
-      vi.advanceTimersByTime(2000)
-
-      expect(mockReload).toHaveBeenCalledOnce()
+      expect(onReset).toHaveBeenCalledOnce()
     })
   })
 
   describe('cancel flow', () => {
     it('should close confirm modal when cancel is clicked', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       // Open modal
       await user.click(screen.getByText('還原預設'))
@@ -156,7 +154,7 @@ describe('ResetSection', () => {
 
     it('should not call resetCommodityDataAsync when cancelled', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       await user.click(screen.getByText('還原預設'))
       await user.click(screen.getByText('取消'))
@@ -169,7 +167,7 @@ describe('ResetSection', () => {
     it('should show error toast when reset fails', async () => {
       mockResetCommodityDataAsync.mockRejectedValue(new Error('DB error'))
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       await user.click(screen.getByText('還原預設'))
       await user.click(screen.getByText('確認'))
@@ -179,10 +177,11 @@ describe('ResetSection', () => {
       })
     })
 
-    it('should not reload page when reset fails', async () => {
+    it('should not call onReset when reset fails', async () => {
       mockResetCommodityDataAsync.mockRejectedValue(new Error('DB error'))
+      const onReset = vi.fn()
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={onReset} />)
 
       await user.click(screen.getByText('還原預設'))
       await user.click(screen.getByText('確認'))
@@ -191,14 +190,13 @@ describe('ResetSection', () => {
         expect(mockNotifyError).toHaveBeenCalled()
       })
 
-      vi.advanceTimersByTime(3000)
-      expect(mockReload).not.toHaveBeenCalled()
+      expect(onReset).not.toHaveBeenCalled()
     })
 
     it('should close modal and reset loading state after error', async () => {
       mockResetCommodityDataAsync.mockRejectedValue(new Error('DB error'))
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
-      render(<ResetSection />)
+      render(<ResetSection onReset={vi.fn()} />)
 
       await user.click(screen.getByText('還原預設'))
       await user.click(screen.getByText('確認'))

@@ -415,7 +415,11 @@
       "labelUpdated": "種類名稱已更新",
       "toastReordered": "排序已更新",
       "reorderError": "排序失敗",
-      "saveError": "儲存失敗，請重試"
+      "saveError": "儲存失敗，請重試",
+      "saveSettings": "儲存設定",
+      "saveSuccess": "商品種類設定已儲存",
+      "saveConfirmTitle": "確認儲存設定",
+      "orderChanged": "順序變更："
     },
     "orderTypes": {
       "title": "訂單分類",

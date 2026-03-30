@@ -28,7 +28,7 @@ vi.mock('@/components/ui/sonner', () => ({
   },
 }))
 
-// Mock the modal component to avoid Radix Portal issues in tests
+// Mock the modal components to avoid Radix Portal issues in tests
 vi.mock('@/components/modal', () => ({
   Modal: ({
     open,
@@ -49,6 +49,27 @@ vi.mock('@/components/modal', () => ({
         {children}
         {footer}
         <button onClick={onClose}>close-modal</button>
+      </div>
+    ) : null,
+  ConfirmModal: ({
+    open,
+    title,
+    children,
+    onConfirm,
+    onCancel,
+  }: {
+    open: boolean
+    title: string
+    children?: React.ReactNode
+    onConfirm: () => void
+    onCancel: () => void
+  }) =>
+    open ? (
+      <div data-testid="confirm-modal" role="dialog" aria-label={title}>
+        <h2>{title}</h2>
+        {children}
+        <button onClick={onConfirm}>confirm-save</button>
+        <button onClick={onCancel}>cancel-save</button>
       </div>
     ) : null,
 }))
@@ -98,12 +119,12 @@ describe('CommodityTypeSection', () => {
 
   describe('rendering', () => {
     it('should render the section title', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('商品種類')
     })
 
     it('should render all 4 commodity types as rows in a sortable list', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
       expect(screen.getByText('單點')).toBeTruthy()
       expect(screen.getByText('飲料')).toBeTruthy()
@@ -112,7 +133,7 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should render priority badges for each type', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
 
       // Priority badges show numbers 1-4
@@ -123,7 +144,7 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should render drag handles for each type', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
 
       const handles = screen.getAllByTestId('drag-handle')
@@ -131,7 +152,7 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should render edit buttons for each type', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
 
       const editButtons = screen.getAllByTestId('edit-button')
@@ -139,7 +160,7 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should NOT render typeId badges (removed from UI)', async () => {
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
       await screen.findByText('餐盒')
 
       // typeId values should not appear in the rendered output
@@ -153,7 +174,7 @@ describe('CommodityTypeSection', () => {
   describe('edit via modal', () => {
     it('should open edit modal when edit button is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('餐盒')
 
@@ -166,7 +187,7 @@ describe('CommodityTypeSection', () => {
 
     it('should pre-fill the input with the current label', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('餐盒')
 
@@ -176,9 +197,9 @@ describe('CommodityTypeSection', () => {
       expect(screen.getByDisplayValue('餐盒')).toBeTruthy()
     })
 
-    it('should save the new label when confirm is clicked', async () => {
+    it('should apply label change locally when confirm is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('餐盒')
 
@@ -191,35 +212,41 @@ describe('CommodityTypeSection', () => {
 
       await user.click(screen.getByRole('button', { name: '確認' }))
 
+      // Label should update locally (not in DB yet)
       await waitFor(() => {
-        expect(mockNotifySuccess).toHaveBeenCalledWith('種類名稱已更新')
+        expect(screen.getByText('主食')).toBeTruthy()
       })
+      // DB should NOT be updated yet
+      const dbValue = await getCommodityTypeRepo().findById('ct-001')
+      expect(dbValue?.label).toBe('餐盒')
     })
 
-    it('should update the repository when saving', async () => {
+    it('should show save settings button after changes', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('餐盒')
 
+      // No save button initially
+      expect(screen.queryByText('儲存設定')).toBeNull()
+
+      // Make a change
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
-
       const input = screen.getByDisplayValue('餐盒')
       await user.clear(input)
       await user.type(input, '主食')
-
       await user.click(screen.getByRole('button', { name: '確認' }))
 
-      await waitFor(async () => {
-        const updated = await getCommodityTypeRepo().findById('ct-001')
-        expect(updated?.label).toBe('主食')
+      // Save button should appear
+      await waitFor(() => {
+        expect(screen.getByText('儲存設定')).toBeTruthy()
       })
     })
 
     it('should close modal when cancel is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection />)
+      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
 
       await screen.findByText('餐盒')
 
