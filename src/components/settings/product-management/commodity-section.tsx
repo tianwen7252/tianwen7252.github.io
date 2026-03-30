@@ -20,16 +20,16 @@ import type { CommodityFormValues } from '@/lib/form-schemas'
 
 // ── Color mapping for tab pill styling using theme variables ──────────────
 
-// Match the order page category-accent colors
+// Match the order page category-accent colors (keyed by typeId)
 const TAB_COLOR_MAP: Record<string, string> = {
-  green: '#7f956a',
-  brown: '#d4a76a',
-  indigo: '#6aa3d4',
+  bento: '#7f956a',
+  single: '#d4a76a',
+  drink: '#6aa3d4',
+  dumpling: '#c47fd4',
 }
 
-// Fallback for unknown commodity type colors (e.g. dumpling uses indigo)
-function resolveTabColor(color: string): string {
-  return TAB_COLOR_MAP[color] ?? '#c47fd4'
+function resolveTabColor(typeId: string): string {
+  return TAB_COLOR_MAP[typeId] ?? '#7f956a'
 }
 
 export function CommoditySection() {
@@ -231,7 +231,7 @@ export function CommoditySection() {
       <div className="mb-4 flex flex-wrap gap-2">
         {commodityTypes.map(ct => {
           const isActive = ct.typeId === selectedTypeId
-          const themeColor = resolveTabColor(ct.color)
+          const themeColor = resolveTabColor(ct.typeId)
           return (
             <RippleButton
               key={ct.typeId}

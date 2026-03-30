@@ -68,7 +68,8 @@ export function OrderTypeCard({
       {isDefault && (
         <span
           data-testid="default-badge"
-          className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-base text-muted-foreground"
+          className="shrink-0 px-2 py-0.5 text-base"
+          style={{ color: '#a3c8d7' }}
         >
           {t('productMgmt.orderTypes.defaultBadge')}
         </span>
