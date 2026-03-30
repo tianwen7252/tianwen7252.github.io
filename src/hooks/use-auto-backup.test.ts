@@ -140,7 +140,7 @@ describe('useAutoBackup', () => {
 
   // ── Backup not configured ─────────────────────────────────────────────
 
-  it('skips backup silently when Supabase is not configured', async () => {
+  it('skips backup silently when cloud backup is not configured', async () => {
     mockIsConfigured.value = false
     mockStoreState.scheduleType = 'daily'
     const futureTime = Date.now() + 1000
@@ -157,7 +157,7 @@ describe('useAutoBackup', () => {
 
   // ── Backup configured and triggers ────────────────────────────────────
 
-  it('executes backup when Supabase is configured and timer fires', async () => {
+  it('executes backup when cloud backup is configured and timer fires', async () => {
     mockIsConfigured.value = true
     mockStoreState.scheduleType = 'daily'
     const futureTime = Date.now() + 1000

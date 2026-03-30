@@ -409,7 +409,7 @@
     "backingUp": "備份中...",
     "backupSuccess": "備份完成",
     "backupFailed": "備份失敗",
-    "notConfigured": "Supabase 尚未設定",
+    "notConfigured": "雲端備份尚未設定",
     "noRecord": "尚無記錄",
     "dbStats": "資料庫統計",
     "localDbStats": "本機資料庫",

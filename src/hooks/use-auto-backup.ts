@@ -1,7 +1,7 @@
 /**
  * useAutoBackup — React hook for automatic backup scheduling.
  * Manages setTimeout-based scheduling with Page Visibility API support,
- * overdue backup detection, and Supabase backup execution.
+ * overdue backup detection, and cloud backup execution.
  */
 
 import { useEffect, useRef } from 'react'
@@ -24,7 +24,7 @@ interface UseAutoBackupOptions {
 
 /**
  * Execute a backup operation: update store state, write log entry.
- * Silently skips if Supabase is not configured.
+ * Silently skips if cloud backup is not configured.
  */
 async function executeBackup(
   startBackup: () => void,

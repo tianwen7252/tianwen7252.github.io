@@ -82,14 +82,14 @@ describe('CloudBackupActions', () => {
     expect(screen.getByText('立即備份')).toBeTruthy()
   })
 
-  it('disables button when Supabase is not configured', () => {
+  it('disables button when cloud backup is not configured', () => {
     mockIsConfigured = false
     render(<CloudBackupActions />)
     const button = screen.getByText('立即備份').closest('button')
     expect(button?.disabled).toBe(true)
   })
 
-  it('enables button when Supabase is configured and not backing up', () => {
+  it('enables button when cloud backup is configured and not backing up', () => {
     mockIsConfigured = true
     render(<CloudBackupActions />)
     const button = screen.getByText('立即備份').closest('button')
@@ -112,16 +112,16 @@ describe('CloudBackupActions', () => {
     expect(screen.queryByText('立即備份')).toBeNull()
   })
 
-  it('shows not configured message when Supabase is not set up', () => {
+  it('shows not configured message when cloud backup is not set up', () => {
     mockIsConfigured = false
     render(<CloudBackupActions />)
-    expect(screen.getByText('Supabase 尚未設定')).toBeTruthy()
+    expect(screen.getByText('雲端備份尚未設定')).toBeTruthy()
   })
 
-  it('does not show not configured message when Supabase is configured', () => {
+  it('does not show not configured message when cloud backup is configured', () => {
     mockIsConfigured = true
     render(<CloudBackupActions />)
-    expect(screen.queryByText('Supabase 尚未設定')).toBeNull()
+    expect(screen.queryByText('雲端備份尚未設定')).toBeNull()
   })
 
   // ── Schedule selector tests ──────────────────────────────────────────────

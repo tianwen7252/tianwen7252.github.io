@@ -96,13 +96,13 @@ describe('CloudBackupDbStats', () => {
     expect(screen.getByText('133')).toBeTruthy()
   })
 
-  it('shows not configured message in cloud section when Supabase not set', () => {
+  it('shows not configured message in cloud section when cloud backup not set', () => {
     mockIsConfigured = false
     renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('Supabase 尚未設定')).toBeTruthy()
+    expect(screen.getByText('雲端備份尚未設定')).toBeTruthy()
   })
 
-  it('shows unavailable message in cloud section when Supabase is configured', () => {
+  it('shows unavailable message in cloud section when cloud backup is configured', () => {
     mockIsConfigured = true
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('連線後顯示雲端資料')).toBeTruthy()
