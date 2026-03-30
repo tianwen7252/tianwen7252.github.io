@@ -142,6 +142,20 @@ export function OrderHistoryCard({
                     </span>
                   </div>
                 ))}
+                {group.discounts?.map(discount => (
+                  <div
+                    key={discount.id}
+                    className="flex items-baseline justify-between py-[3px]"
+                  >
+                    <span className="text-md text-gray-800">
+                      {discount.label}
+                    </span>
+                    <span className="mx-2 flex-1 border-b border-dotted border-gray-300" />
+                    <span className="ml-2 text-md text-(--color-red)">
+                      -{formatCurrency(discount.amount)}
+                    </span>
+                  </div>
+                ))}
               </div>
             )
           })}

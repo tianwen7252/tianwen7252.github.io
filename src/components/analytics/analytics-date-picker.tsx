@@ -113,6 +113,8 @@ export function AnalyticsDatePicker({
   const [pendingRange, setPendingRange] = useState<DayPickerRange | undefined>(
     undefined,
   )
+  // Track whether the user has clicked the first date in range mode
+  const [rangeClickCount, setRangeClickCount] = useState(0)
   const [mode, setMode] = useState<DatePickerMode>('single')
 
   function handlePreset(getRange: () => { start: Date; end: Date }) {
@@ -142,20 +144,27 @@ export function AnalyticsDatePicker({
   }
 
   function handleRangeSelect(range: DayPickerRange | undefined) {
+    const nextClick = rangeClickCount + 1
     setPendingRange(range)
-    if (range?.from && range?.to) {
+    setRangeClickCount(nextClick)
+
+    // Only commit on the second click (both from and to selected)
+    if (nextClick >= 2 && range?.from && range?.to) {
       onChange(
         dayjs(range.from).startOf('day').toDate(),
         dayjs(range.to).endOf('day').toDate(),
       )
       setIsOpen(false)
       setPendingRange(undefined)
+      setRangeClickCount(0)
     }
   }
 
   function handleModeToggle(checked: boolean) {
     const newMode = checked ? 'range' : 'single'
     setMode(newMode)
+    setRangeClickCount(0)
+    setPendingRange(undefined)
     // When switching to single, snap to startDate only
     if (newMode === 'single') {
       onChange(
@@ -175,7 +184,7 @@ export function AnalyticsDatePicker({
   return (
     <div className="flex flex-wrap items-center gap-3">
       {/* Quick preset buttons */}
-      {PRESET_KEYS.map((preset) => {
+      {PRESET_KEYS.map(preset => {
         const isActive = activePresetKey === preset.key
         return (
           <RippleButton
@@ -206,7 +215,16 @@ export function AnalyticsDatePicker({
           <ChevronLeft className="h-4 w-4" />
         </RippleButton>
 
-        <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <Popover
+          open={isOpen}
+          onOpenChange={open => {
+            setIsOpen(open)
+            if (open) {
+              setRangeClickCount(0)
+              setPendingRange(undefined)
+            }
+          }}
+        >
           <PopoverTrigger asChild>
             <RippleButton
               type="button"
@@ -225,6 +243,7 @@ export function AnalyticsDatePicker({
                 mode="single"
                 selected={startDate}
                 onSelect={handleSingleSelect}
+                disabled={{ after: new Date() }}
               />
             ) : (
               <Calendar
@@ -232,6 +251,7 @@ export function AnalyticsDatePicker({
                 selected={pendingRange ?? { from: startDate, to: endDate }}
                 onSelect={handleRangeSelect}
                 numberOfMonths={2}
+                disabled={{ after: new Date() }}
               />
             )}
           </PopoverContent>

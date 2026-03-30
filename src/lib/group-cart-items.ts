@@ -49,6 +49,8 @@ const CATEGORY_I18N_KEYS: Record<string, string> = {
  * - anything else -> 'other'
  */
 function getCategoryKey(item: CartItem): string {
+  // Negative price items are discounts (e.g., custom discount from calculator)
+  if (item.price < 0) return 'discount'
   if (item.typeId === 'bento') {
     return item.includesSoup ? 'bento' : 'single'
   }
@@ -91,12 +93,13 @@ export function groupCartItems(
 
   for (const key of CATEGORY_ORDER) {
     if (key === 'discount') {
-      // Only include discount group if there are discounts
-      if (discounts.length > 0) {
+      // Include discount group if there are discounts or negative-price items
+      const discountItems = itemMap.get('discount') ?? []
+      if (discounts.length > 0 || discountItems.length > 0) {
         groups.push({
           key,
           label: CATEGORY_I18N_KEYS[key] ?? key,
-          items: [],
+          items: discountItems,
           discounts,
         })
       }
