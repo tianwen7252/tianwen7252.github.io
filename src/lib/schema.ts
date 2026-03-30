@@ -261,6 +261,12 @@ function runMigrations(exec: (sql: string) => void): void {
     exec(
       'ALTER TABLE commodity_types ADD COLUMN priority INTEGER NOT NULL DEFAULT 0',
     )
+    // Backfill priority for existing rows based on rowid order
+    exec(`
+      UPDATE commodity_types SET priority = (
+        SELECT COUNT(*) FROM commodity_types AS ct2 WHERE ct2.rowid <= commodity_types.rowid
+      ) WHERE priority = 0
+    `)
   } catch {
     // Column already exists -- safe to ignore
   }

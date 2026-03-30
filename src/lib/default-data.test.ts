@@ -13,6 +13,7 @@ import {
   insertDefaultCommodities,
   insertDefaultOrderTypes,
   resetCommodityData,
+  resetCommodityDataAsync,
   DEFAULT_EMPLOYEES,
   DEFAULT_COMMODITY_TYPES,
   DEFAULT_COMMODITIES,
@@ -20,6 +21,16 @@ import {
 } from './default-data'
 import { UPDATE_DEFAULT_DATA_NUMBER } from '@/constants/default-data'
 import type { Database, QueryResult } from '@/lib/database'
+
+// ─── Mock for resetCommodityDataAsync (uses getDatabase from provider) ──────
+
+type AsyncExecFn = (sql: string, params?: readonly unknown[]) => Promise<{ rows: unknown[]; changes: number }>
+let mockAsyncExec: ReturnType<typeof vi.fn<AsyncExecFn>>
+vi.mock('@/lib/repositories/provider', () => ({
+  getDatabase: () => ({
+    exec: (sql: string, params?: readonly unknown[]) => mockAsyncExec(sql, params),
+  }),
+}))
 
 // ─── Mock Database factory ───────────────────────────────────────────────────
 
@@ -804,55 +815,40 @@ describe('resetCommodityData(db)', () => {
 // ─── resetCommodityDataAsync ────────────────────────────────────────────────
 
 describe('resetCommodityDataAsync()', () => {
-  // Build a shared mock exec function and call log, reset per test
-  let execCalls: Array<{ sql: string; params: readonly unknown[] | undefined }> = []
-  let mockExec: ReturnType<typeof vi.fn>
+  let execCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>
 
   beforeEach(() => {
-    // Reset module registry first so the static import of getDatabase is re-resolved
-    vi.resetModules()
     execCalls = []
-    mockExec = vi.fn(async (sql: string, params?: readonly unknown[]) => {
+    mockAsyncExec = vi.fn(async (sql: string, params?: readonly unknown[]) => {
       execCalls.push({ sql: sql.trim(), params })
       return { rows: [], changes: 0 }
     })
-    // Register the mock before any dynamic import of default-data
-    vi.doMock('@/lib/repositories/provider', () => ({
-      getDatabase: () => ({ exec: mockExec }),
-    }))
   })
 
   it('begins a transaction before any mutation', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     expect(execCalls[0]?.sql).toBe('BEGIN')
   })
 
   it('commits the transaction on success', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const lastCall = execCalls[execCalls.length - 1]
     expect(lastCall?.sql).toBe('COMMIT')
   })
 
   it('rolls back and rethrows on exec failure', async () => {
-    const failingExec = vi.fn()
+    mockAsyncExec = vi.fn()
       .mockResolvedValueOnce({ rows: [], changes: 0 }) // BEGIN
       .mockRejectedValueOnce(new Error('disk full'))   // DELETE commodities
       .mockResolvedValue({ rows: [], changes: 0 })     // ROLLBACK
-    vi.doMock('@/lib/repositories/provider', () => ({
-      getDatabase: () => ({ exec: failingExec }),
-    }))
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await expect(fn()).rejects.toThrow('disk full')
-    const sqlLog = failingExec.mock.calls.map((c: unknown[]) => (c[0] as string).trim())
+    await expect(resetCommodityDataAsync()).rejects.toThrow('disk full')
+    const sqlLog = mockAsyncExec.mock.calls.map((c: unknown[]) => (c[0] as string).trim())
     expect(sqlLog).toContain('ROLLBACK')
     expect(sqlLog).not.toContain('COMMIT')
   })
 
   it('deletes commodities, commodity_types, and order_types inside the transaction', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const sqls = execCalls.map(c => c.sql)
     expect(sqls).toContain('DELETE FROM commodities')
     expect(sqls).toContain('DELETE FROM commodity_types')
@@ -860,16 +856,14 @@ describe('resetCommodityDataAsync()', () => {
   })
 
   it('does not delete employees or attendances', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const sqls = execCalls.map(c => c.sql)
     expect(sqls.some(s => s.includes('employees'))).toBe(false)
     expect(sqls.some(s => s.includes('attendances'))).toBe(false)
   })
 
   it('re-inserts all default commodity types', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const typeInserts = execCalls.filter(
       c => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
     )
@@ -877,8 +871,7 @@ describe('resetCommodityDataAsync()', () => {
   })
 
   it('re-inserts all default commodities', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const comInserts = execCalls.filter(
       c =>
         c.sql.includes('INSERT') &&
@@ -889,8 +882,7 @@ describe('resetCommodityDataAsync()', () => {
   })
 
   it('re-inserts all default order types', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     const otInserts = execCalls.filter(
       c => c.sql.includes('INSERT') && c.sql.includes('order_types'),
     )
@@ -898,8 +890,7 @@ describe('resetCommodityDataAsync()', () => {
   })
 
   it('uses parameterized queries (no IDs embedded in SQL strings)', async () => {
-    const { resetCommodityDataAsync: fn } = await import('./default-data')
-    await fn()
+    await resetCommodityDataAsync()
     for (const call of execCalls) {
       if (call.sql.startsWith('INSERT')) {
         expect(call.sql).not.toMatch(/ct-\d+|com-\d+|ot-\d+/)

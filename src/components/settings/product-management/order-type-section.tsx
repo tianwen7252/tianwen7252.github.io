@@ -3,7 +3,7 @@
  * Supports add/edit/delete with modals, drag reorder, and a max of 10 types.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
@@ -25,6 +25,11 @@ const MAX_ORDER_TYPES = 10
 export function OrderTypeSection() {
   const { t } = useTranslation()
   const [refreshKey, setRefreshKey] = useState(0)
+
+  // Optimistic reorder state
+  const [optimisticOrderTypes, setOptimisticOrderTypes] = useState<
+    readonly OrderType[] | null
+  >(null)
 
   // Modal state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -126,19 +131,36 @@ export function OrderTypeSection() {
     setDeleteTarget(null)
   }, [])
 
-  // Drag reorder
+  // Drag reorder with optimistic UI
   const handleReorder = useCallback(
     async (orderedIds: readonly string[]) => {
+      const displayItems = optimisticOrderTypes ?? orderTypes
+      const reordered = orderedIds
+        .map((id, i) => {
+          const item = displayItems.find(ot => ot.id === id)
+          return item ? { ...item, priority: i + 1 } : null
+        })
+        .filter((ot): ot is OrderType => ot !== null)
+      setOptimisticOrderTypes(reordered)
+
       try {
         await getOrderTypeRepo().updatePriorities([...orderedIds])
-        notify.success(t('productMgmt.orderTypes.toastReordered'))
         refresh()
       } catch {
         notify.error(t('productMgmt.orderTypes.reorderError'))
+        setOptimisticOrderTypes(null)
       }
     },
-    [refresh, t],
+    [orderTypes, optimisticOrderTypes, refresh, t],
   )
+
+  // Clear optimistic state when DB data refreshes
+  const displayedOrderTypes = optimisticOrderTypes ?? orderTypes
+  const prevOrderTypesRef = useRef(orderTypes)
+  if (prevOrderTypesRef.current !== orderTypes) {
+    prevOrderTypesRef.current = orderTypes
+    if (optimisticOrderTypes) setOptimisticOrderTypes(null)
+  }
 
   return (
     <section className="mb-8">
@@ -162,7 +184,7 @@ export function OrderTypeSection() {
 
       {/* Sortable order type list */}
       <SortableList
-        items={orderTypes}
+        items={displayedOrderTypes}
         getId={ot => ot.id}
         renderItem={(orderType, dragHandleProps) => (
           <SwipeToDelete onDelete={() => handleDeleteClick(orderType)}>

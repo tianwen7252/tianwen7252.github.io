@@ -3,7 +3,7 @@
  * Shows category tabs (one per commodity type) and a sortable list of products.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
@@ -20,20 +20,27 @@ import type { CommodityFormValues } from '@/lib/form-schemas'
 
 // ── Color mapping for tab pill styling using theme variables ──────────────
 
+// Match the order page category-accent colors
 const TAB_COLOR_MAP: Record<string, string> = {
-  green: 'var(--color-green)',
-  brown: 'var(--color-gold)',
-  indigo: 'var(--color-blue)',
+  green: '#7f956a',
+  brown: '#d4a76a',
+  indigo: '#6aa3d4',
 }
 
+// Fallback for unknown commodity type colors (e.g. dumpling uses indigo)
 function resolveTabColor(color: string): string {
-  return TAB_COLOR_MAP[color] ?? TAB_COLOR_MAP['green']!
+  return TAB_COLOR_MAP[color] ?? '#c47fd4'
 }
 
 export function CommoditySection() {
   const { t } = useTranslation()
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeTypeId, setActiveTypeId] = useState<string | null>(null)
+
+  // Optimistic reorder state — shows new order immediately while DB updates
+  const [optimisticCommodities, setOptimisticCommodities] = useState<
+    readonly Commodity[] | null
+  >(null)
 
   // Modal state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -171,19 +178,38 @@ export function CommoditySection() {
     setDeleteTarget(null)
   }, [])
 
-  // Drag reorder
+  // Drag reorder with optimistic UI
   const handleReorder = useCallback(
     async (orderedIds: readonly string[]) => {
+      // Optimistic update — reorder items locally before DB write
+      const displayItems = optimisticCommodities ?? commodities
+      const reordered = orderedIds
+        .map((id, i) => {
+          const item = displayItems.find(c => c.id === id)
+          return item ? { ...item, priority: i + 1 } : null
+        })
+        .filter((c): c is Commodity => c !== null)
+      setOptimisticCommodities(reordered)
+
       try {
         await getCommodityRepo().updatePriorities([...orderedIds])
-        notify.success(t('productMgmt.commodities.toastReordered'))
         refresh()
       } catch {
         notify.error(t('productMgmt.commodities.reorderError'))
+        setOptimisticCommodities(null)
       }
     },
-    [refresh, t],
+    [commodities, optimisticCommodities, refresh, t],
   )
+
+  // Clear optimistic state when DB data refreshes
+  const displayedCommodities = optimisticCommodities ?? commodities
+  // Reset optimistic state when commodities change from DB
+  const prevCommoditiesRef = useRef(commodities)
+  if (prevCommoditiesRef.current !== commodities) {
+    prevCommoditiesRef.current = commodities
+    if (optimisticCommodities) setOptimisticCommodities(null)
+  }
 
   return (
     <section>
@@ -239,7 +265,7 @@ export function CommoditySection() {
 
       {/* Sortable commodity list */}
       <SortableList
-        items={commodities}
+        items={displayedCommodities}
         getId={c => c.id}
         renderItem={(commodity, dragHandleProps) => (
           <SwipeToDelete onDelete={() => handleDeleteClick(commodity)}>

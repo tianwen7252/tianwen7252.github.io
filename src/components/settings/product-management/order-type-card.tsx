@@ -11,18 +11,6 @@ import { RippleButton } from '@/components/ui/ripple-button'
 import type { OrderType } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
 
-// ── Color mapping for the color dot ──────────────────────────────────────
-
-// Color mapping using theme CSS variables
-const COLOR_MAP: Record<string, string> = {
-  green: 'var(--color-green)',
-  blue: 'var(--color-blue)',
-  yellow: 'var(--color-yellow)',
-  red: 'var(--color-red)',
-  purple: '#9333ea',
-  gray: '#9ca3af',
-}
-
 interface OrderTypeCardProps {
   readonly orderType: OrderType
   readonly dragHandleProps: DragHandleProps
@@ -44,7 +32,6 @@ export function OrderTypeCard({
   const { t } = useTranslation()
 
   const isDefault = isDefaultOrderType(orderType.id)
-  const colorValue = orderType.color ? COLOR_MAP[orderType.color] : undefined
 
   const handleEdit = useCallback(() => {
     onEdit(orderType)
@@ -67,14 +54,10 @@ export function OrderTypeCard({
         <GripVertical size={20} className="text-muted-foreground" />
       </div>
 
-      {/* Color dot */}
-      {colorValue && (
-        <span
-          data-testid="color-dot"
-          className="size-3 shrink-0 rounded-full"
-          style={{ backgroundColor: colorValue }}
-        />
-      )}
+      {/* Priority badge */}
+      <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-base text-muted-foreground">
+        {orderType.priority}
+      </span>
 
       {/* Name */}
       <span className="min-w-0 flex-1 truncate text-base text-foreground">

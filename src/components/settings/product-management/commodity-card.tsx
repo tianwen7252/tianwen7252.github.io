@@ -67,12 +67,7 @@ export function CommodityCard({
         {commodity.includesSoup && (
           <span
             data-testid="soup-tag"
-            className="flex items-center gap-1 rounded-full px-2 py-0.5 text-base"
-            style={{
-              backgroundColor:
-                'color-mix(in srgb, var(--color-blue) 15%, transparent)',
-              color: 'var(--color-blue)',
-            }}
+            className="flex items-center gap-1 px-2 py-0.5 text-base text-muted-foreground"
           >
             <Soup size={14} />
             {t('productMgmt.commodities.includesSoup')}

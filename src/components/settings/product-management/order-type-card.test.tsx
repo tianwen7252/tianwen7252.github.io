@@ -69,7 +69,7 @@ describe('OrderTypeCard', () => {
       expect(screen.getByText('攤位')).toBeTruthy()
     })
 
-    it('should render color dot with correct test id', () => {
+    it('should render priority badge with order type priority', () => {
       render(
         <OrderTypeCard
           orderType={DEFAULT_ORDER_TYPE}
@@ -78,7 +78,7 @@ describe('OrderTypeCard', () => {
           onDelete={vi.fn()}
         />,
       )
-      expect(screen.getByTestId('color-dot')).toBeTruthy()
+      expect(screen.getByText(String(DEFAULT_ORDER_TYPE.priority))).toBeTruthy()
     })
 
     it('should render drag handle with correct attributes', () => {
@@ -194,8 +194,8 @@ describe('OrderTypeCard', () => {
     })
   })
 
-  describe('color dot', () => {
-    it('should not render color dot when color is empty', () => {
+  describe('priority badge', () => {
+    it('should render priority badge for order type without color', () => {
       render(
         <OrderTypeCard
           orderType={ORDER_TYPE_NO_COLOR}
@@ -204,7 +204,7 @@ describe('OrderTypeCard', () => {
           onDelete={vi.fn()}
         />,
       )
-      expect(screen.queryByTestId('color-dot')).toBeNull()
+      expect(screen.getByText(String(ORDER_TYPE_NO_COLOR.priority))).toBeTruthy()
     })
   })
 })

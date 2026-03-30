@@ -3,7 +3,7 @@
  * with drag-and-drop reorder and edit-via-modal capability.
  */
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GripVertical, Pencil } from 'lucide-react'
 import { Modal } from '@/components/modal'
@@ -73,6 +73,11 @@ export function CommodityTypeSection() {
   const { t } = useTranslation()
   const [refreshKey, setRefreshKey] = useState(0)
 
+  // Optimistic reorder state
+  const [optimisticTypes, setOptimisticTypes] = useState<
+    readonly CommodityType[] | null
+  >(null)
+
   // Edit modal state
   const [editingType, setEditingType] = useState<CommodityType | null>(null)
   const [editValue, setEditValue] = useState('')
@@ -120,19 +125,36 @@ export function CommodityTypeSection() {
     }
   }, [editingType, editValue, t, refresh, handleEditClose])
 
-  // Drag reorder
+  // Drag reorder with optimistic UI
   const handleReorder = useCallback(
     async (orderedIds: readonly string[]) => {
+      const displayItems = optimisticTypes ?? commodityTypes
+      const reordered = orderedIds
+        .map((id, i) => {
+          const item = displayItems.find(ct => ct.id === id)
+          return item ? { ...item, priority: i + 1 } : null
+        })
+        .filter((ct): ct is CommodityType => ct !== null)
+      setOptimisticTypes(reordered)
+
       try {
         await getCommodityTypeRepo().updatePriorities([...orderedIds])
-        notify.success(t('productMgmt.types.toastReordered'))
         refresh()
       } catch {
         notify.error(t('productMgmt.types.reorderError'))
+        setOptimisticTypes(null)
       }
     },
-    [refresh, t],
+    [commodityTypes, optimisticTypes, refresh, t],
   )
+
+  // Clear optimistic state when DB data refreshes
+  const displayedTypes = optimisticTypes ?? commodityTypes
+  const prevTypesRef = useRef(commodityTypes)
+  if (prevTypesRef.current !== commodityTypes) {
+    prevTypesRef.current = commodityTypes
+    if (optimisticTypes) setOptimisticTypes(null)
+  }
 
   return (
     <section className="mb-8">
@@ -142,7 +164,7 @@ export function CommodityTypeSection() {
 
       {/* Sortable type list */}
       <SortableList
-        items={commodityTypes}
+        items={displayedTypes}
         getId={ct => ct.id}
         renderItem={(ct, dragHandleProps) => (
           <TypeRow
