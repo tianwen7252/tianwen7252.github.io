@@ -173,22 +173,22 @@ describe('getDateRange', () => {
 // ─── getOrderCountForDay ───────────────────────────────────────────────────
 
 describe('getOrderCountForDay', () => {
-  it('returns value between 45 and 65', () => {
+  it('returns value between 50 and 100', () => {
     const rng = createSeededRandom(42)
     for (let i = 0; i < 100; i++) {
       const count = getOrderCountForDay(rng)
-      expect(count).toBeGreaterThanOrEqual(45)
-      expect(count).toBeLessThanOrEqual(65)
+      expect(count).toBeGreaterThanOrEqual(50)
+      expect(count).toBeLessThanOrEqual(100)
     }
   })
 
-  it('average over many calls is around 50-55', () => {
+  it('average over many calls is around 70-80', () => {
     const rng = createSeededRandom(123)
     const counts = Array.from({ length: 1000 }, () => getOrderCountForDay(rng))
     const avg = counts.reduce((a, b) => a + b, 0) / counts.length
 
-    expect(avg).toBeGreaterThanOrEqual(50)
-    expect(avg).toBeLessThanOrEqual(60)
+    expect(avg).toBeGreaterThanOrEqual(70)
+    expect(avg).toBeLessThanOrEqual(80)
   })
 
   it('returns an integer', () => {

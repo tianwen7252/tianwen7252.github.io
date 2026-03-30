@@ -53,6 +53,8 @@ function getCategoryKey(
   item: OrderItem,
   typeIdMap: ReadonlyMap<string, string>,
 ): string {
+  // Negative price items are discounts (e.g., custom discount from calculator)
+  if (item.price < 0) return 'discount'
   const typeId = typeIdMap.get(item.commodityId)
   if (typeId === undefined) return 'other'
   if (typeId === 'bento') {
@@ -100,12 +102,13 @@ export function groupOrderItems(
 
   for (const key of CATEGORY_ORDER) {
     if (key === 'discount') {
-      // Only include discount group if there are discounts
-      if (discounts.length > 0) {
+      // Include discount group if there are discounts or negative-price items
+      const discountItems = itemMap.get('discount') ?? []
+      if (discounts.length > 0 || discountItems.length > 0) {
         groups.push({
           key,
           label: CATEGORY_I18N_KEYS[key] ?? key,
-          items: [],
+          items: discountItems,
           discounts,
         })
       }

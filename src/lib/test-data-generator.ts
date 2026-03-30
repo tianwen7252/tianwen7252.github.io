@@ -113,10 +113,10 @@ export function getDateRange(months: number): string[] {
 // ─── Order Count ───────────────────────────────────────────────────────────
 
 /**
- * Return a random order count uniformly distributed between 45 and 65 inclusive.
+ * Return a random order count uniformly distributed between 50 and 100 inclusive.
  */
 export function getOrderCountForDay(random: () => number): number {
-  return Math.floor(random() * 21) + 45
+  return Math.floor(random() * 51) + 50
 }
 
 // ─── Commodity Helpers ─────────────────────────────────────────────────────
