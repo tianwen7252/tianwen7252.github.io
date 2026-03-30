@@ -50,6 +50,8 @@ import type {
 export interface DragHandleProps {
   readonly attributes: DraggableAttributes
   readonly listeners: DraggableSyntheticListeners
+  /** True when rendered inside the DragOverlay (floating clone) */
+  readonly isOverlay?: boolean
 }
 
 interface SortableListProps<T> {
@@ -83,6 +85,7 @@ const OVERLAY_DRAG_HANDLE_PROPS: DragHandleProps = {
     'aria-describedby': 'dnd-overlay-description',
   },
   listeners: undefined,
+  isOverlay: true,
 }
 
 // ── SortableItem ───────────────────────────────────────────────────────────
@@ -203,11 +206,9 @@ export function SortableList<T>({
       </SortableContext>
 
       <DragOverlay dropAnimation={DROP_ANIMATION}>
-        {activeItem ? (
-          <div className="rounded-lg ring-2 ring-primary">
-            {renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)}
-          </div>
-        ) : null}
+        {activeItem
+          ? renderItem(activeItem, OVERLAY_DRAG_HANDLE_PROPS)
+          : null}
       </DragOverlay>
     </DndContext>
   )

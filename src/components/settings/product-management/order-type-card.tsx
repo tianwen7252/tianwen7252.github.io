@@ -8,6 +8,7 @@ import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GripVertical, Pencil, Trash2 } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { cn } from '@/lib/cn'
 import type { OrderType } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
 
@@ -42,7 +43,10 @@ export function OrderTypeCard({
   }, [orderType, onDelete])
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <div className={cn(
+      'flex items-center gap-3 rounded-lg border border-border bg-card p-3',
+      dragHandleProps.isOverlay && 'ring-2 ring-primary',
+    )}>
       {/* Drag handle */}
       <div
         data-testid="drag-handle"

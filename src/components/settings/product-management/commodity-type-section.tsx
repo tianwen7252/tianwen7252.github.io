@@ -10,6 +10,7 @@ import { Modal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
 import { notify } from '@/components/ui/sonner'
+import { cn } from '@/lib/cn'
 import { getCommodityTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
@@ -32,7 +33,10 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
   }, [type, onEdit])
 
   return (
-    <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
+    <div className={cn(
+      'flex items-center gap-3 rounded-lg border border-border bg-card p-3',
+      dragHandleProps.isOverlay && 'ring-2 ring-primary',
+    )}>
       {/* Drag handle */}
       <div
         data-testid="drag-handle"
