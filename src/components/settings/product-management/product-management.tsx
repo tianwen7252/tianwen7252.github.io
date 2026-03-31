@@ -6,7 +6,7 @@
 
 import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Save } from 'lucide-react'
+import { Save, Plus, Pencil, Trash2, ArrowUpDown, Tag } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
@@ -93,7 +93,11 @@ export function ProductManagement() {
     <div className="space-y-8 p-6">
       {/* Unified Save Settings button */}
       <div className="flex justify-end">
-        <div className="relative rounded-lg">
+        <RippleButton
+          disabled={!hasAnyChanges}
+          className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+          onClick={handleSaveClick}
+        >
           {hasAnyChanges && (
             <ShineBorder
               shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
@@ -101,15 +105,9 @@ export function ProductManagement() {
               borderWidth={2}
             />
           )}
-          <RippleButton
-            disabled={!hasAnyChanges}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={handleSaveClick}
-          >
-            <Save size={16} />
-            {t('productMgmt.saveSettings')}
-          </RippleButton>
-        </div>
+          <Save size={16} />
+          {t('productMgmt.saveSettings')}
+        </RippleButton>
       </div>
 
       <CommodityTypeSection
@@ -143,12 +141,12 @@ export function ProductManagement() {
         <div className="space-y-2 text-base text-foreground">
           {changeSummary.map((item, i) => (
             <div key={i} className="flex items-start gap-2">
-              <span className="shrink-0 text-muted-foreground">
-                {item.type === 'add' && '+'}
-                {item.type === 'edit' && '~'}
-                {item.type === 'delete' && '-'}
-                {item.type === 'label' && '~'}
-                {item.type === 'reorder' && '#'}
+              <span className="mt-0.5 shrink-0 text-muted-foreground">
+                {item.type === 'add' && <Plus size={16} />}
+                {item.type === 'edit' && <Pencil size={16} />}
+                {item.type === 'delete' && <Trash2 size={16} />}
+                {item.type === 'label' && <Tag size={16} />}
+                {item.type === 'reorder' && <ArrowUpDown size={16} />}
               </span>
               <span>{item.description}</span>
             </div>

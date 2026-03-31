@@ -263,10 +263,19 @@ export function CommoditySection({
           })
         }
 
-        if (reorderedIds.size > 0) {
+        for (const [typeId, ids] of reorderedIds) {
+          // Build ordered name list from displayed items
+          const typeLabel = commodityTypes.find(ct => ct.typeId === typeId)?.label ?? typeId
+          const names = ids
+            .map(id => {
+              const db = allDbCommodities.find(c => c.id === id)
+              const added = pendingAdds.find(a => a.commodity.id === id)
+              return db?.name ?? added?.commodity.name ?? id
+            })
+            .join(', ')
           items.push({
             type: 'reorder',
-            description: t('productMgmt.commodities.toastReordered'),
+            description: `${typeLabel}：${names}`,
           })
         }
 
@@ -280,6 +289,7 @@ export function CommoditySection({
       reorderedIds,
       dbCommodities,
       allDbCommodities,
+      commodityTypes,
       t,
     ],
   )

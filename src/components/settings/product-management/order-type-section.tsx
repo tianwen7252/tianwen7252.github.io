@@ -201,9 +201,16 @@ export function OrderTypeSection({
         }
 
         if (reorderedIds) {
+          const names = reorderedIds
+            .map(id => {
+              const db = dbOrderTypes.find(ot => ot.id === id)
+              const added = pendingAdds.find(a => a.orderType.id === id)
+              return db?.name ?? added?.orderType.name ?? id
+            })
+            .join(', ')
           items.push({
             type: 'reorder',
-            description: t('productMgmt.orderTypes.toastReordered'),
+            description: `${t('productMgmt.orderTypes.title')}：${names}`,
           })
         }
 
