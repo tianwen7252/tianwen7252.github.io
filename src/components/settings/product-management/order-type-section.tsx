@@ -207,7 +207,7 @@ export function OrderTypeSection({
               const added = pendingAdds.find(a => a.orderType.id === id)
               return db?.name ?? added?.orderType.name ?? id
             })
-            .join(', ')
+            .join(' → ')
           items.push({
             type: 'reorder',
             description: `${t('productMgmt.orderTypes.title')}：${names}`,

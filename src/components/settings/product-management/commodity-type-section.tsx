@@ -215,7 +215,7 @@ export function CommodityTypeSection({
             .join(' → ')
           items.push({
             type: 'reorder',
-            description: `${t('productMgmt.types.orderChanged')} ${newLabels}`,
+            description: `${t('productMgmt.types.title')}：${newLabels}`,
           })
         }
 

@@ -272,7 +272,7 @@ export function CommoditySection({
               const added = pendingAdds.find(a => a.commodity.id === id)
               return db?.name ?? added?.commodity.name ?? id
             })
-            .join(', ')
+            .join(' → ')
           items.push({
             type: 'reorder',
             description: `${typeLabel}：${names}`,
