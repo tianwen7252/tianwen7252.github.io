@@ -197,21 +197,28 @@ describe('SystemInfo', () => {
   // ── Section 3: Quick Actions ────────────────────────────────────────────
 
   describe('Quick Actions', () => {
-    it('renders three quick action buttons', () => {
+    it('hides quick actions panel when not admin', () => {
+      mockIsAdmin = false
       renderWithProviders(<SystemInfo />)
+      expect(screen.queryByText('快捷操作')).toBeNull()
+    })
+
+    it('renders quick action buttons when admin', () => {
+      mockIsAdmin = true
+      renderWithProviders(<SystemInfo />)
+      expect(screen.getByText('快捷操作')).toBeTruthy()
       expect(screen.getByText('清除快取')).toBeTruthy()
-      expect(screen.getByText('匯出資料庫')).toBeTruthy()
       expect(screen.getByText('重新載入App')).toBeTruthy()
     })
 
-    it('shows toast on export db click (feature in development)', async () => {
-      const user = userEvent.setup()
+    it('does not show export db button (moved to cloud backup)', () => {
+      mockIsAdmin = true
       renderWithProviders(<SystemInfo />)
-      await user.click(screen.getByText('匯出資料庫'))
-      expect(mockNotifyInfo).toHaveBeenCalledWith('功能開發中')
+      expect(screen.queryByText('匯出資料庫')).toBeNull()
     })
 
     it('calls caches.delete on clear cache click', async () => {
+      mockIsAdmin = true
       const mockDelete = vi.fn().mockResolvedValue(true)
       const mockKeys = vi.fn().mockResolvedValue(['cache-1', 'cache-2'])
       Object.defineProperty(window, 'caches', {

@@ -409,7 +409,7 @@
     "backingUp": "Backing up...",
     "backupSuccess": "Backup completed",
     "backupFailed": "Backup failed",
-    "notConfigured": "Supabase not configured",
+    "notConfigured": "Cloud backup not configured",
     "noRecord": "No records",
     "dbStats": "Database Statistics",
     "localDbStats": "Local Database",

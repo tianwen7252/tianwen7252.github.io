@@ -6,14 +6,12 @@
 import { useTranslation } from 'react-i18next'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { useDbStats } from '@/hooks/use-db-stats'
-import { isBackupConfigured } from '@/lib/backup-config'
 
 // ── Component ───────────────────────────────────────────────────────────────
 
 export function CloudBackupDbStats() {
   const { t } = useTranslation()
   const { tables, totalRows } = useDbStats()
-  const isConfigured = isBackupConfigured()
 
   return (
     <div className="grid grid-cols-2 gap-4">
@@ -57,34 +55,28 @@ export function CloudBackupDbStats() {
           <CardTitle>{t('backup.cloudDbStats')}</CardTitle>
         </CardHeader>
         <CardContent>
-          {isConfigured ? (
-            <div className="overflow-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="border-b text-muted-foreground">
-                    <th className="px-2 py-1">{t('backup.tableName')}</th>
-                    <th className="px-2 py-1 text-right">
-                      {t('backup.rowCount')}
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td
-                      colSpan={2}
-                      className="px-2 py-4 text-center text-muted-foreground"
-                    >
-                      {t('backup.cloudStatsUnavailable')}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="py-4 text-center text-muted-foreground">
-              {t('backup.notConfigured')}
-            </p>
-          )}
+          <div className="overflow-auto">
+            <table className="w-full text-left">
+              <thead>
+                <tr className="border-b text-muted-foreground">
+                  <th className="px-2 py-1">{t('backup.tableName')}</th>
+                  <th className="px-2 py-1 text-right">
+                    {t('backup.rowCount')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td
+                    colSpan={2}
+                    className="px-2 py-4 text-center text-muted-foreground"
+                  >
+                    {t('backup.cloudStatsUnavailable')}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </CardContent>
       </Card>
     </div>

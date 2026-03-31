@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar'
-import { Trash2, Eraser, DatabaseBackup, RefreshCw } from 'lucide-react'
+import { Trash2, Eraser, RefreshCw } from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { notify } from '@/components/ui/sonner'
 import { PaginationControls } from '@/components/settings/pagination-controls'
@@ -116,10 +116,6 @@ export function SystemInfo() {
     } catch {
       // Caches API not available
     }
-  }, [t])
-
-  const handleExportDb = useCallback(() => {
-    notify.info(t('settings.featureInDev'))
   }, [t])
 
   const handleForceReload = useCallback(() => {
@@ -257,37 +253,32 @@ export function SystemInfo() {
         </Card>
       </div>
 
-      {/* Section 3: Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('settings.quickActions')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-3 gap-4">
-            <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-red) px-4 py-2 text-white hover:opacity-80"
-              onClick={handleClearCache}
-            >
-              <Eraser size={16} />
-              {t('settings.clearCache')}
-            </RippleButton>
-            <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80"
-              onClick={handleExportDb}
-            >
-              <DatabaseBackup size={16} />
-              {t('settings.exportDb')}
-            </RippleButton>
-            <RippleButton
-              className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
-              onClick={handleForceReload}
-            >
-              <RefreshCw size={16} />
-              {t('settings.reloadApp')}
-            </RippleButton>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Section 3: Quick Actions (admin only) */}
+      {isAdmin && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('settings.quickActions')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              <RippleButton
+                className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-red) px-4 py-2 text-white hover:opacity-80"
+                onClick={handleClearCache}
+              >
+                <Eraser size={16} />
+                {t('settings.clearCache')}
+              </RippleButton>
+              <RippleButton
+                className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
+                onClick={handleForceReload}
+              >
+                <RefreshCw size={16} />
+                {t('settings.reloadApp')}
+              </RippleButton>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Section 4: Error Logs */}
       <Card>
@@ -321,7 +312,7 @@ export function SystemInfo() {
                     {logs.map(log => (
                       <tr key={log.id} className="border-b">
                         <td className="px-2 py-1 whitespace-nowrap">
-                          {dayjs(log.createdAt).format('HH:mm:ss')}
+                          {dayjs(log.createdAt).format('YYYY/MM/DD HH:mm:ss')}
                         </td>
                         <td className="px-2 py-1">{log.source}</td>
                         <td className="px-2 py-1">{log.message}</td>

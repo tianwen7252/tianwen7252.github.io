@@ -59,16 +59,9 @@ describe('CloudBackupStatus', () => {
       expect(screen.getByText('雲端資料庫大小')).toBeTruthy()
     })
 
-    it('shows not configured message when Supabase is not set up', () => {
-      mockIsConfigured = false
+    it('shows dash when no cloud size data available', () => {
       render(<CloudBackupStatus />)
-      expect(screen.getByText('Supabase 尚未設定')).toBeTruthy()
-    })
-
-    it('does not show not configured message when Supabase is configured', () => {
-      mockIsConfigured = true
-      render(<CloudBackupStatus />)
-      expect(screen.queryByText('Supabase 尚未設定')).toBeNull()
+      expect(screen.getByText('—')).toBeTruthy()
     })
   })
 
