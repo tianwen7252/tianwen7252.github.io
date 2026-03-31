@@ -227,8 +227,9 @@ describe('CommodityTypeSection', () => {
 
       await screen.findByText('餐盒')
 
-      // No save button initially
-      expect(screen.queryByText('儲存設定')).toBeNull()
+      // Save button exists but is disabled initially
+      const saveBtn = screen.getByText('儲存設定')
+      expect(saveBtn.closest('button')?.disabled).toBe(true)
 
       // Make a change
       const editButtons = screen.getAllByTestId('edit-button')
@@ -238,9 +239,9 @@ describe('CommodityTypeSection', () => {
       await user.type(input, '主食')
       await user.click(screen.getByRole('button', { name: '確認' }))
 
-      // Save button should appear
+      // Save button should be enabled
       await waitFor(() => {
-        expect(screen.getByText('儲存設定')).toBeTruthy()
+        expect(screen.getByText('儲存設定').closest('button')?.disabled).toBe(false)
       })
     })
 

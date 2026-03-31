@@ -250,15 +250,14 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
         <h2 className="text-lg text-foreground">
           {t('productMgmt.types.title')}
         </h2>
-        {hasChanges && (
-          <RippleButton
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90"
+        <RippleButton
+            disabled={!hasChanges}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
             onClick={handleSaveClick}
           >
             <Save size={16} />
             {t('productMgmt.types.saveSettings')}
           </RippleButton>
-        )}
       </div>
 
       {/* Sortable type list */}
