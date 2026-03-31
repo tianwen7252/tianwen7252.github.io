@@ -120,10 +120,10 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
   // The displayed types — local changes override DB
   const displayedTypes = localTypes ?? dbTypes
 
-  // Reset local state when DB refreshes (e.g. after save or external refresh)
-  const [prevDbTypes, setPrevDbTypes] = useState(dbTypes)
-  if (prevDbTypes !== dbTypes) {
-    setPrevDbTypes(dbTypes)
+  // Reset local state when refreshKey changes (after save or external refresh)
+  const [prevRefreshKey, setPrevRefreshKey] = useState(refreshKey)
+  if (prevRefreshKey !== refreshKey) {
+    setPrevRefreshKey(refreshKey)
     setLocalTypes(null)
   }
 
