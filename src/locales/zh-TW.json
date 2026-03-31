@@ -449,7 +449,13 @@
       "toastReordered": "排序已更新",
       "saveError": "儲存失敗",
       "deleteError": "刪除失敗",
-      "reorderError": "排序失敗"
+      "reorderError": "排序失敗",
+      "summaryAdded": "新增分類：{{name}}",
+      "summaryEdited": "修改分類：{{name}}",
+      "summaryDeleted": "刪除分類：{{name}}",
+      "summaryFieldName": "名稱",
+      "summaryFieldColor": "顏色",
+      "summaryFieldColorNone": "無"
     },
     "commodities": {
       "title": "商品設定",
@@ -472,7 +478,12 @@
       "itemCount": "{{count}} 項",
       "saveError": "儲存失敗，請重試",
       "deleteError": "刪除失敗，請重試",
-      "reorderError": "排序失敗，請重試"
+      "reorderError": "排序失敗，請重試",
+      "summaryAdded": "新增商品：{{name}}",
+      "summaryEdited": "修改商品：{{name}}",
+      "summaryDeleted": "刪除商品：{{name}}",
+      "summaryFieldName": "名稱",
+      "summaryFieldPrice": "價格"
     },
     "priceLog": {
       "title": "歷史價格變動",

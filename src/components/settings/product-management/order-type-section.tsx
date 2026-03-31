@@ -177,18 +177,25 @@ export function OrderTypeSection({
         for (const add of pendingAdds) {
           items.push({
             type: 'add',
-            description: `新增分類：${add.orderType.name}`,
+            description: t('productMgmt.orderTypes.summaryAdded', {
+              name: add.orderType.name,
+            }),
           })
         }
 
         for (const edit of pendingEdits) {
           const details: string[] = []
-          if (edit.changes.name) details.push(`名稱: ${edit.changes.name}`)
+          if (edit.changes.name)
+            details.push(
+              `${t('productMgmt.orderTypes.summaryFieldName')}: ${edit.changes.name}`,
+            )
           if (edit.changes.color !== undefined)
-            details.push(`顏色: ${edit.changes.color || '無'}`)
+            details.push(
+              `${t('productMgmt.orderTypes.summaryFieldColor')}: ${edit.changes.color || t('productMgmt.orderTypes.summaryFieldColorNone')}`,
+            )
           items.push({
             type: 'edit',
-            description: `修改分類：${edit.originalName}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
+            description: `${t('productMgmt.orderTypes.summaryEdited', { name: edit.originalName })}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
           })
         }
 
@@ -196,7 +203,9 @@ export function OrderTypeSection({
           const item = dbOrderTypes.find(ot => ot.id === id)
           items.push({
             type: 'delete',
-            description: `刪除分類：${item?.name ?? id}`,
+            description: t('productMgmt.orderTypes.summaryDeleted', {
+              name: item?.name ?? id,
+            }),
           })
         }
 

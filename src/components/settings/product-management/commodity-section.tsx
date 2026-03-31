@@ -254,18 +254,25 @@ export function CommoditySection({
         for (const add of pendingAdds) {
           items.push({
             type: 'add',
-            description: `${t('productMgmt.commodities.toastAdded').replace('商品已新增', '新增商品')}：${add.commodity.name}`,
+            description: t('productMgmt.commodities.summaryAdded', {
+              name: add.commodity.name,
+            }),
           })
         }
 
         for (const edit of pendingEdits) {
           const details: string[] = []
-          if (edit.changes.name) details.push(`名稱: ${edit.changes.name}`)
+          if (edit.changes.name)
+            details.push(
+              `${t('productMgmt.commodities.summaryFieldName')}: ${edit.changes.name}`,
+            )
           if (edit.changes.price !== undefined)
-            details.push(`價格: ${edit.changes.price}`)
+            details.push(
+              `${t('productMgmt.commodities.summaryFieldPrice')}: ${edit.changes.price}`,
+            )
           items.push({
             type: 'edit',
-            description: `修改商品：${edit.originalName}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
+            description: `${t('productMgmt.commodities.summaryEdited', { name: edit.originalName })}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
           })
         }
 
@@ -275,7 +282,9 @@ export function CommoditySection({
             allDbCommodities.find(c => c.id === id)
           items.push({
             type: 'delete',
-            description: `刪除商品：${item?.name ?? id}`,
+            description: t('productMgmt.commodities.summaryDeleted', {
+              name: item?.name ?? id,
+            }),
           })
         }
 

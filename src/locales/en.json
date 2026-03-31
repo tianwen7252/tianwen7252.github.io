@@ -449,7 +449,13 @@
       "toastReordered": "Order updated",
       "saveError": "Save failed",
       "deleteError": "Delete failed",
-      "reorderError": "Reorder failed"
+      "reorderError": "Reorder failed",
+      "summaryAdded": "Add type: {{name}}",
+      "summaryEdited": "Edit type: {{name}}",
+      "summaryDeleted": "Delete type: {{name}}",
+      "summaryFieldName": "Name",
+      "summaryFieldColor": "Color",
+      "summaryFieldColorNone": "None"
     },
     "commodities": {
       "title": "Commodity Settings",
@@ -472,7 +478,12 @@
       "itemCount": "{{count}} items",
       "saveError": "Failed to save, please try again",
       "deleteError": "Failed to delete, please try again",
-      "reorderError": "Failed to reorder, please try again"
+      "reorderError": "Failed to reorder, please try again",
+      "summaryAdded": "Add product: {{name}}",
+      "summaryEdited": "Edit product: {{name}}",
+      "summaryDeleted": "Delete product: {{name}}",
+      "summaryFieldName": "Name",
+      "summaryFieldPrice": "Price"
     },
     "priceLog": {
       "title": "Price Change History",
