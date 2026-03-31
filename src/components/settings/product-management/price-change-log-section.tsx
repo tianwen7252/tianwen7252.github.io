@@ -1,12 +1,30 @@
 /**
- * PriceChangeLogSection -- Displays a paginated, date-grouped list
- * of commodity price changes for the product management page.
+ * PriceChangeLogSection -- Displays a paginated, date-grouped table
+ * of commodity price changes using shadcn Table + Collapsible.
  */
 
 import { useState, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight, FileText } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  FileText,
+} from 'lucide-react'
 import { RippleButton } from '@/components/ui/ripple-button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { getPriceChangeLogRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import type { PriceChangeLog } from '@/lib/schemas'
@@ -24,9 +42,7 @@ interface DateGroup {
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-/**
- * Format a timestamp to a locale date string (YYYY-MM-DD).
- */
+/** Format a timestamp to YYYY-MM-DD. */
 function formatDate(timestamp: number): string {
   const d = new Date(timestamp)
   const yyyy = d.getFullYear()
@@ -35,9 +51,15 @@ function formatDate(timestamp: number): string {
   return `${yyyy}-${mm}-${dd}`
 }
 
-/**
- * Group price change logs by date, preserving the DESC order from the query.
- */
+/** Format a timestamp to HH:mm. */
+function formatTime(timestamp: number): string {
+  const d = new Date(timestamp)
+  const hh = String(d.getHours()).padStart(2, '0')
+  const min = String(d.getMinutes()).padStart(2, '0')
+  return `${hh}:${min}`
+}
+
+/** Group price change logs by date, preserving DESC order from query. */
 function groupByDate(logs: readonly PriceChangeLog[]): readonly DateGroup[] {
   const map = new Map<string, PriceChangeLog[]>()
   const order: string[] = []
@@ -92,9 +114,8 @@ export function PriceChangeLogSection({
   )
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE))
-
-  // Group logs by date
   const dateGroups = useMemo(() => groupByDate(logs), [logs])
+  const showPagination = totalCount > PAGE_SIZE
 
   // Pagination handlers
   const handlePrevious = useCallback(() => {
@@ -104,8 +125,6 @@ export function PriceChangeLogSection({
   const handleNext = useCallback(() => {
     setPage(p => Math.min(totalPages, p + 1))
   }, [totalPages])
-
-  const showPagination = totalCount > PAGE_SIZE
 
   return (
     <section>
@@ -119,31 +138,53 @@ export function PriceChangeLogSection({
           <span>{t('productMgmt.priceLog.empty')}</span>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-2">
           {dateGroups.map(group => (
-            <div key={group.date}>
-              {/* Date header */}
-              <div className="mb-2 text-base text-muted-foreground">
-                {group.date}
-              </div>
-
-              {/* Price change entries */}
-              <div className="space-y-1">
-                {group.items.map(log => (
-                  <div
-                    key={log.id}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-card px-4 py-2 text-base"
-                  >
-                    <span className="text-foreground">{log.commodityName}</span>
-                    <span className="ml-auto text-muted-foreground">
-                      ${log.oldPrice}
-                    </span>
-                    <span className="text-muted-foreground">&rarr;</span>
-                    <span className="text-foreground">${log.newPrice}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Collapsible key={group.date} defaultOpen>
+              <CollapsibleTrigger className="flex w-full items-center gap-2 rounded-lg bg-muted/50 px-4 py-2 text-base text-muted-foreground hover:bg-muted transition-colors [&[data-state=open]>svg]:rotate-0 [&[data-state=closed]>svg]:-rotate-90">
+                <ChevronDown size={16} className="transition-transform" />
+                <span>{group.date}</span>
+                <span className="ml-auto" style={{ color: '#a3c8d7' }}>
+                  {group.items.length}
+                </span>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <Table className="text-base">
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>{t('productMgmt.priceLog.time')}</TableHead>
+                      <TableHead>{t('productMgmt.priceLog.product')}</TableHead>
+                      <TableHead className="text-right">
+                        {t('productMgmt.priceLog.oldPrice')}
+                      </TableHead>
+                      <TableHead />
+                      <TableHead className="text-right">
+                        {t('productMgmt.priceLog.newPrice')}
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {group.items.map(log => (
+                      <TableRow key={log.id}>
+                        <TableCell className="text-muted-foreground">
+                          {formatTime(log.createdAt)}
+                        </TableCell>
+                        <TableCell>{log.commodityName}</TableCell>
+                        <TableCell className="text-right text-muted-foreground">
+                          ${log.oldPrice}
+                        </TableCell>
+                        <TableCell className="text-center text-muted-foreground">
+                          &rarr;
+                        </TableCell>
+                        <TableCell className="text-right">
+                          ${log.newPrice}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
 
           {/* Pagination */}

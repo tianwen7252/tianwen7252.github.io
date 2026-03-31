@@ -477,6 +477,10 @@
     "priceLog": {
       "title": "Price Change History",
       "empty": "No price changes recorded",
+      "time": "Time",
+      "product": "Product",
+      "oldPrice": "Old Price",
+      "newPrice": "New Price",
       "page": "Page {{current}} / {{total}}",
       "previous": "Previous",
       "next": "Next"
