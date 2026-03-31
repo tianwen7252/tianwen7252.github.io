@@ -144,7 +144,7 @@ export function Records() {
 
   const handleModalSuccess = useCallback(() => {
     setModalState(INITIAL_MODAL_STATE)
-    setRefreshKey(k => k + 1)
+    setRefreshKey((k) => k + 1)
   }, [setModalState, setRefreshKey])
 
   // "Today" button handler — uses fresh dayjs() to avoid stale closure
@@ -158,30 +158,28 @@ export function Records() {
     <div className="p-4">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-xl font-medium">
-          {t('records.title')}
-        </h3>
+        <h3 className="text-xl font-medium">{t('records.title')}</h3>
         <div className="flex gap-1 rounded-xl bg-muted p-1">
           <button
             type="button"
             className={cn(
-              'rounded-lg px-3 py-1.5 text-[13px]',
+              'inline-flex items-center rounded-lg px-3 py-1.5 text-md',
               viewMode === 'table' ? 'bg-card shadow-[0_0_10px_#ccc]' : '',
             )}
             onClick={() => setViewMode('table')}
           >
-            <LayoutList size={14} className="mr-1 inline" />
+            <LayoutList size={20} className="mr-1" />
             {t('records.table')}
           </button>
           <button
             type="button"
             className={cn(
-              'rounded-lg px-3 py-1.5 text-[13px]',
+              'inline-flex items-center rounded-lg px-3 py-1.5 text-md',
               viewMode === 'calendar' ? 'bg-card shadow-[0_0_10px_#ccc]' : '',
             )}
             onClick={() => setViewMode('calendar')}
           >
-            <Calendar size={14} className="mr-1 inline" />
+            <Calendar size={20} className="mr-1" />
             {t('records.calendar')}
           </button>
         </div>
@@ -193,15 +191,15 @@ export function Records() {
           type="text"
           placeholder={t('records.searchPlaceholder')}
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         />
         <select
           value={selectedYear}
-          onChange={e => setSelectedYear(Number(e.target.value))}
+          onChange={(e) => setSelectedYear(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {yearOptions.map(opt => (
+          {yearOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -209,10 +207,10 @@ export function Records() {
         </select>
         <select
           value={selectedMonth}
-          onChange={e => setSelectedMonth(Number(e.target.value))}
+          onChange={(e) => setSelectedMonth(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {monthOptions.map(opt => (
+          {monthOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
