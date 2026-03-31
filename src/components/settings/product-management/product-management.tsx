@@ -92,8 +92,9 @@ export function ProductManagement() {
 
   return (
     <div className="space-y-8 p-6">
-      {/* Unified Save Settings button */}
-      <div className="flex justify-end">
+      {/* Header with title and save button */}
+      <div className="flex items-center justify-between">
+        <h3 className="text-xl font-medium">{t('productMgmt.tabTitle')}</h3>
         <RippleButton
           disabled={!hasAnyChanges}
           className="relative inline-flex items-center gap-1.5 overflow-hidden rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
