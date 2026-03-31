@@ -147,9 +147,9 @@ export function StaffAdmin() {
     <div className="p-6">
       {/* Header with add button */}
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-semibold text-foreground">
+        <h3 className="text-xl font-medium text-foreground">
           {t('staff.title')}
-        </h2>
+        </h3>
         <button
           type="button"
           className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
