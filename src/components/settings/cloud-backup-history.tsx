@@ -133,7 +133,7 @@ export function CloudBackupHistory() {
                   {backupLogs.map(log => (
                     <tr key={log.id} className="border-b">
                       <td className="px-2 py-1 whitespace-nowrap">
-                        {dayjs(log.createdAt).format('YYYY-MM-DD HH:mm:ss')}
+                        {dayjs(log.createdAt).format('YYYY/MM/DD HH:mm:ss')}
                       </td>
                       <td className="px-2 py-1">{getTypeLabel(log.type, t)}</td>
                       <td className="px-2 py-1">

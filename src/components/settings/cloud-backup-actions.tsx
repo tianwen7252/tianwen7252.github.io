@@ -5,10 +5,10 @@
 
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DatabaseBackup } from 'lucide-react'
+import { DatabaseBackup, Download } from 'lucide-react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { RippleButton } from '@/components/ui/ripple-button'
-import { isBackupConfigured } from '@/lib/backup-config'
+import { notify } from '@/components/ui/sonner'
 import { useBackupStore, type ScheduleType } from '@/stores/backup-store'
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -28,7 +28,6 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i)
 
 export function CloudBackupActions() {
   const { t } = useTranslation()
-  const isConfigured = isBackupConfigured()
   const isBackingUp = useBackupStore(s => s.isBackingUp)
   const scheduleType = useBackupStore(s => s.scheduleType)
   const scheduleHour = useBackupStore(s => s.scheduleHour)
@@ -37,6 +36,10 @@ export function CloudBackupActions() {
   const handleBackupNow = useCallback(() => {
     useBackupStore.getState().startBackup()
   }, [])
+
+  const handleExportDb = useCallback(() => {
+    notify.info(t('settings.featureInDev'))
+  }, [t])
 
   const handleScheduleTypeChange = useCallback(
     (type: ScheduleType) => {
@@ -59,22 +62,24 @@ export function CloudBackupActions() {
         <CardTitle>{t('backup.backupActions')}</CardTitle>
       </CardHeader>
       <CardContent>
-        {/* Backup Now button */}
+        {/* Action buttons */}
         <div className="grid grid-cols-3 gap-4">
           <RippleButton
             className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-green) px-4 py-2 text-white hover:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={handleBackupNow}
-            disabled={isBackingUp || !isConfigured}
+            disabled={isBackingUp}
           >
             <DatabaseBackup size={16} />
             {isBackingUp ? t('backup.backingUp') : t('backup.backupNow')}
           </RippleButton>
+          <RippleButton
+            className="flex items-center justify-center gap-2 rounded-md border-none bg-(--color-blue) px-4 py-2 text-white hover:opacity-80"
+            onClick={handleExportDb}
+          >
+            <Download size={16} />
+            {t('settings.exportDb')}
+          </RippleButton>
         </div>
-        {!isConfigured && (
-          <p className="mt-2 text-muted-foreground">
-            {t('backup.notConfigured')}
-          </p>
-        )}
 
         {/* Schedule type selector */}
         <div className="mt-6">

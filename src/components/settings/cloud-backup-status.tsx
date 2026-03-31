@@ -6,7 +6,6 @@
 import { useTranslation } from 'react-i18next'
 import dayjs from 'dayjs'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { isBackupConfigured } from '@/lib/backup-config'
 import { useBackupStore } from '@/stores/backup-store'
 import type { ScheduleType } from '@/stores/backup-store'
 
@@ -14,7 +13,6 @@ import type { ScheduleType } from '@/stores/backup-store'
 
 export function CloudBackupStatus() {
   const { t } = useTranslation()
-  const isConfigured = isBackupConfigured()
   const lastBackupTime = useBackupStore(s => s.lastBackupTime)
   const scheduleType = useBackupStore(s => s.scheduleType) as ScheduleType
   const scheduleHour = useBackupStore(s => s.scheduleHour)
@@ -29,9 +27,7 @@ export function CloudBackupStatus() {
           </CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col flex-1">
-          <div className="text-2xl">
-            {isConfigured ? '—' : t('backup.notConfigured')}
-          </div>
+          <div className="text-2xl">—</div>
         </CardContent>
       </Card>
 

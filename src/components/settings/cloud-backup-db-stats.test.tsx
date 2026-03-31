@@ -96,14 +96,7 @@ describe('CloudBackupDbStats', () => {
     expect(screen.getByText('133')).toBeTruthy()
   })
 
-  it('shows not configured message in cloud section when cloud backup not set', () => {
-    mockIsConfigured = false
-    renderWithProviders(<CloudBackupDbStats />)
-    expect(screen.getByText('雲端備份尚未設定')).toBeTruthy()
-  })
-
-  it('shows unavailable message in cloud section when cloud backup is configured', () => {
-    mockIsConfigured = true
+  it('shows unavailable message in cloud section', () => {
     renderWithProviders(<CloudBackupDbStats />)
     expect(screen.getByText('連線後顯示雲端資料')).toBeTruthy()
   })

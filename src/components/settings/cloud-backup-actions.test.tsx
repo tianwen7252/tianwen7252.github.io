@@ -82,22 +82,13 @@ describe('CloudBackupActions', () => {
     expect(screen.getByText('立即備份')).toBeTruthy()
   })
 
-  it('disables button when cloud backup is not configured', () => {
-    mockIsConfigured = false
-    render(<CloudBackupActions />)
-    const button = screen.getByText('立即備份').closest('button')
-    expect(button?.disabled).toBe(true)
-  })
-
-  it('enables button when cloud backup is configured and not backing up', () => {
-    mockIsConfigured = true
+  it('enables button when not backing up', () => {
     render(<CloudBackupActions />)
     const button = screen.getByText('立即備份').closest('button')
     expect(button?.disabled).toBe(false)
   })
 
   it('disables button when backup is in progress', () => {
-    mockIsConfigured = true
     mockStoreState = { ...mockStoreState, isBackingUp: true }
     render(<CloudBackupActions />)
     const button = screen.getByText('備份中...').closest('button')
@@ -105,23 +96,15 @@ describe('CloudBackupActions', () => {
   })
 
   it('shows backing up text when isBackingUp is true', () => {
-    mockIsConfigured = true
     mockStoreState = { ...mockStoreState, isBackingUp: true }
     render(<CloudBackupActions />)
     expect(screen.getByText('備份中...')).toBeTruthy()
     expect(screen.queryByText('立即備份')).toBeNull()
   })
 
-  it('shows not configured message when cloud backup is not set up', () => {
-    mockIsConfigured = false
+  it('renders export db button', () => {
     render(<CloudBackupActions />)
-    expect(screen.getByText('雲端備份尚未設定')).toBeTruthy()
-  })
-
-  it('does not show not configured message when cloud backup is configured', () => {
-    mockIsConfigured = true
-    render(<CloudBackupActions />)
-    expect(screen.queryByText('雲端備份尚未設定')).toBeNull()
+    expect(screen.getByText('匯出資料庫')).toBeTruthy()
   })
 
   // ── Schedule selector tests ──────────────────────────────────────────────

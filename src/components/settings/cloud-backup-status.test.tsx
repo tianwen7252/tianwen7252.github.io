@@ -59,16 +59,9 @@ describe('CloudBackupStatus', () => {
       expect(screen.getByText('雲端資料庫大小')).toBeTruthy()
     })
 
-    it('shows not configured message when cloud backup is not set up', () => {
-      mockIsConfigured = false
+    it('shows dash when no cloud size data available', () => {
       render(<CloudBackupStatus />)
-      expect(screen.getByText('雲端備份尚未設定')).toBeTruthy()
-    })
-
-    it('does not show not configured message when cloud backup is configured', () => {
-      mockIsConfigured = true
-      render(<CloudBackupStatus />)
-      expect(screen.queryByText('雲端備份尚未設定')).toBeNull()
+      expect(screen.getByText('—')).toBeTruthy()
     })
   })
 
