@@ -139,7 +139,7 @@ export function ProductManagement() {
         onConfirm={handleSaveConfirm}
         onCancel={handleSaveCancel}
       >
-        <div style={{ height: Math.min(changeSummary.length * 34 + 8, 400) }}>
+        <div style={{ height: Math.max(200, Math.min(changeSummary.length * 34 + 8, 400)) }}>
         <ScrollArea className="h-full pr-2" watchDeps={[changeSummary]}>
           <div className="space-y-2 text-base text-foreground">
             {changeSummary.map((item, i) => (
