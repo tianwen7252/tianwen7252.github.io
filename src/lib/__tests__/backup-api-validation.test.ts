@@ -1,14 +1,11 @@
 /**
  * Tests for backup API validation logic.
- * These pure functions are extracted from api/backup/_lib/r2-client.ts
- * and tested here since vitest runs in happy-dom (not Node.js).
+ * These pure functions mirror api/backup/_lib/r2-client.ts exactly.
  */
 
 import { describe, it, expect } from 'vitest'
 
 // ── Re-implement pure validation functions to test ────────────────────────
-// These mirror the logic in api/backup/_lib/r2-client.ts exactly.
-// We test the logic here; the actual api/ code uses the same regex/constants.
 
 const VALID_FILENAME_RE = /^backup-\d+\.sqlite\.gz$/
 const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
@@ -17,25 +14,12 @@ function isValidFilename(filename: string): boolean {
   return VALID_FILENAME_RE.test(filename)
 }
 
-function validateOrigin(
-  origin: string | undefined,
-  allowedOrigins: string,
-): boolean {
-  const allowed = allowedOrigins
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-
-  if (!origin) return true
-  return allowed.includes(origin)
-}
-
 function isFileTooLarge(contentLength: number): boolean {
   return contentLength > MAX_UPLOAD_BYTES
 }
 
-function r2Key(userId: string, filename: string): string {
-  return `${userId}/${filename}`
+function r2Key(prefix: string, filename: string): string {
+  return `${prefix}${filename}`
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────
@@ -83,41 +67,6 @@ describe('backup API validation', () => {
     })
   })
 
-  describe('validateOrigin', () => {
-    it('allows request without Origin header (same-origin)', () => {
-      expect(validateOrigin(undefined, 'https://app.example.com')).toBe(true)
-    })
-
-    it('allows request with empty Origin (same-origin)', () => {
-      expect(validateOrigin('', 'https://app.example.com')).toBe(true)
-    })
-
-    it('allows request with matching origin', () => {
-      expect(
-        validateOrigin('https://app.example.com', 'https://app.example.com'),
-      ).toBe(true)
-    })
-
-    it('allows request with one of multiple allowed origins', () => {
-      expect(
-        validateOrigin(
-          'http://localhost:5173',
-          'https://app.example.com, http://localhost:5173',
-        ),
-      ).toBe(true)
-    })
-
-    it('rejects request with non-matching origin', () => {
-      expect(
-        validateOrigin('https://evil.com', 'https://app.example.com'),
-      ).toBe(false)
-    })
-
-    it('rejects request when no origins configured', () => {
-      expect(validateOrigin('https://app.example.com', '')).toBe(false)
-    })
-  })
-
   describe('isFileTooLarge', () => {
     it('returns false for 0 bytes', () => {
       expect(isFileTooLarge(0)).toBe(false)
@@ -137,14 +86,14 @@ describe('backup API validation', () => {
   })
 
   describe('r2Key', () => {
-    it('builds key with userId prefix', () => {
-      expect(r2Key('tianwen', 'backup-123.sqlite.gz')).toBe(
+    it('builds key with userId prefix when set', () => {
+      expect(r2Key('tianwen/', 'backup-123.sqlite.gz')).toBe(
         'tianwen/backup-123.sqlite.gz',
       )
     })
 
-    it('handles empty userId', () => {
-      expect(r2Key('', 'backup-123.sqlite.gz')).toBe('/backup-123.sqlite.gz')
+    it('uses filename directly when no prefix', () => {
+      expect(r2Key('', 'backup-123.sqlite.gz')).toBe('backup-123.sqlite.gz')
     })
   })
 })

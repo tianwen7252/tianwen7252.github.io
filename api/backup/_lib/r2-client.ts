@@ -13,7 +13,7 @@ interface R2Env {
   readonly accessKeyId: string
   readonly secretAccessKey: string
   readonly bucketName: string
-  readonly allowedUserId: string
+  readonly userIdPrefix: string
 }
 
 function validateEnv(): R2Env {
@@ -21,14 +21,12 @@ function validateEnv(): R2Env {
   const accessKeyId = process.env.R2_ACCESS_KEY_ID ?? ''
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? ''
   const bucketName = process.env.R2_BUCKET_NAME ?? ''
-  const allowedUserId = process.env.ALLOWED_USER_ID ?? ''
 
   const missing = Object.entries({
     R2_ACCOUNT_ID: accountId,
     R2_ACCESS_KEY_ID: accessKeyId,
     R2_SECRET_ACCESS_KEY: secretAccessKey,
     R2_BUCKET_NAME: bucketName,
-    ALLOWED_USER_ID: allowedUserId,
   })
     .filter(([, v]) => v.length === 0)
     .map(([k]) => k)
@@ -37,7 +35,11 @@ function validateEnv(): R2Env {
     throw new Error(`Missing required env vars: ${missing.join(', ')}`)
   }
 
-  return { accountId, accessKeyId, secretAccessKey, bucketName, allowedUserId }
+  // Optional: prefix R2 keys with user ID for multi-tenant isolation
+  const userId = process.env.ALLOWED_USER_ID ?? ''
+  const userIdPrefix = userId.length > 0 ? `${userId}/` : ''
+
+  return { accountId, accessKeyId, secretAccessKey, bucketName, userIdPrefix }
 }
 
 // ── R2 Client ─────────────────────────────────────────────────────────────
@@ -70,14 +72,14 @@ export function getBucketName(): string {
   return getEnv().bucketName
 }
 
-export function getAllowedUserId(): string {
-  return getEnv().allowedUserId
-}
-
 // ── R2 Key ────────────────────────────────────────────────────────────────
 
+export function getKeyPrefix(): string {
+  return getEnv().userIdPrefix
+}
+
 export function r2Key(filename: string): string {
-  return `${getAllowedUserId()}/${filename}`
+  return `${getKeyPrefix()}${filename}`
 }
 
 // ── Validation ────────────────────────────────────────────────────────────
@@ -87,19 +89,6 @@ export const MAX_UPLOAD_BYTES = 1024 * 1024 * 1024 // 1 GB
 
 export function isValidFilename(filename: string): boolean {
   return VALID_FILENAME_RE.test(filename)
-}
-
-export function validateOrigin(req: VercelRequest): boolean {
-  const origin = req.headers.origin ?? ''
-  const allowed = (process.env.ALLOWED_ORIGINS ?? '')
-    .split(',')
-    .map(s => s.trim())
-    .filter(Boolean)
-
-  // Allow requests without Origin header (same-origin, non-browser clients)
-  if (!origin) return true
-
-  return allowed.includes(origin)
 }
 
 export function isFileTooLarge(req: VercelRequest): boolean {

@@ -19,7 +19,6 @@ import {
   getBucketName,
   r2Key,
   isValidFilename,
-  validateOrigin,
   isFileTooLarge,
   errorResponse,
   jsonResponse,
@@ -58,11 +57,6 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
-  if (!validateOrigin(req)) {
-    errorResponse(res, 'Forbidden', 403)
-    return
-  }
-
   const filename = req.query.filename as string | undefined
   if (!filename || !isValidFilename(filename)) {
     errorResponse(res, 'Invalid filename', 400)

@@ -7,8 +7,7 @@ import { ListObjectsV2Command } from '@aws-sdk/client-s3'
 import {
   getR2Client,
   getBucketName,
-  getAllowedUserId,
-  validateOrigin,
+  getKeyPrefix,
   errorResponse,
   jsonResponse,
 } from './_lib/r2-client'
@@ -17,18 +16,13 @@ export default async function handler(
   req: VercelRequest,
   res: VercelResponse,
 ): Promise<void> {
-  if (!validateOrigin(req)) {
-    errorResponse(res, 'Forbidden', 403)
-    return
-  }
-
   if (req.method !== 'GET') {
     errorResponse(res, 'Method not allowed', 405)
     return
   }
 
   try {
-    const prefix = `${getAllowedUserId()}/`
+    const prefix = getKeyPrefix()
     const client = getR2Client()
 
     const objects: Array<{
