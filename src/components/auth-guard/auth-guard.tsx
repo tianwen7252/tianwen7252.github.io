@@ -1,12 +1,13 @@
 import { useTranslation } from 'react-i18next'
 import { useGoogleAuth } from '@/hooks/use-google-auth'
 
-type AuthGuardVariant = 'staffAdmin' | 'backup'
+type AuthGuardVariant = 'staffAdmin' | 'backup' | 'productAdmin'
 
 // Translation key mapping for variant-specific subtitles
 const SUBTITLE_KEYS: Record<AuthGuardVariant, string> = {
   staffAdmin: 'auth.staffAdminSubtitle',
   backup: 'auth.backupSubtitle',
+  productAdmin: 'auth.productAdminSubtitle',
 }
 
 interface AuthGuardProps {

@@ -3,7 +3,7 @@
  * Covers localStorage version check, data deletion, clearing, and insertion functions.
  */
 
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import {
   shouldResetDefaultData,
   markDefaultDataVersion,
@@ -11,12 +11,30 @@ import {
   clearAllData,
   insertDefaultEmployees,
   insertDefaultCommodities,
+  insertDefaultOrderTypes,
+  resetCommodityData,
+  resetCommodityDataAsync,
   DEFAULT_EMPLOYEES,
   DEFAULT_COMMODITY_TYPES,
   DEFAULT_COMMODITIES,
+  DEFAULT_ORDER_TYPES,
 } from './default-data'
 import { UPDATE_DEFAULT_DATA_NUMBER } from '@/constants/default-data'
 import type { Database, QueryResult } from '@/lib/database'
+
+// ─── Mock for resetCommodityDataAsync (uses getDatabase from provider) ──────
+
+type AsyncExecFn = (
+  sql: string,
+  params?: readonly unknown[],
+) => Promise<{ rows: unknown[]; changes: number }>
+let mockAsyncExec: ReturnType<typeof vi.fn<AsyncExecFn>>
+vi.mock('@/lib/repositories/provider', () => ({
+  getDatabase: () => ({
+    exec: (sql: string, params?: readonly unknown[]) =>
+      mockAsyncExec(sql, params),
+  }),
+}))
 
 // ─── Mock Database factory ───────────────────────────────────────────────────
 
@@ -324,12 +342,21 @@ describe('clearAllData(db)', () => {
     )
   })
 
-  it('issues exactly 9 DELETE statements', () => {
+  it('issues exactly 10 DELETE statements', () => {
     const db = makeMockDb()
     clearAllData(db)
 
     const deletes = db.calls.filter(c => c.sql.startsWith('DELETE'))
-    expect(deletes).toHaveLength(9)
+    expect(deletes).toHaveLength(10)
+  })
+
+  it('deletes price_change_logs', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    expect(db.calls.some(c => c.sql === 'DELETE FROM price_change_logs')).toBe(
+      true,
+    )
   })
 
   it('deletes order_items before orders to respect FK constraint', () => {
@@ -613,6 +640,287 @@ describe('DEFAULT_COMMODITIES', () => {
       expect(com!.includesSoup, `${id} should have includesSoup=false`).toBe(
         false,
       )
+    }
+  })
+})
+
+// ─── DEFAULT_ORDER_TYPES ──────────────────────────────────────────────────
+
+describe('DEFAULT_ORDER_TYPES', () => {
+  it('has 3 order types', () => {
+    expect(DEFAULT_ORDER_TYPES).toHaveLength(3)
+  })
+
+  it('contains correct order type names', () => {
+    const names = DEFAULT_ORDER_TYPES.map(ot => ot.name)
+    expect(names).toEqual(['攤位', '外送', '電話自取'])
+  })
+
+  it('all IDs are unique', () => {
+    const ids = DEFAULT_ORDER_TYPES.map(ot => ot.id)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('all order types have required fields', () => {
+    for (const ot of DEFAULT_ORDER_TYPES) {
+      expect(ot.id).toBeTruthy()
+      expect(ot.name).toBeTruthy()
+      expect(typeof ot.priority).toBe('number')
+      expect(ot.type).toBe('order')
+      expect(typeof ot.createdAt).toBe('number')
+      expect(typeof ot.updatedAt).toBe('number')
+    }
+  })
+
+  it('priorities are sequential starting from 1', () => {
+    const priorities = DEFAULT_ORDER_TYPES.map(ot => ot.priority)
+    expect(priorities).toEqual([1, 2, 3])
+  })
+
+  it('has correct colors for each order type', () => {
+    const colors = DEFAULT_ORDER_TYPES.map(ot => ot.color)
+    expect(colors).toEqual(['green', 'blue', 'yellow'])
+  })
+})
+
+// ─── insertDefaultOrderTypes ────────────────────────────────────────────────
+
+describe('insertDefaultOrderTypes(db)', () => {
+  it('inserts all 3 order types', () => {
+    const db = makeMockDb()
+    insertDefaultOrderTypes(db)
+
+    const inserts = db.calls.filter(
+      c => c.sql.includes('INSERT') && c.sql.includes('order_types'),
+    )
+    expect(inserts).toHaveLength(3)
+  })
+
+  it('uses INSERT OR IGNORE to avoid duplicates', () => {
+    const db = makeMockDb()
+    insertDefaultOrderTypes(db)
+
+    const inserts = db.calls.filter(c => c.sql.includes('order_types'))
+    for (const call of inserts) {
+      expect(call.sql).toMatch(/INSERT OR IGNORE INTO order_types/)
+    }
+  })
+
+  it('passes all required order type fields as params', () => {
+    const db = makeMockDb()
+    insertDefaultOrderTypes(db)
+
+    const first = db.calls.find(c => c.sql.includes('order_types'))
+    // Expected: id, name, priority, type, color, created_at, updated_at
+    expect(first!.params).toHaveLength(7)
+  })
+
+  it('does not mutate DEFAULT_ORDER_TYPES array', () => {
+    const db = makeMockDb()
+    const originalLength = DEFAULT_ORDER_TYPES.length
+    insertDefaultOrderTypes(db)
+    expect(DEFAULT_ORDER_TYPES).toHaveLength(originalLength)
+  })
+
+  it('inserts order type with correct param values', () => {
+    const db = makeMockDb()
+    insertDefaultOrderTypes(db)
+
+    const first = db.calls.find(c => c.sql.includes('order_types'))
+    // First order type: ot-001, '攤位', 1, 'order', 'green', ts, ts
+    expect(first!.params[0]).toBe('ot-001')
+    expect(first!.params[1]).toBe('攤位')
+    expect(first!.params[2]).toBe(1)
+    expect(first!.params[3]).toBe('order')
+    expect(first!.params[4]).toBe('green')
+  })
+})
+
+// ─── resetCommodityData ─────────────────────────────────────────────────────
+
+describe('resetCommodityData(db)', () => {
+  it('deletes from commodities table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(
+      db.calls.some(
+        c =>
+          c.sql === 'DELETE FROM commodities' ||
+          c.sql.includes('DELETE FROM commodities'),
+      ),
+    ).toBe(true)
+  })
+
+  it('deletes from commodity_types table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(
+      db.calls.some(c => c.sql.includes('DELETE FROM commodity_types')),
+    ).toBe(true)
+  })
+
+  it('deletes from order_types table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(db.calls.some(c => c.sql.includes('DELETE FROM order_types'))).toBe(
+      true,
+    )
+  })
+
+  it('deletes from price_change_logs table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(
+      db.calls.some(c => c.sql.includes('DELETE FROM price_change_logs')),
+    ).toBe(true)
+  })
+
+  it('does NOT delete from employees table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(db.calls.some(c => c.sql.includes('DELETE FROM employees'))).toBe(
+      false,
+    )
+  })
+
+  it('does NOT delete from attendances table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(db.calls.some(c => c.sql.includes('DELETE FROM attendances'))).toBe(
+      false,
+    )
+  })
+
+  it('re-inserts default commodities after deletion', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    const insertCom = db.calls.filter(
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
+    )
+    expect(insertCom.length).toBeGreaterThan(0)
+  })
+
+  it('re-inserts default order types after deletion', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    const insertOt = db.calls.filter(
+      c => c.sql.includes('INSERT') && c.sql.includes('order_types'),
+    )
+    expect(insertOt.length).toBeGreaterThan(0)
+  })
+
+  it('deletes before re-inserting (deletion indices < insertion indices)', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    const lastDeleteIdx = db.calls.reduce((max, c, idx) => {
+      if (c.sql.startsWith('DELETE')) return Math.max(max, idx)
+      return max
+    }, -1)
+    const firstInsertIdx = db.calls.findIndex(c => c.sql.includes('INSERT'))
+
+    expect(lastDeleteIdx).toBeLessThan(firstInsertIdx)
+  })
+})
+
+// ─── resetCommodityDataAsync ────────────────────────────────────────────────
+
+describe('resetCommodityDataAsync()', () => {
+  let execCalls: Array<{ sql: string; params: readonly unknown[] | undefined }>
+
+  beforeEach(() => {
+    execCalls = []
+    mockAsyncExec = vi.fn(async (sql: string, params?: readonly unknown[]) => {
+      execCalls.push({ sql: sql.trim(), params })
+      return { rows: [], changes: 0 }
+    })
+  })
+
+  it('begins a transaction before any mutation', async () => {
+    await resetCommodityDataAsync()
+    expect(execCalls[0]?.sql).toBe('BEGIN')
+  })
+
+  it('commits the transaction on success', async () => {
+    await resetCommodityDataAsync()
+    const lastCall = execCalls[execCalls.length - 1]
+    expect(lastCall?.sql).toBe('COMMIT')
+  })
+
+  it('rolls back and rethrows on exec failure', async () => {
+    mockAsyncExec = vi
+      .fn()
+      .mockResolvedValueOnce({ rows: [], changes: 0 }) // BEGIN
+      .mockRejectedValueOnce(new Error('disk full')) // DELETE commodities
+      .mockResolvedValue({ rows: [], changes: 0 }) // ROLLBACK
+    await expect(resetCommodityDataAsync()).rejects.toThrow('disk full')
+    const sqlLog = mockAsyncExec.mock.calls.map((c: unknown[]) =>
+      (c[0] as string).trim(),
+    )
+    expect(sqlLog).toContain('ROLLBACK')
+    expect(sqlLog).not.toContain('COMMIT')
+  })
+
+  it('deletes commodities, commodity_types, order_types, and price_change_logs inside the transaction', async () => {
+    await resetCommodityDataAsync()
+    const sqls = execCalls.map(c => c.sql)
+    expect(sqls).toContain('DELETE FROM commodities')
+    expect(sqls).toContain('DELETE FROM commodity_types')
+    expect(sqls).toContain('DELETE FROM order_types')
+    expect(sqls).toContain('DELETE FROM price_change_logs')
+  })
+
+  it('does not delete employees or attendances', async () => {
+    await resetCommodityDataAsync()
+    const sqls = execCalls.map(c => c.sql)
+    expect(sqls.some(s => s.includes('employees'))).toBe(false)
+    expect(sqls.some(s => s.includes('attendances'))).toBe(false)
+  })
+
+  it('re-inserts all default commodity types', async () => {
+    await resetCommodityDataAsync()
+    const typeInserts = execCalls.filter(
+      c => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
+    )
+    expect(typeInserts).toHaveLength(4)
+  })
+
+  it('re-inserts all default commodities', async () => {
+    await resetCommodityDataAsync()
+    const comInserts = execCalls.filter(
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
+    )
+    expect(comInserts).toHaveLength(46)
+  })
+
+  it('re-inserts all default order types', async () => {
+    await resetCommodityDataAsync()
+    const otInserts = execCalls.filter(
+      c => c.sql.includes('INSERT') && c.sql.includes('order_types'),
+    )
+    expect(otInserts).toHaveLength(3)
+  })
+
+  it('uses parameterized queries (no IDs embedded in SQL strings)', async () => {
+    await resetCommodityDataAsync()
+    for (const call of execCalls) {
+      if (call.sql.startsWith('INSERT')) {
+        expect(call.sql).not.toMatch(/ct-\d+|com-\d+|ot-\d+/)
+      }
     }
   })
 })

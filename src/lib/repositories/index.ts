@@ -33,6 +33,14 @@ export {
   type CustomOrderNameRepository,
 } from './custom-order-name-repository'
 export {
+  createOrderTypeRepository,
+  type OrderTypeRepository,
+} from './order-type-repository'
+export {
+  createPriceChangeLogRepository,
+  type PriceChangeLogRepository,
+} from './price-change-log-repository'
+export {
   initRepositories,
   getDatabase,
   getEmployeeRepo,
@@ -45,6 +53,8 @@ export {
   getStatisticsRepo,
   getErrorLogRepo,
   getCustomOrderNameRepo,
+  getOrderTypeRepo,
+  getPriceChangeLogRepo,
   resetRepositories,
 } from './provider'
 export {

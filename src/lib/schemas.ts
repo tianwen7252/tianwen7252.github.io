@@ -65,6 +65,7 @@ export const commodityTypeSchema = z.object({
   type: z.string(),
   label: z.string(),
   color: z.string().default(''),
+  priority: z.number().default(0),
   createdAt: z.number(),
   updatedAt: z.number(),
 })
@@ -100,6 +101,28 @@ export type CommodityType = z.infer<typeof commodityTypeSchema>
 export type CreateCommodityType = z.infer<typeof createCommodityTypeSchema>
 export type Commodity = z.infer<typeof commoditySchema>
 export type CreateCommodity = z.infer<typeof createCommoditySchema>
+
+// ─── OrderType ──────────────────────────────────────────────────────────────
+
+export const orderTypeSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1),
+  priority: z.number(),
+  type: z.string().default('order'),
+  color: z.string().optional(),
+  editor: z.string().optional(),
+  createdAt: z.number(),
+  updatedAt: z.number(),
+})
+
+export const createOrderTypeSchema = orderTypeSchema.omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+})
+
+export type OrderType = z.infer<typeof orderTypeSchema>
+export type CreateOrderType = z.infer<typeof createOrderTypeSchema>
 
 // ─── OrderItem ───────────────────────────────────────────────────────────────
 // Defined before Order so it can be referenced in orderSchema directly.
@@ -253,3 +276,17 @@ export const dailyDataSchema = z.object({
 })
 
 export type DailyData = z.infer<typeof dailyDataSchema>
+
+// ─── PriceChangeLog ─────────────────────────────────────────────────────────
+
+export const priceChangeLogSchema = z.object({
+  id: z.string(),
+  commodityId: z.string(),
+  commodityName: z.string(),
+  oldPrice: z.number(),
+  newPrice: z.number(),
+  editor: z.string().default(''),
+  createdAt: z.number(),
+})
+
+export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>

@@ -1,8 +1,17 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useOrderStore } from '@/stores/order-store'
 import type { CartItem } from '@/stores/order-store'
+import {
+  getOrderTypeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
+
+// Mock the repository provider so OrderNoteTags can load from mock DB
+vi.mock('@/lib/repositories', () => ({
+  getOrderTypeRepo: () => getOrderTypeRepo(),
+}))
 
 // Mock notify
 vi.mock('@/components/ui/sonner', () => ({
@@ -29,6 +38,7 @@ function makeCartItem(overrides: Partial<CartItem> = {}): CartItem {
 
 describe('OrderPanel', () => {
   beforeEach(() => {
+    resetMockRepositories()
     // Reset store state before each test
     act(() => {
       useOrderStore.setState({
@@ -39,6 +49,10 @@ describe('OrderPanel', () => {
         quickSubmit: true,
       })
     })
+  })
+
+  afterEach(() => {
+    resetMockRepositories()
   })
 
   // Lazy import to ensure mock is applied first

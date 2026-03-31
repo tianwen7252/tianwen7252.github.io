@@ -39,3 +39,22 @@ export const recordFormSchema = z
   )
 
 export type RecordFormValues = z.input<typeof recordFormSchema>
+
+// ─── Commodity Form ────────────────────────────────────────────────────────
+
+export const commodityFormSchema = z.object({
+  name: z.string().min(1),
+  price: z.number().min(0),
+  includesSoup: z.boolean().default(false),
+})
+
+export type CommodityFormValues = z.input<typeof commodityFormSchema>
+
+// ─── Order Type Form ───────────────────────────────────────────────────────
+
+export const orderTypeFormSchema = z.object({
+  name: z.string().min(1),
+  color: z.string().default(''),
+})
+
+export type OrderTypeFormValues = z.input<typeof orderTypeFormSchema>

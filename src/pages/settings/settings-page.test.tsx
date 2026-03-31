@@ -101,6 +101,22 @@ describe('SettingsPage', () => {
         expect(screen.getByText('員工管理')).toBeTruthy()
       })
     })
+
+    it('should render tabs in correct order: system, records, staff, products, backup', async () => {
+      renderWithRouter()
+      await waitFor(() => {
+        expect(screen.getByText('系統資訊')).toBeTruthy()
+      })
+      const links = screen.getAllByRole('link')
+      const tabLabels = links.map(l => l.textContent)
+      expect(tabLabels).toEqual([
+        '系統資訊',
+        '打卡記錄',
+        '員工管理',
+        '商品管理',
+        '雲端備份',
+      ])
+    })
   })
 
   describe('nested routes', () => {

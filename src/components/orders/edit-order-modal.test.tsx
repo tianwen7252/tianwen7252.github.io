@@ -1,8 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useOrderStore } from '@/stores/order-store'
 import type { Order } from '@/lib/schemas'
+import {
+  getOrderTypeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
 
 // Mock repository provider
 const mockUpdate = vi.fn()
@@ -13,6 +17,12 @@ vi.mock('@/lib/repositories/provider', () => ({
   getCommodityRepo: () => ({
     findAll: vi.fn().mockResolvedValue([]),
   }),
+  getOrderTypeRepo: () => getOrderTypeRepo(),
+}))
+
+// Also mock the @/lib/repositories barrel so OrderNoteTags resolves getOrderTypeRepo
+vi.mock('@/lib/repositories', () => ({
+  getOrderTypeRepo: () => getOrderTypeRepo(),
 }))
 
 // Mock notify
@@ -76,6 +86,7 @@ describe('EditOrderModal', () => {
   }
 
   beforeEach(() => {
+    resetMockRepositories()
     vi.clearAllMocks()
     act(() => {
       useOrderStore.setState({
@@ -86,6 +97,10 @@ describe('EditOrderModal', () => {
         lastAddedItem: null,
       })
     })
+  })
+
+  afterEach(() => {
+    resetMockRepositories()
   })
 
   async function renderModal(props: Partial<typeof defaultProps> = {}) {

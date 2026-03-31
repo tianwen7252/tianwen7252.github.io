@@ -158,7 +158,7 @@ export function Records() {
     <div className="p-4">
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-2xl font-black -tracking-wider">
+        <h3 className="text-xl font-medium">
           {t('records.title')}
         </h3>
         <div className="flex gap-1 rounded-xl bg-muted p-1">

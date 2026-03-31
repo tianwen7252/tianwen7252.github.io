@@ -14,6 +14,7 @@ export const CREATE_TABLES = `
     type TEXT NOT NULL,
     label TEXT NOT NULL,
     color TEXT NOT NULL DEFAULT '',
+    priority INTEGER NOT NULL DEFAULT 0,
     created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000),
     updated_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
   );
@@ -164,6 +165,19 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at);
 
+  -- Price change logs
+  CREATE TABLE IF NOT EXISTS price_change_logs (
+    id TEXT PRIMARY KEY,
+    commodity_id TEXT NOT NULL,
+    commodity_name TEXT NOT NULL,
+    old_price REAL NOT NULL,
+    new_price REAL NOT NULL,
+    editor TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -253,6 +267,35 @@ function runMigrations(exec: (sql: string) => void): void {
   )`)
   exec(
     'CREATE INDEX IF NOT EXISTS idx_error_logs_created_at ON error_logs(created_at)',
+  )
+
+  // V2-PM: Add priority column to commodity_types for drag-and-drop reorder
+  try {
+    exec(
+      'ALTER TABLE commodity_types ADD COLUMN priority INTEGER NOT NULL DEFAULT 0',
+    )
+    // Backfill priority for existing rows based on rowid order
+    exec(`
+      UPDATE commodity_types SET priority = (
+        SELECT COUNT(*) FROM commodity_types AS ct2 WHERE ct2.rowid <= commodity_types.rowid
+      ) WHERE priority = 0
+    `)
+  } catch {
+    // Column already exists -- safe to ignore
+  }
+
+  // V2-PM: Add price_change_logs table for tracking commodity price history
+  exec(`CREATE TABLE IF NOT EXISTS price_change_logs (
+    id TEXT PRIMARY KEY,
+    commodity_id TEXT NOT NULL,
+    commodity_name TEXT NOT NULL,
+    old_price REAL NOT NULL,
+    new_price REAL NOT NULL,
+    editor TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at)',
   )
 
   // V2-130: Add backup_logs table

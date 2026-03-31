@@ -12,21 +12,26 @@ import { AuthGuard } from '@/components/auth-guard'
 interface Tab {
   readonly path: string
   readonly labelKey: string
-  readonly guard?: 'backup' | 'staffAdmin'
+  readonly guard?: 'backup' | 'staffAdmin' | 'productAdmin'
 }
 
 const TABS: readonly Tab[] = [
   { path: '/settings/system-info', labelKey: 'settings.systemInfo' },
-  {
-    path: '/settings/cloud-backup',
-    labelKey: 'backup.tabTitle',
-    guard: 'backup',
-  },
   { path: '/settings/records', labelKey: 'nav.records' },
   {
     path: '/settings/staff-admin',
     labelKey: 'nav.staffAdmin',
     guard: 'staffAdmin',
+  },
+  {
+    path: '/settings/product-management',
+    labelKey: 'productMgmt.tabTitle',
+    guard: 'productAdmin',
+  },
+  {
+    path: '/settings/cloud-backup',
+    labelKey: 'backup.tabTitle',
+    guard: 'backup',
   },
 ]
 
@@ -60,7 +65,7 @@ export function SettingsPage() {
                 key={tab.path}
                 to={tab.path}
                 className={cn(
-                  'border-b-2 px-4 py-3 text-sm font-medium transition-colors',
+                  'border-b-2 px-4 py-3 text-base transition-colors',
                   isActive
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted-foreground hover:border-border hover:text-foreground',

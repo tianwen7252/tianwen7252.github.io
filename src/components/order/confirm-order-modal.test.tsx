@@ -1,8 +1,17 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import type { CartItem, Discount } from '@/stores/order-store'
 import { ConfirmOrderModal } from './confirm-order-modal'
+import {
+  getOrderTypeRepo,
+  resetMockRepositories,
+} from '@/test/mock-repositories'
+
+// Mock the repository provider so OrderNoteTags can load from mock DB
+vi.mock('@/lib/repositories', () => ({
+  getOrderTypeRepo: () => getOrderTypeRepo(),
+}))
 
 // ─── Factories ───────────────────────────────────────────────────────────────
 
@@ -44,6 +53,14 @@ const defaultProps = {
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
 describe('ConfirmOrderModal', () => {
+  beforeEach(() => {
+    resetMockRepositories()
+  })
+
+  afterEach(() => {
+    resetMockRepositories()
+  })
+
   it('should not render content when open is false', () => {
     render(<ConfirmOrderModal {...defaultProps} open={false} />)
     expect(screen.queryByText('確認訂單')).toBeNull()
@@ -317,9 +334,9 @@ describe('ConfirmOrderModal', () => {
       expect(screen.getByText('訂單備註')).toBeTruthy()
     })
 
-    it('should render default note tags in the modal', () => {
+    it('should render default note tags in the modal', async () => {
       render(<ConfirmOrderModal {...defaultProps} open={true} />)
-      expect(screen.getByText('攤位')).toBeTruthy()
+      await screen.findByText('攤位')
       expect(screen.getByText('外送')).toBeTruthy()
       expect(screen.getByText('電話自取')).toBeTruthy()
     })
@@ -329,7 +346,8 @@ describe('ConfirmOrderModal', () => {
       const user = userEvent.setup()
       render(<ConfirmOrderModal {...defaultProps} onConfirm={onConfirm} />)
 
-      // Select a tag
+      // Wait for tags to load from DB, then select a tag
+      await screen.findByText('外送')
       await user.click(screen.getByText('外送'))
 
       // Click confirm

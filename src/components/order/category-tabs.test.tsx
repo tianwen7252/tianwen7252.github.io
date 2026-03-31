@@ -14,6 +14,7 @@ function makeCategoryType(
     type: 'bento',
     label: '便當',
     color: '',
+    priority: 0,
     createdAt: Date.now(),
     updatedAt: Date.now(),
     ...overrides,

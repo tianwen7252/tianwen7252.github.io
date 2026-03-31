@@ -19,7 +19,7 @@ export const DELETE_DEFAULT_DATA = false
  * Increment this number to trigger an automatic reset of default data on next launch.
  * The value is stored in localStorage to detect version changes across sessions.
  */
-export const UPDATE_DEFAULT_DATA_NUMBER = 1
+export const UPDATE_DEFAULT_DATA_NUMBER = 2
 
 /**
  * When true, deletes ALL data from all tables on startup.
@@ -172,6 +172,40 @@ export const EMPLOYEE_SEEDS: readonly EmployeeSeed[] = [
   },
 ] as const
 
+// ─── Order Type Data ────────────────────────────────────────────────────────
+
+export interface OrderTypeSeed {
+  readonly id: string
+  readonly name: string
+  readonly priority: number
+  readonly type: string
+  readonly color: string
+}
+
+export const ORDER_TYPE_SEEDS: readonly OrderTypeSeed[] = [
+  {
+    id: 'ot-001',
+    name: '攤位',
+    priority: 1,
+    type: 'order',
+    color: 'green',
+  },
+  {
+    id: 'ot-002',
+    name: '外送',
+    priority: 2,
+    type: 'order',
+    color: 'blue',
+  },
+  {
+    id: 'ot-003',
+    name: '電話自取',
+    priority: 3,
+    type: 'order',
+    color: 'yellow',
+  },
+] as const
+
 // ─── Commodity Type Data ────────────────────────────────────────────────────
 
 export interface CommodityTypeSeed {
@@ -180,6 +214,7 @@ export interface CommodityTypeSeed {
   readonly type: string
   readonly label: string
   readonly color: string
+  readonly priority: number
 }
 
 export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
@@ -189,6 +224,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'main-dish',
     label: '餐盒',
     color: 'green',
+    priority: 1,
   },
   {
     id: 'ct-002',
@@ -196,6 +232,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'à-la-carte',
     label: '單點',
     color: 'brown',
+    priority: 2,
   },
   {
     id: 'ct-003',
@@ -203,6 +240,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'drink',
     label: '飲料',
     color: 'indigo',
+    priority: 3,
   },
   {
     id: 'ct-004',
@@ -210,6 +248,7 @@ export const COMMODITY_TYPE_SEEDS: readonly CommodityTypeSeed[] = [
     type: 'dumpling',
     label: '水餃',
     color: 'indigo',
+    priority: 4,
   },
 ] as const
 

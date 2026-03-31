@@ -17,6 +17,7 @@ import { SystemInfo } from '@/components/settings/system-info'
 import { CloudBackup } from '@/components/settings/cloud-backup'
 import { Records } from '@/components/records'
 import { StaffAdmin } from '@/components/staff-admin'
+import { ProductManagement } from '@/components/settings/product-management'
 import { OrdersPage } from '@/pages/orders'
 import { AnalyticsPage } from '@/pages/analytics'
 import { SwUpdatePrompt } from '@/components/sw-update-prompt'
@@ -319,6 +320,12 @@ const settingsStaffAdminRoute = createRoute({
   component: StaffAdmin,
 })
 
+const settingsProductManagementRoute = createRoute({
+  getParentRoute: () => settingsRoute,
+  path: '/product-management',
+  component: ProductManagement,
+})
+
 // Build the route tree
 export const routeTree = rootRoute.addChildren([
   indexRoute,
@@ -331,6 +338,7 @@ export const routeTree = rootRoute.addChildren([
     settingsCloudBackupRoute,
     settingsRecordsRoute,
     settingsStaffAdminRoute,
+    settingsProductManagementRoute,
   ]),
   previewRoute.addChildren([
     previewIndexRoute,
