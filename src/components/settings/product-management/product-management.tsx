@@ -7,10 +7,10 @@
 import { useState, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Save, Plus, Pencil, Trash2, ArrowUpDown, Tag } from 'lucide-react'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { ShineBorder } from '@/components/ui/shine-border'
+import { ScrollArea } from '@/components/ui/scroll-area'
 import { notify } from '@/components/ui/sonner'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
@@ -139,22 +139,24 @@ export function ProductManagement() {
         onConfirm={handleSaveConfirm}
         onCancel={handleSaveCancel}
       >
-        <ScrollArea className="max-h-[400px]">
-          <div className="space-y-2 text-base text-foreground">
-            {changeSummary.map((item, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 text-muted-foreground">
-                  {item.type === 'add' && <Plus size={16} />}
-                  {item.type === 'edit' && <Pencil size={16} />}
-                  {item.type === 'delete' && <Trash2 size={16} />}
-                  {item.type === 'label' && <Tag size={16} />}
-                  {item.type === 'reorder' && <ArrowUpDown size={16} />}
-                </span>
-                <span>{item.description}</span>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <div className="max-h-[400px]">
+          <ScrollArea className="h-full">
+            <div className="space-y-2 text-base text-foreground pr-2">
+              {changeSummary.map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">
+                    {item.type === 'add' && <Plus size={16} />}
+                    {item.type === 'edit' && <Pencil size={16} />}
+                    {item.type === 'delete' && <Trash2 size={16} />}
+                    {item.type === 'label' && <Tag size={16} />}
+                    {item.type === 'reorder' && <ArrowUpDown size={16} />}
+                  </span>
+                  <span>{item.description}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </ConfirmModal>
     </div>
   )
