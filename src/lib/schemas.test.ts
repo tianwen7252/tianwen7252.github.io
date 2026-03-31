@@ -9,6 +9,7 @@ import {
   dailyDataSchema,
   orderTypeSchema,
   createOrderTypeSchema,
+  priceChangeLogSchema,
 } from './schemas'
 
 describe('schemas', () => {
@@ -350,6 +351,93 @@ describe('schemas', () => {
       }
 
       expect(() => createOrderTypeSchema.parse(input)).toThrow()
+    })
+  })
+
+  // ─── priceChangeLogSchema ─────────────────────────────────────────────────
+
+  describe('priceChangeLogSchema', () => {
+    it('parses a valid price change log', () => {
+      const input = {
+        id: 'pcl-001',
+        commodityId: 'com-001',
+        commodityName: '滷肉便當',
+        oldPrice: 100,
+        newPrice: 120,
+        editor: 'admin',
+        createdAt: 1700000000000,
+      }
+
+      const result = priceChangeLogSchema.parse(input)
+
+      expect(result).toEqual(input)
+    })
+
+    it('applies default editor empty string when omitted', () => {
+      const input = {
+        id: 'pcl-001',
+        commodityId: 'com-001',
+        commodityName: '滷肉便當',
+        oldPrice: 100,
+        newPrice: 120,
+        createdAt: 1700000000000,
+      }
+
+      const result = priceChangeLogSchema.parse(input)
+
+      expect(result.editor).toBe('')
+    })
+
+    it('requires id field', () => {
+      const input = {
+        commodityId: 'com-001',
+        commodityName: '滷肉便當',
+        oldPrice: 100,
+        newPrice: 120,
+        createdAt: 1700000000000,
+      }
+
+      expect(() => priceChangeLogSchema.parse(input)).toThrow()
+    })
+
+    it('requires commodityId field', () => {
+      const input = {
+        id: 'pcl-001',
+        commodityName: '滷肉便當',
+        oldPrice: 100,
+        newPrice: 120,
+        createdAt: 1700000000000,
+      }
+
+      expect(() => priceChangeLogSchema.parse(input)).toThrow()
+    })
+
+    it('requires createdAt field', () => {
+      const input = {
+        id: 'pcl-001',
+        commodityId: 'com-001',
+        commodityName: '滷肉便當',
+        oldPrice: 100,
+        newPrice: 120,
+      }
+
+      expect(() => priceChangeLogSchema.parse(input)).toThrow()
+    })
+
+    it('accepts zero prices', () => {
+      const input = {
+        id: 'pcl-001',
+        commodityId: 'com-001',
+        commodityName: '免費品項',
+        oldPrice: 0,
+        newPrice: 50,
+        createdAt: 1700000000000,
+      }
+
+      const result = priceChangeLogSchema.parse(input)
+
+      expect(result.oldPrice).toBe(0)
+      expect(result.newPrice).toBe(50)
     })
   })
 })

@@ -190,6 +190,7 @@ export function clearAllData(db: Database): void {
   db.exec('DELETE FROM order_types')
   db.exec('DELETE FROM daily_data')
   db.exec('DELETE FROM employees')
+  db.exec('DELETE FROM price_change_logs')
 }
 
 // ─── Database insertion ──────────────────────────────────────────────────────
@@ -244,6 +245,7 @@ export function resetCommodityData(db: Database): void {
   db.exec('DELETE FROM commodities')
   db.exec('DELETE FROM commodity_types')
   db.exec('DELETE FROM order_types')
+  db.exec('DELETE FROM price_change_logs')
   insertDefaultCommodities(db)
   insertDefaultOrderTypes(db)
 }
@@ -261,6 +263,7 @@ export async function resetCommodityDataAsync(): Promise<void> {
     await db.exec('DELETE FROM commodities')
     await db.exec('DELETE FROM commodity_types')
     await db.exec('DELETE FROM order_types')
+    await db.exec('DELETE FROM price_change_logs')
 
     // Re-insert default commodity types
     for (const ct of DEFAULT_COMMODITY_TYPES) {

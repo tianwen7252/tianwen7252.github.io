@@ -24,11 +24,15 @@ import type { Database, QueryResult } from '@/lib/database'
 
 // ─── Mock for resetCommodityDataAsync (uses getDatabase from provider) ──────
 
-type AsyncExecFn = (sql: string, params?: readonly unknown[]) => Promise<{ rows: unknown[]; changes: number }>
+type AsyncExecFn = (
+  sql: string,
+  params?: readonly unknown[],
+) => Promise<{ rows: unknown[]; changes: number }>
 let mockAsyncExec: ReturnType<typeof vi.fn<AsyncExecFn>>
 vi.mock('@/lib/repositories/provider', () => ({
   getDatabase: () => ({
-    exec: (sql: string, params?: readonly unknown[]) => mockAsyncExec(sql, params),
+    exec: (sql: string, params?: readonly unknown[]) =>
+      mockAsyncExec(sql, params),
   }),
 }))
 
@@ -338,12 +342,21 @@ describe('clearAllData(db)', () => {
     )
   })
 
-  it('issues exactly 9 DELETE statements', () => {
+  it('issues exactly 10 DELETE statements', () => {
     const db = makeMockDb()
     clearAllData(db)
 
     const deletes = db.calls.filter(c => c.sql.startsWith('DELETE'))
-    expect(deletes).toHaveLength(9)
+    expect(deletes).toHaveLength(10)
+  })
+
+  it('deletes price_change_logs', () => {
+    const db = makeMockDb()
+    clearAllData(db)
+
+    expect(db.calls.some(c => c.sql === 'DELETE FROM price_change_logs')).toBe(
+      true,
+    )
   })
 
   it('deletes order_items before orders to respect FK constraint', () => {
@@ -757,6 +770,15 @@ describe('resetCommodityData(db)', () => {
     )
   })
 
+  it('deletes from price_change_logs table', () => {
+    const db = makeMockDb()
+    resetCommodityData(db)
+
+    expect(
+      db.calls.some(c => c.sql.includes('DELETE FROM price_change_logs')),
+    ).toBe(true)
+  })
+
   it('does NOT delete from employees table', () => {
     const db = makeMockDb()
     resetCommodityData(db)
@@ -837,22 +859,26 @@ describe('resetCommodityDataAsync()', () => {
   })
 
   it('rolls back and rethrows on exec failure', async () => {
-    mockAsyncExec = vi.fn()
+    mockAsyncExec = vi
+      .fn()
       .mockResolvedValueOnce({ rows: [], changes: 0 }) // BEGIN
-      .mockRejectedValueOnce(new Error('disk full'))   // DELETE commodities
-      .mockResolvedValue({ rows: [], changes: 0 })     // ROLLBACK
+      .mockRejectedValueOnce(new Error('disk full')) // DELETE commodities
+      .mockResolvedValue({ rows: [], changes: 0 }) // ROLLBACK
     await expect(resetCommodityDataAsync()).rejects.toThrow('disk full')
-    const sqlLog = mockAsyncExec.mock.calls.map((c: unknown[]) => (c[0] as string).trim())
+    const sqlLog = mockAsyncExec.mock.calls.map((c: unknown[]) =>
+      (c[0] as string).trim(),
+    )
     expect(sqlLog).toContain('ROLLBACK')
     expect(sqlLog).not.toContain('COMMIT')
   })
 
-  it('deletes commodities, commodity_types, and order_types inside the transaction', async () => {
+  it('deletes commodities, commodity_types, order_types, and price_change_logs inside the transaction', async () => {
     await resetCommodityDataAsync()
     const sqls = execCalls.map(c => c.sql)
     expect(sqls).toContain('DELETE FROM commodities')
     expect(sqls).toContain('DELETE FROM commodity_types')
     expect(sqls).toContain('DELETE FROM order_types')
+    expect(sqls).toContain('DELETE FROM price_change_logs')
   })
 
   it('does not delete employees or attendances', async () => {

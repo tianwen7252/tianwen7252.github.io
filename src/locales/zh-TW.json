@@ -473,6 +473,13 @@
       "saveError": "儲存失敗，請重試",
       "deleteError": "刪除失敗，請重試",
       "reorderError": "排序失敗，請重試"
+    },
+    "priceLog": {
+      "title": "歷史價格變動",
+      "empty": "尚無價格變動紀錄",
+      "page": "第 {{current}} / {{total}} 頁",
+      "previous": "上一頁",
+      "next": "下一頁"
     }
   },
   "backup": {

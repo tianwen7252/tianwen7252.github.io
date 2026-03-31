@@ -23,6 +23,7 @@ import type {
   CreateCommodity,
   OrderType,
   CreateOrderType,
+  PriceChangeLog,
 } from '@/lib/schemas'
 import type {
   StatisticsRepository,
@@ -85,6 +86,7 @@ let attendances: Attendance[] = []
 let commodityTypes: CommodityType[] = []
 let commodities: Commodity[] = []
 let orderTypes: OrderType[] = []
+let priceChangeLogs: PriceChangeLog[] = []
 
 function resetState(): void {
   employees = DEFAULT_EMPLOYEES.map(e => ({ ...e }))
@@ -92,6 +94,7 @@ function resetState(): void {
   commodityTypes = DEFAULT_COMMODITY_TYPES.map(ct => ({ ...ct }))
   commodities = DEFAULT_COMMODITIES.filter(c => c.onMarket).map(c => ({ ...c }))
   orderTypes = DEFAULT_ORDER_TYPES.map(ot => ({ ...ot }))
+  priceChangeLogs = []
 }
 
 // Initialize on load
@@ -400,6 +403,42 @@ export const mockOrderTypeRepo = {
   },
 }
 
+// ─── Mock PriceChangeLog Repository ─────────────────────────────────────────
+
+export const mockPriceChangeLogRepo = {
+  async findAll(limit = 20, offset = 0): Promise<PriceChangeLog[]> {
+    const sorted = [...priceChangeLogs].sort(
+      (a, b) => b.createdAt - a.createdAt,
+    )
+    return sorted.slice(offset, offset + limit)
+  },
+
+  async count(): Promise<number> {
+    return priceChangeLogs.length
+  },
+
+  async create(data: {
+    commodityId: string
+    commodityName: string
+    oldPrice: number
+    newPrice: number
+    editor?: string
+  }): Promise<PriceChangeLog> {
+    const now = Date.now()
+    const newLog: PriceChangeLog = {
+      id: nanoid(),
+      commodityId: data.commodityId,
+      commodityName: data.commodityName,
+      oldPrice: data.oldPrice,
+      newPrice: data.newPrice,
+      editor: data.editor ?? '',
+      createdAt: now,
+    }
+    priceChangeLogs = [...priceChangeLogs, newLog]
+    return newLog
+  },
+}
+
 // ─── Reset helper for tests ────────────────────────────────────────────────
 
 export function resetMockRepositories(): void {
@@ -494,6 +533,10 @@ export function getCommodityRepo() {
 
 export function getOrderTypeRepo() {
   return mockOrderTypeRepo
+}
+
+export function getPriceChangeLogRepo() {
+  return mockPriceChangeLogRepo
 }
 
 export function getStatisticsRepo() {

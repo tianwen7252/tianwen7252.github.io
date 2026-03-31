@@ -10,7 +10,11 @@ import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
-import { getCommodityTypeRepo, getCommodityRepo } from '@/lib/repositories'
+import {
+  getCommodityTypeRepo,
+  getCommodityRepo,
+  getPriceChangeLogRepo,
+} from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
 import { CommodityCard } from './commodity-card'
@@ -212,8 +216,20 @@ export function CommoditySection({
           await getCommodityRepo().create(data)
         }
 
-        // Write pending edits
+        // Write pending edits and log price changes
         for (const edit of pendingEdits) {
+          if (edit.changes.price !== undefined) {
+            // Look up current price from the DB snapshot
+            const current = dbCommodities.find(c => c.id === edit.id)
+            if (current && current.price !== edit.changes.price) {
+              await getPriceChangeLogRepo().create({
+                commodityId: edit.id,
+                commodityName: edit.changes.name ?? current.name,
+                oldPrice: current.price,
+                newPrice: edit.changes.price,
+              })
+            }
+          }
           await getCommodityRepo().update(edit.id, edit.changes)
         }
 
@@ -265,7 +281,8 @@ export function CommoditySection({
 
         for (const [typeId, ids] of reorderedIds) {
           // Build ordered name list from displayed items
-          const typeLabel = commodityTypes.find(ct => ct.typeId === typeId)?.label ?? typeId
+          const typeLabel =
+            commodityTypes.find(ct => ct.typeId === typeId)?.label ?? typeId
           const names = ids
             .map(id => {
               const db = allDbCommodities.find(c => c.id === id)

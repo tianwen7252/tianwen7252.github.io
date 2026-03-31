@@ -473,6 +473,13 @@
       "saveError": "Failed to save, please try again",
       "deleteError": "Failed to delete, please try again",
       "reorderError": "Failed to reorder, please try again"
+    },
+    "priceLog": {
+      "title": "Price Change History",
+      "empty": "No price changes recorded",
+      "page": "Page {{current}} / {{total}}",
+      "previous": "Previous",
+      "next": "Next"
     }
   },
   "backup": {

@@ -15,6 +15,7 @@ import { notify } from '@/components/ui/sonner'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
 import { OrderTypeSection } from './order-type-section'
+import { PriceChangeLogSection } from './price-change-log-section'
 import { ResetSection } from './reset-section'
 import type { SectionRef, ChangeSummaryItem } from './types'
 
@@ -127,6 +128,7 @@ export function ProductManagement() {
         onHasChanges={handleOrderTypeChanges}
         sectionRef={orderTypeRef}
       />
+      <PriceChangeLogSection refreshKey={refreshKey} />
       <ResetSection onReset={handleRefresh} />
 
       {/* Save confirm modal -- shows all pending changes */}
@@ -140,23 +142,27 @@ export function ProductManagement() {
         onConfirm={handleSaveConfirm}
         onCancel={handleSaveCancel}
       >
-        <div style={{ height: Math.max(200, Math.min(changeSummary.length * 34 + 8, 400)) }}>
-        <ScrollArea className="h-full pr-2" watchDeps={[changeSummary]}>
-          <div className="space-y-2 text-base text-foreground">
-            {changeSummary.map((item, i) => (
-              <div key={i} className="flex items-start gap-2">
-                <span className="mt-0.5 shrink-0 text-muted-foreground">
-                  {item.type === 'add' && <Plus size={16} />}
-                  {item.type === 'edit' && <Pencil size={16} />}
-                  {item.type === 'delete' && <Trash2 size={16} />}
-                  {item.type === 'label' && <Tag size={16} />}
-                  {item.type === 'reorder' && <ArrowUpDown size={16} />}
-                </span>
-                <span>{item.description}</span>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+        <div
+          style={{
+            height: Math.max(200, Math.min(changeSummary.length * 34 + 8, 400)),
+          }}
+        >
+          <ScrollArea className="h-full pr-2" watchDeps={[changeSummary]}>
+            <div className="space-y-2 text-base text-foreground">
+              {changeSummary.map((item, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="mt-0.5 shrink-0 text-muted-foreground">
+                    {item.type === 'add' && <Plus size={16} />}
+                    {item.type === 'edit' && <Pencil size={16} />}
+                    {item.type === 'delete' && <Trash2 size={16} />}
+                    {item.type === 'label' && <Tag size={16} />}
+                    {item.type === 'reorder' && <ArrowUpDown size={16} />}
+                  </span>
+                  <span>{item.description}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
       </ConfirmModal>
     </div>

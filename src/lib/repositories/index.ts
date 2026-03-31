@@ -37,6 +37,10 @@ export {
   type OrderTypeRepository,
 } from './order-type-repository'
 export {
+  createPriceChangeLogRepository,
+  type PriceChangeLogRepository,
+} from './price-change-log-repository'
+export {
   initRepositories,
   getDatabase,
   getEmployeeRepo,
@@ -50,6 +54,7 @@ export {
   getErrorLogRepo,
   getCustomOrderNameRepo,
   getOrderTypeRepo,
+  getPriceChangeLogRepo,
   resetRepositories,
 } from './provider'
 export {

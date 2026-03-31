@@ -165,6 +165,19 @@ export const CREATE_TABLES = `
 
   CREATE INDEX IF NOT EXISTS idx_backup_logs_created_at ON backup_logs(created_at);
 
+  -- Price change logs
+  CREATE TABLE IF NOT EXISTS price_change_logs (
+    id TEXT PRIMARY KEY,
+    commodity_id TEXT NOT NULL,
+    commodity_name TEXT NOT NULL,
+    old_price REAL NOT NULL,
+    new_price REAL NOT NULL,
+    editor TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at);
+
   -- Schema version tracking
   CREATE TABLE IF NOT EXISTS schema_meta (
     key TEXT PRIMARY KEY,
@@ -270,6 +283,20 @@ function runMigrations(exec: (sql: string) => void): void {
   } catch {
     // Column already exists -- safe to ignore
   }
+
+  // V2-PM: Add price_change_logs table for tracking commodity price history
+  exec(`CREATE TABLE IF NOT EXISTS price_change_logs (
+    id TEXT PRIMARY KEY,
+    commodity_id TEXT NOT NULL,
+    commodity_name TEXT NOT NULL,
+    old_price REAL NOT NULL,
+    new_price REAL NOT NULL,
+    editor TEXT NOT NULL DEFAULT '',
+    created_at INTEGER NOT NULL DEFAULT (unixepoch('now') * 1000)
+  )`)
+  exec(
+    'CREATE INDEX IF NOT EXISTS idx_price_change_logs_created_at ON price_change_logs(created_at)',
+  )
 
   // V2-130: Add backup_logs table
   exec(`CREATE TABLE IF NOT EXISTS backup_logs (

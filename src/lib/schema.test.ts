@@ -53,14 +53,24 @@ describe('schema', () => {
       )
     })
 
+    it('should include price_change_logs table', () => {
+      expect(CREATE_TABLES).toContain(
+        'CREATE TABLE IF NOT EXISTS price_change_logs',
+      )
+    })
+
+    it('should create index on price_change_logs.created_at', () => {
+      expect(CREATE_TABLES).toContain('idx_price_change_logs_created_at')
+    })
+
     it('should use TEXT primary keys for nanoid compatibility', () => {
       // All core tables should use TEXT PRIMARY KEY (not INTEGER autoincrement)
       // to support nanoid-generated IDs in V2
       const textPkPattern = /id TEXT PRIMARY KEY/g
       const matches = CREATE_TABLES.match(textPkPattern)
-      // 12 core tables use "id TEXT PRIMARY KEY"
+      // 13 core tables use "id TEXT PRIMARY KEY"
       // schema_meta uses "key TEXT PRIMARY KEY" (different column name)
-      expect(matches?.length).toBe(12)
+      expect(matches?.length).toBe(13)
     })
 
     it('should not include a data column in the orders table DDL', () => {

@@ -276,3 +276,17 @@ export const dailyDataSchema = z.object({
 })
 
 export type DailyData = z.infer<typeof dailyDataSchema>
+
+// ─── PriceChangeLog ─────────────────────────────────────────────────────────
+
+export const priceChangeLogSchema = z.object({
+  id: z.string(),
+  commodityId: z.string(),
+  commodityName: z.string(),
+  oldPrice: z.number(),
+  newPrice: z.number(),
+  editor: z.string().default(''),
+  createdAt: z.number(),
+})
+
+export type PriceChangeLog = z.infer<typeof priceChangeLogSchema>

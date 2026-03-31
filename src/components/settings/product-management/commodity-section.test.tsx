@@ -12,6 +12,7 @@ import { CommoditySection } from './commodity-section'
 import {
   getCommodityTypeRepo,
   getCommodityRepo,
+  getPriceChangeLogRepo,
   resetMockRepositories,
 } from '@/test/mock-repositories'
 import type { SectionRef } from './types'
@@ -20,6 +21,7 @@ import type { SectionRef } from './types'
 vi.mock('@/lib/repositories', () => ({
   getCommodityTypeRepo: () => getCommodityTypeRepo(),
   getCommodityRepo: () => getCommodityRepo(),
+  getPriceChangeLogRepo: () => getPriceChangeLogRepo(),
 }))
 
 // Mock the modal component to avoid Radix Portal issues in tests
@@ -468,6 +470,80 @@ describe('CommoditySection', () => {
       // DB should have onMarket=false for deleted item
       const dbItem = await getCommodityRepo().findById(firstItem.id)
       expect(dbItem?.onMarket).toBe(false)
+    })
+
+    it('should create price change log when commodity price is edited', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      // Wait for commodities to load
+      await screen.findByText('油淋雞腿飯')
+
+      // Get original commodity from DB to compare prices
+      const originalItems = await getCommodityRepo().findByTypeId('bento')
+      const originalItem = originalItems[0]!
+      const originalPrice = originalItem.price
+
+      // Click edit on first commodity
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+
+      // Change price
+      const priceInput = screen.getByPlaceholderText('0')
+      await user.clear(priceInput)
+      await user.type(priceInput, '999')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      // Save
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      // Verify price change log was created
+      const logs = await getPriceChangeLogRepo().findAll()
+      expect(logs.length).toBe(1)
+      expect(logs[0]!.commodityId).toBe(originalItem.id)
+      expect(logs[0]!.oldPrice).toBe(originalPrice)
+      expect(logs[0]!.newPrice).toBe(999)
+    })
+
+    it('should NOT create price change log when price is unchanged', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommoditySection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('油淋雞腿飯')
+
+      // Edit commodity but only change name, not price
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+
+      const nameInput = screen.getByPlaceholderText('品名')
+      await user.clear(nameInput)
+      await user.type(nameInput, '改名便當')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      // Save
+      await act(async () => {
+        await ref.current?.save()
+      })
+
+      // No price change log should exist
+      const logs = await getPriceChangeLogRepo().findAll()
+      expect(logs.length).toBe(0)
     })
   })
 

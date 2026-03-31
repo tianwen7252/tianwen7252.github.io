@@ -71,6 +71,12 @@ vi.mock('./order-type-section', () => ({
   ),
 }))
 
+vi.mock('./price-change-log-section', () => ({
+  PriceChangeLogSection: (_props: { refreshKey: number }) => (
+    <div data-testid="price-change-log-section">PriceChangeLogSection</div>
+  ),
+}))
+
 vi.mock('./reset-section', () => ({
   ResetSection: () => <div data-testid="reset-section">ResetSection</div>,
 }))
@@ -130,11 +136,12 @@ describe('ProductManagement', () => {
     mockNotifyError.mockClear()
   })
 
-  it('should render all 4 sections', () => {
+  it('should render all 5 sections', () => {
     render(<ProductManagement />)
     expect(screen.getByTestId('commodity-type-section')).toBeTruthy()
     expect(screen.getByTestId('commodity-section')).toBeTruthy()
     expect(screen.getByTestId('order-type-section')).toBeTruthy()
+    expect(screen.getByTestId('price-change-log-section')).toBeTruthy()
     expect(screen.getByTestId('reset-section')).toBeTruthy()
   })
 
