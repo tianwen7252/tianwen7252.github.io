@@ -12,11 +12,7 @@ export default defineConfig({
     basicSsl(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: [
-        'favicon.ico',
-        'icons/*.png',
-        'images/**/*.png',
-      ],
+      includeAssets: ['favicon.ico', 'icons/*.png', 'images/**/*.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,wasm}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
@@ -52,6 +48,7 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ['@sqlite.org/sqlite-wasm'],
   },
+  // https://10-0-0-23.sslip.io:5665/ for ipad if internal IP is 10.0.0.23
   server: {
     port: 5665,
     host: true,

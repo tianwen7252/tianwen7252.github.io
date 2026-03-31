@@ -52,7 +52,7 @@ export function ClockIn() {
     [] as Employee[],
   )
   const employees = useMemo(
-    () => allEmployees.filter((e) => !e.resignationDate),
+    () => allEmployees.filter(e => !e.resignationDate),
     [allEmployees],
   )
 
@@ -181,7 +181,7 @@ export function ClockIn() {
           notify.success(t('clockIn.toastCancelVacation'))
           break
       }
-      setRefreshKey((k) => k + 1)
+      setRefreshKey(k => k + 1)
       handleModalClose()
     } finally {
       setLoading(false)
@@ -205,7 +205,7 @@ export function ClockIn() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
         }}
       >
-        {employees.map((employee) => {
+        {employees.map(employee => {
           const records = attendanceMap[employee.id] ?? []
           return (
             <EmployeeCard

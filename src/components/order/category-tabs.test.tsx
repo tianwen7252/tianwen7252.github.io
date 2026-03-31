@@ -44,11 +44,7 @@ describe('CategoryTabs', () => {
 
   it('should render nothing when categories array is empty', () => {
     const { container } = render(
-      <CategoryTabs
-        categories={[]}
-        selectedTypeId={null}
-        onSelect={vi.fn()}
-      />,
+      <CategoryTabs categories={[]} selectedTypeId={null} onSelect={vi.fn()} />,
     )
     const buttons = container.querySelectorAll('button')
     expect(buttons.length).toBe(0)

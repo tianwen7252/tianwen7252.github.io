@@ -43,25 +43,39 @@ export function NotifyPreview() {
         <div className="flex flex-wrap gap-3">
           <Button
             variant="outline"
-            onClick={() => notify.success('訂單已送出', { description: '共 3 項，合計 $420' })}
+            onClick={() =>
+              notify.success('訂單已送出', {
+                description: '共 3 項，合計 $420',
+              })
+            }
           >
             Success + desc
           </Button>
           <Button
             variant="outline"
-            onClick={() => notify.error('訂單送出失敗', { description: '請檢查網路連線後重試' })}
+            onClick={() =>
+              notify.error('訂單送出失敗', {
+                description: '請檢查網路連線後重試',
+              })
+            }
           >
             Error + desc
           </Button>
           <Button
             variant="outline"
-            onClick={() => notify.info('系統通知', { description: '新版本已發布，請重新整理頁面' })}
+            onClick={() =>
+              notify.info('系統通知', {
+                description: '新版本已發布，請重新整理頁面',
+              })
+            }
           >
             Info + desc
           </Button>
           <Button
             variant="outline"
-            onClick={() => notify.warning('庫存警告', { description: '炸雞腿飯剩餘 2 份' })}
+            onClick={() =>
+              notify.warning('庫存警告', { description: '炸雞腿飯剩餘 2 份' })
+            }
           >
             Warning + desc
           </Button>
@@ -79,7 +93,12 @@ export function NotifyPreview() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => notify.success('打卡下班成功', { description: '工時 8h 30m', showTime: true })}
+            onClick={() =>
+              notify.success('打卡下班成功', {
+                description: '工時 8h 30m',
+                showTime: true,
+              })
+            }
           >
             Success + desc + time
           </Button>
@@ -95,15 +114,17 @@ export function NotifyPreview() {
           >
             2 秒
           </Button>
-          <Button
-            variant="outline"
-            onClick={() => notify.success('預設 5 秒')}
-          >
+          <Button variant="outline" onClick={() => notify.success('預設 5 秒')}>
             5 秒 (default)
           </Button>
           <Button
             variant="outline"
-            onClick={() => notify.warning('重要警告', { description: '請注意此訊息', duration: 10000 })}
+            onClick={() =>
+              notify.warning('重要警告', {
+                description: '請注意此訊息',
+                duration: 10000,
+              })
+            }
           >
             10 秒
           </Button>

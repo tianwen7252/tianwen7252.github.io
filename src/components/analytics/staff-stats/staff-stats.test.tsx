@@ -80,7 +80,9 @@ const SAMPLE_EMPLOYEE_HOURS: EmployeeHours[] = [
   },
 ]
 
-function buildMockRepo(overrides?: Partial<StatisticsRepository>): StatisticsRepository {
+function buildMockRepo(
+  overrides?: Partial<StatisticsRepository>,
+): StatisticsRepository {
   return {
     getProductKpis: vi.fn().mockResolvedValue({
       totalRevenue: 0,
@@ -121,7 +123,13 @@ describe('StaffStats', () => {
   describe('section structure', () => {
     it('renders aria-label "員工統計" section', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
       expect(screen.getByRole('region', { name: '員工統計' })).toBeTruthy()
     })
   })
@@ -129,7 +137,13 @@ describe('StaffStats', () => {
   describe('data fetching', () => {
     it('calls getStaffKpis with correct date range', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(repo.getStaffKpis).toHaveBeenCalledWith({
@@ -141,7 +155,13 @@ describe('StaffStats', () => {
 
     it('calls getEmployeeHours with correct date range', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(repo.getEmployeeHours).toHaveBeenCalledWith({
@@ -153,7 +173,13 @@ describe('StaffStats', () => {
 
     it('calls both getStaffKpis and getEmployeeHours (Promise.all)', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(repo.getStaffKpis).toHaveBeenCalledTimes(1)
@@ -165,7 +191,13 @@ describe('StaffStats', () => {
   describe('sub-component rendering after load', () => {
     it('renders StaffKpiGrid after data loads (shows 在職員工數 title)', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('在職員工數')).toBeTruthy()
@@ -174,7 +206,13 @@ describe('StaffStats', () => {
 
     it('renders StaffHoursChart after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('員工工時排行')).toBeTruthy()
@@ -184,7 +222,13 @@ describe('StaffStats', () => {
 
     it('renders KPI values via data-testid after load', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByTestId('kpi-activeEmployeeCount')).toBeTruthy()
@@ -200,7 +244,13 @@ describe('StaffStats', () => {
       const repo = buildMockRepo({
         getStaffKpis: vi.fn().mockRejectedValue(new Error('KPI 載入失敗')),
       })
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('KPI 載入失敗')).toBeTruthy()
@@ -211,7 +261,13 @@ describe('StaffStats', () => {
       const repo = buildMockRepo({
         getEmployeeHours: vi.fn().mockRejectedValue(new Error('工時載入失敗')),
       })
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('工時載入失敗')).toBeTruthy()
@@ -222,7 +278,13 @@ describe('StaffStats', () => {
       const repo = buildMockRepo({
         getStaffKpis: vi.fn().mockRejectedValue('string error'),
       })
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('載入失敗')).toBeTruthy()
@@ -234,7 +296,11 @@ describe('StaffStats', () => {
     it('refetches when startDate changes', async () => {
       const repo = buildMockRepo()
       const { rerender } = render(
-        <StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />,
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
       )
 
       await waitFor(() => {
@@ -244,7 +310,11 @@ describe('StaffStats', () => {
       const newStart = new Date('2026-02-01')
       const newEnd = new Date('2026-02-28')
       rerender(
-        <StaffStats startDate={newStart} endDate={newEnd} statisticsRepo={repo} />,
+        <StaffStats
+          startDate={newStart}
+          endDate={newEnd}
+          statisticsRepo={repo}
+        />,
       )
 
       await waitFor(() => {
@@ -256,7 +326,13 @@ describe('StaffStats', () => {
   describe('daily headcount chart (V2-66)', () => {
     it('calls getDailyHeadcount with correct date range', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(repo.getDailyHeadcount).toHaveBeenCalledWith({
@@ -268,7 +344,13 @@ describe('StaffStats', () => {
 
     it('renders DailyHeadcountChart after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('每日出勤率')).toBeTruthy()
@@ -277,7 +359,13 @@ describe('StaffStats', () => {
 
     it('renders AttendanceCalendar after data loads (shows card title)', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(screen.getByText('月曆出勤全覽')).toBeTruthy()
@@ -286,7 +374,13 @@ describe('StaffStats', () => {
 
     it('getDailyHeadcount is called once per render', async () => {
       const repo = buildMockRepo()
-      render(<StaffStats startDate={START_DATE} endDate={END_DATE} statisticsRepo={repo} />)
+      render(
+        <StaffStats
+          startDate={START_DATE}
+          endDate={END_DATE}
+          statisticsRepo={repo}
+        />,
+      )
 
       await waitFor(() => {
         expect(repo.getDailyHeadcount).toHaveBeenCalledTimes(1)

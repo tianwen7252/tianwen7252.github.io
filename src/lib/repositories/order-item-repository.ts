@@ -24,7 +24,9 @@ function toOrderItem(row: Record<string, unknown>): OrderItem {
   }
 }
 
-export function createOrderItemRepository(db: AsyncDatabase): OrderItemRepository {
+export function createOrderItemRepository(
+  db: AsyncDatabase,
+): OrderItemRepository {
   return {
     async findByOrderId(orderId: string) {
       const result = await db.exec<Record<string, unknown>>(
@@ -38,7 +40,7 @@ export function createOrderItemRepository(db: AsyncDatabase): OrderItemRepositor
       if (items.length === 0) return []
 
       const orderId = items[0]!.orderId
-      if (items.some((item) => item.orderId !== orderId)) {
+      if (items.some(item => item.orderId !== orderId)) {
         throw new Error('createBatch: all items must share the same orderId')
       }
 

@@ -13,7 +13,10 @@ import {
   CardDescription,
   CardContent,
 } from '@/components/ui/card'
-import type { DailyHeadcount, StatisticsRepository } from '@/lib/repositories/statistics-repository'
+import type {
+  DailyHeadcount,
+  StatisticsRepository,
+} from '@/lib/repositories/statistics-repository'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,7 +49,10 @@ const LEVEL_BG: Record<AttendanceLevel, string> = {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-function getAttendanceLevel(count: number, totalEmployees: number): AttendanceLevel {
+function getAttendanceLevel(
+  count: number,
+  totalEmployees: number,
+): AttendanceLevel {
   if (totalEmployees > 0 && count >= totalEmployees) return 'full'
   if (count > 0) return 'partial'
   return 'none'
@@ -125,7 +131,9 @@ export function AttendanceCalendar({
       })
       .catch((err: unknown) => {
         if (cancelled) return
-        setAttendeeError(err instanceof Error ? err.message : t('analytics.loadError'))
+        setAttendeeError(
+          err instanceof Error ? err.message : t('analytics.loadError'),
+        )
         setLoadingAttendees(false)
       })
 
@@ -137,8 +145,12 @@ export function AttendanceCalendar({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.attendanceCalendarTitle')}</CardTitle>
-        <CardDescription>{t('analytics.attendanceCalendarDesc')}</CardDescription>
+        <CardTitle className="font-normal">
+          {t('analytics.attendanceCalendarTitle')}
+        </CardTitle>
+        <CardDescription>
+          {t('analytics.attendanceCalendarDesc')}
+        </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="overflow-x-auto rounded-lg border">
@@ -181,7 +193,9 @@ export function AttendanceCalendar({
                   ].join(' ')}
                 >
                   <div className="text-base font-normal">{cell.day}</div>
-                  <div className="text-base text-muted-foreground">{t('analytics.personCount', { count })}</div>
+                  <div className="text-base text-muted-foreground">
+                    {t('analytics.personCount', { count })}
+                  </div>
                 </button>
               )
             })}
@@ -200,7 +214,9 @@ export function AttendanceCalendar({
             ) : attendeeError !== null ? (
               <p className="text-base text-destructive">{attendeeError}</p>
             ) : attendees.length === 0 ? (
-              <p className="text-base text-muted-foreground">{t('analytics.noAttendees')}</p>
+              <p className="text-base text-muted-foreground">
+                {t('analytics.noAttendees')}
+              </p>
             ) : (
               <ul className="flex flex-col gap-1">
                 {attendees.map(name => (

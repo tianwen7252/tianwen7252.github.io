@@ -123,7 +123,7 @@ export function ClockInModal({
 
   // Shift type label with fallback
   const shiftTypeEntry = SHIFT_TYPES.find(
-    (s) => s.key === displayEmployee.shiftType,
+    s => s.key === displayEmployee.shiftType,
   )
   const shiftTypeLabel = shiftTypeEntry?.label ?? SHIFT_TYPES[0].label
 

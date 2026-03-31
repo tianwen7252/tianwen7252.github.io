@@ -20,7 +20,9 @@ import type { Database, QueryResult } from '@/lib/database'
 
 // ─── Mock Database factory ───────────────────────────────────────────────────
 
-function makeMockDb(): Database & { calls: Array<{ sql: string; params: readonly unknown[] }> } {
+function makeMockDb(): Database & {
+  calls: Array<{ sql: string; params: readonly unknown[] }>
+} {
   const calls: Array<{ sql: string; params: readonly unknown[] }> = []
   return {
     isReady: true,
@@ -45,17 +47,26 @@ describe('shouldResetDefaultData()', () => {
   })
 
   it('returns true when stored version differs from constant', () => {
-    localStorage.setItem('UPDATE_DEFAULT_DATA_NUMBER', String(UPDATE_DEFAULT_DATA_NUMBER - 1))
+    localStorage.setItem(
+      'UPDATE_DEFAULT_DATA_NUMBER',
+      String(UPDATE_DEFAULT_DATA_NUMBER - 1),
+    )
     expect(shouldResetDefaultData()).toBe(true)
   })
 
   it('returns false when stored version matches constant', () => {
-    localStorage.setItem('UPDATE_DEFAULT_DATA_NUMBER', String(UPDATE_DEFAULT_DATA_NUMBER))
+    localStorage.setItem(
+      'UPDATE_DEFAULT_DATA_NUMBER',
+      String(UPDATE_DEFAULT_DATA_NUMBER),
+    )
     expect(shouldResetDefaultData()).toBe(false)
   })
 
   it('returns true when stored version is a future number (mismatch)', () => {
-    localStorage.setItem('UPDATE_DEFAULT_DATA_NUMBER', String(UPDATE_DEFAULT_DATA_NUMBER + 99))
+    localStorage.setItem(
+      'UPDATE_DEFAULT_DATA_NUMBER',
+      String(UPDATE_DEFAULT_DATA_NUMBER + 99),
+    )
     expect(shouldResetDefaultData()).toBe(true)
   })
 
@@ -99,10 +110,12 @@ describe('deleteDefaultData(db)', () => {
     deleteDefaultData(db)
 
     const selectCall = db.calls.find(
-      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
+      c => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
     )
     expect(selectCall).toBeDefined()
-    expect(selectCall!.sql).toMatch(/SELECT COUNT\(\*\) as cnt FROM commodities WHERE type_id IN/)
+    expect(selectCall!.sql).toMatch(
+      /SELECT COUNT\(\*\) as cnt FROM commodities WHERE type_id IN/,
+    )
     expect(selectCall!.params).toHaveLength(4) // 4 default typeId values
   })
 
@@ -111,7 +124,9 @@ describe('deleteDefaultData(db)', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const typesSql = db.calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
+    const typesSql = db.calls.find(c =>
+      c.sql.includes('DELETE FROM commodity_types'),
+    )
     expect(typesSql).toBeDefined()
     expect(typesSql!.sql).toMatch(/DELETE FROM commodity_types WHERE id IN/)
   })
@@ -121,7 +136,10 @@ describe('deleteDefaultData(db)', () => {
     const mockDb: Database & { calls: typeof calls } = {
       isReady: true,
       calls,
-      exec<T = Record<string, unknown>>(sql: string, params?: readonly unknown[]): QueryResult<T> {
+      exec<T = Record<string, unknown>>(
+        sql: string,
+        params?: readonly unknown[],
+      ): QueryResult<T> {
         calls.push({ sql: sql.trim(), params: params ?? [] })
         // Simulate COUNT(*) returning 2 (user has custom commodities)
         if (sql.includes('SELECT COUNT') && sql.includes('commodities')) {
@@ -133,7 +151,9 @@ describe('deleteDefaultData(db)', () => {
     }
     deleteDefaultData(mockDb)
 
-    const typesSql = calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
+    const typesSql = calls.find(c =>
+      c.sql.includes('DELETE FROM commodity_types'),
+    )
     expect(typesSql).toBeUndefined()
   })
 
@@ -141,7 +161,9 @@ describe('deleteDefaultData(db)', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const comSql = db.calls.find((c) => c.sql.includes('commodities') && !c.sql.includes('commodity_types'))
+    const comSql = db.calls.find(
+      c => c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+    )
     expect(comSql).toBeDefined()
     expect(comSql!.sql).toMatch(/DELETE FROM commodities WHERE id IN/)
   })
@@ -150,7 +172,7 @@ describe('deleteDefaultData(db)', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const empSql = db.calls.find((c) => c.sql.includes('employees'))
+    const empSql = db.calls.find(c => c.sql.includes('employees'))
     expect(empSql).toBeDefined()
     expect(empSql!.sql).toMatch(/DELETE FROM employees WHERE id IN/)
   })
@@ -170,13 +192,19 @@ describe('deleteDefaultData(db)', () => {
     deleteDefaultData(db)
 
     // Verify param counts match the known seed data sizes
-    const empCall = db.calls.find((c) => c.sql.includes('DELETE FROM employees'))
+    const empCall = db.calls.find(c => c.sql.includes('DELETE FROM employees'))
     expect(empCall!.params).toHaveLength(11) // EMPLOYEE_SEEDS has 11 entries
 
-    const typesCall = db.calls.find((c) => c.sql.includes('DELETE FROM commodity_types'))
+    const typesCall = db.calls.find(c =>
+      c.sql.includes('DELETE FROM commodity_types'),
+    )
     expect(typesCall!.params).toHaveLength(4) // COMMODITY_TYPE_SEEDS has 4 entries
 
-    const comCall = db.calls.find((c) => c.sql.includes('DELETE FROM commodities') && !c.sql.includes('commodity_types'))
+    const comCall = db.calls.find(
+      c =>
+        c.sql.includes('DELETE FROM commodities') &&
+        !c.sql.includes('commodity_types'),
+    )
     expect(comCall!.params).toHaveLength(46) // COMMODITY_SEEDS has 46 entries
   })
 
@@ -185,12 +213,16 @@ describe('deleteDefaultData(db)', () => {
     deleteDefaultData(db)
 
     const comIdx = db.calls.findIndex(
-      (c) => c.sql.includes('DELETE FROM commodities') && !c.sql.includes('commodity_types'),
+      c =>
+        c.sql.includes('DELETE FROM commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     const selectIdx = db.calls.findIndex(
-      (c) => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
+      c => c.sql.includes('SELECT COUNT') && c.sql.includes('commodities'),
     )
-    const typesIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM commodity_types'))
+    const typesIdx = db.calls.findIndex(c =>
+      c.sql.includes('DELETE FROM commodity_types'),
+    )
     expect(comIdx).toBeLessThan(selectIdx)
     expect(selectIdx).toBeLessThan(typesIdx)
   })
@@ -199,8 +231,12 @@ describe('deleteDefaultData(db)', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const attIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM attendances'))
-    const empIdx = db.calls.findIndex((c) => c.sql.includes('DELETE FROM employees'))
+    const attIdx = db.calls.findIndex(c =>
+      c.sql.includes('DELETE FROM attendances'),
+    )
+    const empIdx = db.calls.findIndex(c =>
+      c.sql.includes('DELETE FROM employees'),
+    )
     expect(attIdx).toBeGreaterThanOrEqual(0)
     expect(attIdx).toBeLessThan(empIdx)
   })
@@ -209,7 +245,9 @@ describe('deleteDefaultData(db)', () => {
     const db = makeMockDb()
     deleteDefaultData(db)
 
-    const attCall = db.calls.find((c) => c.sql.includes('DELETE FROM attendances'))
+    const attCall = db.calls.find(c =>
+      c.sql.includes('DELETE FROM attendances'),
+    )
     expect(attCall).toBeDefined()
     expect(attCall!.sql).toMatch(/DELETE FROM attendances WHERE employee_id IN/)
     expect(attCall!.params).toHaveLength(11)
@@ -223,70 +261,74 @@ describe('clearAllData(db)', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM attendances')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM attendances')).toBe(true)
   })
 
   it('deletes from commodities table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM commodities')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM commodities')).toBe(true)
   })
 
   it('deletes from commodity_types table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM commodity_types')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM commodity_types')).toBe(
+      true,
+    )
   })
 
   it('deletes from employees table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM employees')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM employees')).toBe(true)
   })
 
   it('deletes from orders table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM orders')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM orders')).toBe(true)
   })
 
   it('deletes from order_types table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM order_types')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM order_types')).toBe(true)
   })
 
   it('deletes from daily_data table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM daily_data')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM daily_data')).toBe(true)
   })
 
   it('deletes from order_items table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM order_items')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM order_items')).toBe(true)
   })
 
   it('deletes from order_discounts table', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    expect(db.calls.some((c) => c.sql === 'DELETE FROM order_discounts')).toBe(true)
+    expect(db.calls.some(c => c.sql === 'DELETE FROM order_discounts')).toBe(
+      true,
+    )
   })
 
   it('issues exactly 9 DELETE statements', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    const deletes = db.calls.filter((c) => c.sql.startsWith('DELETE'))
+    const deletes = db.calls.filter(c => c.sql.startsWith('DELETE'))
     expect(deletes).toHaveLength(9)
   })
 
@@ -294,8 +336,10 @@ describe('clearAllData(db)', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    const itemsIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM order_items')
-    const ordersIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM orders')
+    const itemsIdx = db.calls.findIndex(
+      c => c.sql === 'DELETE FROM order_items',
+    )
+    const ordersIdx = db.calls.findIndex(c => c.sql === 'DELETE FROM orders')
     expect(itemsIdx).toBeLessThan(ordersIdx)
   })
 
@@ -303,8 +347,10 @@ describe('clearAllData(db)', () => {
     const db = makeMockDb()
     clearAllData(db)
 
-    const discountsIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM order_discounts')
-    const ordersIdx = db.calls.findIndex((c) => c.sql === 'DELETE FROM orders')
+    const discountsIdx = db.calls.findIndex(
+      c => c.sql === 'DELETE FROM order_discounts',
+    )
+    const ordersIdx = db.calls.findIndex(c => c.sql === 'DELETE FROM orders')
     expect(discountsIdx).toBeLessThan(ordersIdx)
   })
 })
@@ -316,7 +362,9 @@ describe('insertDefaultEmployees(db)', () => {
     const db = makeMockDb()
     insertDefaultEmployees(db)
 
-    const inserts = db.calls.filter((c) => c.sql.includes('INSERT') && c.sql.includes('employees'))
+    const inserts = db.calls.filter(
+      c => c.sql.includes('INSERT') && c.sql.includes('employees'),
+    )
     expect(inserts).toHaveLength(11)
   })
 
@@ -324,7 +372,7 @@ describe('insertDefaultEmployees(db)', () => {
     const db = makeMockDb()
     insertDefaultEmployees(db)
 
-    const inserts = db.calls.filter((c) => c.sql.includes('employees'))
+    const inserts = db.calls.filter(c => c.sql.includes('employees'))
     for (const call of inserts) {
       expect(call.sql).toMatch(/INSERT OR IGNORE INTO employees/)
     }
@@ -334,7 +382,7 @@ describe('insertDefaultEmployees(db)', () => {
     const db = makeMockDb()
     insertDefaultEmployees(db)
 
-    const first = db.calls.find((c) => c.sql.includes('employees'))
+    const first = db.calls.find(c => c.sql.includes('employees'))
     // Expected: id, name, avatar, status, shift_type, employee_no, is_admin, hire_date, resignation_date, created_at, updated_at
     expect(first!.params).toHaveLength(11)
   })
@@ -351,7 +399,7 @@ describe('insertDefaultEmployees(db)', () => {
     insertDefaultEmployees(db)
 
     // First employee (emp-001) is admin = true, should be 1
-    const first = db.calls.find((c) => c.sql.includes('employees'))
+    const first = db.calls.find(c => c.sql.includes('employees'))
     const isAdminParam = first!.params[6] // index 6: is_admin
     expect(isAdminParam).toBe(1)
   })
@@ -365,7 +413,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const typeInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
+      c => c.sql.includes('INSERT') && c.sql.includes('commodity_types'),
     )
     expect(typeInserts).toHaveLength(4)
   })
@@ -375,7 +423,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) =>
+      c =>
         c.sql.includes('INSERT') &&
         c.sql.includes('commodities') &&
         !c.sql.includes('commodity_types'),
@@ -387,7 +435,7 @@ describe('insertDefaultCommodities(db)', () => {
     const db = makeMockDb()
     insertDefaultCommodities(db)
 
-    const typeInserts = db.calls.filter((c) => c.sql.includes('commodity_types'))
+    const typeInserts = db.calls.filter(c => c.sql.includes('commodity_types'))
     for (const call of typeInserts) {
       expect(call.sql).toMatch(/INSERT OR IGNORE INTO commodity_types/)
     }
@@ -398,7 +446,7 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+      c => c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
     )
     for (const call of comInserts) {
       expect(call.sql).toMatch(/INSERT OR IGNORE INTO commodities/)
@@ -419,7 +467,10 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     // on_market should be 1 (all default commodities are on market)
     for (const call of comInserts) {
@@ -433,7 +484,10 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     for (const call of comInserts) {
       expect(call.sql).toMatch(/includes_soup/)
@@ -445,7 +499,10 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     // First 14 inserts are the rice bentos (com-001 to com-014)
     for (let i = 0; i < 14; i++) {
@@ -460,7 +517,10 @@ describe('insertDefaultCommodities(db)', () => {
     insertDefaultCommodities(db)
 
     const comInserts = db.calls.filter(
-      (c) => c.sql.includes('INSERT') && c.sql.includes('commodities') && !c.sql.includes('commodity_types'),
+      c =>
+        c.sql.includes('INSERT') &&
+        c.sql.includes('commodities') &&
+        !c.sql.includes('commodity_types'),
     )
     // com-015 is the 15th commodity insert
     const com015Insert = comInserts[14]
@@ -487,7 +547,7 @@ describe('DEFAULT_EMPLOYEES', () => {
   })
 
   it('all IDs are unique', () => {
-    const ids = DEFAULT_EMPLOYEES.map((e) => e.id)
+    const ids = DEFAULT_EMPLOYEES.map(e => e.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
 })
@@ -498,7 +558,7 @@ describe('DEFAULT_COMMODITY_TYPES', () => {
   })
 
   it('contains bento, single, drink, dumpling typeIds', () => {
-    const typeIds = DEFAULT_COMMODITY_TYPES.map((ct) => ct.typeId)
+    const typeIds = DEFAULT_COMMODITY_TYPES.map(ct => ct.typeId)
     expect(typeIds).toEqual(['bento', 'single', 'drink', 'dumpling'])
   })
 })
@@ -515,20 +575,33 @@ describe('DEFAULT_COMMODITIES', () => {
   })
 
   it('all IDs are unique', () => {
-    const ids = DEFAULT_COMMODITIES.map((c) => c.id)
+    const ids = DEFAULT_COMMODITIES.map(c => c.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
 
   it('com-001 through com-014 have includesSoup=true', () => {
     const soupIds = [
-      'com-001', 'com-002', 'com-003', 'com-004', 'com-005',
-      'com-006', 'com-007', 'com-008', 'com-009', 'com-010',
-      'com-011', 'com-012', 'com-013', 'com-014',
+      'com-001',
+      'com-002',
+      'com-003',
+      'com-004',
+      'com-005',
+      'com-006',
+      'com-007',
+      'com-008',
+      'com-009',
+      'com-010',
+      'com-011',
+      'com-012',
+      'com-013',
+      'com-014',
     ]
     for (const id of soupIds) {
       const com = DEFAULT_COMMODITIES.find(c => c.id === id)
       expect(com, `${id} should exist`).toBeDefined()
-      expect(com!.includesSoup, `${id} should have includesSoup=true`).toBe(true)
+      expect(com!.includesSoup, `${id} should have includesSoup=true`).toBe(
+        true,
+      )
     }
   })
 
@@ -537,7 +610,9 @@ describe('DEFAULT_COMMODITIES', () => {
     for (const id of noSoupIds) {
       const com = DEFAULT_COMMODITIES.find(c => c.id === id)
       expect(com, `${id} should exist`).toBeDefined()
-      expect(com!.includesSoup, `${id} should have includesSoup=false`).toBe(false)
+      expect(com!.includesSoup, `${id} should have includesSoup=false`).toBe(
+        false,
+      )
     }
   })
 })

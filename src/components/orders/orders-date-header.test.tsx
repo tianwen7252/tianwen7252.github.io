@@ -31,7 +31,13 @@ vi.mock('lucide-react', () => ({
 
 // Mock Popover components to render inline (avoid Radix Portal issues)
 vi.mock('@/components/ui/popover', () => ({
-  Popover: ({ children, ...props }: { children: React.ReactNode; open?: boolean }) => (
+  Popover: ({
+    children,
+    ...props
+  }: {
+    children: React.ReactNode
+    open?: boolean
+  }) => (
     <div data-testid="popover-root" {...props}>
       {children}
     </div>
@@ -39,7 +45,10 @@ vi.mock('@/components/ui/popover', () => ({
   PopoverTrigger: ({
     children,
     ...props
-  }: { children: React.ReactNode; asChild?: boolean }) => (
+  }: {
+    children: React.ReactNode
+    asChild?: boolean
+  }) => (
     <div data-testid="popover-trigger" {...props}>
       {children}
     </div>

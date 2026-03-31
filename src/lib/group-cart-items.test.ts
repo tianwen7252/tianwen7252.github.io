@@ -37,8 +37,18 @@ describe('groupCartItems', () => {
 
   it('should group bento items with includesSoup=true under "bento" category', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', includesSoup: true }),
-      makeCartItem({ id: '2', name: '排骨飯', typeId: 'bento', includesSoup: true }),
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        includesSoup: true,
+      }),
+      makeCartItem({
+        id: '2',
+        name: '排骨飯',
+        typeId: 'bento',
+        includesSoup: true,
+      }),
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)
@@ -49,9 +59,24 @@ describe('groupCartItems', () => {
 
   it('should group bento items with includesSoup=false under "single" category', () => {
     const items = [
-      makeCartItem({ id: '1', name: '加蛋', typeId: 'bento', includesSoup: false }),
-      makeCartItem({ id: '2', name: '加菜', typeId: 'bento', includesSoup: false }),
-      makeCartItem({ id: '3', name: '雞胸肉沙拉', typeId: 'bento', includesSoup: false }),
+      makeCartItem({
+        id: '1',
+        name: '加蛋',
+        typeId: 'bento',
+        includesSoup: false,
+      }),
+      makeCartItem({
+        id: '2',
+        name: '加菜',
+        typeId: 'bento',
+        includesSoup: false,
+      }),
+      makeCartItem({
+        id: '3',
+        name: '雞胸肉沙拉',
+        typeId: 'bento',
+        includesSoup: false,
+      }),
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)
@@ -61,9 +86,7 @@ describe('groupCartItems', () => {
   })
 
   it('should group typeId "single" items under "single" category', () => {
-    const items = [
-      makeCartItem({ id: '1', name: '滷蛋', typeId: 'single' }),
-    ]
+    const items = [makeCartItem({ id: '1', name: '滷蛋', typeId: 'single' })]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)
     expect(result[0]!.key).toBe('single')
@@ -119,9 +142,7 @@ describe('groupCartItems', () => {
   })
 
   it('should exclude empty categories', () => {
-    const items = [
-      makeCartItem({ id: '1', name: '紅茶', typeId: 'drink' }),
-    ]
+    const items = [makeCartItem({ id: '1', name: '紅茶', typeId: 'drink' })]
     const result = groupCartItems(items, [])
     // Only drink category should appear
     expect(result).toHaveLength(1)
@@ -130,27 +151,84 @@ describe('groupCartItems', () => {
 
   it('should maintain correct category order: bento -> single -> drink -> dumpling -> other -> discount', () => {
     const items = [
-      makeCartItem({ id: '1', name: '特殊商品', typeId: 'special', includesSoup: false }),   // other
-      makeCartItem({ id: '2', name: '紅茶', typeId: 'drink', includesSoup: false }),         // drink
-      makeCartItem({ id: '3', name: '加蛋', typeId: 'bento', includesSoup: false }),         // single (no soup)
-      makeCartItem({ id: '4', name: '雞腿飯', typeId: 'bento', includesSoup: true }),        // bento (has soup)
-      makeCartItem({ id: '5', name: '水餃(10)', typeId: 'dumpling', includesSoup: false }),   // dumpling
-      makeCartItem({ id: '6', name: '滷蛋', typeId: 'single', includesSoup: false }),        // single
+      makeCartItem({
+        id: '1',
+        name: '特殊商品',
+        typeId: 'special',
+        includesSoup: false,
+      }), // other
+      makeCartItem({
+        id: '2',
+        name: '紅茶',
+        typeId: 'drink',
+        includesSoup: false,
+      }), // drink
+      makeCartItem({
+        id: '3',
+        name: '加蛋',
+        typeId: 'bento',
+        includesSoup: false,
+      }), // single (no soup)
+      makeCartItem({
+        id: '4',
+        name: '雞腿飯',
+        typeId: 'bento',
+        includesSoup: true,
+      }), // bento (has soup)
+      makeCartItem({
+        id: '5',
+        name: '水餃(10)',
+        typeId: 'dumpling',
+        includesSoup: false,
+      }), // dumpling
+      makeCartItem({
+        id: '6',
+        name: '滷蛋',
+        typeId: 'single',
+        includesSoup: false,
+      }), // single
     ]
     const discounts = [
       makeDiscount({ id: 'd1', label: '會員折扣', amount: 50 }),
     ]
     const result = groupCartItems(items, discounts)
     const keys = result.map(g => g.key)
-    expect(keys).toEqual(['bento', 'single', 'drink', 'dumpling', 'other', 'discount'])
+    expect(keys).toEqual([
+      'bento',
+      'single',
+      'drink',
+      'dumpling',
+      'other',
+      'discount',
+    ])
   })
 
   it('should handle mixed bento items correctly (some with includesSoup, some without)', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', includesSoup: true }),       // bento
-      makeCartItem({ id: '2', name: '加蛋', typeId: 'bento', includesSoup: false }),         // single
-      makeCartItem({ id: '3', name: '排骨飯', typeId: 'bento', includesSoup: true }),        // bento
-      makeCartItem({ id: '4', name: '雞胸肉沙拉', typeId: 'bento', includesSoup: false }),  // single
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        includesSoup: true,
+      }), // bento
+      makeCartItem({
+        id: '2',
+        name: '加蛋',
+        typeId: 'bento',
+        includesSoup: false,
+      }), // single
+      makeCartItem({
+        id: '3',
+        name: '排骨飯',
+        typeId: 'bento',
+        includesSoup: true,
+      }), // bento
+      makeCartItem({
+        id: '4',
+        name: '雞胸肉沙拉',
+        typeId: 'bento',
+        includesSoup: false,
+      }), // single
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(2)
@@ -169,8 +247,18 @@ describe('groupCartItems', () => {
 
   it('should combine typeId "single" and includesSoup=false bento items into same "single" group', () => {
     const items = [
-      makeCartItem({ id: '1', name: '加蛋', typeId: 'bento', includesSoup: false }),     // single (bento no soup)
-      makeCartItem({ id: '2', name: '滷蛋', typeId: 'single', includesSoup: false }),    // single (typeId)
+      makeCartItem({
+        id: '1',
+        name: '加蛋',
+        typeId: 'bento',
+        includesSoup: false,
+      }), // single (bento no soup)
+      makeCartItem({
+        id: '2',
+        name: '滷蛋',
+        typeId: 'single',
+        includesSoup: false,
+      }), // single (typeId)
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)
@@ -191,7 +279,12 @@ describe('groupCartItems', () => {
   it('should use includesSoup (not name) to categorize bento items', () => {
     // A bento item with "飯" in name but includesSoup=false goes to "single"
     const items = [
-      makeCartItem({ id: '1', name: '特製便當(大份)飯', typeId: 'bento', includesSoup: false }),
+      makeCartItem({
+        id: '1',
+        name: '特製便當(大份)飯',
+        typeId: 'bento',
+        includesSoup: false,
+      }),
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)
@@ -202,7 +295,12 @@ describe('groupCartItems', () => {
   it('should use includesSoup=true even when name does not contain "飯"', () => {
     // A bento item without "飯" in name but includesSoup=true goes to "bento"
     const items = [
-      makeCartItem({ id: '1', name: '特製套餐', typeId: 'bento', includesSoup: true }),
+      makeCartItem({
+        id: '1',
+        name: '特製套餐',
+        typeId: 'bento',
+        includesSoup: true,
+      }),
     ]
     const result = groupCartItems(items, [])
     expect(result).toHaveLength(1)

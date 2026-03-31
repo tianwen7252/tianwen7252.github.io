@@ -18,7 +18,7 @@ describe('Seed Data', () => {
     })
 
     it('contains bento, single, drink, dumpling typeIds', () => {
-      const typeIds = SEED_COMMODITY_TYPES.map((ct) => ct.typeId)
+      const typeIds = SEED_COMMODITY_TYPES.map(ct => ct.typeId)
       expect(typeIds).toEqual(['bento', 'single', 'drink', 'dumpling'])
     })
 
@@ -34,7 +34,7 @@ describe('Seed Data', () => {
     })
 
     it('has correct labels from V1', () => {
-      const labels = SEED_COMMODITY_TYPES.map((ct) => ct.label)
+      const labels = SEED_COMMODITY_TYPES.map(ct => ct.label)
       expect(labels).toEqual(['餐盒', '單點', '飲料', '水餃'])
     })
   })
@@ -45,10 +45,10 @@ describe('Seed Data', () => {
     })
 
     it('has correct item counts per category', () => {
-      const bento = SEED_COMMODITIES.filter((c) => c.typeId === 'bento')
-      const single = SEED_COMMODITIES.filter((c) => c.typeId === 'single')
-      const drink = SEED_COMMODITIES.filter((c) => c.typeId === 'drink')
-      const dumpling = SEED_COMMODITIES.filter((c) => c.typeId === 'dumpling')
+      const bento = SEED_COMMODITIES.filter(c => c.typeId === 'bento')
+      const single = SEED_COMMODITIES.filter(c => c.typeId === 'single')
+      const drink = SEED_COMMODITIES.filter(c => c.typeId === 'drink')
+      const dumpling = SEED_COMMODITIES.filter(c => c.typeId === 'dumpling')
       expect(bento).toHaveLength(17)
       expect(single).toHaveLength(15)
       expect(drink).toHaveLength(9)
@@ -56,7 +56,7 @@ describe('Seed Data', () => {
     })
 
     it('all items have unique ids', () => {
-      const ids = SEED_COMMODITIES.map((com) => com.id)
+      const ids = SEED_COMMODITIES.map(com => com.id)
       const uniqueIds = new Set(ids)
       expect(uniqueIds.size).toBe(ids.length)
     })
@@ -79,9 +79,9 @@ describe('Seed Data', () => {
     })
 
     it('bento 加蛋 and 加菜 have hideOnMode', () => {
-      const hidden = SEED_COMMODITIES.filter((c) => c.hideOnMode != null)
+      const hidden = SEED_COMMODITIES.filter(c => c.hideOnMode != null)
       expect(hidden).toHaveLength(2)
-      expect(hidden.map((c) => c.name)).toEqual(['加蛋', '加菜'])
+      expect(hidden.map(c => c.name)).toEqual(['加蛋', '加菜'])
     })
   })
 

@@ -29,7 +29,10 @@ const TAB_KEYS: { value: AnalyticsTab; labelKey: string }[] = [
  * Horizontal tab bar for switching between product and staff statistics.
  * Uses RippleButton for each tab per project conventions.
  */
-export function AnalyticsTabBar({ activeTab, onTabChange }: AnalyticsTabBarProps) {
+export function AnalyticsTabBar({
+  activeTab,
+  onTabChange,
+}: AnalyticsTabBarProps) {
   const { t } = useTranslation()
 
   return (

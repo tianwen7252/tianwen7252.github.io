@@ -105,23 +105,36 @@ export interface CategorySalesRow {
 export interface StatisticsRepository {
   getProductKpis(range: DateRange): Promise<ProductKpis>
   getHourlyOrderDistribution(range: DateRange): Promise<HourBucket[]>
-  getTopProducts(range: DateRange, limit: number, orderBy: 'quantity' | 'revenue'): Promise<ProductRanking[]>
+  getTopProducts(
+    range: DateRange,
+    limit: number,
+    orderBy: 'quantity' | 'revenue',
+  ): Promise<ProductRanking[]>
   getBottomBentos(range: DateRange, limit: number): Promise<ProductRanking[]>
   getDailyRevenue(range: DateRange): Promise<DailyRevenue[]>
   getAvgOrderValue(range: DateRange): Promise<DailyRevenue[]>
   /** Returns daily sales quantity for a specific commodity as DailyRevenue (revenue = quantity). */
-  getProductDailyRevenue(range: DateRange, commodityId: string): Promise<DailyRevenue[]>
+  getProductDailyRevenue(
+    range: DateRange,
+    commodityId: string,
+  ): Promise<DailyRevenue[]>
   getStaffKpis(range: DateRange): Promise<StaffKpis>
   getEmployeeHours(range: DateRange): Promise<EmployeeHours[]>
   getDailyHeadcount(range: DateRange): Promise<DailyHeadcount[]>
   getDailyAttendeeList(date: string): Promise<string[]>
   getAmPmRevenue(range: DateRange): Promise<AmPmRevenueRow[]>
   /** Returns per-product sales breakdown for a commodity category. */
-  getCategorySales(range: DateRange, typeId: string): Promise<CategorySalesRow[]>
+  getCategorySales(
+    range: DateRange,
+    typeId: string,
+  ): Promise<CategorySalesRow[]>
   /** Returns order note tag usage frequency distribution. */
   getOrderNotesDistribution(range: DateRange): Promise<OrderNoteCount[]>
   /** Returns delivery order product distribution filtered by memo tag. */
-  getDeliveryProductBreakdown(range: DateRange, memoTag?: string): Promise<DeliveryProductRow[]>
+  getDeliveryProductBreakdown(
+    range: DateRange,
+    memoTag?: string,
+  ): Promise<DeliveryProductRow[]>
 }
 
 // ─── Row mappers ─────────────────────────────────────────────────────────────
@@ -196,7 +209,9 @@ function toOrderNoteCount(row: Record<string, unknown>): OrderNoteCount {
   }
 }
 
-function toDeliveryProductRow(row: Record<string, unknown>): DeliveryProductRow {
+function toDeliveryProductRow(
+  row: Record<string, unknown>,
+): DeliveryProductRow {
   return {
     commodityId: String(row['commodity_id']),
     commodityName: String(row['commodity_name']),
@@ -226,7 +241,9 @@ const LOCAL_HOUR = (col: TimeColumn) =>
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
-export function createStatisticsRepository(db: AsyncDatabase): StatisticsRepository {
+export function createStatisticsRepository(
+  db: AsyncDatabase,
+): StatisticsRepository {
   return {
     // ── Product KPIs ──────────────────────────────────────────────────────────
     async getProductKpis(range) {
@@ -350,29 +367,30 @@ export function createStatisticsRepository(db: AsyncDatabase): StatisticsReposit
 
     // ── Staff KPIs ────────────────────────────────────────────────────────────
     async getStaffKpis(range) {
-      const [empResult, daysResult, hoursResult, leaveResult] = await Promise.all([
-        db.exec<Record<string, unknown>>(
-          `SELECT COUNT(*) AS count FROM employees WHERE status = 'active'`,
-        ),
-        db.exec<Record<string, unknown>>(
-          `SELECT COUNT(*) AS count FROM attendances
+      const [empResult, daysResult, hoursResult, leaveResult] =
+        await Promise.all([
+          db.exec<Record<string, unknown>>(
+            `SELECT COUNT(*) AS count FROM employees WHERE status = 'active'`,
+          ),
+          db.exec<Record<string, unknown>>(
+            `SELECT COUNT(*) AS count FROM attendances
            WHERE clock_in >= ? AND clock_in <= ? AND type = 'regular'`,
-          [range.startDate, range.endDate],
-        ),
-        db.exec<Record<string, unknown>>(
-          `SELECT AVG((clock_out - clock_in) / 3600000.0) AS avg_hours
+            [range.startDate, range.endDate],
+          ),
+          db.exec<Record<string, unknown>>(
+            `SELECT AVG((clock_out - clock_in) / 3600000.0) AS avg_hours
            FROM attendances
            WHERE clock_in >= ? AND clock_in <= ?
              AND clock_out IS NOT NULL AND type = 'regular'`,
-          [range.startDate, range.endDate],
-        ),
-        db.exec<Record<string, unknown>>(
-          `SELECT COUNT(*) AS count FROM attendances
+            [range.startDate, range.endDate],
+          ),
+          db.exec<Record<string, unknown>>(
+            `SELECT COUNT(*) AS count FROM attendances
            WHERE clock_in >= ? AND clock_in <= ?
              AND type IN ('paid_leave','sick_leave','personal_leave')`,
-          [range.startDate, range.endDate],
-        ),
-      ])
+            [range.startDate, range.endDate],
+          ),
+        ])
 
       const empRow = empResult.rows[0]
       const daysRow = daysResult.rows[0]

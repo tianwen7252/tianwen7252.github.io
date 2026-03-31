@@ -8,7 +8,10 @@ export interface CommodityRepository {
   findById(id: string): Promise<Commodity | undefined>
   findOnMarket(): Promise<Commodity[]>
   create(data: CreateCommodity): Promise<Commodity>
-  update(id: string, data: Partial<CreateCommodity>): Promise<Commodity | undefined>
+  update(
+    id: string,
+    data: Partial<CreateCommodity>,
+  ): Promise<Commodity | undefined>
   remove(id: string): Promise<boolean>
 }
 
@@ -90,7 +93,8 @@ export function createCommodityRepository(
         ],
       )
       const created = await this.findById(id)
-      if (!created) throw new Error(`Failed to retrieve created commodity with id: ${id}`)
+      if (!created)
+        throw new Error(`Failed to retrieve created commodity with id: ${id}`)
       return created
     },
 

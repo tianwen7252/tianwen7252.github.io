@@ -5,7 +5,12 @@
  */
 
 import dayjs from 'dayjs'
-import type { Employee, Attendance, CommodityType, Commodity } from '@/lib/schemas'
+import type {
+  Employee,
+  Attendance,
+  CommodityType,
+  Commodity,
+} from '@/lib/schemas'
 import type { Database } from '@/lib/database'
 import {
   EMPLOYEE_SEEDS,
@@ -25,7 +30,10 @@ function daysAgo(days: number): number {
 
 // ─── Build Employees ────────────────────────────────────────────────────────
 
-const EMPLOYEE_TIMESTAMPS: Record<string, { createdAt: number; updatedAt: number }> = {
+const EMPLOYEE_TIMESTAMPS: Record<
+  string,
+  { createdAt: number; updatedAt: number }
+> = {
   'emp-001': { createdAt: daysAgo(365), updatedAt: BASE_TS },
   'emp-002': { createdAt: BASE_TS * 10, updatedAt: daysAgo(15) },
   'emp-003': { createdAt: daysAgo(200), updatedAt: daysAgo(5) },
@@ -39,8 +47,11 @@ const EMPLOYEE_TIMESTAMPS: Record<string, { createdAt: number; updatedAt: number
   'emp-011': { createdAt: daysAgo(10), updatedAt: daysAgo(1) },
 }
 
-export const SEED_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map((seed) => {
-  const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? { createdAt: BASE_TS, updatedAt: BASE_TS }
+export const SEED_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(seed => {
+  const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? {
+    createdAt: BASE_TS,
+    updatedAt: BASE_TS,
+  }
   return {
     ...seed,
     createdAt: ts.createdAt,
@@ -58,18 +69,24 @@ export function buildSeedAttendances(): readonly Attendance[] {
   const today = dayjs().format('YYYY-MM-DD')
   const baseTime = dayjs(today)
 
-  return ATTENDANCE_SEEDS.map((seed) => {
+  return ATTENDANCE_SEEDS.map(seed => {
     const result: Attendance = {
       id: seed.id,
       employeeId: seed.employeeId,
       date: today,
-      clockIn: baseTime.hour(seed.clockInHour).minute(seed.clockInMinute).valueOf(),
+      clockIn: baseTime
+        .hour(seed.clockInHour)
+        .minute(seed.clockInMinute)
+        .valueOf(),
       type: seed.type,
     }
     if (seed.clockOutHour != null && seed.clockOutMinute != null) {
       return {
         ...result,
-        clockOut: baseTime.hour(seed.clockOutHour).minute(seed.clockOutMinute).valueOf(),
+        clockOut: baseTime
+          .hour(seed.clockOutHour)
+          .minute(seed.clockOutMinute)
+          .valueOf(),
       }
     }
     return result
@@ -78,29 +95,30 @@ export function buildSeedAttendances(): readonly Attendance[] {
 
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
-export const SEED_COMMODITY_TYPES: readonly CommodityType[] = COMMODITY_TYPE_SEEDS.map(
-  (seed) => ({
+export const SEED_COMMODITY_TYPES: readonly CommodityType[] =
+  COMMODITY_TYPE_SEEDS.map(seed => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
-  }),
-) as readonly CommodityType[]
+  })) as readonly CommodityType[]
 
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
-export const SEED_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map((seed) => ({
-  id: seed.id,
-  typeId: seed.typeId,
-  name: seed.name,
-  image: seed.imageKey,
-  price: seed.price,
-  priority: seed.priority,
-  onMarket: true,
-  includesSoup: seed.includesSoup ?? false,
-  hideOnMode: seed.hideOnMode,
-  createdAt: BASE_TS,
-  updatedAt: BASE_TS,
-})) as readonly Commodity[]
+export const SEED_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
+  seed => ({
+    id: seed.id,
+    typeId: seed.typeId,
+    name: seed.name,
+    image: seed.imageKey,
+    price: seed.price,
+    priority: seed.priority,
+    onMarket: true,
+    includesSoup: seed.includesSoup ?? false,
+    hideOnMode: seed.hideOnMode,
+    createdAt: BASE_TS,
+    updatedAt: BASE_TS,
+  }),
+) as readonly Commodity[]
 
 // ─── Database Seeding ───────────────────────────────────────────────────────
 

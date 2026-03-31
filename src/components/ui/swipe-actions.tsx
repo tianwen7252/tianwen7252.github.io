@@ -163,7 +163,7 @@ export function SwipeActions({
           offsetX >= 0 && !isOpen && 'invisible',
         )}
       >
-        {actions.map((action) => (
+        {actions.map(action => (
           <div
             key={action.key}
             data-testid={`swipe-action-${action.key}`}
@@ -177,7 +177,7 @@ export function SwipeActions({
               backgroundColor: action.color,
             }}
             onClick={() => handleActionClick(action)}
-            onKeyDown={(e) => {
+            onKeyDown={e => {
               if (e.key === 'Enter' || e.key === ' ') {
                 handleActionClick(action)
               }

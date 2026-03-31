@@ -139,7 +139,7 @@ describe('ClockIn', () => {
     expect(cards).toHaveLength(10)
 
     // Click on emp-004 card (no record) — should open modal with clockIn action
-    const emp4Card = cards.find((card) => within(card).queryByText('Grace'))
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     expect(emp4Card).toBeTruthy()
     await user.click(emp4Card!)
 
@@ -206,7 +206,7 @@ describe('ClockIn', () => {
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
       // emp-002 (index 1 in active) is clocked in
-      const emp2Card = cards.find((card) => within(card).queryByText('Mia'))
+      const emp2Card = cards.find(card => within(card).queryByText('Mia'))
       expect(emp2Card?.className).toContain('bg-[#f0f5eb]')
     })
   })
@@ -216,7 +216,7 @@ describe('ClockIn', () => {
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
       // emp-001 is clocked out
-      const emp1Card = cards.find((card) => within(card).queryByText('Alex'))
+      const emp1Card = cards.find(card => within(card).queryByText('Alex'))
       expect(emp1Card?.className).toContain('bg-[#f5f0fa]')
     })
   })
@@ -226,7 +226,7 @@ describe('ClockIn', () => {
     await waitFor(() => {
       const cards = screen.getAllByTestId('employee-card')
       // emp-003 is on vacation
-      const emp3Card = cards.find((card) => within(card).queryByText('David'))
+      const emp3Card = cards.find(card => within(card).queryByText('David'))
       expect(emp3Card?.className).toContain('bg-[#fef2f2]')
     })
   })
@@ -240,7 +240,7 @@ describe('ClockIn', () => {
     expect(cards).toHaveLength(10)
 
     // Click emp-004 card (no record) to open clockIn modal
-    const emp4Card = cards.find((card) => within(card).queryByText('Grace'))
+    const emp4Card = cards.find(card => within(card).queryByText('Grace'))
     await user.click(emp4Card!)
 
     // Confirm the clock-in
@@ -303,9 +303,7 @@ describe('ClockIn', () => {
     expect(allCards).toHaveLength(10)
 
     // Click 申請休假 button for emp-004 (Grace)
-    const graceCard = allCards.find((card) =>
-      within(card).queryByText('Grace'),
-    )!
+    const graceCard = allCards.find(card => within(card).queryByText('Grace'))!
     await user.click(within(graceCard).getByText('休假'))
 
     // Modal should open with vacation title

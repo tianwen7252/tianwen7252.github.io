@@ -73,8 +73,6 @@ describe('ScrollToTop', () => {
     act(() => {
       scrollHandler?.()
     })
-    expect(screen.getByTestId('scroll-to-top').className).toContain(
-      'opacity-0',
-    )
+    expect(screen.getByTestId('scroll-to-top').className).toContain('opacity-0')
   })
 })

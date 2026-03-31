@@ -28,7 +28,7 @@ export function HeaderUserMenu() {
     queryFn: async () => {
       const employees = await getEmployeeRepo().findAll()
       return employees.find(
-        (e) => e.status === 'active' && e.name === googleUser?.name,
+        e => e.status === 'active' && e.name === googleUser?.name,
       )
     },
     enabled: isLoggedIn,

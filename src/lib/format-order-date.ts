@@ -19,7 +19,13 @@ export interface FormatOrderDateResult {
 
 /** Weekday labels in Chinese, indexed by dayjs .day() (0=Sunday, 6=Saturday) */
 const WEEKDAY_LABELS: readonly string[] = [
-  '週日', '週一', '週二', '週三', '週四', '週五', '週六',
+  '週日',
+  '週一',
+  '週二',
+  '週三',
+  '週四',
+  '週五',
+  '週六',
 ] as const
 
 // ─── Main Function ──────────────────────────────────────────────────────────
@@ -31,7 +37,10 @@ const WEEKDAY_LABELS: readonly string[] = [
  * @param today - Reference "today" date (defaults to dayjs() for testability)
  * @returns Formatted date string and relative label
  */
-export function formatOrderDate(date: Dayjs, today?: Dayjs): FormatOrderDateResult {
+export function formatOrderDate(
+  date: Dayjs,
+  today?: Dayjs,
+): FormatOrderDateResult {
   const referenceToday = today ?? dayjs()
 
   const formatted = `${date.year()}/${date.month() + 1}/${date.date()}`

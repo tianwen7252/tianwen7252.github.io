@@ -42,10 +42,16 @@ function renderWithRouter(initialPath = '/settings/system-info') {
     component: SettingsPage,
   })
 
-  const MockSystemInfo = () => <div data-testid="system-info-component">SystemInfo</div>
-  const MockCloudBackup = () => <div data-testid="cloud-backup-component">CloudBackup</div>
+  const MockSystemInfo = () => (
+    <div data-testid="system-info-component">SystemInfo</div>
+  )
+  const MockCloudBackup = () => (
+    <div data-testid="cloud-backup-component">CloudBackup</div>
+  )
   const MockRecords = () => <div data-testid="records-component">Records</div>
-  const MockStaffAdmin = () => <div data-testid="staff-admin-component">StaffAdmin</div>
+  const MockStaffAdmin = () => (
+    <div data-testid="staff-admin-component">StaffAdmin</div>
+  )
 
   const routeTree = rootRoute.addChildren([
     settingsRoute.addChildren([

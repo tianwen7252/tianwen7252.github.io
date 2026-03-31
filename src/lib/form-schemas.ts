@@ -27,7 +27,7 @@ export const recordFormSchema = z
     clockOutTime: z.string().default(''),
   })
   .refine(
-    (data) => {
+    data => {
       // Skip validation for vacation type
       if (data.attendanceType === 'vacation') return true
       // Skip if either time is missing

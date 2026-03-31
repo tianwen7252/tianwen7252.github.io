@@ -11,7 +11,9 @@ describe('formatTimeBuckets', () => {
   it('returns 24 buckets for all hours 0–23', () => {
     const result = formatTimeBuckets([])
     expect(result).toHaveLength(24)
-    expect(result.map(b => b.hour)).toEqual(Array.from({ length: 24 }, (_, i) => i))
+    expect(result.map(b => b.hour)).toEqual(
+      Array.from({ length: 24 }, (_, i) => i),
+    )
   })
 
   it('fills missing hours with count 0', () => {

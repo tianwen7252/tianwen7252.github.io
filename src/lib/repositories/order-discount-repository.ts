@@ -21,7 +21,9 @@ function toOrderDiscount(row: Record<string, unknown>): OrderDiscount {
   }
 }
 
-export function createOrderDiscountRepository(db: AsyncDatabase): OrderDiscountRepository {
+export function createOrderDiscountRepository(
+  db: AsyncDatabase,
+): OrderDiscountRepository {
   return {
     async findByOrderId(orderId: string) {
       const result = await db.exec<Record<string, unknown>>(
@@ -35,8 +37,10 @@ export function createOrderDiscountRepository(db: AsyncDatabase): OrderDiscountR
       if (discounts.length === 0) return []
 
       const orderId = discounts[0]!.orderId
-      if (discounts.some((d) => d.orderId !== orderId)) {
-        throw new Error('createBatch: all discounts must share the same orderId')
+      if (discounts.some(d => d.orderId !== orderId)) {
+        throw new Error(
+          'createBatch: all discounts must share the same orderId',
+        )
       }
 
       const now = Date.now()

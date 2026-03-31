@@ -39,7 +39,7 @@ export function StaffAdmin() {
 
   // Refresh employee list from database
   const refreshEmployees = useCallback(() => {
-    setRefreshKey((k) => k + 1)
+    setRefreshKey(k => k + 1)
   }, [])
 
   // Open add modal
@@ -201,7 +201,9 @@ export function StaffAdmin() {
       {/* Add/Edit Modal */}
       <Modal
         open={isModalOpen}
-        title={editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')}
+        title={
+          editingEmployee ? t('staff.editEmployee') : t('staff.addEmployee')
+        }
         variant={editingEmployee ? 'warm' : 'green'}
         shineColor={editingEmployee ? 'purple' : 'green'}
         onClose={handleClose}
@@ -224,10 +226,7 @@ export function StaffAdmin() {
           </div>
         }
       >
-        <EmployeeForm
-          form={form}
-          isEditing={!!editingEmployee}
-        />
+        <EmployeeForm form={form} isEditing={!!editingEmployee} />
       </Modal>
 
       {/* Delete Confirmation Modal */}

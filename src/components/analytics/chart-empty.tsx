@@ -13,8 +13,12 @@ export function ChartEmpty() {
   return (
     <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 py-10">
       <ChartSpline className="h-12 w-12 text-muted-foreground/40" />
-      <p className="text-base text-muted-foreground">{t('analytics.noChartData')}</p>
-      <p className="text-muted-foreground/60">{t('analytics.noChartDataDesc')}</p>
+      <p className="text-base text-muted-foreground">
+        {t('analytics.noChartData')}
+      </p>
+      <p className="text-muted-foreground/60">
+        {t('analytics.noChartDataDesc')}
+      </p>
     </div>
   )
 }

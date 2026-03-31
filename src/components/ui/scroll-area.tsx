@@ -35,7 +35,8 @@ export const ScrollArea = forwardRef<ScrollAreaHandle, ScrollAreaProps>(
     const [visible, setVisible] = useState(false)
 
     useImperativeHandle(ref, () => ({
-      scrollTo: (options: ScrollToOptions) => scrollRef.current?.scrollTo(options),
+      scrollTo: (options: ScrollToOptions) =>
+        scrollRef.current?.scrollTo(options),
       get el() {
         return scrollRef.current
       },

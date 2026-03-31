@@ -27,7 +27,10 @@ function daysAgo(days: number): number {
 
 // ─── Build Employees ────────────────────────────────────────────────────────
 
-const EMPLOYEE_TIMESTAMPS: Record<string, { createdAt: number; updatedAt: number }> = {
+const EMPLOYEE_TIMESTAMPS: Record<
+  string,
+  { createdAt: number; updatedAt: number }
+> = {
   'emp-001': { createdAt: daysAgo(365), updatedAt: BASE_TS },
   'emp-002': { createdAt: BASE_TS, updatedAt: daysAgo(15) },
   'emp-003': { createdAt: daysAgo(200), updatedAt: daysAgo(5) },
@@ -41,40 +44,46 @@ const EMPLOYEE_TIMESTAMPS: Record<string, { createdAt: number; updatedAt: number
   'emp-011': { createdAt: daysAgo(10), updatedAt: daysAgo(1) },
 }
 
-export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map((seed) => {
-  const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? { createdAt: BASE_TS, updatedAt: BASE_TS }
-  return {
-    ...seed,
-    createdAt: ts.createdAt,
-    updatedAt: ts.updatedAt,
-  }
-}) as readonly Employee[]
+export const DEFAULT_EMPLOYEES: readonly Employee[] = EMPLOYEE_SEEDS.map(
+  seed => {
+    const ts = EMPLOYEE_TIMESTAMPS[seed.id] ?? {
+      createdAt: BASE_TS,
+      updatedAt: BASE_TS,
+    }
+    return {
+      ...seed,
+      createdAt: ts.createdAt,
+      updatedAt: ts.updatedAt,
+    }
+  },
+) as readonly Employee[]
 
 // ─── Build Commodity Types ──────────────────────────────────────────────────
 
-export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] = COMMODITY_TYPE_SEEDS.map(
-  (seed) => ({
+export const DEFAULT_COMMODITY_TYPES: readonly CommodityType[] =
+  COMMODITY_TYPE_SEEDS.map(seed => ({
     ...seed,
     createdAt: BASE_TS,
     updatedAt: BASE_TS,
-  }),
-) as readonly CommodityType[]
+  })) as readonly CommodityType[]
 
 // ─── Build Commodities ──────────────────────────────────────────────────────
 
-export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map((seed) => ({
-  id: seed.id,
-  typeId: seed.typeId,
-  name: seed.name,
-  image: seed.imageKey,
-  price: seed.price,
-  priority: seed.priority,
-  onMarket: true,
-  hideOnMode: seed.hideOnMode,
-  includesSoup: seed.includesSoup ?? false,
-  createdAt: BASE_TS,
-  updatedAt: BASE_TS,
-})) as readonly Commodity[]
+export const DEFAULT_COMMODITIES: readonly Commodity[] = COMMODITY_SEEDS.map(
+  seed => ({
+    id: seed.id,
+    typeId: seed.typeId,
+    name: seed.name,
+    image: seed.imageKey,
+    price: seed.price,
+    priority: seed.priority,
+    onMarket: true,
+    hideOnMode: seed.hideOnMode,
+    includesSoup: seed.includesSoup ?? false,
+    createdAt: BASE_TS,
+    updatedAt: BASE_TS,
+  }),
+) as readonly Commodity[]
 
 // ─── LocalStorage version check ──────────────────────────────────────────────
 
@@ -111,10 +120,10 @@ export function markDefaultDataVersion(): void {
  *   attendances (for default employees) → employees
  */
 export function deleteDefaultData(db: Database): void {
-  const employeeIds = EMPLOYEE_SEEDS.map((s) => s.id)
-  const typeIds = COMMODITY_TYPE_SEEDS.map((s) => s.id)
-  const typeIdValues = COMMODITY_TYPE_SEEDS.map((s) => s.typeId)
-  const commodityIds = COMMODITY_SEEDS.map((s) => s.id)
+  const employeeIds = EMPLOYEE_SEEDS.map(s => s.id)
+  const typeIds = COMMODITY_TYPE_SEEDS.map(s => s.id)
+  const typeIdValues = COMMODITY_TYPE_SEEDS.map(s => s.typeId)
+  const commodityIds = COMMODITY_SEEDS.map(s => s.id)
 
   const placeholders = (ids: readonly string[]) => ids.map(() => '?').join(', ')
 
@@ -197,7 +206,15 @@ export function insertDefaultCommodities(db: Database): void {
     db.exec(
       `INSERT OR IGNORE INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
        VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [ct.id, ct.typeId, ct.type, ct.label, ct.color, ct.createdAt, ct.updatedAt],
+      [
+        ct.id,
+        ct.typeId,
+        ct.type,
+        ct.label,
+        ct.color,
+        ct.createdAt,
+        ct.updatedAt,
+      ],
     )
   }
 

@@ -25,11 +25,7 @@ describe('AnimatedList', () => {
     })
 
     it('renders a single child without crashing', () => {
-      render(
-        <AnimatedList>
-          {[<span key="only">Only</span>]}
-        </AnimatedList>,
-      )
+      render(<AnimatedList>{[<span key="only">Only</span>]}</AnimatedList>)
       expect(screen.getByText('Only')).toBeTruthy()
     })
 
@@ -96,7 +92,9 @@ describe('AnimatedList', () => {
           {[<span key="c">C</span>]}
         </AnimatedList>,
       )
-      expect(container.firstElementChild?.className).toContain('my-custom-class')
+      expect(container.firstElementChild?.className).toContain(
+        'my-custom-class',
+      )
     })
   })
 })

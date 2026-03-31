@@ -359,7 +359,12 @@ describe('CommodityRepository', () => {
       const insertCall = vi.mocked(db.exec).mock.calls[0]
       expect(insertCall![0]).toContain('INSERT INTO commodities')
       expect(insertCall![1]).toEqual(
-        expect.arrayContaining(['bento', '滷肉便當', 'images/commodities/lu-rou.png', 100]),
+        expect.arrayContaining([
+          'bento',
+          '滷肉便當',
+          'images/commodities/lu-rou.png',
+          100,
+        ]),
       )
     })
 
@@ -607,7 +612,10 @@ describe('CommodityRepository', () => {
         })
 
       const repo = createCommodityRepository(db)
-      const result = await repo.update('com-001', { name: '紅燒肉便當', price: 120 })
+      const result = await repo.update('com-001', {
+        name: '紅燒肉便當',
+        price: 120,
+      })
 
       // Verify UPDATE SQL was called
       const updateCall = vi.mocked(db.exec).mock.calls[1]

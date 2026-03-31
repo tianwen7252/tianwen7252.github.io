@@ -43,29 +43,32 @@ export function SwipeToDelete({
     setIsSwiping(true)
   }, [])
 
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isSwiping) return
-    const touch = e.touches[0]
-    if (!touch) return
+  const handleTouchMove = useCallback(
+    (e: React.TouchEvent) => {
+      if (!isSwiping) return
+      const touch = e.touches[0]
+      if (!touch) return
 
-    const deltaX = touch.clientX - startXRef.current
-    const deltaY = touch.clientY - startYRef.current
+      const deltaX = touch.clientX - startXRef.current
+      const deltaY = touch.clientY - startYRef.current
 
-    // Determine swipe direction on first significant movement
-    if (isHorizontalRef.current === null) {
-      if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
-        isHorizontalRef.current = Math.abs(deltaX) > Math.abs(deltaY)
+      // Determine swipe direction on first significant movement
+      if (isHorizontalRef.current === null) {
+        if (Math.abs(deltaX) > 5 || Math.abs(deltaY) > 5) {
+          isHorizontalRef.current = Math.abs(deltaX) > Math.abs(deltaY)
+        }
+        return
       }
-      return
-    }
 
-    // Only handle horizontal swipe
-    if (!isHorizontalRef.current) return
+      // Only handle horizontal swipe
+      if (!isHorizontalRef.current) return
 
-    // Only allow swipe left (negative deltaX), clamp to 0
-    const clampedOffset = Math.min(0, deltaX)
-    setOffsetX(clampedOffset)
-  }, [isSwiping])
+      // Only allow swipe left (negative deltaX), clamp to 0
+      const clampedOffset = Math.min(0, deltaX)
+      setOffsetX(clampedOffset)
+    },
+    [isSwiping],
+  )
 
   const handleTouchEnd = useCallback(() => {
     setIsSwiping(false)
@@ -97,9 +100,7 @@ export function SwipeToDelete({
         )}
         style={{ width: Math.abs(offsetX) }}
       >
-        {Math.abs(offsetX) >= threshold && (
-          <Trash2 className="size-5" />
-        )}
+        {Math.abs(offsetX) >= threshold && <Trash2 className="size-5" />}
       </div>
 
       {/* Foreground layer — swipeable content */}

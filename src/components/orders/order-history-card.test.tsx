@@ -337,7 +337,9 @@ describe('OrderHistoryCard', () => {
     render(<OrderHistoryCard {...defaultProps} />)
     const card = screen.getByTestId('order-history-card')
     // The default order has updatedAt === createdAt, so no date string shown
-    const defaultTime = dayjs(defaultProps.order.createdAt).format('YYYY/MM/DD HH:mm:ss')
+    const defaultTime = dayjs(defaultProps.order.createdAt).format(
+      'YYYY/MM/DD HH:mm:ss',
+    )
     expect(card.textContent).not.toContain(defaultTime)
   })
 

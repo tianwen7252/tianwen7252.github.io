@@ -32,9 +32,7 @@ describe('formatWeekDays', () => {
   })
 
   it('preserves existing revenue for days in input', () => {
-    const input: DailyRevenue[] = [
-      { date: '2026-03-02', revenue: 1500 },
-    ]
+    const input: DailyRevenue[] = [{ date: '2026-03-02', revenue: 1500 }]
     const start = new Date('2026-03-01')
     const end = new Date('2026-03-03')
     const result = formatWeekDays(input, start, end)
@@ -75,9 +73,9 @@ describe('formatWeekDays', () => {
 
   it('ignores input dates outside the range', () => {
     const input: DailyRevenue[] = [
-      { date: '2026-02-28', revenue: 500 },  // before range
-      { date: '2026-03-10', revenue: 800 },  // inside range
-      { date: '2026-03-11', revenue: 200 },  // inside range
+      { date: '2026-02-28', revenue: 500 }, // before range
+      { date: '2026-03-10', revenue: 800 }, // inside range
+      { date: '2026-03-11', revenue: 200 }, // inside range
     ]
     const start = new Date('2026-03-10')
     const end = new Date('2026-03-11')

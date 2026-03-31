@@ -15,7 +15,9 @@ export function formatWeekDays(
   startDate: Date,
   endDate: Date,
 ): DailyRevenue[] {
-  const revenueByDate = new Map<string, number>(data.map(d => [d.date, d.revenue]))
+  const revenueByDate = new Map<string, number>(
+    data.map(d => [d.date, d.revenue]),
+  )
 
   const result: DailyRevenue[] = []
   const current = new Date(startDate)

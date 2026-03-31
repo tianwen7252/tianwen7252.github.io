@@ -37,7 +37,10 @@ interface ChartRow {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function buildChartData(data: DailyHeadcount[], totalEmployees: number): ChartRow[] {
+function buildChartData(
+  data: DailyHeadcount[],
+  totalEmployees: number,
+): ChartRow[] {
   return data.map(d => ({
     date: d.date.slice(5),
     rate: totalEmployees > 0 ? Math.round((d.count / totalEmployees) * 100) : 0,
@@ -46,7 +49,10 @@ function buildChartData(data: DailyHeadcount[], totalEmployees: number): ChartRo
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export function DailyHeadcountChart({ data, totalEmployees }: DailyHeadcountChartProps) {
+export function DailyHeadcountChart({
+  data,
+  totalEmployees,
+}: DailyHeadcountChartProps) {
   const { t } = useTranslation()
   const fontSize = useAppStore().fontSize
 
@@ -65,39 +71,59 @@ export function DailyHeadcountChart({ data, totalEmployees }: DailyHeadcountChar
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.attendanceRateTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.attendanceRateTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.attendanceRateDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {chartData.length === 0 || chartData.every(d => d.rate === 0) ? <ChartEmpty /> : (
-        <ChartContainer config={chartConfig} className="min-h-[280px] w-full">
-          <AreaChart data={chartData} accessibilityLayer>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} tick={{ fontSize }} />
-            <YAxis
-              tick={{ fontSize }}
-              allowDecimals={false}
-              domain={[0, 100]}
-              tickFormatter={(v: number) => `${v}%`}
-              hide
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-            <defs>
-              <linearGradient id="fillRate" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--color-rate)" stopOpacity={0.8} />
-                <stop offset="95%" stopColor="var(--color-rate)" stopOpacity={0.1} />
-              </linearGradient>
-            </defs>
-            <Area
-              type="monotone"
-              dataKey="rate"
-              name={t('analytics.attendanceRate')}
-              stroke="var(--color-rate)"
-              fill="url(#fillRate)"
-              strokeWidth={2}
-            />
-          </AreaChart>
-        </ChartContainer>
+        {chartData.length === 0 || chartData.every(d => d.rate === 0) ? (
+          <ChartEmpty />
+        ) : (
+          <ChartContainer config={chartConfig} className="min-h-[280px] w-full">
+            <AreaChart data={chartData} accessibilityLayer>
+              <CartesianGrid vertical={false} />
+              <XAxis
+                dataKey="date"
+                tickLine={false}
+                axisLine={false}
+                tick={{ fontSize }}
+              />
+              <YAxis
+                tick={{ fontSize }}
+                allowDecimals={false}
+                domain={[0, 100]}
+                tickFormatter={(v: number) => `${v}%`}
+                hide
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <defs>
+                <linearGradient id="fillRate" x1="0" y1="0" x2="0" y2="1">
+                  <stop
+                    offset="5%"
+                    stopColor="var(--color-rate)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--color-rate)"
+                    stopOpacity={0.1}
+                  />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="rate"
+                name={t('analytics.attendanceRate')}
+                stroke="var(--color-rate)"
+                fill="url(#fillRate)"
+                strokeWidth={2}
+              />
+            </AreaChart>
+          </ChartContainer>
         )}
       </CardContent>
     </Card>

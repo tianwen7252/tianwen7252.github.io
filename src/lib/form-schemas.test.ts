@@ -166,8 +166,8 @@ describe('recordFormSchema', () => {
       })
       expect(result.success).toBe(false)
       if (!result.success) {
-        const clockOutError = result.error.issues.find(
-          i => i.path.includes('clockOutTime'),
+        const clockOutError = result.error.issues.find(i =>
+          i.path.includes('clockOutTime'),
         )
         expect(clockOutError?.message).toBe('下班時間必須晚於上班時間')
       }

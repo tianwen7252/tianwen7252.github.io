@@ -49,14 +49,16 @@ describe('StatisticsRepository.getProductKpis()', () => {
 
   it('maps DB row to ProductKpis correctly', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [{
-        total_revenue: 15000,
-        order_count: 25,
-        morning_revenue: 8000,
-        afternoon_revenue: 7000,
-        total_quantity: 80,
-        bento_quantity: 50,
-      }],
+      rows: [
+        {
+          total_revenue: 15000,
+          order_count: 25,
+          morning_revenue: 8000,
+          afternoon_revenue: 7000,
+          total_quantity: 80,
+          bento_quantity: 50,
+        },
+      ],
       changes: 0,
     })
 
@@ -104,7 +106,10 @@ describe('StatisticsRepository.getHourlyOrderDistribution()', () => {
 
   it('fills missing hours with count 0', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [{ hour: 9, count: 15 }, { hour: 14, count: 30 }],
+      rows: [
+        { hour: 9, count: 15 },
+        { hour: 14, count: 30 },
+      ],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
@@ -142,16 +147,36 @@ describe('StatisticsRepository.getTopProducts()', () => {
   it('maps DB rows to ProductRanking correctly', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
       rows: [
-        { commodity_id: 'com-1', name: '招牌便當', quantity: 30, revenue: 4500 },
-        { commodity_id: 'com-2', name: '排骨便當', quantity: 25, revenue: 3750 },
+        {
+          commodity_id: 'com-1',
+          name: '招牌便當',
+          quantity: 30,
+          revenue: 4500,
+        },
+        {
+          commodity_id: 'com-2',
+          name: '排骨便當',
+          quantity: 25,
+          revenue: 3750,
+        },
       ],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
     const result = await repo.getTopProducts(range, 5, 'quantity')
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ comId: 'com-1', name: '招牌便當', quantity: 30, revenue: 4500 })
-    expect(result[1]).toEqual({ comId: 'com-2', name: '排骨便當', quantity: 25, revenue: 3750 })
+    expect(result[0]).toEqual({
+      comId: 'com-1',
+      name: '招牌便當',
+      quantity: 30,
+      revenue: 4500,
+    })
+    expect(result[1]).toEqual({
+      comId: 'com-2',
+      name: '排骨便當',
+      quantity: 25,
+      revenue: 3750,
+    })
   })
 
   it('passes the limit param to db.exec', async () => {
@@ -179,12 +204,19 @@ describe('StatisticsRepository.getBottomBentos()', () => {
 
   it('maps rows correctly', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [{ commodity_id: 'com-5', name: '素食便當', quantity: 1, revenue: 150 }],
+      rows: [
+        { commodity_id: 'com-5', name: '素食便當', quantity: 1, revenue: 150 },
+      ],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
     const result = await repo.getBottomBentos(range, 5)
-    expect(result[0]).toEqual({ comId: 'com-5', name: '素食便當', quantity: 1, revenue: 150 })
+    expect(result[0]).toEqual({
+      comId: 'com-5',
+      name: '素食便當',
+      quantity: 1,
+      revenue: 150,
+    })
   })
 })
 
@@ -236,9 +268,7 @@ describe('StatisticsRepository.getAvgOrderValue()', () => {
 
   it('maps DB rows to DailyRevenue (revenue = avg per day)', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [
-        { date: '2026-03-01', revenue: 140 },
-      ],
+      rows: [{ date: '2026-03-01', revenue: 140 }],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
@@ -304,15 +334,17 @@ describe('StatisticsRepository.getEmployeeHours()', () => {
 
   it('maps DB rows to EmployeeHours correctly', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [{
-        employee_id: 'emp-001',
-        employee_name: 'Alice',
-        regular: 160,
-        paid_leave: 8,
-        sick_leave: 0,
-        personal_leave: 4,
-        absent: 0,
-      }],
+      rows: [
+        {
+          employee_id: 'emp-001',
+          employee_name: 'Alice',
+          regular: 160,
+          paid_leave: 8,
+          sick_leave: 0,
+          personal_leave: 4,
+          absent: 0,
+        },
+      ],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
@@ -377,11 +409,7 @@ describe('StatisticsRepository.getDailyAttendeeList()', () => {
 
   it('returns employee names for the given date', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [
-        { name: 'Alice' },
-        { name: 'Bob' },
-        { name: 'Charlie' },
-      ],
+      rows: [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charlie' }],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
@@ -485,8 +513,16 @@ describe('StatisticsRepository.getAmPmRevenue()', () => {
     const repo = createStatisticsRepository(db)
     const result = await repo.getAmPmRevenue(range)
     expect(result).toHaveLength(2)
-    expect(result[0]).toEqual({ date: '2026-03-01', amRevenue: 5000, pmRevenue: 8000 })
-    expect(result[1]).toEqual({ date: '2026-03-02', amRevenue: 4500, pmRevenue: 7500 })
+    expect(result[0]).toEqual({
+      date: '2026-03-01',
+      amRevenue: 5000,
+      pmRevenue: 8000,
+    })
+    expect(result[1]).toEqual({
+      date: '2026-03-02',
+      amRevenue: 4500,
+      pmRevenue: 7500,
+    })
   })
 
   it('passes startDate and endDate params to db.exec', async () => {
@@ -509,14 +545,16 @@ describe('StatisticsRepository.getAmPmRevenue()', () => {
 
   it('defaults to zero when am_revenue or pm_revenue is null', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [
-        { date: '2026-03-01', am_revenue: null, pm_revenue: null },
-      ],
+      rows: [{ date: '2026-03-01', am_revenue: null, pm_revenue: null }],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
     const result = await repo.getAmPmRevenue(range)
-    expect(result[0]).toEqual({ date: '2026-03-01', amRevenue: 0, pmRevenue: 0 })
+    expect(result[0]).toEqual({
+      date: '2026-03-01',
+      amRevenue: 0,
+      pmRevenue: 0,
+    })
   })
 })
 
@@ -655,9 +693,7 @@ describe('StatisticsRepository.getOrderNotesDistribution()', () => {
 
   it('defaults to zero when count is null', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
-      rows: [
-        { note: '攤位', count: null },
-      ],
+      rows: [{ note: '攤位', count: null }],
       changes: 0,
     })
     const repo = createStatisticsRepository(db)
@@ -684,8 +720,18 @@ describe('StatisticsRepository.getDeliveryProductBreakdown()', () => {
   it('maps DB rows to DeliveryProductRow correctly', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
       rows: [
-        { commodity_id: 'com-1', commodity_name: '招牌便當', quantity: 20, revenue: 3000 },
-        { commodity_id: 'com-2', commodity_name: '排骨便當', quantity: 15, revenue: 2250 },
+        {
+          commodity_id: 'com-1',
+          commodity_name: '招牌便當',
+          quantity: 20,
+          revenue: 3000,
+        },
+        {
+          commodity_id: 'com-2',
+          commodity_name: '排骨便當',
+          quantity: 15,
+          revenue: 2250,
+        },
       ],
       changes: 0,
     })
@@ -734,7 +780,12 @@ describe('StatisticsRepository.getDeliveryProductBreakdown()', () => {
   it('defaults to zero when quantity or revenue is null', async () => {
     vi.mocked(db.exec).mockResolvedValueOnce({
       rows: [
-        { commodity_id: 'com-1', commodity_name: 'Test', quantity: null, revenue: null },
+        {
+          commodity_id: 'com-1',
+          commodity_name: 'Test',
+          quantity: null,
+          revenue: null,
+        },
       ],
       changes: 0,
     })

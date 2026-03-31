@@ -78,7 +78,7 @@ function buildChartData(
   items: ProductRanking[],
   sortBy: 'quantity' | 'revenue',
 ): ChartRow[] {
-  return items.map((item) => ({
+  return items.map(item => ({
     name: item.name,
     value: sortBy === 'revenue' ? item.revenue : item.quantity,
   }))
@@ -110,7 +110,7 @@ export function Top10ProductsChart({
   const chartData = buildChartData(items, sortBy)
   const minHeight = Math.max(MIN_CHART_HEIGHT, items.length * ROW_HEIGHT)
   const fontSize = useAppStore().fontSize
-  const maxValue = Math.max(...chartData.map((d) => d.value))
+  const maxValue = Math.max(...chartData.map(d => d.value))
 
   const viewButtons: {
     mode: ViewMode
@@ -296,7 +296,10 @@ function PieView({ chartData, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={config}
+      className="min-h-[400px] w-full [&_svg]:overflow-visible"
+    >
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />
@@ -362,7 +365,7 @@ function TableView({ items }: TableViewProps) {
         </tr>
       </thead>
       <tbody>
-        {items.map((item) => (
+        {items.map(item => (
           <tr key={item.name} className="border-b last:border-b-0">
             <td className="py-3 text-base">{item.name}</td>
             <td className="py-3 text-right text-base">{item.quantity}</td>

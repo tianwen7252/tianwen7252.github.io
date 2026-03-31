@@ -38,7 +38,9 @@ describe('ProductCard', () => {
     render(<ProductCard commodity={defaultCommodity} onAdd={vi.fn()} />)
     const img = screen.getByRole('img', { name: '滷肉便當' })
     expect(img).toBeTruthy()
-    expect(img.getAttribute('src')).toBe('images/commodities/braised-pork-belly-rice.png')
+    expect(img.getAttribute('src')).toBe(
+      'images/commodities/braised-pork-belly-rice.png',
+    )
   })
 
   it('should not render an img element when image is undefined', () => {

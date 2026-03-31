@@ -144,7 +144,7 @@ export function Records() {
 
   const handleModalSuccess = useCallback(() => {
     setModalState(INITIAL_MODAL_STATE)
-    setRefreshKey((k) => k + 1)
+    setRefreshKey(k => k + 1)
   }, [setModalState, setRefreshKey])
 
   // "Today" button handler — uses fresh dayjs() to avoid stale closure
@@ -193,15 +193,15 @@ export function Records() {
           type="text"
           placeholder={t('records.searchPlaceholder')}
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
+          onChange={e => setSearchQuery(e.target.value)}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         />
         <select
           value={selectedYear}
-          onChange={(e) => setSelectedYear(Number(e.target.value))}
+          onChange={e => setSelectedYear(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {yearOptions.map((opt) => (
+          {yearOptions.map(opt => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>
@@ -209,10 +209,10 @@ export function Records() {
         </select>
         <select
           value={selectedMonth}
-          onChange={(e) => setSelectedMonth(Number(e.target.value))}
+          onChange={e => setSelectedMonth(Number(e.target.value))}
           className="w-full rounded-lg border border-border bg-card px-3 py-1.5 text-sm"
         >
-          {monthOptions.map((opt) => (
+          {monthOptions.map(opt => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>

@@ -5,8 +5,7 @@ import { cn } from '@/lib/cn'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface RippleButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface RippleButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   /** Ripple fill color (CSS color string). Defaults to semi-transparent white. */
   rippleColor?: string
   /** Ripple animation duration in ms. */

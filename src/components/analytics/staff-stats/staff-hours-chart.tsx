@@ -4,7 +4,15 @@
  */
 
 import { useTranslation } from 'react-i18next'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList, Cell } from 'recharts'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  LabelList,
+  Cell,
+} from 'recharts'
 import {
   ChartContainer,
   ChartTooltip,
@@ -48,7 +56,9 @@ function buildChartData(data: EmployeeHours[]): ChartRow[] {
   return data
     .map(row => ({
       name: row.employeeName,
-      totalHours: Math.round(row.regular + row.paidLeave + row.sickLeave + row.personalLeave),
+      totalHours: Math.round(
+        row.regular + row.paidLeave + row.sickLeave + row.personalLeave,
+      ),
     }))
     .sort((a, b) => b.totalHours - a.totalHours)
 }
@@ -73,56 +83,63 @@ export function StaffHoursChart({ data }: StaffHoursChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="font-normal">{t('analytics.staffHoursTitle')}</CardTitle>
+        <CardTitle className="font-normal">
+          {t('analytics.staffHoursTitle')}
+        </CardTitle>
         <CardDescription>{t('analytics.staffHoursDesc')}</CardDescription>
       </CardHeader>
       <CardContent>
-        {chartData.length === 0 ? <ChartEmpty /> : (
-        <ChartContainer
-          config={chartConfig}
-          className="w-full"
-          style={{ minHeight }}
-        >
-          <BarChart
-            layout="vertical"
-            data={chartData}
-            margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
-            accessibilityLayer
+        {chartData.length === 0 ? (
+          <ChartEmpty />
+        ) : (
+          <ChartContainer
+            config={chartConfig}
+            className="w-full"
+            style={{ minHeight }}
           >
-            <CartesianGrid horizontal={false} />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={80}
-              tickLine={false}
-              tick={{ fontSize }}
-              axisLine={false}
-            />
-            <XAxis
-              type="number"
-              domain={[0, maxValue * 1.13]}
-              tick={{ fontSize }}
-              hide
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="line" />} />
-            <Bar
-              dataKey="totalHours"
-              name={t('analytics.totalHours')}
-              radius={[0, 4, 4, 0]}
+            <BarChart
+              layout="vertical"
+              data={chartData}
+              margin={{ top: 4, right: 8, bottom: 4, left: 0 }}
+              accessibilityLayer
             >
-              {chartData.map((_, i) => (
-                <Cell key={i} fill={getColor(PALETTE, i)} />
-              ))}
-              <LabelList
-                dataKey="totalHours"
-                position="right"
-                offset={8}
-                className="fill-foreground"
-                fontSize="var(--font-size)"
+              <CartesianGrid horizontal={false} />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={80}
+                tickLine={false}
+                tick={{ fontSize }}
+                axisLine={false}
               />
-            </Bar>
-          </BarChart>
-        </ChartContainer>
+              <XAxis
+                type="number"
+                domain={[0, maxValue * 1.13]}
+                tick={{ fontSize }}
+                hide
+              />
+              <ChartTooltip
+                cursor={false}
+                content={<ChartTooltipContent indicator="line" />}
+              />
+              <Bar
+                dataKey="totalHours"
+                name={t('analytics.totalHours')}
+                radius={[0, 4, 4, 0]}
+              >
+                {chartData.map((_, i) => (
+                  <Cell key={i} fill={getColor(PALETTE, i)} />
+                ))}
+                <LabelList
+                  dataKey="totalHours"
+                  position="right"
+                  offset={8}
+                  className="fill-foreground"
+                  fontSize="var(--font-size)"
+                />
+              </Bar>
+            </BarChart>
+          </ChartContainer>
         )}
       </CardContent>
     </Card>

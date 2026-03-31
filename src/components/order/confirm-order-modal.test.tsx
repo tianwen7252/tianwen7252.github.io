@@ -59,17 +59,31 @@ describe('ConfirmOrderModal', () => {
 
   it('should show categorized items grouped by category', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 2, includesSoup: true }),
-      makeCartItem({ id: '2', name: '紅茶', typeId: 'drink', price: 30, quantity: 1 }),
-      makeCartItem({ id: '3', name: '加蛋', typeId: 'bento', price: 15, quantity: 1, includesSoup: false }),
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        price: 100,
+        quantity: 2,
+        includesSoup: true,
+      }),
+      makeCartItem({
+        id: '2',
+        name: '紅茶',
+        typeId: 'drink',
+        price: 30,
+        quantity: 1,
+      }),
+      makeCartItem({
+        id: '3',
+        name: '加蛋',
+        typeId: 'bento',
+        price: 15,
+        quantity: 1,
+        includesSoup: false,
+      }),
     ]
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        items={items}
-        total={245}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} items={items} total={245} />)
     // Category headers should be visible
     expect(screen.getByText('餐盒')).toBeTruthy()
     expect(screen.getByText('單點')).toBeTruthy()
@@ -78,15 +92,15 @@ describe('ConfirmOrderModal', () => {
 
   it('should display item name, quantity, and total price per item', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 2 }),
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        price: 100,
+        quantity: 2,
+      }),
     ]
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        items={items}
-        total={200}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} items={items} total={200} />)
     expect(screen.getByText('雞腿飯')).toBeTruthy()
     expect(screen.getByText('x2')).toBeTruthy()
     // $200 appears in item price span
@@ -98,11 +112,7 @@ describe('ConfirmOrderModal', () => {
       makeDiscount({ id: 'd1', label: '會員折扣', amount: 50 }),
     ]
     render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        discounts={discounts}
-        total={0}
-      />,
+      <ConfirmOrderModal {...defaultProps} discounts={discounts} total={0} />,
     )
     expect(screen.getByText('優惠')).toBeTruthy()
     expect(screen.getByText('會員折扣')).toBeTruthy()
@@ -112,12 +122,7 @@ describe('ConfirmOrderModal', () => {
   it('should render cancel button that calls onClose', async () => {
     const onClose = vi.fn()
     const user = userEvent.setup()
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        onClose={onClose}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} onClose={onClose} />)
     const cancelButton = screen.getByRole('button', { name: /取消/i })
     await user.click(cancelButton)
     expect(onClose).toHaveBeenCalledOnce()
@@ -126,39 +131,29 @@ describe('ConfirmOrderModal', () => {
   it('should render confirm button that calls onConfirm', async () => {
     const onConfirm = vi.fn()
     const user = userEvent.setup()
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        onConfirm={onConfirm}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} onConfirm={onConfirm} />)
     const confirmButton = screen.getByRole('button', { name: /確認送出/i })
     await user.click(confirmButton)
     expect(onConfirm).toHaveBeenCalledOnce()
   })
 
   it('should disable confirm button when isSubmitting is true', () => {
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        isSubmitting={true}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} isSubmitting={true} />)
     const confirmButton = screen.getByRole('button', { name: /確認送出/i })
     expect(confirmButton.hasAttribute('disabled')).toBe(true)
   })
 
   it('should not show categories with no items', () => {
     const items = [
-      makeCartItem({ id: '1', name: '紅茶', typeId: 'drink', price: 30, quantity: 1 }),
+      makeCartItem({
+        id: '1',
+        name: '紅茶',
+        typeId: 'drink',
+        price: 30,
+        quantity: 1,
+      }),
     ]
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        items={items}
-        total={30}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} items={items} total={30} />)
     // Only drink should appear
     expect(screen.getByText('飲料')).toBeTruthy()
     expect(screen.queryByText('餐盒')).toBeNull()
@@ -170,15 +165,15 @@ describe('ConfirmOrderModal', () => {
 
   it('should show total amount', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 3 }),
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        price: 100,
+        quantity: 3,
+      }),
     ]
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        items={items}
-        total={300}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} items={items} total={300} />)
     // The total should be displayed in the confirm-total-row (sr-only + visible = 2 elements)
     const totalRow = screen.getAllByTestId('confirm-total-row')[0]!
     expect(totalRow.textContent).toContain('$300')
@@ -186,27 +181,28 @@ describe('ConfirmOrderModal', () => {
 
   it('should show multiple items in a single category', () => {
     const items = [
-      makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 1 }),
-      makeCartItem({ id: '2', name: '排骨飯', typeId: 'bento', price: 110, quantity: 1 }),
+      makeCartItem({
+        id: '1',
+        name: '雞腿飯',
+        typeId: 'bento',
+        price: 100,
+        quantity: 1,
+      }),
+      makeCartItem({
+        id: '2',
+        name: '排骨飯',
+        typeId: 'bento',
+        price: 110,
+        quantity: 1,
+      }),
     ]
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        items={items}
-        total={210}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} items={items} total={210} />)
     expect(screen.getByText('雞腿飯')).toBeTruthy()
     expect(screen.getByText('排骨飯')).toBeTruthy()
   })
 
   it('should not disable cancel button when isSubmitting', () => {
-    render(
-      <ConfirmOrderModal
-        {...defaultProps}
-        isSubmitting={true}
-      />,
-    )
+    render(<ConfirmOrderModal {...defaultProps} isSubmitting={true} />)
     const cancelButton = screen.getByRole('button', { name: /取消/i })
     expect(cancelButton.hasAttribute('disabled')).toBe(false)
   })
@@ -218,7 +214,15 @@ describe('ConfirmOrderModal', () => {
       render(
         <ConfirmOrderModal
           {...defaultProps}
-          items={[makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 1 })]}
+          items={[
+            makeCartItem({
+              id: '1',
+              name: '雞腿飯',
+              typeId: 'bento',
+              price: 100,
+              quantity: 1,
+            }),
+          ]}
           total={140}
         />,
       )
@@ -229,12 +233,7 @@ describe('ConfirmOrderModal', () => {
     })
 
     it('should not render change prediction badges when total=0', () => {
-      render(
-        <ConfirmOrderModal
-          {...defaultProps}
-          total={0}
-        />,
-      )
+      render(<ConfirmOrderModal {...defaultProps} total={0} />)
       expect(screen.queryByTestId('change-badge')).toBeNull()
     })
 
@@ -242,7 +241,15 @@ describe('ConfirmOrderModal', () => {
       render(
         <ConfirmOrderModal
           {...defaultProps}
-          items={[makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 3 })]}
+          items={[
+            makeCartItem({
+              id: '1',
+              name: '雞腿飯',
+              typeId: 'bento',
+              price: 100,
+              quantity: 3,
+            }),
+          ]}
           total={300}
         />,
       )
@@ -260,7 +267,15 @@ describe('ConfirmOrderModal', () => {
       render(
         <ConfirmOrderModal
           {...defaultProps}
-          items={[makeCartItem({ id: '1', name: '雞腿飯', typeId: 'bento', price: 100, quantity: 3 })]}
+          items={[
+            makeCartItem({
+              id: '1',
+              name: '雞腿飯',
+              typeId: 'bento',
+              price: 100,
+              quantity: 3,
+            }),
+          ]}
           total={300}
           bentoCount={3}
           soupCount={3}
@@ -275,7 +290,15 @@ describe('ConfirmOrderModal', () => {
       render(
         <ConfirmOrderModal
           {...defaultProps}
-          items={[makeCartItem({ id: '1', name: '紅茶', typeId: 'drink', price: 30, quantity: 1 })]}
+          items={[
+            makeCartItem({
+              id: '1',
+              name: '紅茶',
+              typeId: 'drink',
+              price: 30,
+              quantity: 1,
+            }),
+          ]}
           total={30}
           bentoCount={0}
           soupCount={0}
@@ -304,12 +327,7 @@ describe('ConfirmOrderModal', () => {
     it('should pass selected tags to onConfirm when confirm button is clicked', async () => {
       const onConfirm = vi.fn()
       const user = userEvent.setup()
-      render(
-        <ConfirmOrderModal
-          {...defaultProps}
-          onConfirm={onConfirm}
-        />,
-      )
+      render(<ConfirmOrderModal {...defaultProps} onConfirm={onConfirm} />)
 
       // Select a tag
       await user.click(screen.getByText('外送'))

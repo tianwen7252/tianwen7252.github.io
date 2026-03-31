@@ -7,7 +7,12 @@
 import { nanoid } from 'nanoid'
 import dayjs from 'dayjs'
 import { DEFAULT_EMPLOYEES } from '@/lib/default-data'
-import type { Employee, CreateEmployee, Attendance, CreateAttendance } from '@/lib/schemas'
+import type {
+  Employee,
+  CreateEmployee,
+  Attendance,
+  CreateAttendance,
+} from '@/lib/schemas'
 import type {
   StatisticsRepository,
   ProductKpis,
@@ -106,7 +111,10 @@ export const mockEmployeeRepo = {
     return newEmployee
   },
 
-  async update(id: string, data: Partial<CreateEmployee>): Promise<Employee | undefined> {
+  async update(
+    id: string,
+    data: Partial<CreateEmployee>,
+  ): Promise<Employee | undefined> {
     const index = employees.findIndex(e => e.id === id)
     if (index === -1) return undefined
 
@@ -145,7 +153,10 @@ export const mockAttendanceRepo = {
     return attendances.filter(a => a.date === date)
   },
 
-  async findByEmployeeAndDate(employeeId: string, date: string): Promise<Attendance | undefined> {
+  async findByEmployeeAndDate(
+    employeeId: string,
+    date: string,
+  ): Promise<Attendance | undefined> {
     return attendances.find(a => a.employeeId === employeeId && a.date === date)
   },
 
@@ -209,7 +220,11 @@ export const mockStatisticsRepo: StatisticsRepository = {
   async getHourlyOrderDistribution(_range: DateRange) {
     return []
   },
-  async getTopProducts(_range: DateRange, _limit: number, _orderBy: 'quantity' | 'revenue') {
+  async getTopProducts(
+    _range: DateRange,
+    _limit: number,
+    _orderBy: 'quantity' | 'revenue',
+  ) {
     return []
   },
   async getBottomBentos(_range: DateRange, _limit: number) {

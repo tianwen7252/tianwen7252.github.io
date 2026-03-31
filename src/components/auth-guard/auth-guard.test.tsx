@@ -62,7 +62,11 @@ describe('AuthGuard', () => {
 
   describe('logged in but not admin', () => {
     beforeEach(() => {
-      mockGoogleUser = { sub: '999', name: 'Regular', email: 'regular@test.com' }
+      mockGoogleUser = {
+        sub: '999',
+        name: 'Regular',
+        email: 'regular@test.com',
+      }
       mockIsAdmin = false
     })
 
@@ -79,7 +83,11 @@ describe('AuthGuard', () => {
 
   describe('logged in as admin', () => {
     beforeEach(() => {
-      mockGoogleUser = { sub: '112232479673923380065', name: 'Admin', email: 'admin@test.com' }
+      mockGoogleUser = {
+        sub: '112232479673923380065',
+        name: 'Admin',
+        email: 'admin@test.com',
+      }
       mockIsAdmin = true
     })
 

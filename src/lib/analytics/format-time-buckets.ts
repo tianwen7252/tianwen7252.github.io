@@ -10,7 +10,9 @@ import type { HourBucket } from '@/lib/repositories/statistics-repository'
  * Does not mutate the input.
  */
 export function formatTimeBuckets(buckets: HourBucket[]): HourBucket[] {
-  const countByHour = new Map<number, number>(buckets.map(b => [b.hour, b.count]))
+  const countByHour = new Map<number, number>(
+    buckets.map(b => [b.hour, b.count]),
+  )
   return Array.from({ length: 24 }, (_, hour) => ({
     hour,
     count: countByHour.get(hour) ?? 0,

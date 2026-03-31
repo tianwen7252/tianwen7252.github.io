@@ -20,7 +20,11 @@ interface NeonGradientCardProps {
 /**
  * Wraps children in a card with an animated neon gradient border glow.
  */
-export function NeonGradientCard({ children, className, innerClassName }: NeonGradientCardProps) {
+export function NeonGradientCard({
+  children,
+  className,
+  innerClassName,
+}: NeonGradientCardProps) {
   return (
     <div
       data-testid="neon-gradient-card"
@@ -32,7 +36,12 @@ export function NeonGradientCard({ children, className, innerClassName }: NeonGr
       )}
     >
       {/* Inner card surface */}
-      <div className={cn('relative rounded-[10px] bg-card p-4 h-full', innerClassName)}>
+      <div
+        className={cn(
+          'relative rounded-[10px] bg-card p-4 h-full',
+          innerClassName,
+        )}
+      >
         {children}
       </div>
     </div>

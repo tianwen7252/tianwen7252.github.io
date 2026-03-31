@@ -3,13 +3,15 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import { SwipeActions } from './swipe-actions'
 
 /** Helper to create a minimal SwipeAction for testing */
-function createAction(overrides: Partial<{
-  readonly key: string
-  readonly icon: React.ReactNode
-  readonly color: string
-  readonly label: string
-  readonly onClick: () => void
-}> = {}) {
+function createAction(
+  overrides: Partial<{
+    readonly key: string
+    readonly icon: React.ReactNode
+    readonly color: string
+    readonly label: string
+    readonly onClick: () => void
+  }> = {},
+) {
   return {
     key: overrides.key ?? 'edit',
     icon: overrides.icon ?? <span>icon</span>,
@@ -78,8 +80,12 @@ describe('SwipeActions', () => {
         <span>Row</span>
       </SwipeActions>,
     )
-    expect(screen.getByTestId('swipe-action-edit').getAttribute('aria-label')).toBe('Edit item')
-    expect(screen.getByTestId('swipe-action-delete').getAttribute('aria-label')).toBe('Delete item')
+    expect(
+      screen.getByTestId('swipe-action-edit').getAttribute('aria-label'),
+    ).toBe('Edit item')
+    expect(
+      screen.getByTestId('swipe-action-delete').getAttribute('aria-label'),
+    ).toBe('Delete item')
   })
 
   it('should initially have foreground at translateX(0px)', () => {
@@ -260,7 +266,10 @@ describe('SwipeActions', () => {
 
   it('should render action icons inside action buttons', () => {
     const actions = [
-      createAction({ key: 'edit', icon: <span data-testid="edit-icon">E</span> }),
+      createAction({
+        key: 'edit',
+        icon: <span data-testid="edit-icon">E</span>,
+      }),
     ]
     render(
       <SwipeActions actions={actions}>

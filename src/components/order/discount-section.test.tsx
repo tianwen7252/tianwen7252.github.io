@@ -22,9 +22,7 @@ describe('DiscountSection', () => {
 
   it('should render a discount tag with label and negative amount', () => {
     const discounts = [makeDiscount({ label: '會員折扣', amount: 50 })]
-    render(
-      <DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />,
-    )
+    render(<DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />)
     expect(screen.getByText(/會員折扣/)).toBeTruthy()
     expect(screen.getByText(/-\$50/)).toBeTruthy()
   })
@@ -34,9 +32,7 @@ describe('DiscountSection', () => {
       makeDiscount({ id: 'disc-1', label: '會員折扣', amount: 50 }),
       makeDiscount({ id: 'disc-2', label: '早鳥優惠', amount: 30 }),
     ]
-    render(
-      <DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />,
-    )
+    render(<DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />)
     expect(screen.getByText(/會員折扣/)).toBeTruthy()
     expect(screen.getByText(/早鳥優惠/)).toBeTruthy()
   })
@@ -62,7 +58,9 @@ describe('DiscountSection', () => {
     )
     expect(screen.getByText('折扣優惠 (可多選)')).toBeTruthy()
     // No discount tags should be rendered
-    expect(container.querySelectorAll('[data-testid="discount-tag"]').length).toBe(0)
+    expect(
+      container.querySelectorAll('[data-testid="discount-tag"]').length,
+    ).toBe(0)
   })
 
   it('should call correct handler when removing one of multiple discounts', async () => {
@@ -86,9 +84,7 @@ describe('DiscountSection', () => {
 
   it('should render large discount amounts', () => {
     const discounts = [makeDiscount({ amount: 1500 })]
-    render(
-      <DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />,
-    )
+    render(<DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />)
     expect(screen.getByText(/-\$1,500/)).toBeTruthy()
   })
 
@@ -106,9 +102,7 @@ describe('DiscountSection', () => {
 
   it('should handle special characters in discount label', () => {
     const discounts = [makeDiscount({ label: '特殊折扣 (VIP)' })]
-    render(
-      <DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />,
-    )
+    render(<DiscountSection discounts={discounts} onRemoveDiscount={vi.fn()} />)
     expect(screen.getByText(/特殊折扣 \(VIP\)/)).toBeTruthy()
   })
 })

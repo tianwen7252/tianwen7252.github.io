@@ -60,23 +60,20 @@ export function createCommodityTypeRepository(
       await db.exec(
         `INSERT INTO commodity_types (id, type_id, type, label, color, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          id,
-          data.typeId,
-          data.type,
-          data.label,
-          data.color,
-          now,
-          now,
-        ],
+        [id, data.typeId, data.type, data.label, data.color, now, now],
       )
       const created = await this.findById(id)
-      if (!created) throw new Error(`Failed to retrieve created commodity type with id: ${id}`)
+      if (!created)
+        throw new Error(
+          `Failed to retrieve created commodity type with id: ${id}`,
+        )
       return created
     },
 
     async remove(id: string) {
-      const result = await db.exec('DELETE FROM commodity_types WHERE id = ?', [id])
+      const result = await db.exec('DELETE FROM commodity_types WHERE id = ?', [
+        id,
+      ])
       return result.changes > 0
     },
   }

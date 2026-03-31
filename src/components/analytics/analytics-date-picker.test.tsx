@@ -17,11 +17,13 @@ const END_DATE = new Date('2026-03-31T23:59:59.999')
 
 // ─── Default props ────────────────────────────────────────────────────────────
 
-function makeProps(overrides: Partial<{
-  startDate: Date
-  endDate: Date
-  onChange: (start: Date, end: Date) => void
-}> = {}) {
+function makeProps(
+  overrides: Partial<{
+    startDate: Date
+    endDate: Date
+    onChange: (start: Date, end: Date) => void
+  }> = {},
+) {
   return {
     startDate: START_DATE,
     endDate: END_DATE,
@@ -73,7 +75,9 @@ describe('AnalyticsDatePicker', () => {
     expect(onChange).toHaveBeenCalledTimes(1)
     const [start, end] = onChange.mock.calls[0] as [Date, Date]
     const thisMonth = dayjs().format('YYYY-MM')
-    expect(dayjs(start).format('YYYY-MM-DD')).toBe(dayjs().startOf('month').format('YYYY-MM-DD'))
+    expect(dayjs(start).format('YYYY-MM-DD')).toBe(
+      dayjs().startOf('month').format('YYYY-MM-DD'),
+    )
     expect(dayjs(end).format('YYYY-MM')).toBe(thisMonth)
   })
 
@@ -89,8 +93,12 @@ describe('AnalyticsDatePicker', () => {
     expect(onChange).toHaveBeenCalledTimes(1)
     const [start, end] = onChange.mock.calls[0] as [Date, Date]
     const lastMonth = dayjs().subtract(1, 'month')
-    expect(dayjs(start).format('YYYY-MM-DD')).toBe(lastMonth.startOf('month').format('YYYY-MM-DD'))
-    expect(dayjs(end).format('YYYY-MM-DD')).toBe(lastMonth.endOf('month').format('YYYY-MM-DD'))
+    expect(dayjs(start).format('YYYY-MM-DD')).toBe(
+      lastMonth.startOf('month').format('YYYY-MM-DD'),
+    )
+    expect(dayjs(end).format('YYYY-MM-DD')).toBe(
+      lastMonth.endOf('month').format('YYYY-MM-DD'),
+    )
   })
 
   // ── All four preset buttons are always visible ─────────────────────────────
@@ -173,7 +181,11 @@ describe('AnalyticsDatePicker', () => {
   it('marks the matching preset button with aria-pressed="true"', () => {
     const start = dayjs().startOf('day').toDate()
     const end = dayjs().endOf('day').toDate()
-    render(<AnalyticsDatePicker {...makeProps({ startDate: start, endDate: end })} />)
+    render(
+      <AnalyticsDatePicker
+        {...makeProps({ startDate: start, endDate: end })}
+      />,
+    )
 
     const todayBtn = screen.getByRole('button', { name: '今日' })
     expect(todayBtn.getAttribute('aria-pressed')).toBe('true')
@@ -182,7 +194,11 @@ describe('AnalyticsDatePicker', () => {
   it('marks non-matching preset buttons with aria-pressed="false"', () => {
     const start = dayjs().startOf('day').toDate()
     const end = dayjs().endOf('day').toDate()
-    render(<AnalyticsDatePicker {...makeProps({ startDate: start, endDate: end })} />)
+    render(
+      <AnalyticsDatePicker
+        {...makeProps({ startDate: start, endDate: end })}
+      />,
+    )
 
     const thisWeekBtn = screen.getByRole('button', { name: '本週' })
     const thisMonthBtn = screen.getByRole('button', { name: '本月' })
@@ -195,7 +211,11 @@ describe('AnalyticsDatePicker', () => {
   it('applies active styling class to the active preset button', () => {
     const start = dayjs().startOf('day').toDate()
     const end = dayjs().endOf('day').toDate()
-    render(<AnalyticsDatePicker {...makeProps({ startDate: start, endDate: end })} />)
+    render(
+      <AnalyticsDatePicker
+        {...makeProps({ startDate: start, endDate: end })}
+      />,
+    )
 
     const todayBtn = screen.getByRole('button', { name: '今日' })
     expect(todayBtn.className).toContain('bg-primary')
@@ -204,7 +224,11 @@ describe('AnalyticsDatePicker', () => {
   it('does not apply active styling to inactive preset buttons', () => {
     const start = dayjs().startOf('day').toDate()
     const end = dayjs().endOf('day').toDate()
-    render(<AnalyticsDatePicker {...makeProps({ startDate: start, endDate: end })} />)
+    render(
+      <AnalyticsDatePicker
+        {...makeProps({ startDate: start, endDate: end })}
+      />,
+    )
 
     const thisWeekBtn = screen.getByRole('button', { name: '本週' })
     expect(thisWeekBtn.className).not.toContain('bg-primary')
@@ -213,7 +237,11 @@ describe('AnalyticsDatePicker', () => {
   it('shows no active preset when date range does not match any preset', () => {
     const start = new Date('2020-01-05T00:00:00.000')
     const end = new Date('2020-01-06T23:59:59.999')
-    render(<AnalyticsDatePicker {...makeProps({ startDate: start, endDate: end })} />)
+    render(
+      <AnalyticsDatePicker
+        {...makeProps({ startDate: start, endDate: end })}
+      />,
+    )
 
     for (const name of ['今日', '本週', '本月', '上月']) {
       const btn = screen.getByRole('button', { name })

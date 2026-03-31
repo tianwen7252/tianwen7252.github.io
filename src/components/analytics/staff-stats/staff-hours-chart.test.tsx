@@ -97,7 +97,9 @@ describe('StaffHoursChart', () => {
 
   describe('large data', () => {
     it('renders without crashing with 20 employees', () => {
-      const { container } = render(<StaffHoursChart data={buildEmployeeHours(20)} />)
+      const { container } = render(
+        <StaffHoursChart data={buildEmployeeHours(20)} />,
+      )
       expect(container).toBeTruthy()
     })
   })

@@ -119,7 +119,7 @@ export function OrdersPage() {
   function handlePageClick(e: React.MouseEvent) {
     const target = e.target as HTMLElement
     if (!target.closest('[data-testid="swipe-actions"]')) {
-      setSwipeResetKey((k) => k + 1)
+      setSwipeResetKey(k => k + 1)
     }
   }
 
@@ -176,7 +176,7 @@ export function OrdersPage() {
               {/* Order cards grid — 3 per row */}
               {orders.length > 0 && (
                 <div className="mt-4 grid grid-cols-3 gap-3">
-                  {orders.map((order) => (
+                  {orders.map(order => (
                     <OrderHistoryCard
                       key={order.id}
                       order={order}

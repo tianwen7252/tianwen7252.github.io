@@ -69,17 +69,26 @@ describe('DailyHeadcountChart', () => {
     })
 
     it('does not crash with empty data', () => {
-      const { container } = render(<DailyHeadcountChart data={[]} totalEmployees={10} />)
+      const { container } = render(
+        <DailyHeadcountChart data={[]} totalEmployees={10} />,
+      )
       expect(container).toBeTruthy()
     })
 
     it('renders with single data point', () => {
-      render(<DailyHeadcountChart data={[{ date: '2026-03-01', count: 5 }]} totalEmployees={10} />)
+      render(
+        <DailyHeadcountChart
+          data={[{ date: '2026-03-01', count: 5 }]}
+          totalEmployees={10}
+        />,
+      )
       expect(screen.getByTestId('area-chart')).toBeTruthy()
     })
 
     it('handles zero totalEmployees without errors', () => {
-      const { container } = render(<DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={0} />)
+      const { container } = render(
+        <DailyHeadcountChart data={SAMPLE_DATA} totalEmployees={0} />,
+      )
       expect(container).toBeTruthy()
     })
   })

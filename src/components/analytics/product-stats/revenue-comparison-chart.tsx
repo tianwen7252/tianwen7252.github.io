@@ -214,7 +214,10 @@ interface AreaViewProps {
 
 function AreaView({ chartData, chartConfig, fontSize, t }: AreaViewProps) {
   return (
-    <ChartContainer config={chartConfig} className="min-h-[250px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={chartConfig}
+      className="min-h-[250px] w-full [&_svg]:overflow-visible"
+    >
       <AreaChart data={chartData} accessibilityLayer>
         <CartesianGrid vertical={false} />
         <XAxis
@@ -317,7 +320,10 @@ function PieView({ pieTotals, palette, fontSize }: PieViewProps) {
   )
 
   return (
-    <ChartContainer config={config} className="min-h-[400px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={config}
+      className="min-h-[400px] w-full [&_svg]:overflow-visible"
+    >
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />

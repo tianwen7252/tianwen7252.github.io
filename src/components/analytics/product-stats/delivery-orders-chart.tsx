@@ -156,7 +156,10 @@ function PieView({ data, chartConfig, fontSize }: PieViewProps) {
   }))
 
   return (
-    <ChartContainer config={chartConfig} className="min-h-[400px] w-full [&_svg]:overflow-visible">
+    <ChartContainer
+      config={chartConfig}
+      className="min-h-[400px] w-full [&_svg]:overflow-visible"
+    >
       <PieChart>
         <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent className="text-base" />} />

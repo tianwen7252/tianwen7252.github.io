@@ -7,7 +7,8 @@ import { DeleteOrderModal } from './delete-order-modal'
 vi.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, opts?: Record<string, unknown>) => {
-      if (key === 'orders.confirmDeleteTitle') return `確認刪除訂單 #${opts?.number}`
+      if (key === 'orders.confirmDeleteTitle')
+        return `確認刪除訂單 #${opts?.number}`
       if (key === 'orders.confirmDeleteBtn') return '確認刪除'
       return key
     },

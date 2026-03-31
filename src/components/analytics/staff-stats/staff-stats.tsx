@@ -32,7 +32,11 @@ interface StaffStatsProps {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Zero-fills sparse DailyHeadcount[] so the line chart shows a continuous series. */
-function fillHeadcount(data: DailyHeadcount[], start: Date, end: Date): DailyHeadcount[] {
+function fillHeadcount(
+  data: DailyHeadcount[],
+  start: Date,
+  end: Date,
+): DailyHeadcount[] {
   const byDate = new Map<string, number>(data.map(d => [d.date, d.count]))
   const result: DailyHeadcount[] = []
   const cur = new Date(start)
@@ -56,7 +60,11 @@ function fillHeadcount(data: DailyHeadcount[], start: Date, end: Date): DailyHea
  * Loads and displays all staff analytics for the selected date range.
  * Uses the cancelled-flag pattern to prevent state updates after unmount.
  */
-export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsProps) {
+export function StaffStats({
+  startDate,
+  endDate,
+  statisticsRepo,
+}: StaffStatsProps) {
   const { t } = useTranslation()
   const [kpis, setKpis] = useState<StaffKpis | null>(null)
   const [employeeHours, setEmployeeHours] = useState<EmployeeHours[]>([])
@@ -92,7 +100,9 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
       })
       .catch((err: unknown) => {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : t('analytics.loadError'))
+          setError(
+            err instanceof Error ? err.message : t('analytics.loadError'),
+          )
           setLoading(false)
         }
       })
@@ -105,19 +115,25 @@ export function StaffStats({ startDate, endDate, statisticsRepo }: StaffStatsPro
   const filledHeadcount = fillHeadcount(dailyHeadcount, startDate, endDate)
 
   return (
-    <section aria-label={t('analytics.staffStats')} className="flex flex-col gap-6">
-      {error !== null && (
-        <p className="text-destructive text-base">{error}</p>
-      )}
+    <section
+      aria-label={t('analytics.staffStats')}
+      className="flex flex-col gap-6"
+    >
+      {error !== null && <p className="text-destructive text-base">{error}</p>}
 
       {loading && error === null && <StaffStatsSkeleton />}
 
       {!loading && kpis !== null && <StaffKpiGrid kpis={kpis} />}
 
-      {!loading && employeeHours.length > 0 && <StaffHoursChart data={employeeHours} />}
+      {!loading && employeeHours.length > 0 && (
+        <StaffHoursChart data={employeeHours} />
+      )}
 
       {!loading && kpis !== null && (
-        <DailyHeadcountChart data={filledHeadcount} totalEmployees={kpis.activeEmployeeCount} />
+        <DailyHeadcountChart
+          data={filledHeadcount}
+          totalEmployees={kpis.activeEmployeeCount}
+        />
       )}
 
       {!loading && kpis !== null && (

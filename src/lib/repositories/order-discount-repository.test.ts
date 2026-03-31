@@ -139,9 +139,9 @@ describe('OrderDiscountRepository', () => {
         { orderId: 'order-001', label: '生日優惠', amount: 50 },
       ])
 
-      const insertCalls = vi.mocked(db.exec).mock.calls.filter(
-        (call) => String(call[0]).includes('INSERT'),
-      )
+      const insertCalls = vi
+        .mocked(db.exec)
+        .mock.calls.filter(call => String(call[0]).includes('INSERT'))
       expect(insertCalls).toHaveLength(2)
     })
 
@@ -178,7 +178,9 @@ describe('OrderDiscountRepository', () => {
           { orderId: 'order-001', label: '員工折扣', amount: 20 },
           { orderId: 'order-002', label: '生日優惠', amount: 50 },
         ]),
-      ).rejects.toThrow('createBatch: all discounts must share the same orderId')
+      ).rejects.toThrow(
+        'createBatch: all discounts must share the same orderId',
+      )
     })
 
     it('inserts correct SQL into order_discounts table', async () => {

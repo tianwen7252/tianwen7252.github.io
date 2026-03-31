@@ -123,6 +123,8 @@ describe('SwipeToDelete', () => {
         <span>Item</span>
       </SwipeToDelete>,
     )
-    expect(screen.getByTestId('swipe-to-delete').classList.contains('custom-class')).toBe(true)
+    expect(
+      screen.getByTestId('swipe-to-delete').classList.contains('custom-class'),
+    ).toBe(true)
   })
 })

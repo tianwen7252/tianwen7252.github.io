@@ -32,9 +32,7 @@ describe('getChange', () => {
   it('should return 1 result for total=860', () => {
     const result = getChange(860)
     // Only $1000 > 860; $500 and $100 produce money that doesn't pass the filter
-    expect(result).toEqual([
-      [1000, 1000, 140],
-    ])
+    expect(result).toEqual([[1000, 1000, 140]])
   })
 
   // ─── Null cases ─────────────────────────────────────────────────────────
@@ -99,9 +97,7 @@ describe('getChange', () => {
     // 1000 > 500 → [1000, 1000, 500]
     // 500 === 500 → neither branch, skipped
     // 100 < 500 → money = 100*(5+1) = 600; 600 > 500 and 600 < COMMON_BILLS[1]=500? No → skip
-    expect(result).toEqual([
-      [1000, 1000, 500],
-    ])
+    expect(result).toEqual([[1000, 1000, 500]])
   })
 
   it('should return empty array for total=1000 (equals $1000 bill exactly)', () => {
@@ -133,9 +129,7 @@ describe('getChange', () => {
     // 1000 < 1500 → money = 1000*(1+1) = 2000; 2000 > 1500 and index=0 → [1000, 2000, 500]
     // 500 < 1500 → money = 500*(1+1) = 1000; 1000 > 1500? No → skip
     // 100 < 1500 → money = 100*(1+1) = 200; 200 > 1500? No → skip
-    expect(result).toEqual([
-      [1000, 2000, 500],
-    ])
+    expect(result).toEqual([[1000, 2000, 500]])
   })
 
   it('should return results for total=2500', () => {
@@ -143,9 +137,7 @@ describe('getChange', () => {
     // 1000 < 2500 → money = 1000*(2+1) = 3000; 3000 > 2500 and index=0 → [1000, 3000, 500]
     // 500 < 2500 → money = 500*(2+1) = 1500; 1500 > 2500? No → skip
     // 100 < 2500 → money = 100*(2+1) = 300; 300 > 2500? No → skip
-    expect(result).toEqual([
-      [1000, 3000, 500],
-    ])
+    expect(result).toEqual([[1000, 3000, 500]])
   })
 
   it('should return results for total=9999 (max 4-digit)', () => {
@@ -153,9 +145,7 @@ describe('getChange', () => {
     // 1000 < 9999 → money = 1000*(9+1) = 10000; 10000 > 9999 and index=0 → [1000, 10000, 1]
     // 500 < 9999 → money = 500*(9+1) = 5000; 5000 > 9999? No → skip
     // 100 < 9999 → money = 100*(9+1) = 1000; 1000 > 9999? No → skip
-    expect(result).toEqual([
-      [1000, 10000, 1],
-    ])
+    expect(result).toEqual([[1000, 10000, 1]])
   })
 
   // ─── Empty result (not null but empty array) ───────────────────────────
@@ -166,9 +156,7 @@ describe('getChange', () => {
     // 500 < 5000 → money = 500*(5+1) = 3000; 3000 > 5000? No → skip
     // 100 < 5000 → money = 100*(5+1) = 600; 600 > 5000? No → skip
     const result = getChange(5000)
-    expect(result).toEqual([
-      [1000, 6000, 1000],
-    ])
+    expect(result).toEqual([[1000, 6000, 1000]])
   })
 
   // ─── Return type is readonly ──────────────────────────────────────────

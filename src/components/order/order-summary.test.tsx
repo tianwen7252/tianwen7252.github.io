@@ -51,7 +51,9 @@ describe('OrderSummary', () => {
     const { container } = render(
       <OrderSummary bentoCount={2} soupCount={2} total={200} />,
     )
-    const bentoSoupRow = container.querySelector('[data-testid="bento-soup-row"]')
+    const bentoSoupRow = container.querySelector(
+      '[data-testid="bento-soup-row"]',
+    )
     expect(bentoSoupRow).toBeTruthy()
     // Lucide icons render as <svg> elements
     const svgs = bentoSoupRow!.querySelectorAll('svg')

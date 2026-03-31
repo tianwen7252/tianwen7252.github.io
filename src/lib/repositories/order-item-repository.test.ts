@@ -219,9 +219,9 @@ describe('OrderItemRepository', () => {
       ])
 
       // First two calls should be INSERT statements
-      const insertCalls = vi.mocked(db.exec).mock.calls.filter(
-        (call) => String(call[0]).includes('INSERT'),
-      )
+      const insertCalls = vi
+        .mocked(db.exec)
+        .mock.calls.filter(call => String(call[0]).includes('INSERT'))
       expect(insertCalls).toHaveLength(2)
     })
 
@@ -335,8 +335,22 @@ describe('OrderItemRepository', () => {
       const repo = createOrderItemRepository(db)
       await expect(
         repo.createBatch([
-          { orderId: 'order-001', commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 1, includesSoup: false },
-          { orderId: 'order-002', commodityId: 'com-001', name: '滷肉便當', price: 100, quantity: 1, includesSoup: false },
+          {
+            orderId: 'order-001',
+            commodityId: 'com-001',
+            name: '滷肉便當',
+            price: 100,
+            quantity: 1,
+            includesSoup: false,
+          },
+          {
+            orderId: 'order-002',
+            commodityId: 'com-001',
+            name: '滷肉便當',
+            price: 100,
+            quantity: 1,
+            includesSoup: false,
+          },
         ]),
       ).rejects.toThrow('createBatch: all items must share the same orderId')
     })

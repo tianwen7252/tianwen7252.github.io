@@ -5,7 +5,10 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import type { StatisticsRepository, DailyHeadcount } from '@/lib/repositories/statistics-repository'
+import type {
+  StatisticsRepository,
+  DailyHeadcount,
+} from '@/lib/repositories/statistics-repository'
 import { AttendanceCalendar } from './attendance-calendar'
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -16,11 +19,13 @@ const TOTAL_EMPLOYEES = 10
 
 const SAMPLE_DATA: DailyHeadcount[] = [
   { date: '2026-03-01', count: 10 }, // full
-  { date: '2026-03-02', count: 5 },  // partial
-  { date: '2026-03-03', count: 0 },  // none
+  { date: '2026-03-02', count: 5 }, // partial
+  { date: '2026-03-03', count: 0 }, // none
 ]
 
-function buildMockRepo(overrides?: Partial<StatisticsRepository>): StatisticsRepository {
+function buildMockRepo(
+  overrides?: Partial<StatisticsRepository>,
+): StatisticsRepository {
   return {
     getProductKpis: vi.fn().mockResolvedValue({}),
     getHourlyOrderDistribution: vi.fn().mockResolvedValue([]),
@@ -127,7 +132,9 @@ describe('AttendanceCalendar', () => {
           startDate={START_DATE}
         />,
       )
-      expect(screen.getByTestId('day-2026-03-01').textContent).toContain('10 人')
+      expect(screen.getByTestId('day-2026-03-01').textContent).toContain(
+        '10 人',
+      )
       expect(screen.getByTestId('day-2026-03-02').textContent).toContain('5 人')
     })
 
@@ -193,7 +200,9 @@ describe('AttendanceCalendar', () => {
           startDate={START_DATE}
         />,
       )
-      expect(screen.getByTestId('day-2026-03-15').dataset['attendance']).toBe('none')
+      expect(screen.getByTestId('day-2026-03-15').dataset['attendance']).toBe(
+        'none',
+      )
     })
   })
 
@@ -261,7 +270,9 @@ describe('AttendanceCalendar', () => {
 
     it('shows error message when getDailyAttendeeList rejects', async () => {
       const repo = buildMockRepo({
-        getDailyAttendeeList: vi.fn().mockRejectedValue(new Error('出勤名單載入失敗')),
+        getDailyAttendeeList: vi
+          .fn()
+          .mockRejectedValue(new Error('出勤名單載入失敗')),
       })
       render(
         <AttendanceCalendar
@@ -281,7 +292,9 @@ describe('AttendanceCalendar', () => {
 
     it('shows loading status while fetching attendees', () => {
       const repo = buildMockRepo({
-        getDailyAttendeeList: vi.fn().mockImplementation(() => new Promise(() => {})),
+        getDailyAttendeeList: vi
+          .fn()
+          .mockImplementation(() => new Promise(() => {})),
       })
       render(
         <AttendanceCalendar
