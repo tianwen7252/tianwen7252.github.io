@@ -2,6 +2,7 @@
  * Product management components barrel export.
  */
 
+export type { SectionRef, ChangeSummaryItem } from './types'
 export { SortableList } from './sortable-list'
 export type { DragHandleProps } from './sortable-list'
 export { CommodityTypeSection } from './commodity-type-section'

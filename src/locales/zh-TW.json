@@ -401,6 +401,11 @@
   },
   "productMgmt": {
     "tabTitle": "商品管理",
+    "saveSettings": "儲存設定",
+    "saveConfirmTitle": "確認儲存設定",
+    "saveSuccess": "設定已儲存",
+    "saveError": "儲存失敗",
+    "noChanges": "沒有任何變更",
     "reset": {
       "button": "還原預設",
       "confirmTitle": "確認還原預設",

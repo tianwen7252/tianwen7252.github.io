@@ -401,6 +401,11 @@
   },
   "productMgmt": {
     "tabTitle": "Products",
+    "saveSettings": "Save Settings",
+    "saveConfirmTitle": "Confirm Save Settings",
+    "saveSuccess": "Settings saved",
+    "saveError": "Save failed",
+    "noChanges": "No changes",
     "reset": {
       "button": "Reset to Default",
       "confirmTitle": "Confirm Reset",

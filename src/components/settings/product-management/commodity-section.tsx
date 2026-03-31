@@ -1,15 +1,15 @@
 /**
- * CommoditySection — Tabbed product management with drag-and-drop reordering.
- * Shows category tabs (one per commodity type) and a sortable list of products.
+ * CommoditySection -- Tabbed product management with drag-and-drop reordering.
+ * All changes are local-only until the parent calls save() via SectionRef.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nanoid } from 'nanoid'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
-import { notify } from '@/components/ui/sonner'
 import { getCommodityTypeRepo, getCommodityRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
@@ -17,10 +17,10 @@ import { CommodityCard } from './commodity-card'
 import { CommodityForm } from './commodity-form'
 import type { CommodityType, Commodity } from '@/lib/schemas'
 import type { CommodityFormValues } from '@/lib/form-schemas'
+import type { SectionRef, ChangeSummaryItem } from './types'
 
 // ── Color mapping for tab pill styling using theme variables ──────────────
 
-// Match the order page category-accent colors (keyed by typeId)
 const TAB_COLOR_MAP: Record<string, string> = {
   bento: '#7f956a',
   single: '#d4a76a',
@@ -32,19 +32,45 @@ function resolveTabColor(typeId: string): string {
   return TAB_COLOR_MAP[typeId] ?? '#7f956a'
 }
 
-interface CommoditySectionProps {
-  readonly refreshKey: number
-  readonly onRefresh: () => void
+// ── Temp ID helper ────────────────────────────────────────────────────────
+
+const TEMP_ID_PREFIX = 'temp-'
+
+function isTempId(id: string): boolean {
+  return id.startsWith(TEMP_ID_PREFIX)
 }
 
-export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProps) {
+// ── Pending change types ─────────────────────────────────────────────────
+
+interface PendingAdd {
+  readonly commodity: Commodity
+}
+
+interface PendingEdit {
+  readonly id: string
+  readonly originalName: string
+  readonly changes: Partial<{
+    name: string
+    price: number
+    includesSoup: boolean
+  }>
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
+
+interface CommoditySectionProps {
+  readonly refreshKey: number
+  readonly onHasChanges: (has: boolean) => void
+  readonly sectionRef: React.RefObject<SectionRef | null>
+}
+
+export function CommoditySection({
+  refreshKey,
+  onHasChanges,
+  sectionRef,
+}: CommoditySectionProps) {
   const { t } = useTranslation()
   const [activeTypeId, setActiveTypeId] = useState<string | null>(null)
-
-  // Optimistic reorder state — shows new order immediately while DB updates
-  const [optimisticCommodities, setOptimisticCommodities] = useState<
-    readonly Commodity[] | null
-  >(null)
 
   // Modal state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -52,6 +78,16 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
     null,
   )
   const [deleteTarget, setDeleteTarget] = useState<Commodity | null>(null)
+
+  // Pending local changes
+  const [pendingAdds, setPendingAdds] = useState<readonly PendingAdd[]>([])
+  const [pendingEdits, setPendingEdits] = useState<readonly PendingEdit[]>([])
+  const [pendingDeletes, setPendingDeletes] = useState<ReadonlySet<string>>(
+    new Set(),
+  )
+  const [reorderedIds, setReorderedIds] = useState<
+    ReadonlyMap<string, readonly string[]>
+  >(new Map())
 
   // Load commodity types
   const commodityTypes = useDbQuery(
@@ -64,7 +100,7 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
   const selectedTypeId = activeTypeId ?? commodityTypes[0]?.typeId ?? null
 
   // Load commodities for the selected type
-  const commodities = useDbQuery(
+  const dbCommodities = useDbQuery(
     () =>
       selectedTypeId
         ? getCommodityRepo().findByTypeId(selectedTypeId)
@@ -74,19 +110,189 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
   )
 
   // Load all commodities for tab count badges
-  const allCommodities = useDbQuery(
+  const allDbCommodities = useDbQuery(
     () => getCommodityRepo().findOnMarket(),
     [refreshKey],
     [] as Commodity[],
   )
 
-  const refresh = onRefresh
+  // Reset local state on refreshKey change
+  const [prevRefreshKey, setPrevRefreshKey] = useState(refreshKey)
+  if (prevRefreshKey !== refreshKey) {
+    setPrevRefreshKey(refreshKey)
+    setPendingAdds([])
+    setPendingEdits([])
+    setPendingDeletes(new Set())
+    setReorderedIds(new Map())
+  }
 
-  // Count commodities per type for tab badges
+  // Build the displayed commodities for current tab
+  const displayedCommodities = useMemo(() => {
+    if (!selectedTypeId) return []
+
+    // Start with DB items, filter out pending deletes
+    let items = dbCommodities.filter(c => !pendingDeletes.has(c.id))
+
+    // Apply pending edits to existing items
+    items = items.map(c => {
+      const edit = pendingEdits.find(e => e.id === c.id)
+      if (!edit) return c
+      return { ...c, ...edit.changes }
+    })
+
+    // Add pending adds for this type
+    const addsForType = pendingAdds
+      .filter(a => a.commodity.typeId === selectedTypeId)
+      .map(a => a.commodity)
+    items = [...items, ...addsForType]
+
+    // Apply reorder if present
+    const typeReorder = reorderedIds.get(selectedTypeId)
+    if (typeReorder) {
+      const ordered: Commodity[] = []
+      for (const id of typeReorder) {
+        const item = items.find(c => c.id === id)
+        if (item) ordered.push(item)
+      }
+      // Add any items not in the reorder list (newly added after reorder)
+      for (const item of items) {
+        if (!typeReorder.includes(item.id)) ordered.push(item)
+      }
+      items = ordered.map((c, i) => ({ ...c, priority: i + 1 }))
+    }
+
+    return items
+  }, [
+    selectedTypeId,
+    dbCommodities,
+    pendingAdds,
+    pendingEdits,
+    pendingDeletes,
+    reorderedIds,
+  ])
+
+  // Count commodities per type for tab badges (including pending changes)
   const countByType = useCallback(
-    (typeId: string) => allCommodities.filter(c => c.typeId === typeId).length,
-    [allCommodities],
+    (typeId: string) => {
+      const dbCount = allDbCommodities.filter(
+        c => c.typeId === typeId && !pendingDeletes.has(c.id),
+      ).length
+      const addCount = pendingAdds.filter(
+        a => a.commodity.typeId === typeId,
+      ).length
+      return dbCount + addCount
+    },
+    [allDbCommodities, pendingDeletes, pendingAdds],
   )
+
+  // Check if there are any pending changes
+  const hasChanges =
+    pendingAdds.length > 0 ||
+    pendingEdits.length > 0 ||
+    pendingDeletes.size > 0 ||
+    reorderedIds.size > 0
+
+  // Notify parent of changes
+  useEffect(() => {
+    onHasChanges(hasChanges)
+  }, [hasChanges, onHasChanges])
+
+  // Expose SectionRef
+  const sectionRefValue: SectionRef = useMemo(
+    () => ({
+      async save(): Promise<void> {
+        // Write pending adds
+        for (const add of pendingAdds) {
+          const {
+            id: _tempId,
+            createdAt: _c,
+            updatedAt: _u,
+            ...data
+          } = add.commodity
+          await getCommodityRepo().create(data)
+        }
+
+        // Write pending edits
+        for (const edit of pendingEdits) {
+          await getCommodityRepo().update(edit.id, edit.changes)
+        }
+
+        // Write pending deletes (soft delete)
+        for (const id of pendingDeletes) {
+          await getCommodityRepo().update(id, { onMarket: false })
+        }
+
+        // Write reorder
+        for (const [_typeId, ids] of reorderedIds) {
+          // Filter out temp IDs (they were just created above with new real IDs)
+          const realIds = [...ids].filter(id => !isTempId(id))
+          if (realIds.length > 0) {
+            await getCommodityRepo().updatePriorities(realIds)
+          }
+        }
+      },
+
+      getChangeSummary(): readonly ChangeSummaryItem[] {
+        const items: ChangeSummaryItem[] = []
+
+        for (const add of pendingAdds) {
+          items.push({
+            type: 'add',
+            description: `${t('productMgmt.commodities.toastAdded').replace('商品已新增', '新增商品')}：${add.commodity.name}`,
+          })
+        }
+
+        for (const edit of pendingEdits) {
+          const details: string[] = []
+          if (edit.changes.name) details.push(`名稱: ${edit.changes.name}`)
+          if (edit.changes.price !== undefined)
+            details.push(`價格: ${edit.changes.price}`)
+          items.push({
+            type: 'edit',
+            description: `修改商品：${edit.originalName}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
+          })
+        }
+
+        for (const id of pendingDeletes) {
+          const item =
+            dbCommodities.find(c => c.id === id) ??
+            allDbCommodities.find(c => c.id === id)
+          items.push({
+            type: 'delete',
+            description: `刪除商品：${item?.name ?? id}`,
+          })
+        }
+
+        if (reorderedIds.size > 0) {
+          items.push({
+            type: 'reorder',
+            description: t('productMgmt.commodities.toastReordered'),
+          })
+        }
+
+        return items
+      },
+    }),
+    [
+      pendingAdds,
+      pendingEdits,
+      pendingDeletes,
+      reorderedIds,
+      dbCommodities,
+      allDbCommodities,
+      t,
+    ],
+  )
+
+  // Keep sectionRef.current up to date
+  useEffect(() => {
+    if (sectionRef) {
+      ;(sectionRef as React.MutableRefObject<SectionRef | null>).current =
+        sectionRefValue
+    }
+  }, [sectionRef, sectionRefValue])
+
+  // ── Handlers ──────────────────────────────────────────────────────────
 
   // Tab click
   const handleTabClick = useCallback((typeId: string) => {
@@ -111,47 +317,88 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
     setEditingCommodity(null)
   }, [])
 
-  // Form submit (add or edit)
+  // Form submit (add or edit) -- local only
   const handleFormSubmit = useCallback(
     async (values: CommodityFormValues) => {
-      try {
-        if (editingCommodity) {
-          // Edit mode
-          await getCommodityRepo().update(editingCommodity.id, {
-            name: values.name,
-            price: values.price,
-            includesSoup: values.includesSoup ?? false,
-          })
-          notify.success(t('productMgmt.commodities.toastUpdated'))
-        } else {
-          // Add mode — use the selected type
-          if (!selectedTypeId) return
-
-          // Get the next priority value
-          const existing = await getCommodityRepo().findByTypeId(selectedTypeId)
-          const maxPriority = existing.reduce(
-            (max, c) => Math.max(max, c.priority),
-            0,
+      if (editingCommodity) {
+        // Edit mode
+        if (isTempId(editingCommodity.id)) {
+          // Update within pendingAdds
+          setPendingAdds(prev =>
+            prev.map(a =>
+              a.commodity.id === editingCommodity.id
+                ? {
+                    ...a,
+                    commodity: {
+                      ...a.commodity,
+                      name: values.name,
+                      price: values.price,
+                      includesSoup: values.includesSoup ?? false,
+                    },
+                  }
+                : a,
+            ),
           )
-
-          await getCommodityRepo().create({
-            typeId: selectedTypeId,
-            name: values.name,
-            price: values.price,
-            priority: maxPriority + 1,
-            onMarket: true,
-            includesSoup: values.includesSoup ?? false,
+        } else {
+          // Add or update in pendingEdits
+          setPendingEdits(prev => {
+            const existing = prev.find(e => e.id === editingCommodity.id)
+            if (existing) {
+              return prev.map(e =>
+                e.id === editingCommodity.id
+                  ? {
+                      ...e,
+                      changes: {
+                        ...e.changes,
+                        name: values.name,
+                        price: values.price,
+                        includesSoup: values.includesSoup ?? false,
+                      },
+                    }
+                  : e,
+              )
+            }
+            return [
+              ...prev,
+              {
+                id: editingCommodity.id,
+                originalName: editingCommodity.name,
+                changes: {
+                  name: values.name,
+                  price: values.price,
+                  includesSoup: values.includesSoup ?? false,
+                },
+              },
+            ]
           })
-          notify.success(t('productMgmt.commodities.toastAdded'))
+        }
+      } else {
+        // Add mode -- create temp commodity locally
+        if (!selectedTypeId) return
+
+        const maxPriority = displayedCommodities.reduce(
+          (max, c) => Math.max(max, c.priority),
+          0,
+        )
+
+        const tempCommodity: Commodity = {
+          id: `${TEMP_ID_PREFIX}${nanoid()}`,
+          typeId: selectedTypeId,
+          name: values.name,
+          price: values.price,
+          priority: maxPriority + 1,
+          onMarket: true,
+          includesSoup: values.includesSoup ?? false,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         }
 
-        refresh()
-        handleFormClose()
-      } catch {
-        notify.error(t('productMgmt.commodities.saveError'))
+        setPendingAdds(prev => [...prev, { commodity: tempCommodity }])
       }
+
+      handleFormClose()
     },
-    [editingCommodity, selectedTypeId, refresh, handleFormClose, t],
+    [editingCommodity, selectedTypeId, displayedCommodities, handleFormClose],
   )
 
   // Delete product
@@ -159,58 +406,38 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
     setDeleteTarget(commodity)
   }, [])
 
-  // Confirm deletion (soft delete: set onMarket to false)
-  const handleDeleteConfirm = useCallback(async () => {
+  // Confirm deletion -- local only
+  const handleDeleteConfirm = useCallback(() => {
     if (!deleteTarget) return
 
-    try {
-      await getCommodityRepo().update(deleteTarget.id, { onMarket: false })
-      notify.success(t('productMgmt.commodities.toastDeleted'))
-      refresh()
-    } catch {
-      notify.error(t('productMgmt.commodities.deleteError'))
-    } finally {
-      setDeleteTarget(null)
+    if (isTempId(deleteTarget.id)) {
+      // Remove from pendingAdds
+      setPendingAdds(prev =>
+        prev.filter(a => a.commodity.id !== deleteTarget.id),
+      )
+    } else {
+      // Add to pendingDeletes
+      setPendingDeletes(prev => new Set([...prev, deleteTarget.id]))
+      // Remove any pending edits for this item
+      setPendingEdits(prev => prev.filter(e => e.id !== deleteTarget.id))
     }
-  }, [deleteTarget, refresh, t])
+
+    setDeleteTarget(null)
+  }, [deleteTarget])
 
   // Cancel deletion
   const handleDeleteCancel = useCallback(() => {
     setDeleteTarget(null)
   }, [])
 
-  // Drag reorder with optimistic UI
+  // Drag reorder -- local only
   const handleReorder = useCallback(
-    async (orderedIds: readonly string[]) => {
-      // Optimistic update — reorder items locally before DB write
-      const displayItems = optimisticCommodities ?? commodities
-      const reordered = orderedIds
-        .map((id, i) => {
-          const item = displayItems.find(c => c.id === id)
-          return item ? { ...item, priority: i + 1 } : null
-        })
-        .filter((c): c is Commodity => c !== null)
-      setOptimisticCommodities(reordered)
-
-      try {
-        await getCommodityRepo().updatePriorities([...orderedIds])
-        refresh()
-      } catch {
-        notify.error(t('productMgmt.commodities.reorderError'))
-        setOptimisticCommodities(null)
-      }
+    (orderedIds: readonly string[]) => {
+      if (!selectedTypeId) return
+      setReorderedIds(prev => new Map([...prev, [selectedTypeId, orderedIds]]))
     },
-    [commodities, optimisticCommodities, refresh, t],
+    [selectedTypeId],
   )
-
-  // Clear optimistic state when DB data refreshes
-  const displayedCommodities = optimisticCommodities ?? commodities
-  // Reset optimistic state when commodities change from DB
-  const prevCommoditiesRef = useRef(commodities)
-  if (prevCommoditiesRef.current !== commodities) {
-    prevCommoditiesRef.current = commodities
-    if (optimisticCommodities) setOptimisticCommodities(null)
-  }
 
   return (
     <section>
@@ -278,7 +505,9 @@ export function CommoditySection({ refreshKey, onRefresh }: CommoditySectionProp
             />
           )
           // Skip SwipeToDelete in DragOverlay (overflow-hidden clips the ring)
-          return dragHandleProps.isOverlay ? card : (
+          return dragHandleProps.isOverlay ? (
+            card
+          ) : (
             <SwipeToDelete onDelete={() => handleDeleteClick(commodity)}>
               {card}
             </SwipeToDelete>

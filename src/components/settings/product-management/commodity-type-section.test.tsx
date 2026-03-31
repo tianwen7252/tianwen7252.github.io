@@ -1,17 +1,19 @@
 /**
  * Tests for CommodityTypeSection component.
- * Verifies rendering as row list with drag handle, edit via modal,
- * and reorder operations via the repository.
+ * Verifies rendering, edit via modal, reorder, and SectionRef exposure
+ * (save + getChangeSummary) for the unified save flow.
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import React from 'react'
 import { CommodityTypeSection } from './commodity-type-section'
 import {
   getCommodityTypeRepo,
   resetMockRepositories,
 } from '@/test/mock-repositories'
+import type { SectionRef } from './types'
 
 // Mock the repository provider to use in-memory mock repositories
 vi.mock('@/lib/repositories', () => ({
@@ -80,6 +82,7 @@ vi.mock('./sortable-list', () => ({
     items,
     renderItem,
     getId,
+    onReorder,
   }: {
     items: readonly unknown[]
     renderItem: (item: unknown, dragProps: unknown) => React.ReactNode
@@ -102,6 +105,16 @@ vi.mock('./sortable-list', () => ({
           })}
         </div>
       ))}
+      <button
+        data-testid="trigger-reorder"
+        onClick={() => {
+          // Reverse the order for test purposes
+          const ids = items.map(item => getId(item)).reverse()
+          onReorder(ids)
+        }}
+      >
+        reorder
+      </button>
     </div>
   ),
 }))
@@ -119,12 +132,24 @@ describe('CommodityTypeSection', () => {
 
   describe('rendering', () => {
     it('should render the section title', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
       await screen.findByText('商品種類')
     })
 
     it('should render all 4 commodity types as rows in a sortable list', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
       await screen.findByText('餐盒')
       expect(screen.getByText('單點')).toBeTruthy()
       expect(screen.getByText('飲料')).toBeTruthy()
@@ -133,10 +158,14 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should render priority badges for each type', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
       await screen.findByText('餐盒')
-
-      // Priority badges show numbers 1-4
       expect(screen.getByText('1')).toBeTruthy()
       expect(screen.getByText('2')).toBeTruthy()
       expect(screen.getByText('3')).toBeTruthy()
@@ -144,53 +173,73 @@ describe('CommodityTypeSection', () => {
     })
 
     it('should render drag handles for each type', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
       await screen.findByText('餐盒')
-
       const handles = screen.getAllByTestId('drag-handle')
       expect(handles.length).toBe(4)
     })
 
     it('should render edit buttons for each type', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
       await screen.findByText('餐盒')
-
       const editButtons = screen.getAllByTestId('edit-button')
       expect(editButtons.length).toBe(4)
     })
 
-    it('should NOT render typeId badges (removed from UI)', async () => {
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
-      await screen.findByText('餐盒')
-
-      // typeId values should not appear in the rendered output
-      expect(screen.queryByText('bento')).toBeNull()
-      expect(screen.queryByText('single')).toBeNull()
-      expect(screen.queryByText('drink')).toBeNull()
-      expect(screen.queryByText('dumpling')).toBeNull()
+    it('should NOT render the Save Settings button (moved to parent)', async () => {
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
+      await screen.findByText('商品種類')
+      expect(screen.queryByText('儲存設定')).toBeNull()
     })
   })
 
   describe('edit via modal', () => {
     it('should open edit modal when edit button is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
 
       await screen.findByText('餐盒')
-
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
 
-      // Modal should be open with edit title
       expect(screen.getByRole('dialog', { name: '編輯種類名稱' })).toBeTruthy()
     })
 
     it('should pre-fill the input with the current label', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
 
       await screen.findByText('餐盒')
-
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
 
@@ -199,20 +248,23 @@ describe('CommodityTypeSection', () => {
 
     it('should apply label change locally when confirm is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
 
       await screen.findByText('餐盒')
-
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
 
       const input = screen.getByDisplayValue('餐盒')
       await user.clear(input)
       await user.type(input, '主食')
-
       await user.click(screen.getByRole('button', { name: '確認' }))
 
-      // Label should update locally (not in DB yet)
       await waitFor(() => {
         expect(screen.getByText('主食')).toBeTruthy()
       })
@@ -221,17 +273,100 @@ describe('CommodityTypeSection', () => {
       expect(dbValue?.label).toBe('餐盒')
     })
 
-    it('should show save settings button after changes', async () => {
+    it('should close modal when cancel is clicked', async () => {
       const user = userEvent.setup()
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={React.createRef()}
+        />,
+      )
 
       await screen.findByText('餐盒')
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+      expect(screen.getByTestId('modal')).toBeTruthy()
 
-      // Save button exists but is disabled initially
-      const saveBtn = screen.getByText('儲存設定')
-      expect(saveBtn.closest('button')?.disabled).toBe(true)
+      await user.click(screen.getByRole('button', { name: '取消' }))
+      expect(screen.queryByTestId('modal')).toBeNull()
+    })
+  })
 
-      // Make a change
+  describe('onHasChanges callback', () => {
+    it('should call onHasChanges(true) when a label is changed', async () => {
+      const onHasChanges = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={onHasChanges}
+          sectionRef={React.createRef()}
+        />,
+      )
+
+      await screen.findByText('餐盒')
+      const editButtons = screen.getAllByTestId('edit-button')
+      await user.click(editButtons[0]!)
+
+      const input = screen.getByDisplayValue('餐盒')
+      await user.clear(input)
+      await user.type(input, '主食')
+      await user.click(screen.getByRole('button', { name: '確認' }))
+
+      await waitFor(() => {
+        expect(onHasChanges).toHaveBeenCalledWith(true)
+      })
+    })
+
+    it('should call onHasChanges(true) when items are reordered', async () => {
+      const onHasChanges = vi.fn()
+      const user = userEvent.setup()
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={onHasChanges}
+          sectionRef={React.createRef()}
+        />,
+      )
+
+      await screen.findByText('餐盒')
+      await user.click(screen.getByTestId('trigger-reorder'))
+
+      await waitFor(() => {
+        expect(onHasChanges).toHaveBeenCalledWith(true)
+      })
+    })
+  })
+
+  describe('SectionRef — getChangeSummary', () => {
+    it('should return empty array when no changes', async () => {
+      const ref = React.createRef<SectionRef>()
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('餐盒')
+      const summary = ref.current?.getChangeSummary() ?? []
+      expect(summary).toEqual([])
+    })
+
+    it('should return label change in summary after edit', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('餐盒')
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
       const input = screen.getByDisplayValue('餐盒')
@@ -239,28 +374,68 @@ describe('CommodityTypeSection', () => {
       await user.type(input, '主食')
       await user.click(screen.getByRole('button', { name: '確認' }))
 
-      // Save button should be enabled
       await waitFor(() => {
-        expect(screen.getByText('儲存設定').closest('button')?.disabled).toBe(false)
+        expect(screen.getByText('主食')).toBeTruthy()
       })
+
+      const summary = ref.current?.getChangeSummary() ?? []
+      expect(summary.length).toBeGreaterThanOrEqual(1)
+      expect(summary.some(s => s.type === 'label')).toBe(true)
     })
 
-    it('should close modal when cancel is clicked', async () => {
+    it('should return reorder change in summary after drag', async () => {
+      const ref = React.createRef<SectionRef>()
       const user = userEvent.setup()
-      render(<CommodityTypeSection refreshKey={0} onRefresh={vi.fn()} />)
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
 
       await screen.findByText('餐盒')
+      await user.click(screen.getByTestId('trigger-reorder'))
 
+      await waitFor(() => {
+        const summary = ref.current?.getChangeSummary() ?? []
+        expect(summary.some(s => s.type === 'reorder')).toBe(true)
+      })
+    })
+  })
+
+  describe('SectionRef — save', () => {
+    it('should write label changes to DB when save is called', async () => {
+      const ref = React.createRef<SectionRef>()
+      const user = userEvent.setup()
+      render(
+        <CommodityTypeSection
+          refreshKey={0}
+          onHasChanges={vi.fn()}
+          sectionRef={ref}
+        />,
+      )
+
+      await screen.findByText('餐盒')
       const editButtons = screen.getAllByTestId('edit-button')
       await user.click(editButtons[0]!)
+      const input = screen.getByDisplayValue('餐盒')
+      await user.clear(input)
+      await user.type(input, '主食')
+      await user.click(screen.getByRole('button', { name: '確認' }))
 
-      // Modal is open
-      expect(screen.getByTestId('modal')).toBeTruthy()
+      await waitFor(() => {
+        expect(screen.getByText('主食')).toBeTruthy()
+      })
 
-      await user.click(screen.getByRole('button', { name: '取消' }))
+      // Call save via ref
+      await act(async () => {
+        await ref.current?.save()
+      })
 
-      // Modal should close
-      expect(screen.queryByTestId('modal')).toBeNull()
+      // DB should now have the updated label
+      const dbValue = await getCommodityTypeRepo().findById('ct-001')
+      expect(dbValue?.label).toBe('主食')
     })
   })
 })

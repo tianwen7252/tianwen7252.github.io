@@ -1,16 +1,16 @@
 /**
  * CommodityTypeSection -- Row list showing all commodity types
  * with drag-and-drop reorder and edit-via-modal capability.
- * Changes are accumulated locally and committed via "Save Settings" button.
+ * Changes are accumulated locally and exposed via SectionRef
+ * for the parent to orchestrate a unified save.
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { GripVertical, Pencil, Save } from 'lucide-react'
-import { Modal, ConfirmModal } from '@/components/modal'
+import { GripVertical, Pencil } from 'lucide-react'
+import { Modal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { Input } from '@/components/ui/input'
-import { notify } from '@/components/ui/sonner'
 import { ShineBorder } from '@/components/ui/shine-border'
 import { cn } from '@/lib/cn'
 import { getCommodityTypeRepo } from '@/lib/repositories'
@@ -18,6 +18,7 @@ import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
 import type { CommodityType } from '@/lib/schemas'
 import type { DragHandleProps } from './sortable-list'
+import type { SectionRef, ChangeSummaryItem } from './types'
 
 // ── Pending change types ─────────────────────────────────────────────────
 
@@ -49,11 +50,17 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
   }, [type, onEdit])
 
   return (
-    <div className={cn(
-      'relative flex items-center gap-3 rounded-lg border border-border bg-card p-3',
-    )}>
+    <div
+      className={cn(
+        'relative flex items-center gap-3 rounded-lg border border-border bg-card p-3',
+      )}
+    >
       {dragHandleProps.isOverlay && (
-        <ShineBorder shineColor={['#a8c896', '#c8deb8', '#e4fad9']} duration={4} borderWidth={2} />
+        <ShineBorder
+          shineColor={['#a8c896', '#c8deb8', '#e4fad9']}
+          duration={4}
+          borderWidth={2}
+        />
       )}
       {/* Drag handle */}
       <div
@@ -93,10 +100,15 @@ function TypeRow({ type, dragHandleProps, onEdit }: TypeRowProps) {
 
 interface CommodityTypeSectionProps {
   readonly refreshKey: number
-  readonly onRefresh: () => void
+  readonly onHasChanges: (has: boolean) => void
+  readonly sectionRef: React.RefObject<SectionRef | null>
 }
 
-export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSectionProps) {
+export function CommodityTypeSection({
+  refreshKey,
+  onHasChanges,
+  sectionRef,
+}: CommodityTypeSectionProps) {
   const { t } = useTranslation()
 
   // DB source of truth
@@ -106,18 +118,16 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
     [] as CommodityType[],
   )
 
-  // Local working copy — starts as null (no changes), set on first edit/reorder
-  const [localTypes, setLocalTypes] = useState<readonly CommodityType[] | null>(null)
+  // Local working copy -- starts as null (no changes), set on first edit/reorder
+  const [localTypes, setLocalTypes] = useState<readonly CommodityType[] | null>(
+    null,
+  )
 
   // Edit modal state
   const [editingType, setEditingType] = useState<CommodityType | null>(null)
   const [editValue, setEditValue] = useState('')
 
-  // Save confirm modal state
-  const [isSaveOpen, setIsSaveOpen] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-
-  // The displayed types — local changes override DB
+  // The displayed types -- local changes override DB
   const displayedTypes = localTypes ?? dbTypes
 
   // Reset local state when refreshKey changes (after save or external refresh)
@@ -127,7 +137,7 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
     setLocalTypes(null)
   }
 
-  // Compute pending changes for the confirm modal
+  // Compute pending changes
   const pendingChanges = useMemo(() => {
     if (!localTypes) return null
 
@@ -161,6 +171,68 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
 
   const hasChanges = pendingChanges !== null
 
+  // Notify parent of changes
+  useEffect(() => {
+    onHasChanges(hasChanges)
+  }, [hasChanges, onHasChanges])
+
+  // Expose SectionRef via the sectionRef prop
+  const sectionRefValue: SectionRef = useMemo(
+    () => ({
+      async save(): Promise<void> {
+        if (!localTypes || !pendingChanges) return
+
+        // Write label changes
+        for (const change of pendingChanges.labelChanges) {
+          await getCommodityTypeRepo().update(change.id, {
+            label: change.newLabel,
+          })
+        }
+
+        // Write order changes
+        if (pendingChanges.orderChange) {
+          await getCommodityTypeRepo().updatePriorities([
+            ...pendingChanges.orderChange.newOrder,
+          ])
+        }
+      },
+
+      getChangeSummary(): readonly ChangeSummaryItem[] {
+        if (!pendingChanges) return []
+
+        const items: ChangeSummaryItem[] = []
+
+        for (const change of pendingChanges.labelChanges) {
+          items.push({
+            type: 'label',
+            description: `${change.oldLabel} → ${change.newLabel}`,
+          })
+        }
+
+        if (pendingChanges.orderChange) {
+          const newLabels = pendingChanges.orderChange.newOrder
+            .map(id => pendingChanges.orderChange!.labels.get(id) ?? id)
+            .join(' → ')
+          items.push({
+            type: 'reorder',
+            description: `${t('productMgmt.types.orderChanged')} ${newLabels}`,
+          })
+        }
+
+        return items
+      },
+    }),
+    [localTypes, pendingChanges, t],
+  )
+
+  // Keep sectionRef.current up to date
+  useEffect(() => {
+    if (sectionRef) {
+      ;(sectionRef as React.MutableRefObject<SectionRef | null>).current =
+        sectionRefValue
+    }
+  }, [sectionRef, sectionRefValue])
+
   // ── Handlers ──────────────────────────────────────────────────────────
 
   // Open edit modal
@@ -193,7 +265,7 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
     handleEditClose()
   }, [editingType, editValue, localTypes, dbTypes, handleEditClose])
 
-  // Drag reorder — apply locally
+  // Drag reorder -- apply locally
   const handleReorder = useCallback(
     (orderedIds: readonly string[]) => {
       const current = localTypes ?? dbTypes
@@ -208,56 +280,13 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
     [localTypes, dbTypes],
   )
 
-  // Open save confirm modal
-  const handleSaveClick = useCallback(() => {
-    setIsSaveOpen(true)
-  }, [])
-
-  // Confirm save — write all changes to DB
-  const handleSaveConfirm = useCallback(async () => {
-    if (!localTypes || !pendingChanges) return
-    setIsSaving(true)
-
-    try {
-      // Write label changes
-      for (const change of pendingChanges.labelChanges) {
-        await getCommodityTypeRepo().update(change.id, { label: change.newLabel })
-      }
-
-      // Write order changes
-      if (pendingChanges.orderChange) {
-        await getCommodityTypeRepo().updatePriorities([...pendingChanges.orderChange.newOrder])
-      }
-
-      setIsSaveOpen(false)
-      notify.success(t('productMgmt.types.saveSuccess'))
-      onRefresh()
-    } catch {
-      notify.error(t('productMgmt.types.saveError'))
-    } finally {
-      setIsSaving(false)
-    }
-  }, [localTypes, pendingChanges, t, onRefresh])
-
-  const handleSaveCancel = useCallback(() => {
-    setIsSaveOpen(false)
-  }, [])
-
   return (
     <section className="mb-8">
-      {/* Header with title and save button */}
+      {/* Header with title */}
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-lg text-foreground">
           {t('productMgmt.types.title')}
         </h2>
-        <RippleButton
-            disabled={!hasChanges}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={handleSaveClick}
-          >
-            <Save size={16} />
-            {t('productMgmt.types.saveSettings')}
-          </RippleButton>
       </div>
 
       {/* Sortable type list */}
@@ -314,43 +343,6 @@ export function CommodityTypeSection({ refreshKey, onRefresh }: CommodityTypeSec
           />
         </div>
       </Modal>
-
-      {/* Save confirm modal — shows pending changes */}
-      <ConfirmModal
-        open={isSaveOpen}
-        title={t('productMgmt.types.saveConfirmTitle')}
-        variant="green"
-        shineColor="green"
-        confirmText={t('common.confirm')}
-        loading={isSaving}
-        onConfirm={handleSaveConfirm}
-        onCancel={handleSaveCancel}
-      >
-        <div className="space-y-3 text-base text-foreground">
-          {pendingChanges?.labelChanges.map(change => (
-            <div key={change.id} className="flex items-center gap-2">
-              <span className="text-muted-foreground">{change.oldLabel}</span>
-              <span className="text-muted-foreground">→</span>
-              <span>{change.newLabel}</span>
-            </div>
-          ))}
-          {pendingChanges?.orderChange && (
-            <div>
-              <span className="text-muted-foreground">
-                {t('productMgmt.types.orderChanged')}
-              </span>
-              <div className="mt-1 flex items-center gap-2">
-                {pendingChanges.orderChange.newOrder.map((id, i) => (
-                  <span key={id}>
-                    {i > 0 && <span className="mr-2 text-muted-foreground">→</span>}
-                    {pendingChanges!.orderChange!.labels.get(id)}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </ConfirmModal>
     </section>
   )
 }

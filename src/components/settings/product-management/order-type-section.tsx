@@ -1,15 +1,16 @@
 /**
  * OrderTypeSection -- Section with sortable list of order types.
- * Supports add/edit/delete with modals, drag reorder, and a max of 10 types.
+ * All changes are local-only until the parent calls save() via SectionRef.
+ * Supports add/edit/delete with modals, drag reorder, and max of 10 types.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nanoid } from 'nanoid'
 import { Plus } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
 import { SwipeToDelete } from '@/components/ui/swipe-to-delete'
-import { notify } from '@/components/ui/sonner'
 import { getOrderTypeRepo } from '@/lib/repositories'
 import { useDbQuery } from '@/hooks/use-db-query'
 import { SortableList } from './sortable-list'
@@ -17,23 +18,43 @@ import { OrderTypeCard } from './order-type-card'
 import { OrderTypeForm } from './order-type-form'
 import type { OrderType } from '@/lib/schemas'
 import type { OrderTypeFormValues } from '@/lib/form-schemas'
+import type { SectionRef, ChangeSummaryItem } from './types'
 
 // ── Constants ─────────────────────────────────────────────────────────────
 
 const MAX_ORDER_TYPES = 10
+const TEMP_ID_PREFIX = 'temp-'
+
+function isTempId(id: string): boolean {
+  return id.startsWith(TEMP_ID_PREFIX)
+}
+
+// ── Pending change types ─────────────────────────────────────────────────
+
+interface PendingAdd {
+  readonly orderType: OrderType
+}
+
+interface PendingEdit {
+  readonly id: string
+  readonly originalName: string
+  readonly changes: Partial<{ name: string; color: string }>
+}
+
+// ── Component ─────────────────────────────────────────────────────────────
 
 interface OrderTypeSectionProps {
   readonly refreshKey: number
-  readonly onRefresh: () => void
+  readonly onHasChanges: (has: boolean) => void
+  readonly sectionRef: React.RefObject<SectionRef | null>
 }
 
-export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProps) {
+export function OrderTypeSection({
+  refreshKey,
+  onHasChanges,
+  sectionRef,
+}: OrderTypeSectionProps) {
   const { t } = useTranslation()
-
-  // Optimistic reorder state
-  const [optimisticOrderTypes, setOptimisticOrderTypes] = useState<
-    readonly OrderType[] | null
-  >(null)
 
   // Modal state
   const [isFormOpen, setIsFormOpen] = useState(false)
@@ -42,16 +63,165 @@ export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProp
   )
   const [deleteTarget, setDeleteTarget] = useState<OrderType | null>(null)
 
+  // Pending local changes
+  const [pendingAdds, setPendingAdds] = useState<readonly PendingAdd[]>([])
+  const [pendingEdits, setPendingEdits] = useState<readonly PendingEdit[]>([])
+  const [pendingDeletes, setPendingDeletes] = useState<ReadonlySet<string>>(
+    new Set(),
+  )
+  const [reorderedIds, setReorderedIds] = useState<readonly string[] | null>(
+    null,
+  )
+
   // Load order types from DB
-  const orderTypes = useDbQuery(
+  const dbOrderTypes = useDbQuery(
     () => getOrderTypeRepo().findAll(),
     [refreshKey],
     [] as OrderType[],
   )
 
-  const isMaxReached = orderTypes.length >= MAX_ORDER_TYPES
+  // Reset local state on refreshKey change
+  const [prevRefreshKey, setPrevRefreshKey] = useState(refreshKey)
+  if (prevRefreshKey !== refreshKey) {
+    setPrevRefreshKey(refreshKey)
+    setPendingAdds([])
+    setPendingEdits([])
+    setPendingDeletes(new Set())
+    setReorderedIds(null)
+  }
 
-  const refresh = onRefresh
+  // Build displayed order types
+  const displayedOrderTypes = useMemo(() => {
+    // Start with DB items, filter out pending deletes
+    let items = dbOrderTypes.filter(ot => !pendingDeletes.has(ot.id))
+
+    // Apply pending edits
+    items = items.map(ot => {
+      const edit = pendingEdits.find(e => e.id === ot.id)
+      if (!edit) return ot
+      return { ...ot, ...edit.changes }
+    })
+
+    // Add pending adds
+    const addsItems = pendingAdds.map(a => a.orderType)
+    items = [...items, ...addsItems]
+
+    // Apply reorder if present
+    if (reorderedIds) {
+      const ordered: OrderType[] = []
+      for (const id of reorderedIds) {
+        const item = items.find(ot => ot.id === id)
+        if (item) ordered.push(item)
+      }
+      // Add items not in the reorder list
+      for (const item of items) {
+        if (!reorderedIds.includes(item.id)) ordered.push(item)
+      }
+      items = ordered.map((ot, i) => ({ ...ot, priority: i + 1 }))
+    }
+
+    return items
+  }, [dbOrderTypes, pendingAdds, pendingEdits, pendingDeletes, reorderedIds])
+
+  const isMaxReached = displayedOrderTypes.length >= MAX_ORDER_TYPES
+
+  // Check if there are any pending changes
+  const hasChanges =
+    pendingAdds.length > 0 ||
+    pendingEdits.length > 0 ||
+    pendingDeletes.size > 0 ||
+    reorderedIds !== null
+
+  // Notify parent of changes
+  useEffect(() => {
+    onHasChanges(hasChanges)
+  }, [hasChanges, onHasChanges])
+
+  // Expose SectionRef
+  const sectionRefValue: SectionRef = useMemo(
+    () => ({
+      async save(): Promise<void> {
+        // Write pending adds
+        for (const add of pendingAdds) {
+          const {
+            id: _tempId,
+            createdAt: _c,
+            updatedAt: _u,
+            ...data
+          } = add.orderType
+          await getOrderTypeRepo().create(data)
+        }
+
+        // Write pending edits
+        for (const edit of pendingEdits) {
+          await getOrderTypeRepo().update(edit.id, edit.changes)
+        }
+
+        // Write pending deletes
+        for (const id of pendingDeletes) {
+          await getOrderTypeRepo().remove(id)
+        }
+
+        // Write reorder
+        if (reorderedIds) {
+          const realIds = [...reorderedIds].filter(id => !isTempId(id))
+          if (realIds.length > 0) {
+            await getOrderTypeRepo().updatePriorities(realIds)
+          }
+        }
+      },
+
+      getChangeSummary(): readonly ChangeSummaryItem[] {
+        const items: ChangeSummaryItem[] = []
+
+        for (const add of pendingAdds) {
+          items.push({
+            type: 'add',
+            description: `新增分類：${add.orderType.name}`,
+          })
+        }
+
+        for (const edit of pendingEdits) {
+          const details: string[] = []
+          if (edit.changes.name) details.push(`名稱: ${edit.changes.name}`)
+          if (edit.changes.color !== undefined)
+            details.push(`顏色: ${edit.changes.color || '無'}`)
+          items.push({
+            type: 'edit',
+            description: `修改分類：${edit.originalName}${details.length > 0 ? `（${details.join('、')}）` : ''}`,
+          })
+        }
+
+        for (const id of pendingDeletes) {
+          const item = dbOrderTypes.find(ot => ot.id === id)
+          items.push({
+            type: 'delete',
+            description: `刪除分類：${item?.name ?? id}`,
+          })
+        }
+
+        if (reorderedIds) {
+          items.push({
+            type: 'reorder',
+            description: t('productMgmt.orderTypes.toastReordered'),
+          })
+        }
+
+        return items
+      },
+    }),
+    [pendingAdds, pendingEdits, pendingDeletes, reorderedIds, dbOrderTypes, t],
+  )
+
+  // Keep sectionRef.current up to date
+  useEffect(() => {
+    if (sectionRef) {
+      ;(sectionRef as React.MutableRefObject<SectionRef | null>).current =
+        sectionRefValue
+    }
+  }, [sectionRef, sectionRefValue])
+
+  // ── Handlers ──────────────────────────────────────────────────────────
 
   // Add order type
   const handleAdd = useCallback(() => {
@@ -71,40 +241,78 @@ export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProp
     setEditingOrderType(null)
   }, [])
 
-  // Form submit (add or edit)
+  // Form submit (add or edit) -- local only
   const handleFormSubmit = useCallback(
     async (values: OrderTypeFormValues) => {
-      try {
-        if (editingOrderType) {
-          // Edit mode
-          await getOrderTypeRepo().update(editingOrderType.id, {
-            name: values.name,
-            color: values.color,
-          })
-          notify.success(t('productMgmt.orderTypes.toastUpdated'))
-        } else {
-          // Add mode
-          const maxPriority = orderTypes.reduce(
-            (max, ot) => Math.max(max, ot.priority),
-            0,
+      if (editingOrderType) {
+        // Edit mode
+        if (isTempId(editingOrderType.id)) {
+          // Update within pendingAdds
+          setPendingAdds(prev =>
+            prev.map(a =>
+              a.orderType.id === editingOrderType.id
+                ? {
+                    ...a,
+                    orderType: {
+                      ...a.orderType,
+                      name: values.name,
+                      color: values.color,
+                    },
+                  }
+                : a,
+            ),
           )
-
-          await getOrderTypeRepo().create({
-            name: values.name,
-            priority: maxPriority + 1,
-            type: 'order',
-            color: values.color,
+        } else {
+          // Add or update in pendingEdits
+          setPendingEdits(prev => {
+            const existing = prev.find(e => e.id === editingOrderType.id)
+            if (existing) {
+              return prev.map(e =>
+                e.id === editingOrderType.id
+                  ? {
+                      ...e,
+                      changes: {
+                        ...e.changes,
+                        name: values.name,
+                        color: values.color,
+                      },
+                    }
+                  : e,
+              )
+            }
+            return [
+              ...prev,
+              {
+                id: editingOrderType.id,
+                originalName: editingOrderType.name,
+                changes: { name: values.name, color: values.color },
+              },
+            ]
           })
-          notify.success(t('productMgmt.orderTypes.toastAdded'))
+        }
+      } else {
+        // Add mode -- create temp order type locally
+        const maxPriority = displayedOrderTypes.reduce(
+          (max, ot) => Math.max(max, ot.priority),
+          0,
+        )
+
+        const tempOrderType: OrderType = {
+          id: `${TEMP_ID_PREFIX}${nanoid()}`,
+          name: values.name,
+          priority: maxPriority + 1,
+          type: 'order',
+          color: values.color,
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
         }
 
-        refresh()
-        handleFormClose()
-      } catch {
-        notify.error(t('productMgmt.orderTypes.saveError'))
+        setPendingAdds(prev => [...prev, { orderType: tempOrderType }])
       }
+
+      handleFormClose()
     },
-    [editingOrderType, orderTypes, refresh, handleFormClose, t],
+    [editingOrderType, displayedOrderTypes, handleFormClose],
   )
 
   // Delete order type
@@ -112,56 +320,34 @@ export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProp
     setDeleteTarget(orderType)
   }, [])
 
-  // Confirm deletion
-  const handleDeleteConfirm = useCallback(async () => {
+  // Confirm deletion -- local only
+  const handleDeleteConfirm = useCallback(() => {
     if (!deleteTarget) return
 
-    try {
-      await getOrderTypeRepo().remove(deleteTarget.id)
-      notify.success(t('productMgmt.orderTypes.toastDeleted'))
-      refresh()
-    } catch {
-      notify.error(t('productMgmt.orderTypes.deleteError'))
-    } finally {
-      setDeleteTarget(null)
+    if (isTempId(deleteTarget.id)) {
+      // Remove from pendingAdds
+      setPendingAdds(prev =>
+        prev.filter(a => a.orderType.id !== deleteTarget.id),
+      )
+    } else {
+      // Add to pendingDeletes
+      setPendingDeletes(prev => new Set([...prev, deleteTarget.id]))
+      // Remove any pending edits
+      setPendingEdits(prev => prev.filter(e => e.id !== deleteTarget.id))
     }
-  }, [deleteTarget, refresh, t])
+
+    setDeleteTarget(null)
+  }, [deleteTarget])
 
   // Cancel deletion
   const handleDeleteCancel = useCallback(() => {
     setDeleteTarget(null)
   }, [])
 
-  // Drag reorder with optimistic UI
-  const handleReorder = useCallback(
-    async (orderedIds: readonly string[]) => {
-      const displayItems = optimisticOrderTypes ?? orderTypes
-      const reordered = orderedIds
-        .map((id, i) => {
-          const item = displayItems.find(ot => ot.id === id)
-          return item ? { ...item, priority: i + 1 } : null
-        })
-        .filter((ot): ot is OrderType => ot !== null)
-      setOptimisticOrderTypes(reordered)
-
-      try {
-        await getOrderTypeRepo().updatePriorities([...orderedIds])
-        refresh()
-      } catch {
-        notify.error(t('productMgmt.orderTypes.reorderError'))
-        setOptimisticOrderTypes(null)
-      }
-    },
-    [orderTypes, optimisticOrderTypes, refresh, t],
-  )
-
-  // Clear optimistic state when DB data refreshes
-  const displayedOrderTypes = optimisticOrderTypes ?? orderTypes
-  const prevOrderTypesRef = useRef(orderTypes)
-  if (prevOrderTypesRef.current !== orderTypes) {
-    prevOrderTypesRef.current = orderTypes
-    if (optimisticOrderTypes) setOptimisticOrderTypes(null)
-  }
+  // Drag reorder -- local only
+  const handleReorder = useCallback((orderedIds: readonly string[]) => {
+    setReorderedIds(orderedIds)
+  }, [])
 
   return (
     <section className="mb-8">
@@ -196,7 +382,9 @@ export function OrderTypeSection({ refreshKey, onRefresh }: OrderTypeSectionProp
               onDelete={handleDeleteClick}
             />
           )
-          return dragHandleProps.isOverlay ? card : (
+          return dragHandleProps.isOverlay ? (
+            card
+          ) : (
             <SwipeToDelete onDelete={() => handleDeleteClick(orderType)}>
               {card}
             </SwipeToDelete>
