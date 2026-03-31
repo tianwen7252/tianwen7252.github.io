@@ -147,7 +147,7 @@ export function StaffAdmin() {
     <div className="p-6">
       {/* Header with add button */}
       <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-xl font-medium text-foreground">
+        <h3 className="text-xl font-medium">
           {t('staff.title')}
         </h3>
         <button
