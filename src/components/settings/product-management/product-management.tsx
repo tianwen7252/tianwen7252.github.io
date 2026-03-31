@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { Save } from 'lucide-react'
 import { ConfirmModal } from '@/components/modal'
 import { RippleButton } from '@/components/ui/ripple-button'
+import { ShineBorder } from '@/components/ui/shine-border'
 import { notify } from '@/components/ui/sonner'
 import { CommodityTypeSection } from './commodity-type-section'
 import { CommoditySection } from './commodity-section'
@@ -92,14 +93,23 @@ export function ProductManagement() {
     <div className="space-y-8 p-6">
       {/* Unified Save Settings button */}
       <div className="flex justify-end">
-        <RippleButton
-          disabled={!hasAnyChanges}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-base text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
-          onClick={handleSaveClick}
-        >
-          <Save size={16} />
-          {t('productMgmt.saveSettings')}
-        </RippleButton>
+        <div className="relative rounded-lg">
+          {hasAnyChanges && (
+            <ShineBorder
+              shineColor={['#A07CFE', '#FE8FB5', '#FFBE7B']}
+              duration={4}
+              borderWidth={2}
+            />
+          )}
+          <RippleButton
+            disabled={!hasAnyChanges}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-4 py-2 text-base text-foreground hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleSaveClick}
+          >
+            <Save size={16} />
+            {t('productMgmt.saveSettings')}
+          </RippleButton>
+        </div>
       </div>
 
       <CommodityTypeSection
